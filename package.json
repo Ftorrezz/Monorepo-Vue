@@ -1,0 +1,36 @@
+{
+  "name": "quasar-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "libs/*"
+  ],
+  "scripts": {
+    "dev:neo-auth": "yarn workspace neo-auth dev",
+    "dev:neo-qc": "yarn workspace neo-qc dev",
+    "build:all": "yarn workspaces run build"
+  },
+  "dependencies": {
+    "@quasar/extras": "^1.16.4",
+    "axios": "^1.2.1",
+    "bcryptjs": "^2.4.3",
+    "pinia": "^2.0.11",
+    "pinia-plugin-persistedstate": "^3.2.1",
+    "quasar": "^2.8.0",
+    "sweetalert2": "^11.10.8",
+    "vue": "^3.4.18",
+    "vue-i18n": "^9.2.2",
+    "vue-router": "^4.0.12"
+  },
+  "devDependencies": {
+    "@intlify/vite-plugin-vue-i18n": "^3.3.1",
+    "@quasar/app-vite": "^1.8.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^12.20.21",
+    "autoprefixer": "^10.4.2",
+    "typescript": "^4.5.4"
+  }
+
+}
+
