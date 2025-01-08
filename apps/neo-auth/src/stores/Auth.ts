@@ -1,10 +1,7 @@
 import { defineStore } from 'pinia';
-import { Usuario } from 'src/common/interface/usuario.interfaz';
-import Api from 'src/controles/api';
+import { Usuario } from '../../../../libs/shared/src/interfaces/usuario.interfaz';
 import NdEncriptacion from 'src/controles/encriptacion';
 import NdPeticionControl from 'src/controles/rest.control';
-import { ref } from "vue";
-import { useRouter } from 'vue-router';
 
 export const useAuthStore = defineStore('useAuthStore', {
 

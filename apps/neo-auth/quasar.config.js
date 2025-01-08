@@ -100,6 +100,9 @@ module.exports = configure(function (/* ctx */) {
           fallbackLocale: 'es',
           // Otras configuraciones de i18n según sea necesario
         },
+        /*brand: {
+          primary: 'var(--primary-color)',
+        },*/
 
       },
 

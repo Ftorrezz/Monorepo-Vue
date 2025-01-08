@@ -178,24 +178,7 @@ const routes: RouteRecordRaw[] = [
       },
     ],
   },
-
-  {
-    path: "/gestionlaboratorio",
-    name: "gestionlaboratorio",
-    redirect: { name: "dashboardlaboratorio" },
-    component: () =>
-      import("src/modules/GestionLaboratorio/layouts/LaboratorioLayout.vue"),
-    children: [
-      {
-        path: "dashboardlaboratorio",
-        name: "dashboardlaboratorio",
-        component: () =>
-          import("src/modules/GestionLaboratorio/pages/Dashboard.vue"),
-        meta: { requireAuth: false },
-      },
-    ],
-  },
-
+  
   {
     path: '/login',
     name: 'login',
