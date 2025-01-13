@@ -4,24 +4,27 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: () => import('layouts/Layout.vue'),
-    children: [{ path: '', name: 'inicio', component: () => import('pages/Index.vue') }],
+    children: [
+      { path: '',
+        name: 'inicio',
+        component: () => import('pages/Index.vue'),
+        meta: { requireAuth: true },
+      },
+
+
+
+
+      ],
     meta: { requireAuth: true },
 
   },
-  {
+  /*{
     path: "/gestionhospital",
     name: "gestionhospital",
     redirect: { name: "dashboardhospital" },
     component: () =>
       import("src/modules/GestionHospitalaria/layouts/HospitalLayout.vue"),
     children: [
-      /*{
-        path: "",
-        name: "inicio",
-        component: () => import("pages/Index.vue"),
-        meta: { requireAuth: true },
-      },*/
-
       {
         path: "dashboardhospital",
         name: "dashboardhospital",
@@ -177,7 +180,7 @@ const routes: RouteRecordRaw[] = [
         meta: { requireAuth: true },
       },
     ],
-  },
+  },*/
 
   {
     path: '/login',

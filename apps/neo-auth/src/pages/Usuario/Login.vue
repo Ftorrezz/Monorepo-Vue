@@ -12,7 +12,7 @@
                   <span class="ml-2">NeoHIS</span>
                   <div class="text-subtitle2">
                     {{ $t("descripcionsistema") }}
-                    
+
                   </div>
                 </div>
               </div>
@@ -58,7 +58,7 @@
                   </q-btn>
                 </div>
                 <div class="row items-center justify-between">
-                  
+
                   <q-select
                     v-model="locale"
                     :options="localeOptions"
@@ -79,7 +79,7 @@
                     icon="mail"
                     :label="t('forgotPassword')"
                   />-->
-                  <q-btn 
+                  <q-btn
                     flat
                     dense
                     color="accent"
@@ -89,7 +89,7 @@
                     class="text-decoration-underline cursor-pointer"
                     style="font-size: 0.8em"
                   />
-                  
+
                 </div>
 
                 <div v-if="olvidoClave && userForm.nombreusuario">
@@ -97,6 +97,9 @@
                     :nombreUsuario="userForm.nombreusuario"
                     @cancelar="cancelarOlvidoClave"
                   />
+                </div>
+                <div v-if="seleccionarUbicacion">
+                  <DialogoUbicacion/>
                 </div>
               </q-form>
             </q-card-section>
@@ -114,6 +117,7 @@ import useAuth from "../../composables/useAuth";
 import { useQuasar } from "quasar";
 import { useI18n } from "vue-i18n";
 import CambioClaveUsuario from "../../components/CambioClaveUsuario.vue";
+import DialogoUbicacion from "../../components/dialogs/DialogoUbicacion.vue"
 
 defineOptions({
   name: "login",
@@ -137,6 +141,7 @@ function handleForgotPassword() {
 }
 
 const olvidoClave = ref(false);
+const seleccionarUbicacion = ref(true);
 
 const localeOptions = [
   { value: "es", label: "Español"},

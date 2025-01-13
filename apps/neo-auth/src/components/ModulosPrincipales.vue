@@ -24,7 +24,7 @@
           class="full-width no-uppercase modern-btn"
           color="primary"
           :label="'Ingresar'"
-          @click="verificarAccesoYRedirigir(app.permiso, app.ruta)"
+          @click="verificarAccesoYRedirigir(app.permiso, app.url)"
         ></q-btn>
       </q-card-actions>
     </q-card>
@@ -57,49 +57,49 @@ const aplicaciones = ref([
     nombre: "Gestión Hospitalaria",
     img: "static/GestionHospitalaria.png",
     permiso: "AC_MODULO_GESTIONHOSPITAL",
-    ruta: "/gestionhospital",
+    url: "/gestionhospital",
   },
   {
     id: 2,
     nombre: "Laboratorio",
     img: "static/GestionLaboratorio.png",
     permiso: "AC_MODULO_LABORATORIO",
-    ruta: "/gestionlaboratorio",
+    url: "/gestionlaboratorio",
   },
   {
     id: 3,
     nombre: "Control de Calidad",
     img: "static/GestionCalidad.png",
     permiso: "AC_MODULO_CONTROLCALIDAD",
-    ruta: "/gestionlaboratorio",
+    url: process.env.BASE_URL_QC,
   },
   {
     id: 4,
     nombre: "Inventario",
     img: "static/GestionInventario.png",
     permiso: "AC_MODULO_INVENTARIO",
-    ruta: "/gestionlaboratorio",
+    url: "/gestionlaboratorio",
   },
   {
     id: 5,
     nombre: "Farmacia",
     img: "static/GestionFarmacia.png",
     permiso: "AC_MODULO_FARMACIA",
-    ruta: "/gestionlaboratorio",
+    url: "/gestionlaboratorio",
   },
   {
     id: 6,
     nombre: "Citas",
     img: "static/GestionCitas.png",
     permiso: "AC_MODULO_CITAS",
-    ruta: "/gestionlaboratorio",
+    url: "/gestionlaboratorio",
   },
   {
     id: 7,
     nombre: "Gestor de Turnos",
     img: "static/GestionTurnos.png",
     permiso: "AC_MODULO_TURNOS",
-    ruta: "/gestionlaboratorio",
+    url: "/gestionlaboratorio",
   },
 ]);
 </script>

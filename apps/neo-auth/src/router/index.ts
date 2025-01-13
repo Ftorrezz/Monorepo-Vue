@@ -34,15 +34,15 @@ export default route(function (/* { store, ssrContext } */) {
   });
 
   Router.beforeEach((to, from, next) =>{
-    const store = useAuthStore();    
+    const store = useAuthStore();
     const rutaProtegida: boolean = to.matched.some(record => record.meta.requireAuth)
-    
+
     if (rutaProtegida && store.token === null ){
-      
+
       next( { name: 'login' } )
-      
+
     }else next()
-  
+
   })
 
   return Router;
