@@ -99,7 +99,10 @@
                   />
                 </div>
                 <div v-if="seleccionarUbicacion">
-                  <DialogoUbicacion/>
+                  <DialogoUbicacion
+                    :nombreUsuario="userForm.nombreusuario"
+                    @cancelar="cancelarOlvidoClave"
+                  />
                 </div>
               </q-form>
             </q-card-section>
