@@ -1,11 +1,13 @@
 <template>
   <div class="q-pa-md row q-gutter-md flex-center">
     <q-card
-      class="my-card modern-card"
+      class="my-card"
+      :class="{'bg-white': !$q.dark.isActive, 'bg-dark': $q.dark.isActive, 'text-white': $q.dark.isActive}"
       v-for="app in aplicaciones"
       :key="app.id"
       bordered
       hover
+      @click="verificarAccesoYRedirigir(app.permiso, app.url)"
     >
       <span class="q-focus-helper"></span>
       <q-img
@@ -19,14 +21,14 @@
       ></q-img>
 
       <q-card-section class="text-h5 text-center">{{ app.nombre }}</q-card-section>
-      <q-card-actions align="center" class="absolute-bottom">
+      <!--<q-card-actions align="center" class="absolute-bottom">
         <q-btn
           class="full-width no-uppercase modern-btn"
           color="primary"
           :label="'Ingresar'"
           @click="verificarAccesoYRedirigir(app.permiso, app.url)"
         ></q-btn>
-      </q-card-actions>
+      </q-card-actions>-->
     </q-card>
   </div>
 </template>
@@ -108,14 +110,14 @@ const aplicaciones = ref([
 .my-card {
   width: 100%;
   max-width: 330px;
-  min-height: 260px;
+  min-height: 130px;
   border-radius: 12px;
   transition: transform 0.3s, box-shadow 0.3s;
 }
 
 .my-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-7px);
+  box-shadow: 0px 5px 15px rgba(12, 160, 245, 0.4);
 }
 
 .app-image {
