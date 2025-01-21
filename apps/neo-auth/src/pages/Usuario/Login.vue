@@ -12,7 +12,6 @@
                   <span class="ml-2">NeoHIS</span>
                   <div class="text-subtitle2">
                     {{ $t("descripcionsistema") }}
-
                   </div>
                 </div>
               </div>
@@ -58,7 +57,6 @@
                   </q-btn>
                 </div>
                 <div class="row items-center justify-between">
-
                   <q-select
                     v-model="locale"
                     :options="localeOptions"
@@ -89,7 +87,6 @@
                     class="text-decoration-underline cursor-pointer"
                     style="font-size: 0.8em"
                   />
-
                 </div>
 
                 <div v-if="olvidoClave && userForm.nombreusuario">
@@ -98,12 +95,7 @@
                     @cancelar="cancelarOlvidoClave"
                   />
                 </div>
-                <div v-if="seleccionarUbicacion">
-                  <DialogoUbicacion
-                    :nombreUsuario="userForm.nombreusuario"
-                    @cancelar="cancelarOlvidoClave"
-                  />
-                </div>
+                <DialogoUbicacion />
               </q-form>
             </q-card-section>
           </q-card>
@@ -114,21 +106,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, watch, toRaw } from "vue";
 import { useRouter } from "vue-router";
 import useAuth from "../../composables/useAuth";
 import { useQuasar } from "quasar";
 import { useI18n } from "vue-i18n";
 import CambioClaveUsuario from "../../components/CambioClaveUsuario.vue";
-import DialogoUbicacion from "../../components/dialogs/DialogoUbicacion.vue"
+import DialogoUbicacion from "../../components/dialogs/DialogoUbicacion.vue";
+import { useDialogStore } from "../../../src/stores/DialogoUbicacion";
+import { Sucursal } from "../../../../../libs/shared/src/interfaces/sucursal.interfaz";
 
 defineOptions({
   name: "login",
 });
 const $q = useQuasar();
 const router = useRouter();
-const { loginUser, logout } = useAuth();
+const { loginUser, logout, sucursales } = useAuth();
 const { t, locale } = useI18n({ useScope: "global" });
+const dialogStore = useDialogStore();
 
 const validationRule = (val: string) => {
   return (val && val.length > 0) || t("inputlogin.validation");
@@ -138,17 +133,12 @@ const passwordValidationRule = (val: string) => {
   return (val && val.length > 0) || t("inputlogin.validationpassword");
 };
 
-function handleForgotPassword() {
-  console.log("Redirigiendo al flujo de recuperación de contraseña...");
-  // Lógica: redirigir al flujo de recuperación o mostrar un modal
-}
-
 const olvidoClave = ref(false);
-const seleccionarUbicacion = ref(true);
+//const seleccionarUbicacion = ref(true);
 
 const localeOptions = [
-  { value: "es", label: "Español"},
-  { value: "en-US", label: "English"},
+  { value: "es", label: "Español" },
+  { value: "en-US", label: "English" },
 ];
 
 const userForm = ref({
@@ -159,10 +149,33 @@ const userForm = ref({
 const isPwd = ref(true);
 const isMostrarSucursal = ref(false);
 
+watch(
+  () => dialogStore.sucursalSeleccionada,
+  (newVal) => {
+    if (newVal) {
+      console.log("Sucursal seleccionada detectada:", newVal);
+      router.push({ name: "inicio" });
+    }
+  }
+);
+
 const onSubmit = async (): void => {
   const { ok, error } = await loginUser(userForm.value);
 
-  if (ok == true) router.push({ name: "inicio" });
+  if (ok == true) {
+    console.log("sucursales.value.length", sucursales.value.length);
+
+    if (sucursales.value && sucursales.value.length > 0) {
+      await dialogStore.openDialog(toRaw(sucursales.value));
+    } else {
+      if (sucursales.value && sucursales.value.length === 1) {
+        // Caso con solo una sucursal: asigna directamente al store
+        const unicaSucursal = toRaw(sucursales.value[0]); // Obtén la única sucursal
+        dialogStore.selectBranch(unicaSucursal); // Asigna directamente y cierra el diálogo
+      }
+
+    }
+  }
 };
 
 watch(olvidoClave, (newValue, oldValue) => {

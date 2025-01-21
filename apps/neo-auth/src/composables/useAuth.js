@@ -19,13 +19,13 @@ const useAuth = () => {
   const solicitarCodigoRecuperacion = async ( _usuario )=> {
 
     try {
-    
+
       const _peticion = new NdPeticionControl();
 
       const _respuesta = await _peticion.invocarMetodo('autorizacion/recuperarclave', 'post', _usuario);
 
       if (_respuesta && _respuesta[0] && _respuesta[0].valor) {
-            
+
         if (_respuesta[0].valor === true){
            return { ok: true, _respuesta: _respuesta[0].respuesta }}
         else { { ok: false } }
@@ -35,21 +35,21 @@ const useAuth = () => {
     } catch (error) {
       return { ok: false, _respuesta: 'No fue posible realizar el envio del correo electronico' }
     }
-    
+
 
   };
 
   const actualizarClaveUsuario = async ( _usuario ) => {
-     
+
     try{
       const _peticion = new NdPeticionControl();
 
       const _respuesta = await _peticion.invocarMetodo('autorizacion/actualizarclave', 'post', _usuario);
 
       console.log(_respuesta)
-    
+
     if (_respuesta && _respuesta[0] && _respuesta[0].valor) {
-            
+
       return { ok: true, _respuesta: _respuesta[0].respuesta };
     }
       else return { ok: false, _respuesta: 'No fue posible actualizar la clave' };
@@ -61,7 +61,7 @@ const useAuth = () => {
 
   const logout = () => {
     store.logout();
-    
+
   };
 
   return {
@@ -81,7 +81,8 @@ const useAuth = () => {
     }),
 
     //authStatus: computed(()=> store.getters['login/currentState']),
-    username: computed(() => store.username)
+    username: computed(() => store.username),
+    sucursales: computed(() => store.sucursales)
   };
 };
 
