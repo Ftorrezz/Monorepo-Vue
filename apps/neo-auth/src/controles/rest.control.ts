@@ -124,11 +124,11 @@ class NdPeticionControl {
     else {
 
       /*if (error && error.error[0] && error.error[0].mensajes[0].mensaje > ''){
-         
+
         alertas.mostrarMensaje(error.error[0].mensajes[0].tipomensaje, error.error[0].mensajes[0].titulo, error.error[0].mensajes[0].mensaje);
 
       }
-        
+
       else if (error && error.message) alertas.mostrarMensaje('error', 'Error en la solicitud: ' + error.statusText + ' (Código: ' + error.status + ')', error.message);
       */
       let tipoMensaje = '';

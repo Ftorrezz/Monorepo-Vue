@@ -3,7 +3,8 @@ import { Usuario } from '../../../../libs/shared/src/interfaces/usuario.interfaz
 import NdEncriptacion from 'src/controles/encriptacion';
 import NdPeticionControl from 'src/controles/rest.control';
 import { Sucursal } from '../../../../libs/shared/src/interfaces/sucursal.interfaz';
-
+import { DtoParametros } from 'src/controles/dto.parametros';
+import { TokenDto } from '../../../../libs/shared/src/dto/token.dto'
 export const useAuthStore = defineStore('useAuthStore', {
 
   state: () => ({
@@ -41,7 +42,6 @@ export const useAuthStore = defineStore('useAuthStore', {
           nombreusuario: parametro.nombreusuario,
           clave: _claveUsuario
         };
-
         const respuesta = await _peticion.invocarMetodo('autorizacion/login', 'post', Usuario);
 
         const {token, usuario, sucursales} = respuesta[0]
@@ -61,18 +61,10 @@ export const useAuthStore = defineStore('useAuthStore', {
             imagen: "https://via.placeholder.com/400x200?text=" + encodeURIComponent(sucursal.abreviatura),
             id_sitio: sucursal.id_sitio,
           }));
-          //this.sucursales = sucursales;
-          //this.refreshToken = refreshToken
-          //this.sucursal = sucursalusuario
-          //localStorage.setItem("token", token);
 
           this.estado = "autenticado";
           return { ok: true };
         }
-
-        /*if (refreshToken) {
-          localStorage.setItem("refreshToken", refreshToken);
-        }*/
 
 
         return { ok: false };
@@ -84,7 +76,6 @@ export const useAuthStore = defineStore('useAuthStore', {
 
     async checkAuthentication() {
 
-
         if (!this.token) {
 
           this.logout()
@@ -92,31 +83,33 @@ export const useAuthStore = defineStore('useAuthStore', {
         }
 
         try {
-          /*let tokenVencido = false;
-          let fechaActual = Date.now() / 1000;
 
-          let { exp, nombreusuario } = decode(token);
+          const dto: TokenDto = new TokenDto(this.token);
 
-          if (exp < fechaActual) {
-            tokenVencido = true;
-          }
+          const _peticion = new NdPeticionControl();
 
-          if (tokenVencido) {
-            commit("logout");
-            return { ok: false, message: "Token vencido" };
-          } else {
-            commit("loginUser", { nombreusuario, token, refreshToken });
+          const respuesta = await _peticion.invocarMetodo('autorizacion/actualizartoken', 'post', dto);
 
-            return { ok: true };
-          }*/
+          const {token, usuario, sucursales} = respuesta[0]
+
+        if (token) {
+
+
+          this.usuario = usuario.nombreusuario;
+          this.token = token;
+
+          this.estado = "autenticado";
+          return { ok: true };
+        } else {
+
+          this.logout()
+          return { ok: false, message: "Token invalido" };
+        }
+
         } catch (error) {
           this.logout()
           return { ok: false};
         }
-
-
-
-
     },
 
     logout() {
@@ -130,6 +123,6 @@ export const useAuthStore = defineStore('useAuthStore', {
     }
 
   },
-  //persist: true //con esta linea utilizo el plugin para mantener el estado global porque voy a necesitar el token y el usuario en todo el sistema
+  persist: true //con esta linea utilizo el plugin para mantener el estado global porque voy a necesitar el token y el usuario en todo el sistema
 
 });
