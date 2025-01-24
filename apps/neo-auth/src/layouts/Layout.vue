@@ -12,10 +12,10 @@
             icon="menu"
             aria-label="Menu"
           />
-          <q-toolbar-title>Menu</q-toolbar-title>
-
+          <q-toolbar-title>{{title}}</q-toolbar-title>
           <DarkModeToggle />
           <MenuOpcionesUsuario />
+          
         </q-toolbar>
       </q-header>
 
@@ -82,17 +82,15 @@ import DarkModeToggle from "../components/DarkModeToggle.vue";
 import MenuOpcionesUsuario from "../components/MenuOpcionesUsuario.vue";
 import MenuPrincipal from "../components/MenuPrincipal.vue";
 import { ref } from "vue";
-import { useRouter } from "vue-router";
 
 defineOptions({
   name: "Layout",
 });
 
-const router = useRouter();
-
 const leftDrawerOpen = ref(false);
 const miniState = ref(true);
 const footerOpen = ref(false);
+const title = ref('NeoHIS :: App Center')
 
 // Manejadores de transición del footer
 let debounceTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -114,6 +112,7 @@ function collapseFooter() {
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value;
 }
+
 </script>
 
 

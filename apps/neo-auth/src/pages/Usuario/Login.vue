@@ -153,7 +153,7 @@ watch(
   () => dialogStore.sucursalSeleccionada,
   (newVal) => {
     if (newVal) {
-      console.log("Sucursal seleccionada detectada:", newVal);
+      
       router.push({ name: "inicio" });
     }
   }
@@ -163,8 +163,7 @@ const onSubmit = async (): void => {
   const { ok, error } = await loginUser(userForm.value);
 
   if (ok == true) {
-    console.log("sucursales.value.length", sucursales.value.length);
-
+    
     if (sucursales.value && sucursales.value.length > 0) {
       await dialogStore.openDialog(toRaw(sucursales.value));
     } else {
