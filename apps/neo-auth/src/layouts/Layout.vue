@@ -5,6 +5,7 @@
       <q-header flat class="bg-primary">
         <q-toolbar>
           <q-btn
+            v-show="useIsAdmin"
             flat
             dense
             round
@@ -15,12 +16,13 @@
           <q-toolbar-title>{{title}}</q-toolbar-title>
           <DarkModeToggle />
           <MenuOpcionesUsuario />
-          
+
         </q-toolbar>
       </q-header>
 
       <!-- DRAWER -->
       <q-drawer
+        v-if="useIsAdmin"
         v-model="leftDrawerOpen"
         show-if-above
         :width="360"
@@ -82,6 +84,7 @@ import DarkModeToggle from "../components/DarkModeToggle.vue";
 import MenuOpcionesUsuario from "../components/MenuOpcionesUsuario.vue";
 import MenuPrincipal from "../components/MenuPrincipal.vue";
 import { ref } from "vue";
+import { useAuthStore } from "../stores/Auth"
 
 defineOptions({
   name: "Layout",
@@ -91,6 +94,7 @@ const leftDrawerOpen = ref(false);
 const miniState = ref(true);
 const footerOpen = ref(false);
 const title = ref('NeoHIS :: App Center')
+const { useIsAdmin } = useAuthStore()
 
 // Manejadores de transición del footer
 let debounceTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -109,8 +113,8 @@ function collapseFooter() {
   }, 150); // Delay para evitar el comportamiento errático
 }
 
-function toggleLeftDrawer() {
-  leftDrawerOpen.value = !leftDrawerOpen.value;
+async function toggleLeftDrawer() {
+  leftDrawerOpen.value = await !leftDrawerOpen.value;
 }
 
 </script>

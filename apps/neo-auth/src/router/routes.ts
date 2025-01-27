@@ -10,12 +10,30 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/Index.vue'),
         meta: { requireAuth: true },
       },
+      {
+        path: "usuario",
+        name: "usuario",
+        component: () => import("src/pages/Usuario/Usuario.vue"),
+        meta: { requireAuth: true },
+      },
+      {
+        path: "usuarioperfil",
+        name: "usuarioperfil",
+        component: () => import("src/pages/Usuario/UsuarioPerfil.vue"),
+        meta: { requireAuth: true },
+      },
+      {
+        path: "usuarioacceso",
+        name: "usuarioacceso",
+        component: () => import("src/pages/Usuario/UsuarioAcceso.vue"),
+        meta: { requireAuth: true },
+      },
 
 
 
 
       ],
-    meta: { requireAuth: true },
+   // meta: { requireAuth: true },
 
   },
   /*{

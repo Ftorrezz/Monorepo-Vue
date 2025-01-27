@@ -26,7 +26,7 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
   })
   /********************** DEFINO LAS COLUMNAS Y CAMPOS DE LAS TABLAS****************************/
   const columnConfig = {
-    perfilconfiguracion: ["id", "descripcion", "codigoexterno", "activo"],
+    perfilconfiguracion: ["id", "descripcion", "activo"],
     ProductModel: ["id", "name", "price"],
     usuario: ["id", "nombreusuario", "clave"],
     // Otros modelos y sus columnas aquí...
@@ -54,13 +54,6 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
           align: "left",
           label: "Descripción",
           field: "descripcion",
-          sortable: true,
-        },
-        {
-          name: "codigoexterno",
-          align: "left",
-          label: "Código externo",
-          field: "codigoexterno",
           sortable: true,
         },
         {
@@ -161,7 +154,7 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
         classes: ["uppercase"],
         rules: [(val) => (val && val.length > 0) || "Ingrese una descripción"],
       },
-      { name: "codigoexterno", label: "Código externo", component: "q-input" },
+      //{ name: "codigoexterno", label: "Código externo", component: "q-input" },
       { name: "activo", label: "Activo", component: "q-checkbox" },
       // Otros campos según el modelo...
     ],

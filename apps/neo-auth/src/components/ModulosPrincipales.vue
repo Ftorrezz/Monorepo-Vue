@@ -8,6 +8,7 @@
       bordered
       hover
       @click="verificarAccesoYRedirigir(app.permiso, app.url)"
+      clickable
     >
       <span class="q-focus-helper"></span>
       <q-img
@@ -16,19 +17,11 @@
         contain
         lazy
         :alt="app.nombre"
-        clickable
         v-ripple
       ></q-img>
 
       <q-card-section class="text-h5 text-center">{{ app.nombre }}</q-card-section>
-      <!--<q-card-actions align="center" class="absolute-bottom">
-        <q-btn
-          class="full-width no-uppercase modern-btn"
-          color="primary"
-          :label="'Ingresar'"
-          @click="verificarAccesoYRedirigir(app.permiso, app.url)"
-        ></q-btn>
-      </q-card-actions>-->
+
     </q-card>
   </div>
 </template>

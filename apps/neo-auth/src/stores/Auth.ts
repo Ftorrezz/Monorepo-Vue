@@ -12,7 +12,8 @@ export const useAuthStore = defineStore('useAuthStore', {
     usuario: null,
     token: null,
     refreshToken: null,
-    sucursales: [] as Sucursal[]
+    sucursales: [] as Sucursal[],
+    administrador: false
 
   }),
 
@@ -23,7 +24,9 @@ export const useAuthStore = defineStore('useAuthStore', {
 
     userToken: (state) => state.token,
 
-    userSucursal: (state) => state.sucursales
+    userSucursal: (state) => state.sucursales,
+
+    useIsAdmin: (state) => state.administrador
 
   },
   actions: {
@@ -44,12 +47,13 @@ export const useAuthStore = defineStore('useAuthStore', {
         };
         const respuesta = await _peticion.invocarMetodo('autorizacion/login', 'post', Usuario);
 
-        const {token, usuario, sucursales} = respuesta[0]
+        const {token, usuario, sucursales, roles} = respuesta[0]
 
         if (token) {
 
           this.usuario = usuario.nombreusuario;
           this.token = token;
+          this.administrador = roles.includes("ADMINISTRADOR");
 
           this.sucursales = sucursales.map((sucursal: Sucursal) => ({
             id: sucursal.id,
@@ -119,6 +123,7 @@ export const useAuthStore = defineStore('useAuthStore', {
       this.refreshToken = null;
       this.estado = "no-autenticado";
       this.sucursales = [];
+      this.administrador = false;
 
     }
 

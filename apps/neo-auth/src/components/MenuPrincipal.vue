@@ -20,7 +20,7 @@
           <q-list class="q-pl-lg">
             <q-list class="q-pl-lg">
               <q-item
-                to="/gestionhospital/entidad"
+                to="/entidad"
                 active-class="my-menu-link"
                 class="q-ma-xs navigation-item"
               >
@@ -32,7 +32,7 @@
                 </q-item-section>
               </q-item>
               <q-item
-                to="/gestionhospital/sucursal"
+                to="/sucursal"
                 active-class="my-menu-link"
                 class="q-ma-xs navigation-item"
               >
@@ -50,7 +50,7 @@
         <q-expansion-item icon="lock" label="Seguridad">
           <q-list class="q-pl-lg">
             <q-item
-              to="/gestionhospital/accesos"
+              to="/usuarioacceso"
               active-class="my-menu-link"
               class="q-ma-xs navigation-item"
             >
@@ -63,7 +63,7 @@
             </q-item>
 
             <q-item
-              to="/gestionhospital/usuario"
+              to="/usuario"
               active-class="my-menu-link"
               class="q-ma-xs navigation-item"
             >
@@ -76,7 +76,7 @@
             </q-item>
 
             <q-item
-              to="/gestionhospital/usuarioperfil"
+              to="/usuarioperfil"
               active-class="my-menu-link"
               class="q-ma-xs navigation-item"
             >
@@ -88,18 +88,6 @@
               </q-item-section>
             </q-item>
 
-            <q-item
-              to="/gestionhospital/usuariorol"
-              active-class="my-menu-link"
-              class="q-ma-xs navigation-item"
-            >
-              <q-item-section avatar>
-                <q-icon name="rule" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label>Roles</q-item-label>
-              </q-item-section>
-            </q-item>
           </q-list>
         </q-expansion-item>
       </q-list>
