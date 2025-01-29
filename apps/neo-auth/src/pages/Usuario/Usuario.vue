@@ -4,7 +4,7 @@
       <EncabezadoGenericoPrincipal :tituloVentana="crudName" />
     </div>
     <div>
-      <q-dialog v-model="formDialogModal" persistent transition-show="flip-down" transition-hide="flip-up">
+      <q-dialog v-model="formDialogModal" persistent>
         <q-card bordered elevated style="width: 600px; max-width: 90vw; border-radius: 16px; overflow: hidden;">
           <q-card-section>
             <div class="text-h5 font-bold text-primary">Agregar {{ crudName }}</div>
@@ -81,7 +81,7 @@
 
                   <q-input
                     outlined
-                    v-model="editedItem.clave2"
+                    v-model="editedItem.claverepetir"
                     label="Repetir contraseña"
                     type="password"
                     lazy-rules

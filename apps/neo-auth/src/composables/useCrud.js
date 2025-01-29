@@ -17,12 +17,12 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
   const editedIndex = ref(-1);
   const editedItem = ref(
     { id_sitio: 1,
-      id_configuracion: 1
+      //id_configuracion: 1
   })
 
   const defaultItem = ref(
     { id_sitio: 1,
-      id_configuracion: 1
+      //id_configuracion: 1
   })
   /********************** DEFINO LAS COLUMNAS Y CAMPOS DE LAS TABLAS****************************/
   const columnConfig = {
@@ -172,8 +172,8 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
 
   const generateFormConfig = () => {
     if (
-      modelName === "perfilconfiguracion" ||
-      modelName === "usuario"
+      modelName === "perfilconfiguracion" /*||
+      modelName === "usuario"*/
     ) {
 
       mostrarFormIntegrado.value = true;
