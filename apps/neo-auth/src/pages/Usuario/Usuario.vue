@@ -71,25 +71,52 @@
                     outlined
                     v-model="editedItem.clave"
                     label="Contraseña"
-                    type="password"
+                    :type="isPwd ? 'password' : 'text'"
                     lazy-rules
                     :rules="[
-                      (val) => !!val || 'Ingrese una contraseña'
+                      (val) => !!val || 'Ingrese una contraseña',
+                      (val) => isValidPassword(val) || 'La contraseña debe contener al menos un número, una letra minúscula, una letra mayúscula y un carácter especial. Además, debe tener una longitud de 8 a 16 caracteres.'
                     ]"
                     class="q-mb-md"
-                  />
+                  >
+                  <template v-slot:prepend>
+                    <q-icon name="vpn_key" />
+                  </template>
+
+                  <template v-slot:append>
+                    <q-icon
+                      :name="isPwd ? 'visibility_off' : 'visibility'"
+                      class="cursor-pointer"
+                      @click="isPwd = !isPwd"
+                    />
+                  </template>
+
+                  </q-input>
 
                   <q-input
                     outlined
                     v-model="editedItem.claverepetir"
                     label="Repetir contraseña"
-                    type="password"
+                    :type="isPwdRep ? 'password' : 'text'"
                     lazy-rules
                     :rules="[
+                      (val) => isValidPassword(val) || 'La contraseña debe contener al menos un número, una letra minúscula, una letra mayúscula y un carácter especial. Además, debe tener una longitud de 8 a 16 caracteres.',
                       (val) => val === editedItem.clave || 'Las contraseñas no coinciden'
                     ]"
                     class="q-mb-md"
-                  />
+                  >
+                  <template v-slot:prepend>
+                    <q-icon name="vpn_key" />
+                  </template>
+
+                  <template v-slot:append>
+                    <q-icon
+                      :name="isPwdRep ? 'visibility_off' : 'visibility'"
+                      class="cursor-pointer"
+                      @click="isPwdRep = !isPwdRep"
+                    />
+                  </template>
+                  </q-input>
                 </div>
               </div>
             </q-form>
@@ -229,6 +256,8 @@ import EncabezadoGenericoPrincipal from "../../components/EncabezadoGenericoPrin
 const modelName = "usuario";
 const crudName = "Usuario";
 const tituloVentanaeliminacion = "Usuario";
+const isPwd = ref(true);
+const isPwdRep = ref(true);
 
 const {
   submitForm,
@@ -269,6 +298,17 @@ const isValidEmail = (email) => {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return re.test(email);
 };
+
+const isValidPassword = (password) => {
+  const re = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,16}$/;
+  return re.test(password);
+
+  //VALIDARCLAVEUSUARIO=^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,16}$
+//MENSAJEVALIDARCLAVEUSUARIO='La contraseña debe contener al menos un número, una letra minúscula, una letra mayúscula y un carácter especial. Además, debe tener una longitud de 8 a 16 caracteres.';
+
+
+}
+
 </script>
 
 <style lang="scss">

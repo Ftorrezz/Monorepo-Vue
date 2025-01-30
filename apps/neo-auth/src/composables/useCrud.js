@@ -2,10 +2,13 @@ import { ref } from "vue";
 import NdPeticionControl from "src/controles/rest.control";
 import { exportFile } from "quasar";
 import NdAlertasControl from "src/controles/alertas.control";
+import { useDialogStore } from "../../../neo-auth/src/stores/DialogoUbicacion";
 import PeticionService from "src/services/peticion.service";
 import { computed } from 'vue';
 
 export default function useCrud(modelName, tituloVentanaeliminacion) {
+
+  const ubicacionStore = useDialogStore();
   const tableData = ref([]);
   const tableColumns = ref([]);
   let alertas = new NdAlertasControl();
@@ -16,12 +19,12 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
   let formDialogModal = ref(false);
   const editedIndex = ref(-1);
   const editedItem = ref(
-    { id_sitio: 1,
+    { id_sitio: ubicacionStore.id_sitio,
       //id_configuracion: 1
   })
 
   const defaultItem = ref(
-    { id_sitio: 1,
+    { id_sitio: ubicacionStore.id_sitio,
       //id_configuracion: 1
   })
   /********************** DEFINO LAS COLUMNAS Y CAMPOS DE LAS TABLAS****************************/
@@ -233,7 +236,7 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
 
       const peticionService = new PeticionService();
 
-      await peticionService.eliminar(modelName, Object.assign({}, item.row), true, tituloVentanaeliminacion)
+      const _respuesta = await peticionService.eliminar(modelName, Object.assign({}, item.row), true, tituloVentanaeliminacion)
 
       getData();
       close();
@@ -325,18 +328,21 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
     }
 
     //ACTUALIZARE REGISTRO
+    let _respuesta
+
     if (editedIndex.value > -1) {
 
-      await peticionService.actualizar(modelName, dataToSend)
-
-      getData();
-      close();
+      _respuesta = await peticionService.actualizar(modelName, dataToSend)
 
     } else {
 
       //CREAR NUEVO REGISTRO
 
-      await peticionService.crear(modelName, dataToSend)
+        _respuesta = await peticionService.crear(modelName, dataToSend)
+
+    }
+
+    if (_respuesta.status === 200) {
 
       getData();
       close();
