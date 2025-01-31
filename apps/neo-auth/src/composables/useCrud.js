@@ -342,6 +342,8 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
 
     }
 
+    console.log(_respuesta)
+
     if (_respuesta.status === 200) {
 
       getData();

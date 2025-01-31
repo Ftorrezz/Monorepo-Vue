@@ -5,9 +5,20 @@
     </div>
     <div>
       <q-dialog v-model="formDialogModal" persistent>
-        <q-card bordered elevated style="width: 600px; max-width: 90vw; border-radius: 16px; overflow: hidden;">
+        <q-card
+          bordered
+          elevated
+          style="
+            width: 600px;
+            max-width: 90vw;
+            border-radius: 16px;
+            overflow: hidden;
+          "
+        >
           <q-card-section>
-            <div class="text-h5 font-bold text-primary">Agregar {{ crudName }}</div>
+            <div class="text-h5 font-bold text-primary">
+              Agregar {{ crudName }}
+            </div>
             <div class="text-subtitle2 text-grey-7 q-mt-sm">
               Complete los datos para agregar un nuevo usuario.
             </div>
@@ -21,9 +32,21 @@
                 <!-- Imagen del Usuario -->
                 <div class="col-12 col-md-4 text-center">
                   <q-avatar size="120px" class="q-mb-md">
-                    <img :src="editedItem.foto || 'https://cdn.quasar.dev/img/boy-avatar.png'" alt="Foto del usuario" />
+                    <img
+                      :src="
+                        editedItem.foto ||
+                        'https://cdn.quasar.dev/img/boy-avatar.png'
+                      "
+                      alt="Foto del usuario"
+                    />
                   </q-avatar>
-                  <q-btn flat icon="photo_camera" color="primary" label="Cambiar foto" @click="uploadPhoto" />
+                  <q-btn
+                    flat
+                    icon="photo_camera"
+                    color="primary"
+                    label="Cambiar foto"
+                    @click="uploadPhoto"
+                  />
                   <input
                     ref="photoInput"
                     type="file"
@@ -40,14 +63,12 @@
                     v-model="editedItem.nombreusuario"
                     label="Usuario"
                     lazy-rules
-                    :rules="[
-                      (val) => !!val || 'Ingrese un nombre de usuario'
-                    ]"
+                    :rules="[(val) => !!val || 'Ingrese un nombre de usuario']"
                     class="q-mb-md"
                   >
-                  <template v-slot:prepend>
-                    <q-icon name="person" />
-                  </template>
+                    <template v-slot:prepend>
+                      <q-icon name="person" />
+                    </template>
                   </q-input>
 
                   <q-input
@@ -58,7 +79,7 @@
                     lazy-rules
                     :rules="[
                       (val) => !!val || 'Ingrese un correo electrónico',
-                      (val) => isValidEmail(val) || 'Ingrese un correo válido'
+                      (val) => isValidEmail(val) || 'Ingrese un correo válido',
                     ]"
                     class="q-mb-md"
                   >
@@ -75,22 +96,23 @@
                     lazy-rules
                     :rules="[
                       (val) => !!val || 'Ingrese una contraseña',
-                      (val) => isValidPassword(val) || 'La contraseña debe contener al menos un número, una letra minúscula, una letra mayúscula y un carácter especial. Además, debe tener una longitud de 8 a 16 caracteres.'
+                      (val) =>
+                        isValidPassword(val) ||
+                        'La contraseña debe contener al menos un número, una letra minúscula, una letra mayúscula y un carácter especial. Además, debe tener una longitud de 8 a 16 caracteres.',
                     ]"
                     class="q-mb-md"
                   >
-                  <template v-slot:prepend>
-                    <q-icon name="vpn_key" />
-                  </template>
+                    <template v-slot:prepend>
+                      <q-icon name="vpn_key" />
+                    </template>
 
-                  <template v-slot:append>
-                    <q-icon
-                      :name="isPwd ? 'visibility_off' : 'visibility'"
-                      class="cursor-pointer"
-                      @click="isPwd = !isPwd"
-                    />
-                  </template>
-
+                    <template v-slot:append>
+                      <q-icon
+                        :name="isPwd ? 'visibility_off' : 'visibility'"
+                        class="cursor-pointer"
+                        @click="isPwd = !isPwd"
+                      />
+                    </template>
                   </q-input>
 
                   <q-input
@@ -100,23 +122,34 @@
                     :type="isPwdRep ? 'password' : 'text'"
                     lazy-rules
                     :rules="[
-                      (val) => isValidPassword(val) || 'La contraseña debe contener al menos un número, una letra minúscula, una letra mayúscula y un carácter especial. Además, debe tener una longitud de 8 a 16 caracteres.',
-                      (val) => val === editedItem.clave || 'Las contraseñas no coinciden'
+                      (val) =>
+                        isValidPassword(val) ||
+                        'La contraseña debe contener al menos un número, una letra minúscula, una letra mayúscula y un carácter especial. Además, debe tener una longitud de 8 a 16 caracteres.',
+                      (val) =>
+                        val === editedItem.clave ||
+                        'Las contraseñas no coinciden',
                     ]"
                     class="q-mb-md"
                   >
-                  <template v-slot:prepend>
-                    <q-icon name="vpn_key" />
-                  </template>
+                    <template v-slot:prepend>
+                      <q-icon name="vpn_key" />
+                    </template>
 
-                  <template v-slot:append>
-                    <q-icon
-                      :name="isPwdRep ? 'visibility_off' : 'visibility'"
-                      class="cursor-pointer"
-                      @click="isPwdRep = !isPwdRep"
-                    />
-                  </template>
+                    <template v-slot:append>
+                      <q-icon
+                        :name="isPwdRep ? 'visibility_off' : 'visibility'"
+                        class="cursor-pointer"
+                        @click="isPwdRep = !isPwdRep"
+                      />
+                    </template>
                   </q-input>
+
+                  <q-checkbox
+                    v-model="editedItem.activo"
+                    label="Activo"
+                    :true-value="'S'"
+                    :false-value="'N'"
+                  />
                 </div>
               </div>
             </q-form>
@@ -125,9 +158,9 @@
           <q-separator inset color="primary" />
 
           <OpcionCancelarGuardar
-          @accionCerrar="close"
-          @accionValidar="validate"
-        />
+            @accionCerrar="close"
+            @accionValidar="validate"
+          />
         </q-card>
       </q-dialog>
     </div>
@@ -304,11 +337,8 @@ const isValidPassword = (password) => {
   return re.test(password);
 
   //VALIDARCLAVEUSUARIO=^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,16}$
-//MENSAJEVALIDARCLAVEUSUARIO='La contraseña debe contener al menos un número, una letra minúscula, una letra mayúscula y un carácter especial. Además, debe tener una longitud de 8 a 16 caracteres.';
-
-
-}
-
+  //MENSAJEVALIDARCLAVEUSUARIO='La contraseña debe contener al menos un número, una letra minúscula, una letra mayúscula y un carácter especial. Además, debe tener una longitud de 8 a 16 caracteres.';
+};
 </script>
 
 <style lang="scss">
