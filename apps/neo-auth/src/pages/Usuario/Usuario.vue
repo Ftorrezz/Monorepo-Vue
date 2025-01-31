@@ -89,6 +89,7 @@
                   </q-input>
 
                   <q-input
+                    v-show="mostrarContrasenia"
                     outlined
                     v-model="editedItem.clave"
                     label="Contraseña"
@@ -116,6 +117,7 @@
                   </q-input>
 
                   <q-input
+                    v-show="mostrarContrasenia"
                     outlined
                     v-model="editedItem.claverepetir"
                     label="Repetir contraseña"
@@ -309,6 +311,7 @@ const {
   mostrarFormIntegrado,
   agregarRegistro,
   formDialogModal,
+  mostrarContrasenia
 } = useCrud(modelName, tituloVentanaeliminacion);
 
 const uploadPhoto = () => {
@@ -335,9 +338,6 @@ const isValidEmail = (email) => {
 const isValidPassword = (password) => {
   const re = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,16}$/;
   return re.test(password);
-
-  //VALIDARCLAVEUSUARIO=^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,16}$
-  //MENSAJEVALIDARCLAVEUSUARIO='La contraseña debe contener al menos un número, una letra minúscula, una letra mayúscula y un carácter especial. Además, debe tener una longitud de 8 a 16 caracteres.';
 };
 </script>
 

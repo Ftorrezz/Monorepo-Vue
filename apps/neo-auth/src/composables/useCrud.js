@@ -15,16 +15,19 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
   let filter = ref("");
   let formFields = ref();
   const myForm = ref(null);
+  const mostrarContrasenia = ref(false);
   let mostrarFormIntegrado = ref(false); //formulario y tabla en misma vision
   let formDialogModal = ref(false);
   const editedIndex = ref(-1);
   const editedItem = ref(
     { id_sitio: ubicacionStore.id_sitio,
+      activo: 'S'
       //id_configuracion: 1
   })
 
   const defaultItem = ref(
     { id_sitio: ubicacionStore.id_sitio,
+      activo: 'S'
       //id_configuracion: 1
   })
   /********************** DEFINO LAS COLUMNAS Y CAMPOS DE LAS TABLAS****************************/
@@ -253,12 +256,17 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
   };
 
   const updateItem = async (item) => {
+
     editedIndex.value = item.rowIndex;
     editedItem.value = Object.assign({}, item.row);
+
+    mostrarContrasenia.value = false;
+    formDialogModal.value = true;
   };
 
   const agregarRegistro = () =>{
 
+    mostrarContrasenia.value = true;
     formDialogModal.value = true;
 
   }
@@ -344,12 +352,13 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
 
     console.log(_respuesta)
 
-    if (_respuesta.status === 200) {
+    if (!_respuesta.status){
 
       getData();
       close();
 
     }
+
   };
 
   const close = () => {
@@ -377,7 +386,8 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
     close,
     mostrarFormIntegrado,
     agregarRegistro,
-    formDialogModal
+    formDialogModal,
+    mostrarContrasenia
 
   };
 }
