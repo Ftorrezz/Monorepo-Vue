@@ -89,7 +89,7 @@
                   </q-input>
 
                   <q-input
-                    v-show="mostrarContrasenia"
+                    v-if="mostrarContrasenia"
                     outlined
                     v-model="editedItem.clave"
                     label="Contraseña"
@@ -117,7 +117,7 @@
                   </q-input>
 
                   <q-input
-                    v-show="mostrarContrasenia"
+                    v-if="mostrarContrasenia"
                     outlined
                     v-model="editedItem.claverepetir"
                     label="Repetir contraseña"
