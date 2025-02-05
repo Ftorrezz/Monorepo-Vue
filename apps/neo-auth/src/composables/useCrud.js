@@ -15,7 +15,7 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
   let filter = ref("");
   let formFields = ref();
   const myForm = ref(null);
-  const mostrarContrasenia = ref(false);
+  //const mostrarContrasenia = ref(false);
   let mostrarFormIntegrado = ref(false); //formulario y tabla en misma vision
   let formDialogModal = ref(false);
   const editedIndex = ref(-1);
@@ -260,13 +260,13 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
     editedIndex.value = item.rowIndex;
     editedItem.value = Object.assign({}, item.row);
 
-    mostrarContrasenia.value = false;
+    //mostrarContrasenia.value = false;
     formDialogModal.value = true;
   };
 
   const agregarRegistro = () =>{
 
-    mostrarContrasenia.value = true;
+    //mostrarContrasenia.value = true;
     formDialogModal.value = true;
 
   }
@@ -325,6 +325,14 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
       }
     });
   };
+
+  const formTitle = computed(() =>
+    editedIndex.value === -1 ? "Agregar Usuario" : "Editar Usuario"
+  );
+
+  const mostrarContrasenia = computed(() =>
+    editedIndex.value === -1 ? true : false
+  );
 
   const guardarRegistro = async () => {
 
@@ -387,7 +395,9 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
     mostrarFormIntegrado,
     agregarRegistro,
     formDialogModal,
-    mostrarContrasenia
+    mostrarContrasenia,
+    formTitle
+
 
   };
 }

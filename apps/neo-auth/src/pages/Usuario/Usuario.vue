@@ -17,10 +17,10 @@
         >
           <q-card-section>
             <div class="text-h5 font-bold text-primary">
-              Agregar {{ crudName }}
+              {{ formTitle }}
             </div>
             <div class="text-subtitle2 text-grey-7 q-mt-sm">
-              Complete los datos para agregar un nuevo usuario.
+              Complete los datos del usuario.
             </div>
           </q-card-section>
 
@@ -311,7 +311,7 @@ const {
   mostrarFormIntegrado,
   agregarRegistro,
   formDialogModal,
-  mostrarContrasenia
+  mostrarContrasenia, formTitle
 } = useCrud(modelName, tituloVentanaeliminacion);
 
 const uploadPhoto = () => {
