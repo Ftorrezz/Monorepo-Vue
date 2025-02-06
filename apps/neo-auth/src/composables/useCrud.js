@@ -338,7 +338,7 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
 
     const peticionService = new PeticionService();
 
-    const dataToSend = { ...editedItem.value };
+    let dataToSend = { ...editedItem.value };
     if (dataToSend.descripcion) {
        dataToSend.descripcion = dataToSend.descripcion.toUpperCase();
     }
@@ -347,6 +347,12 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
     let _respuesta
 
     if (editedIndex.value > -1) {
+
+
+      if (modelName === "usuario"){
+        delete dataToSend.clave;
+      }
+
 
       _respuesta = await peticionService.actualizar(modelName, dataToSend)
 
