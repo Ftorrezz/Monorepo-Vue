@@ -76,7 +76,7 @@ const aplicaciones = ref([
     nombre: "Control de Calidad",
     img: "static/GestionCalidad.png",
     permiso: "AC_MODULO_CONTROLCALIDAD",
-    url: 'http://localhost:9001/'// process.env.BASE_URL_QC, //TODO esto tiene que ser configurable
+    url: 'http://localhost:9001/'// process.env.BASE_URL_QC, //TODO esto tiene que ser
   },
   {
     id: 4,

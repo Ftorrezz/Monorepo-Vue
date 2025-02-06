@@ -88,7 +88,7 @@
 //import EncabezadoGenerico from "src/components/CRUD/EncabezadoGenerico.vue";
 //import OpcionCancelarGuardar from "src/components/CRUD/OpcionCancelarGuardar.vue";
 import { useRouter } from "vue-router";
-import useAuth from "src/composables/useAuth";
+import useAuth from "../composables/useAuth";
 import { ref, computed } from "vue";
 
 const router = useRouter();
