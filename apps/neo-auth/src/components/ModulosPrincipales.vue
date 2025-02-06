@@ -27,6 +27,7 @@
 </template>
 
 <script setup>
+import { openURL } from 'quasar'
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import useFuncionesGenericas from "src/composables/useFuncionesGenericas";
@@ -36,14 +37,23 @@ const { verificaAccesoPantalla } = useFuncionesGenericas();
 
 const verificarAccesoYRedirigir = async (pantalla, rutaDestino) => {
   try {
-    const acceso = await verificaAccesoPantalla(pantalla);
+        
+    goToPage(rutaDestino);
+
+    /*const acceso = await verificaAccesoPantalla(pantalla);
     if (acceso) {
-      router.push(rutaDestino); // Redirigir a la ruta deseada
-    }
+      goToPage(rutaDestino);
+      //router.push(rutaDestino); // Redirigir a la ruta deseada
+    }*/
   } catch (error) {
     console.error("Error al verificar acceso:", error);
   }
 };
+
+const goToPage = (url) => {
+    
+  openURL(url, null, null)
+}
 
 // Lista de aplicaciones
 const aplicaciones = ref([
@@ -66,7 +76,7 @@ const aplicaciones = ref([
     nombre: "Control de Calidad",
     img: "static/GestionCalidad.png",
     permiso: "AC_MODULO_CONTROLCALIDAD",
-    url: process.env.BASE_URL_QC,
+    url: 'http://localhost:9001/'// process.env.BASE_URL_QC, //TODO esto tiene que ser configurable
   },
   {
     id: 4,

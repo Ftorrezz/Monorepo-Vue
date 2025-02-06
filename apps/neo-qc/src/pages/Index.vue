@@ -1,11 +1,10 @@
 <template>
   <q-page>
-    <ModulosPrincipales icon_position="left" />
+       CONTROL DE CALIDAD
   </q-page>
 </template>
 
 <script setup lang="ts">
-import ModulosPrincipales from "../components/ModulosPrincipales.vue";
 
 defineOptions({
   name: "Index",
