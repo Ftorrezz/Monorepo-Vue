@@ -7,57 +7,54 @@
         
         <q-step
           :name="1"
-          title="Recuperación de clave"
+          :title="$t('passwordRecovery.steps.recovery')"
           icon="settings"
           :done="step > 1"
         >
           
          <div class="column text-h5" >
-         <span class="q-mt-sx">Usuario: {{ nombreUsuario }}</span>
+         <span class="q-mt-sx">{{ $t('passwordRecovery.labels.user') }}: {{ nombreUsuario }}</span>
          </div>
 
-          Si presiona el botón continuar, se le enviará un correo electrónico con un código de 
-          recuperación de clave a la casilla de correo asociada al usuario, 
-          luego se le indicarán los pasos a seguir.
+          {{ $t('passwordRecovery.messages.instructions') }}
                  
-        
         </q-step>
 
         <q-step
           :name="2"
-          title="Enviando correo electrónico"
+          :title="$t('passwordRecovery.steps.sending')"
           icon="mail"
           :done="step > 2"
           @active="fn_recuperarClave"
-          
         >
           <div class="column text-h5" >
-          <span class="q-mt-sx">Usuario: {{ nombreUsuario }}</span>
+          <span class="q-mt-sx">{{ $t('passwordRecovery.labels.user') }}: {{ nombreUsuario }}</span>
           </div>
 
-          Le estamos enviando el correo, por favor espere y le avisaremos cuando el proceso
-          finalice..
+          {{ $t('passwordRecovery.messages.sending') }}
 
           {{ envioError }}
 
           <div class="column items-center">
             <q-spinner color="primary" size="4em" :thickness="6" />
-            <span class="q-mt-sm">Enviando...</span>
+            <span class="q-mt-sm">{{ $t('passwordRecovery.messages.sendingStatus') }}</span>
           </div>
-      
-
         </q-step>
 
-        <q-step :name="3" title="Actualizar clave" icon="save" class="text-subtitle1">
+        <q-step 
+          :name="3" 
+          :title="$t('passwordRecovery.steps.update')" 
+          icon="save" 
+          class="text-subtitle1"
+        >
           <div class="column text-h5" >
-          <span class="q-mt-sx">Usuario: {{ nombreUsuario }}</span>
+          <span class="q-mt-sx">{{ $t('passwordRecovery.labels.user') }}: {{ nombreUsuario }}</span>
           </div>
 
           {{respuestaEnvio}} 
           
           <div class="q-mt-sm column items-center text-h6">
-            
-            <span>Por favor ingrese el código de recuperación recibido y su nueva clave. </span>
+            <span>{{ $t('passwordRecovery.messages.enterCode') }}</span>
           </div>
           
 
@@ -67,12 +64,12 @@
                 <div>
                 <q-input
                   v-model="actualizaClaveForm.codigorecuperacion"
-                  label="código recuperación"
+                  :label="$t('passwordRecovery.labels.recoveryCode')"
                   lazy-rules
                   :rules="[
                     (val) =>
                       (val && val.length > 0) ||
-                      'Por favor, ingrese el código de recuperación',
+                      $t('passwordRecovery.validation.recoveryCode'),
                   ]"
                 >
                   <template v-slot:before>
@@ -82,13 +79,13 @@
 
                 <q-input
                   v-model="actualizaClaveForm.clave"
-                  label="Contraseña nueva"
+                  :label="$t('passwordRecovery.labels.newPassword')"
                   :type="isPwd ? 'password' : 'text'"
                   lazy-rules
                   :rules="[
                     (val) =>
                       (val && val.length > 0) ||
-                      'Por favor, ingrese una contraseña',
+                      $t('passwordRecovery.validation.password'),
                   ]"
                 >
                   <template v-slot:before>
@@ -106,13 +103,13 @@
 
                 <q-input
                   v-model="actualizaClaveForm.confirmacionclave"
-                  label="Repetir contraseña nueva"
+                  :label="$t('passwordRecovery.labels.repeatNewPassword')"
                   :type="isPwd ? 'password' : 'text'"
                   lazy-rules
                   :rules="[
                     (val) =>
                       (val && val.length > 0) ||
-                      'Por favor, ingrese una contraseña',
+                      $t('passwordRecovery.validation.repeatPassword'),
                   ]"
                 >
                   <template v-slot:before>
@@ -131,7 +128,7 @@
                 </div>
                 <div>
                   <q-btn type="submit" color="primary" class="full-width">
-                    Actualizar clave
+                    {{ $t('passwordRecovery.buttons.update') }}
                   </q-btn>
                 </div>
                                 
@@ -144,14 +141,14 @@
 
         <q-step
           :name="4"
-          title="Finalización"
+          :title="$t('passwordRecovery.steps.finish')"
           icon="mail"
           :done="step > 3"
         >
           <div class="column text-h5" >
-         <span class="q-mt-sx">Usuario: {{ nombreUsuario }}</span>
+         <span class="q-mt-sx">{{ $t('passwordRecovery.labels.user') }}: {{ nombreUsuario }}</span>
          </div>
-          La clave fue actualizada exitosamente, presione finalizar para terminar con el proceso y volver al inicio.
+          {{ $t('passwordRecovery.messages.finish') }}
 
         </q-step>
 
@@ -162,15 +159,14 @@
               v-if="step === 1"
               @click="$refs.stepper.next()"
               color="primary"
-              label="Continuar"
-              
+              :label="$t('passwordRecovery.buttons.continue')"
             />
             <q-btn
               v-if="step === 1 || step === 3"
               flat
               color="negative"
               @click="cancelar(this.$emit)"
-              label="Cancelar"
+              :label="$t('passwordRecovery.buttons.cancel')"
               class="q-ml-sm"
             />
             <q-btn
@@ -178,7 +174,7 @@
               flat
               color="negative"
               @click="_cambioClave = !_cambioClave"
-              label="Finalizar"
+              :label="$t('passwordRecovery.buttons.finish')"
               class="q-ml-sm"
             />
           </q-stepper-navigation>
@@ -192,7 +188,9 @@
 import { Usuario } from "src/common/interface/usuario.interfaz";
 import { ref, watch } from "vue";
 import useAuth from "../composables/useAuth";
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const props = defineProps<{
   nombreUsuario: string;
 }>();
@@ -211,7 +209,6 @@ const actualizaClaveForm = ref({
   clave: '',
   confirmacionclave: '',
 });
-
 
 const fn_recuperarClave = async () =>{
      

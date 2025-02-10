@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { Sucursal } from '../../../../libs/shared/src/interfaces/sucursal.interfaz'
+
 export const useDialogStore = defineStore("useDialogStore", {
   state: () => ({
     showSucursalDialog: false,
@@ -13,7 +14,6 @@ export const useDialogStore = defineStore("useDialogStore", {
       this.sucursalSeleccionada = null;
     },
     closeDialog() {
-
       this.sucursales.splice(0, this.sucursales.length);
       this.sucursalSeleccionada = null;
       this.showSucursalDialog = false;
@@ -22,11 +22,10 @@ export const useDialogStore = defineStore("useDialogStore", {
       this.sucursalSeleccionada = sucursal;
       this.sucursales.splice(0, this.sucursales.length);
       this.showSucursalDialog = false;
-      //this.closeDialog();
     },
   },
   getters: {
     id_sitio: (state) => state.sucursalSeleccionada?.id_sitio,
   },
-  //persist: true
+  persist: true
 });

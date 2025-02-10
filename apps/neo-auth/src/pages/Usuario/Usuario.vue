@@ -237,6 +237,7 @@
               </div>
             </q-td>
           </template>
+
           <template v-slot:body-cell-activo="props">
             <q-td :props="props">
               <q-chip
@@ -311,7 +312,8 @@ const {
   mostrarFormIntegrado,
   agregarRegistro,
   formDialogModal,
-  mostrarContrasenia, formTitle
+  mostrarContrasenia,
+  formTitle
 } = useCrud(modelName, tituloVentanaeliminacion);
 
 const uploadPhoto = () => {
@@ -345,7 +347,6 @@ const isValidPassword = (password) => {
 .hidden {
   display: none;
 }
-
 .text-primary {
   color: #2d88ff;
 }

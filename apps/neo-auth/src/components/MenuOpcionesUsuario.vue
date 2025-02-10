@@ -8,10 +8,10 @@
   >
     <div class="row no-wrap q-pa-md">
       <div class="column">
-        <div class="text-h6 q-mb-md">Opciones</div>
+        <div class="text-h6 q-mb-md">{{ $t('userMenu.options') }}</div>
         <q-btn
           color="primary"
-          label="Cambiar contraseña"
+          :label="$t('userMenu.changePassword')"
           size="sm"
           @click="openDialog"
           v-close-popup
@@ -27,11 +27,10 @@
         <div class="text-subtitle1 q-mt-md q-mb-xs">
           {{username}}
         </div>
-        <!--<div class="text-subtitle1 q-mt-md q-mb-xs">{{ username }}</div>-->
 
         <q-btn
           color="primary"
-          label="Cerrar sesión"
+          :label="$t('userMenu.logout')"
           size="sm"
           @click="onLogout"
           v-close-popup
@@ -48,28 +47,28 @@
           <q-form ref="form">
             <q-input
               v-model="formData.email"
-              label="Correo electrónico"
+              :label="$t('userMenu.email')"
               :rules="[
-                (val) => !!val || 'Este campo es requerido',
+                (val) => !!val || $t('userMenu.validation.required'),
                 (val) =>
                   /.+@.+\..+/.test(val) ||
-                  'Ingrese un correo electrónico válido',
+                  $t('userMenu.validation.validEmail'),
               ]"
             ></q-input>
             <q-input
               v-model="formData.password"
-              label="Contraseña nueva"
+              :label="$t('userMenu.newPassword')"
               type="password"
-              :rules="[(val) => !!val || 'Este campo es requerido']"
+              :rules="[(val) => !!val || $t('userMenu.validation.required')]"
             ></q-input>
             <q-input
               v-model="formData.confirmPassword"
-              label="Confirmar contraseña nueva"
+              :label="$t('userMenu.confirmPassword')"
               type="password"
               :rules="[
-                (val) => !!val || 'Este campo es requerido',
+                (val) => !!val || $t('userMenu.validation.required'),
                 (val) =>
-                  val === formData.password || 'Las contraseñas no coinciden',
+                  val === formData.password || $t('userMenu.validation.passwordMatch'),
               ]"
             ></q-input>
 
@@ -90,9 +89,11 @@
 import { useRouter } from "vue-router";
 import useAuth from "src/composables/useAuth";
 import { ref, computed } from "vue";
+import { useI18n } from 'vue-i18n';
 
 const router = useRouter();
 const { logout, username } = useAuth();
+const { t } = useI18n();
 
 const onLogout = () => {
   logout();

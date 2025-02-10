@@ -1,6 +1,7 @@
 import NdPeticionControl from '../controles/rest.control';
 import DtoParametros from '../controles/dto.parametros';
 import NdAlertasControl from '../controles/alertas.control';
+import { throwError } from 'rxjs';
 
 class PeticionService {
 

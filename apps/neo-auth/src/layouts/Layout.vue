@@ -62,14 +62,28 @@
           <div class="footer-main">
             <q-icon name="place" class="icon-large" />
             <div>
-              <div v-if="!footerOpen" class="footer-title">Ubicación</div>
-              <div v-else>
-                <div class="footer-title">Sucursal Central</div>
-                <div class="footer-details">
-                  Dirección: Avenida Siempre Viva, 742
-                </div>
-                <div class="footer-details">Horario: 8:00 AM - 8:00 PM</div>
+              <div v-if="!footerOpen" class="footer-title">
+                <span class="working-at">Usted se encuentra trabajando en: </span>
+                <span class="branch-name">{{ sucursalSeleccionada?.descripcion || $t('footer.selectBranch') }}</span>
               </div>
+              <div v-else>
+                <div class="footer-title">
+                  <span class="working-at">Usted se encuentra trabajando en: </span>
+                  <span class="branch-name">{{ sucursalSeleccionada?.descripcion || $t('footer.selectBranch') }}</span>
+                </div>
+                <div class="footer-details" v-if="sucursalSeleccionada">
+                  {{ $t('footer.address') }}: {{ sucursalSeleccionada.direccion }}
+                </div>
+                <div class="footer-details" v-if="sucursalSeleccionada">
+                  {{ $t('footer.manager') }}: {{ sucursalSeleccionada.responsable }}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="footer-copyright">
+            <div class="version-text">v{{ appVersion }}</div>
+            <div class="copyright-text">
+              {{ currentYear }} Neodimio. {{ $t('footer.copyright') }}
             </div>
           </div>
         </div>
@@ -83,8 +97,10 @@
 import DarkModeToggle from "../components/DarkModeToggle.vue";
 import MenuOpcionesUsuario from "../components/MenuOpcionesUsuario.vue";
 import MenuPrincipal from "../components/MenuPrincipal.vue";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useAuthStore } from "../stores/Auth"
+import { useDialogStore } from "../stores/DialogoUbicacion"
+import { version } from '../../package.json'
 
 defineOptions({
   name: "Layout",
@@ -95,6 +111,12 @@ const miniState = ref(true);
 const footerOpen = ref(false);
 const title = ref('NeoHIS :: App Center')
 const { useIsAdmin } = useAuthStore()
+const dialogStore = useDialogStore()
+const appVersion = version;
+
+const sucursalSeleccionada = computed(() => dialogStore.sucursalSeleccionada)
+
+const currentYear = new Date().getFullYear()
 
 // Manejadores de transición del footer
 let debounceTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -122,46 +144,81 @@ async function toggleLeftDrawer() {
 
 <style scoped>
 .footer {
+  transition: height 0.3s ease;
   height: 50px;
-  transition: height 0.3s ease-in-out, background-color 0.3s ease-in-out;
-  background: linear-gradient(to right, #4a90e2, #007aff);
   overflow: hidden;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .footer-expanded {
-  height: 150px;
-  background: linear-gradient(to right, #007aff, #4a90e2);
+  height: 120px;
 }
 
 .footer-content {
-  width: 100%;
-  padding: 10px;
+  padding: 8px 16px;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  flex-direction: column;
+  align-items: flex-start;
+  height: 100%;
 }
 
 .footer-main {
   display: flex;
   align-items: center;
-  gap: 15px;
-}
-
-.footer-title {
-  font-size: 1.2em;
-  font-weight: bold;
-}
-
-.footer-details {
-  font-size: 0.9em;
+  gap: 12px;
 }
 
 .icon-large {
-  font-size: 36px;
+  font-size: 24px;
+}
+
+.footer-title {
+  font-size: 1rem;
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.working-at {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  font-weight: normal;
+  white-space: nowrap;
+}
+
+.branch-name {
+  font-weight: 500;
+}
+
+.footer-details {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  margin-top: 4px;
+}
+
+.footer-copyright {
+  text-align: right;
+  font-size: 0.8rem;
+  opacity: 0.7;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.version-text {
+  font-family: monospace;
+  opacity: 0.9;
+}
+
+.copyright-text {
+  white-space: nowrap;
+}
+
+.drawer_dark {
+  background-color: #1d1d1d;
+}
+
+.drawer_normal {
+  background-color: white;
 }
 </style>
