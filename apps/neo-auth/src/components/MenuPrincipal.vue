@@ -16,7 +16,68 @@
 
     <q-expansion-item :icon="'settings'" :label="$t('mainMenu.settings.title')">
       <q-list class="q-pl-lg">
-        <q-expansion-item :icon="'home_work'" :label="$t('mainMenu.settings.institutional.title')">
+        
+
+        <q-expansion-item :icon="'lock'" :label="$t('mainMenu.settings.security.title')">
+          <q-list class="q-pl-lg">
+            <q-item
+              to="/usuario"
+              active-class="my-menu-link"
+              class="q-ma-xs navigation-item"
+            >
+              <q-item-section avatar side>
+                <q-icon name="adjust" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>{{ $t('mainMenu.settings.security.user') }}</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item
+              to="/usuarioperfil"
+              active-class="my-menu-link"
+              class="q-ma-xs navigation-item"
+            >
+              <q-item-section avatar side>
+                <q-icon name="adjust" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>{{ $t('mainMenu.settings.security.profile') }}</q-item-label>
+              </q-item-section>
+            </q-item>
+            <!-- <q-item
+              to="/rol"
+              active-class="my-menu-link"
+              class="q-ma-xs navigation-item"
+            >
+              <q-item-section avatar side>
+                <q-icon name="adjust" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>{{ $t('mainMenu.settings.security.role') }}</q-item-label>
+              </q-item-section>
+            </q-item>-->
+            <q-item
+              to="/usuarioacceso"
+              active-class="my-menu-link"
+              class="q-ma-xs navigation-item"
+            >
+              <q-item-section avatar side>
+                <q-icon name="adjust" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>{{ $t('mainMenu.settings.security.access') }}</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-expansion-item>
+        <q-expansion-item 
+          v-if="authStore.useIsSuperAdmin"
+          :icon="'admin_panel_settings'" 
+          :label="$t('mainMenu.settings.admin.title')"
+        >
+          
+        <q-list class="q-pl-lg">
+          <q-expansion-item :icon="'home_work'" :label="$t('mainMenu.settings.institutional.title')">
           <q-list class="q-pl-lg">
             <q-list class="q-pl-lg">
               <q-item
@@ -46,83 +107,17 @@
             </q-list>
           </q-list>
         </q-expansion-item>
-
-        <q-expansion-item :icon="'lock'" :label="$t('mainMenu.settings.security.title')">
-          <q-list class="q-pl-lg">
-            <q-item
-              to="/usuario"
-              active-class="my-menu-link"
-              class="q-ma-xs navigation-item"
-            >
-              <q-item-section avatar side>
-                <q-icon name="adjust" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label>{{ $t('mainMenu.settings.security.user') }}</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item
-              to="/perfil"
-              active-class="my-menu-link"
-              class="q-ma-xs navigation-item"
-            >
-              <q-item-section avatar side>
-                <q-icon name="adjust" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label>{{ $t('mainMenu.settings.security.profile') }}</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item
-              to="/rol"
-              active-class="my-menu-link"
-              class="q-ma-xs navigation-item"
-            >
-              <q-item-section avatar side>
-                <q-icon name="adjust" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label>{{ $t('mainMenu.settings.security.role') }}</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item
-              to="/acceso"
-              active-class="my-menu-link"
-              class="q-ma-xs navigation-item"
-            >
-              <q-item-section avatar side>
-                <q-icon name="adjust" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label>{{ $t('mainMenu.settings.security.access') }}</q-item-label>
-              </q-item-section>
-            </q-item>
+        
+            
+         
           </q-list>
         </q-expansion-item>
 
-        <!-- Nueva sección de Administrador -->
-        <q-expansion-item 
-          v-if="authStore.useIsAdmin"
-          :icon="'admin_panel_settings'" 
-          :label="$t('mainMenu.settings.admin.title')"
-        >
-          <q-list class="q-pl-lg">
-            <q-item
-              to="/admin/configuracion"
-              active-class="my-menu-link"
-              class="q-ma-xs navigation-item"
-            >
-              <q-item-section avatar side>
-                <q-icon name="settings" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label>{{ $t('mainMenu.settings.admin.config') }}</q-item-label>
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </q-expansion-item>
+        
       </q-list>
     </q-expansion-item>
+    <!-- Nueva sección de Administrador -->
+    
   </q-list>
 </template>
 

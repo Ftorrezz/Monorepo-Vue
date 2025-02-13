@@ -22,7 +22,7 @@
 
       <!-- DRAWER -->
       <q-drawer
-        v-if="useIsAdmin"
+        v-if="useIsAdmin || useIsSuperAdmin"
         v-model="leftDrawerOpen"
         show-if-above
         :width="360"
@@ -110,7 +110,7 @@ const leftDrawerOpen = ref(false);
 const miniState = ref(true);
 const footerOpen = ref(false);
 const title = ref('NeoHIS :: App Center')
-const { useIsAdmin } = useAuthStore()
+const { useIsAdmin, useIsSuperAdmin } = useAuthStore()
 const dialogStore = useDialogStore()
 const appVersion = version;
 

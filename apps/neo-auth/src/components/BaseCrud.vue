@@ -8,7 +8,7 @@
     </div>
     <div
       v-if="mostrarFormIntegrado"
-      class="col-lg-3 col-md-3 col-sm-12 col-xs-12 shadow-bg"
+      class="col-lg-3 col-md-12 col-sm-12 col-xs-12 shadow-bg"
     >
       <q-card bordered elevated>
         <q-card-section class="text-h6">
@@ -220,11 +220,9 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
 import useCrud from "../composables/useCrud";
 import OpcionCancelarGuardar from "../components/OpcionCancelarGuardar.vue";
 import EncabezadoGenericoPrincipal from "../components/EncabezadoGenericoPrincipal.vue";
-import baseForm from "../components/baseForm.vue"
 
 const props = defineProps({
   modelName: String,

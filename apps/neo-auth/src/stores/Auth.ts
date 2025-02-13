@@ -13,8 +13,8 @@ export const useAuthStore = defineStore('useAuthStore', {
     token: null,
     refreshToken: null,
     sucursales: [] as Sucursal[],
-    administrador: false
-
+    administrador: false,
+    superadministrador: false
   }),
 
   getters: {
@@ -26,7 +26,9 @@ export const useAuthStore = defineStore('useAuthStore', {
 
     userSucursal: (state) => state.sucursales,
 
-    useIsAdmin: (state) => state.administrador
+    useIsAdmin: (state) => state.administrador,
+    
+    useIsSuperAdmin: (state) => state.superadministrador
 
   },
   actions: {
@@ -53,7 +55,8 @@ export const useAuthStore = defineStore('useAuthStore', {
 
           this.usuario = usuario.nombreusuario;
           this.token = token;
-          this.administrador = roles.includes("ADMINISTRADOR");
+          this.administrador = roles.includes("SUPERVISOR");
+          this.superadministrador = roles.includes("ADMINISTRADOR");
 
           this.sucursales = sucursales.map((sucursal: Sucursal) => ({
             id: sucursal.id,
@@ -124,6 +127,7 @@ export const useAuthStore = defineStore('useAuthStore', {
       this.estado = "no-autenticado";
       this.sucursales = [];
       this.administrador = false;
+      this.superadministrador = false;
 
     }
 
