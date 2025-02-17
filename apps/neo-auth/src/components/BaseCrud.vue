@@ -9,6 +9,7 @@
     <div
       v-if="mostrarFormIntegrado"
       class="col-lg-3 col-md-12 col-sm-12 col-xs-12 shadow-bg"
+      
     >
       <q-card bordered elevated>
         <q-card-section class="text-h6">
@@ -29,6 +30,7 @@
                   :class="field.classes"
                   lazy-rules
                   :rules="field.rules"
+                  
                 />
               </template>
               <template v-else-if="field.component === 'q-checkbox'">
@@ -72,6 +74,7 @@
                   :class="field.classes"
                   lazy-rules
                   :rules="field.rules"
+                  
                 />
               </template>
               <template v-else-if="field.component === 'q-checkbox'">
@@ -228,10 +231,7 @@ const props = defineProps({
   modelName: String,
   crudName: String,
   tituloVentanaeliminacion: String
-
-
 });
-
 
 const {
   submitForm,
@@ -251,6 +251,13 @@ const {
   agregarRegistro,
   formDialogModal
 } = useCrud(props.modelName, props.tituloVentanaeliminacion);
+
+const handleFileInput = (event, fieldName) => {
+  const file = event.target.files[0];
+  if (file) {
+    editedItem.value[fieldName] = file;
+  }
+};
 </script>
 
 <style lang="scss">

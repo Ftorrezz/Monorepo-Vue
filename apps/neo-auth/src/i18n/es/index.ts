@@ -42,7 +42,7 @@ export default {
         title: 'Configuración',
         institutional: {
           title: 'Institucional',
-          entity: 'Entidad',
+          entity: 'Sitio',
           branch: 'Sucursal'
         },
         security: {

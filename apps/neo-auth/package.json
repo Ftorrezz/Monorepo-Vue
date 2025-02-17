@@ -2,7 +2,7 @@
   "name": "neo-auth",
   "version": "0.0.1",
   "description": "Centro de aplicaciones",
-  "productName": "neo-auth",
+  "productName": "Neo-Auth",
   "author": "ftorrezz <flavio_torrez@hotmail.com>",
   "private": true,
   "scripts": {

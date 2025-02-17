@@ -81,7 +81,7 @@
           <q-list class="q-pl-lg">
             <q-list class="q-pl-lg">
               <q-item
-                to="/entidad"
+                to="/sitio"
                 active-class="my-menu-link"
                 class="q-ma-xs navigation-item"
               >
