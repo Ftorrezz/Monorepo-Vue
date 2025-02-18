@@ -42,6 +42,16 @@
                   :false-value="'N'"
                 />
               </template>
+              <template v-else-if="field.component === 'q-select'">
+                <q-select
+                  v-model="editedItem[field.name]"
+                  outlined 
+                  :label="field.label"
+                  :options="field.options"
+                  :class="field.classes"
+                  :rules="field.rules"
+                />
+              </template>
             </template>
           </q-form>
         </q-card-section>
@@ -84,6 +94,15 @@
                   :class="field.classes"
                   :true-value="'S'"
                   :false-value="'N'"
+                />
+              </template>
+              <template v-else-if="field.component === 'q-select'">
+                <q-select
+                  v-model="editedItem[field.name]"
+                  :label="field.label"
+                  :options="field.options"
+                  :class="field.classes"
+                  :rules="field.rules"
                 />
               </template>
             </template>

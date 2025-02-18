@@ -4,6 +4,7 @@ import Api from './api';
 import axios, { AxiosResponse } from 'axios';
 import NdAlertasControl from "./alertas.control";
 import { Router } from "vue-router";
+import { useDialogStore } from "../stores/DialogoUbicacion";
 
 /*Clase para persistencia de los resultados del rest*/
 interface Mensaje {
@@ -27,11 +28,17 @@ class NdPeticionControl {
 
   public async invocarMetodo(nombreMetodo: string, verbo: string, modelo?: any, parametros?: DtoParametros, atributos?: string[]) {
 
+    const store = useDialogStore();
+    const idsitio = store.id_sitio; // Asegúrate de que el nombre del estado sea correcto
+    //const offset = store.offset; // Asegúrate de que el nombre del estado sea correcto
+
     let _urlEndPoint = '/' + nombreMetodo;
-    // this.infoRequestService.agregarMensaje(_urlEndPoint); // Ajusta esto según tus necesidades
+    //this.infoRequestService.agregarMensaje(_urlEndPoint); // Ajusta esto según tus necesidades
 
     let headers = {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'idsitio': idsitio,
+      'offset': '0'
     };
 
     if (!atributos) atributos = [];

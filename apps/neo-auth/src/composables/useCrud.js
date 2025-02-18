@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import NdPeticionControl from "src/controles/rest.control";
 import { exportFile } from "quasar";
 import NdAlertasControl from "src/controles/alertas.control";
@@ -19,6 +19,7 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
   let mostrarFormIntegrado = ref(false); //formulario y tabla en misma vision
   let formDialogModal = ref(false);
   const editedIndex = ref(-1);
+  const sitios = ref([]);
   const editedItem = ref(
     {
       id_sitio: ubicacionStore.id_sitio,
@@ -203,6 +204,13 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
             sortable: true,
           },
           {
+            name: "id_sitio",
+            align: "left",
+            label: "Sitio",
+            field: "id_sitio",
+            sortable: true,
+          },
+          {
             name: "activo",
             label: "Activo",
             field: "activo",
@@ -295,11 +303,22 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
         classes: ["q-mb-xs"],
         rules: [(val) => (val && val.length > 0) || "Ingrese la dirección de la sucursal"]
         //type:"number"
-      },  
+      }, 
+      { 
+        name: "id_sitio", 
+        label: "Sitio", 
+        component: "q-select", 
+        classes: ["q-mb-xs"], 
+        options: sitios.value,
+        rules: [(val) => !!val || 'Seleccione un sitio']
+        //rules: [(val) => (val && val.length > 0) || "Seleccione un sitio"]
+      }, 
       { name: "activo", label: "Activo", component: "q-checkbox", classes: ["q-mb-xs"] },
 
       // Otros campos según el modelo...
     ],
+
+    
 
     EjemploModel: [
       { name: "id", label: "Id", component: "q-input" },
@@ -308,7 +327,7 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
       // Otros campos según el modelo...
     ],
 
-
+    
     // Otros modelos y sus campos aquí...
   };
 
@@ -335,6 +354,32 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
 
   formFields.value = generateFormConfig();
 
+  const getFormConfig = async () => {
+    await getSitios();
+    formFields.value = generateFormConfig();
+    if (modelName === "sucursal") {
+      formFields.value.find(field => field.name === "id_sitio").options = sitios.value;
+    }
+  };
+
+  const getSitios = async () => {
+    try {
+      const _peticion = new NdPeticionControl();
+      const _respuesta = await _peticion.invocarMetodo("sitio", "get");
+      sitios.value = _respuesta.map(sitio => ({
+        label: sitio.descripcion,
+        value: sitio.id
+      }));
+      
+    } catch (error) {
+      alertas.mostrarMensaje("error", "Sitios", "Error al obtener la lista de sitios");
+    }
+  };
+
+  onMounted(() => {
+    getFormConfig();
+  });
+
   const getData = async () => {
     try {
       const _peticion = new NdPeticionControl();
@@ -358,7 +403,7 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
 
   // Llama a la función para obtener los datos cuando se carga el composable
   getData();
-
+  
   const submitForm = () => {
 
 
@@ -498,6 +543,10 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
         delete dataToSend.id_sitio;
       }
 
+      if (modelName === "sucursal") {
+        dataToSend.id_sitio = dataToSend.id_sitio.value;
+      }
+      
       if (dataToSend.offset) {
         dataToSend.offset = Number(dataToSend.offset);
       }
@@ -511,6 +560,10 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
 
       if (modelName === "sitio") {
         delete dataToSend.id_sitio;
+      }
+
+      if (modelName === "sucursal") {
+        dataToSend.id_sitio = dataToSend.id_sitio.value;
       }
 
       if (dataToSend.offset) {
@@ -560,7 +613,5 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
     formDialogModal,
     mostrarContrasenia,
     formTitle
-
-
   };
 }

@@ -58,6 +58,8 @@ export const useAuthStore = defineStore('useAuthStore', {
           this.administrador = roles.includes("SUPERVISOR");
           this.superadministrador = roles.includes("ADMINISTRADOR");
 
+          console.log('sucursales', respuesta)
+
           this.sucursales = sucursales.map((sucursal: Sucursal) => ({
             id: sucursal.id,
             descripcion: sucursal.descripcion,
