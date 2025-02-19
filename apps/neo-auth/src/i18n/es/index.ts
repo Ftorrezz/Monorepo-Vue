@@ -43,6 +43,7 @@ export default {
         institutional: {
           title: 'Institucional',
           entity: 'Sitio',
+          entityconf: 'Sitio Configuración',
           branch: 'Sucursal'
         },
         security: {

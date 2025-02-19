@@ -4,10 +4,9 @@ import { exportFile } from "quasar";
 import NdAlertasControl from "src/controles/alertas.control";
 import { useDialogStore } from "../../../neo-auth/src/stores/DialogoUbicacion";
 import PeticionService from "src/services/peticion.service";
-import { computed } from 'vue';
+import { computed } from "vue";
 
 export default function useCrud(modelName, tituloVentanaeliminacion) {
-
   const ubicacionStore = useDialogStore();
   const tableData = ref([]);
   const tableColumns = ref([]);
@@ -20,19 +19,17 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
   let formDialogModal = ref(false);
   const editedIndex = ref(-1);
   const sitios = ref([]);
-  const editedItem = ref(
-    {
-      id_sitio: ubicacionStore.id_sitio,
-      activo: 'S'
-      //id_configuracion: 1
-    })
+  const editedItem = ref({
+    id_sitio: ubicacionStore.id_sitio,
+    activo: "S",
+    //id_configuracion: 1
+  });
 
-  const defaultItem = ref(
-    {
-      id_sitio: ubicacionStore.id_sitio,
-      activo: 'S'
-      //id_configuracion: 1
-    })
+  const defaultItem = ref({
+    id_sitio: ubicacionStore.id_sitio,
+    activo: "S",
+    //id_configuracion: 1
+  });
   /********************** DEFINO LAS COLUMNAS Y CAMPOS DE LAS TABLAS****************************/
   /*const columnConfig = {
     perfilconfiguracion: ["id", "descripcion", "activo"],
@@ -106,9 +103,7 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
           align: "center",
         },
       ]);
-    }
-
-    else if (modelName === "usuario") {
+    } else if (modelName === "usuario") {
       columnsConfig = columnsConfig.concat([
         {
           name: "nombreusuario",
@@ -140,85 +135,108 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
           align: "center",
         },
       ]);
-    } else
-      if (modelName === "sitio") {
-        columnsConfig = columnsConfig.concat([
-          {
-            name: "descripcion",
-            align: "left",
-            label: "Descripción",
-            field: "descripcion",
-            sortable: true,
-          },
-          {
-            name: "paisidentificador",
-            align: "left",
-            label: "Identificador País",
-            field: "paisidentificador",
-            sortable: true,
-          },
-          {
-            name: "urlservidor",
-            align: "left",
-            label: "Url Servidor",
-            field: "urlservidor",
-            sortable: true,
-          },
-          {
-            name: "activo",
-            label: "Activo",
-            field: "activo",
-            sortable: true,
-            align: "center",
-          },
-        ]);
-      }
-      else if (modelName === "sucursal") {
-        columnsConfig = columnsConfig.concat([
-          {
-            name: "descripcion",
-            align: "left",
-            label: "Nombre",
-            field: "descripcion",
-            sortable: true,
-          },
-          {
-            name: "abreviatura",
-            align: "left",
-            label: "Abreviatura",
-            field: "abreviatura",
-            sortable: true,
-          },
-          {
-            name: "responsable",
-            align: "left",
-            label: "Responsable",
-            field: "responsable",
-            sortable: true,
-          },
-          {
-            name: "direccion",
-            align: "left",
-            label: "Dirección",
-            field: "direccion",
-            sortable: true,
-          },
-          {
-            name: "id_sitio",
-            align: "left",
-            label: "Sitio",
-            field: "id_sitio",
-            sortable: true,
-          },
-          {
-            name: "activo",
-            label: "Activo",
-            field: "activo",
-            sortable: true,
-            align: "center",
-          },
-        ]);
-      }
+    } else if (modelName === "sitio") {
+      columnsConfig = columnsConfig.concat([
+        {
+          name: "descripcion",
+          align: "left",
+          label: "Descripción",
+          field: "descripcion",
+          sortable: true,
+        },
+        {
+          name: "paisidentificador",
+          align: "left",
+          label: "Identificador País",
+          field: "paisidentificador",
+          sortable: true,
+        },
+        {
+          name: "urlservidor",
+          align: "left",
+          label: "Url Servidor",
+          field: "urlservidor",
+          sortable: true,
+        },
+        {
+          name: "activo",
+          label: "Activo",
+          field: "activo",
+          sortable: true,
+          align: "center",
+        },
+      ]);
+    } else if (modelName === "sucursal") {
+      columnsConfig = columnsConfig.concat([
+        {
+          name: "descripcion",
+          align: "left",
+          label: "Nombre",
+          field: "descripcion",
+          sortable: true,
+        },
+        {
+          name: "abreviatura",
+          align: "left",
+          label: "Abreviatura",
+          field: "abreviatura",
+          sortable: true,
+        },
+        {
+          name: "responsable",
+          align: "left",
+          label: "Responsable",
+          field: "responsable",
+          sortable: true,
+        },
+        {
+          name: "direccion",
+          align: "left",
+          label: "Dirección",
+          field: "direccion",
+          sortable: true,
+        },
+        {
+          name: "id_sitio",
+          align: "left",
+          label: "Sitio",
+          field: "id_sitio",
+          sortable: true,
+        },
+        {
+          name: "activo",
+          label: "Activo",
+          field: "activo",
+          sortable: true,
+          align: "center",
+        },
+      ]);
+    } else if (modelName === "configuracion") {
+      columnsConfig = columnsConfig.concat([
+        {
+          name: "descripcion",
+          align: "left",
+          label: "Nombre",
+          field: "descripcion",
+          sortable: true,
+        },
+        {
+          name: "id_sitio",
+          align: "left",
+          label: "Sitio",
+          field: "id_sitio",
+          sortable: true,
+        },
+        {
+          name: "activo",
+          label: "Activo",
+          field: "activo",
+          sortable: true,
+          align: "center",
+        },
+      ]);
+    }
+
     columnsConfig = columnsConfig.concat([
       {
         name: "action",
@@ -249,76 +267,142 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
 
     sitio: [
       //{ name: "id", label: "Id", component: "q-input" },
-      { name: "descripcion", 
-        label: "Descripción", 
-        component: "q-input", 
-        classes: ["q-mb-xs"], 
-        rules: [(val) => (val && val.length > 0) || "Ingrese una descripción"], },
-      { name: "paisidentificador", 
-        label: "Identificador País", 
-        component: "q-input", 
+      {
+        name: "descripcion",
+        label: "Descripción",
+        component: "q-input",
+        classes: ["q-mb-xs"],
+        rules: [(val) => (val && val.length > 0) || "Ingrese una descripción"],
+      },
+      {
+        name: "paisidentificador",
+        label: "Identificador País",
+        component: "q-input",
         classes: ["q-mb-xs", "uppercase"],
-        rules: [(val) => (val && val.length > 0) || "Ingrese un identificador de país"]
-       },
-      { name: "urlservidor", 
+        rules: [
+          (val) =>
+            (val && val.length > 0) || "Ingrese un identificador de país",
+        ],
+      },
+      {
+        name: "urlservidor",
         label: "Url Servidor",
-         component: "q-input",
-         classes: ["q-mb-xs"],
-         rules: [(val) => (val && val.length > 0) || "Ingrese la url de servidor"]
-        },
-      { name: "offset", 
+        component: "q-input",
+        classes: ["q-mb-xs"],
+        rules: [
+          (val) => (val && val.length > 0) || "Ingrese la url de servidor",
+        ],
+      },
+      {
+        name: "offset",
         label: "offset",
         component: "q-input",
         classes: ["q-mb-xs"],
-        rules: [(val) => (val && val.length > 0) || "Offset requerido"]
+        rules: [(val) => (val && val.length > 0) || "Offset requerido"],
         //type:"number"
-      },  
-      { name: "activo", label: "Activo", component: "q-checkbox", classes: ["q-mb-xs"] },
+      },
+      {
+        name: "activo",
+        label: "Activo",
+        component: "q-checkbox",
+        classes: ["q-mb-xs"],
+      },
 
       // Otros campos según el modelo...
     ],
 
     sucursal: [
       //{ name: "id", label: "Id", component: "q-input" },
-      { name: "descripcion", 
-        label: "Nombre", 
-        component: "q-input", 
-        classes: ["q-mb-xs"], 
-        rules: [(val) => (val && val.length > 0) || "Ingrese el nombre de la sucursal"], },
-      { name: "abreviatura", 
-        label: "Abreviatura", 
-        component: "q-input", 
+      {
+        name: "descripcion",
+        label: "Nombre",
+        component: "q-input",
         classes: ["q-mb-xs"],
-        rules: [(val) => (val && val.length > 0) || "Ingrese una abreviatura de identificador"]
-       },
-      { name: "responsable", 
+        rules: [
+          (val) =>
+            (val && val.length > 0) || "Ingrese el nombre de la sucursal",
+        ],
+      },
+      {
+        name: "abreviatura",
+        label: "Abreviatura",
+        component: "q-input",
+        classes: ["q-mb-xs"],
+        rules: [
+          (val) =>
+            (val && val.length > 0) ||
+            "Ingrese una abreviatura de identificador",
+        ],
+      },
+      {
+        name: "responsable",
         label: "Responsable",
-         component: "q-input",
-         classes: ["q-mb-xs"],
-         rules: [(val) => (val && val.length > 0) || "Ingrese el responsable de la sucursal"]
-        },
-      { name: "direccion", 
+        component: "q-input",
+        classes: ["q-mb-xs"],
+        rules: [
+          (val) =>
+            (val && val.length > 0) || "Ingrese el responsable de la sucursal",
+        ],
+      },
+      {
+        name: "direccion",
         label: "Dirección",
         component: "q-input",
         classes: ["q-mb-xs"],
-        rules: [(val) => (val && val.length > 0) || "Ingrese la dirección de la sucursal"]
+        rules: [
+          (val) =>
+            (val && val.length > 0) || "Ingrese la dirección de la sucursal",
+        ],
         //type:"number"
-      }, 
-      { 
-        name: "id_sitio", 
-        label: "Sitio", 
-        component: "q-select", 
-        classes: ["q-mb-xs"], 
+      },
+      {
+        name: "id_sitio",
+        label: "Sitio",
+        component: "q-select",
+        classes: ["q-mb-xs"],
         options: sitios.value,
-        rules: [(val) => !!val || 'Seleccione un sitio']
+        rules: [(val) => !!val || "Seleccione un sitio"],
         //rules: [(val) => (val && val.length > 0) || "Seleccione un sitio"]
-      }, 
-      { name: "activo", label: "Activo", component: "q-checkbox", classes: ["q-mb-xs"] },
+      },
+      {
+        name: "activo",
+        label: "Activo",
+        component: "q-checkbox",
+        classes: ["q-mb-xs"],
+      },
 
       // Otros campos según el modelo...
     ],
+    configuracion: [
+      //{ name: "id", label: "Id", component: "q-input" },
+      {
+        name: "descripcion",
+        label: "Descripción",
+        component: "q-input",
+        classes: ["q-mb-xs"],
+        rules: [
+          (val) =>
+            (val && val.length > 0) || "Ingrese la descripción de la configuración",
+        ],
+      },
+      {
+        name: "id_sitio",
+        label: "Sitio",
+        component: "q-select",
+        classes: ["q-mb-xs"],
+        options: sitios.value,
+        rules: [(val) => !!val || "Seleccione un sitio"],
+        //rules: [(val) => (val && val.length > 0) || "Seleccione un sitio"]
+      },
+      {
+        name: "activo",
+        label: "Activo",
+        component: "q-checkbox",
+        classes: ["q-mb-xs"],
+      },
 
-    
+      // Otros campos según el modelo...
+    ],
 
     EjemploModel: [
       { name: "id", label: "Id", component: "q-input" },
@@ -327,7 +411,6 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
       // Otros campos según el modelo...
     ],
 
-    
     // Otros modelos y sus campos aquí...
   };
 
@@ -335,17 +418,16 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
     if (
       modelName === "perfilconfiguracion" ||
       modelName === "sitio" ||
-      modelName === "sucursal"
+      modelName === "sucursal" ||
+      modelName === "configuracion"
     ) {
-
       mostrarFormIntegrado.value = true;
 
       // Utilizar el formulario genérico de observación
 
-      if (modelName === "sitio" || modelName === "sucursal") {
+      if (modelName === "sitio" || modelName === "sucursal" || modelName === "configuracion") {
         return formConfig[modelName] || [];
-      }
-      else return formConfig["genericodescripcion"] || [];
+      } else return formConfig["genericodescripcion"] || [];
     } else {
       // Utilizar el formulario específico para el modelo
       return formConfig[modelName] || [];
@@ -357,8 +439,9 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
   const getFormConfig = async () => {
     await getSitios();
     formFields.value = generateFormConfig();
-    if (modelName === "sucursal") {
-      formFields.value.find(field => field.name === "id_sitio").options = sitios.value;
+    if (modelName === "sucursal"  || modelName === "configuracion") {
+      formFields.value.find((field) => field.name === "id_sitio").options =
+        sitios.value;
     }
   };
 
@@ -366,13 +449,16 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
     try {
       const _peticion = new NdPeticionControl();
       const _respuesta = await _peticion.invocarMetodo("sitio", "get");
-      sitios.value = _respuesta.map(sitio => ({
+      sitios.value = _respuesta.map((sitio) => ({
         label: sitio.descripcion,
-        value: sitio.id
+        value: sitio.id,
       }));
-      
     } catch (error) {
-      alertas.mostrarMensaje("error", "Sitios", "Error al obtener la lista de sitios");
+      alertas.mostrarMensaje(
+        "error",
+        "Sitios",
+        "Error al obtener la lista de sitios"
+      );
     }
   };
 
@@ -403,10 +489,8 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
 
   // Llama a la función para obtener los datos cuando se carga el composable
   getData();
-  
+
   const submitForm = () => {
-
-
     // Lógica para enviar el formulario
   };
 
@@ -419,30 +503,30 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
   };*/
 
   let deleteItem = async (item) => {
-
     try {
       editedIndex.value = item.rowIndex;
 
       const peticionService = new PeticionService();
 
-      const _respuesta = await peticionService.eliminar(modelName, Object.assign({}, item.row), true, tituloVentanaeliminacion)
+      const _respuesta = await peticionService.eliminar(
+        modelName,
+        Object.assign({}, item.row),
+        true,
+        tituloVentanaeliminacion
+      );
 
       getData();
       close();
-    }
-    catch (error) {
-
+    } catch (error) {
       alertas.mostrarMensaje(
         "error",
         "Eliminar",
         "No fue posible borrar el registro"
       );
     }
-
   };
 
   const updateItem = async (item) => {
-
     editedIndex.value = item.rowIndex;
     editedItem.value = Object.assign({}, item.row);
 
@@ -451,11 +535,9 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
   };
 
   const agregarRegistro = () => {
-
     //mostrarContrasenia.value = true;
     formDialogModal.value = true;
-
-  }
+  };
 
   const exportTable = () => {
     // naive encoding to csv format
@@ -505,7 +587,6 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
   }
 
   const validate = () => {
-    
     myForm.value.validate().then((success) => {
       if (success) {
         guardarRegistro();
@@ -522,7 +603,6 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
   );
 
   const guardarRegistro = async () => {
-
     const peticionService = new PeticionService();
 
     let dataToSend = { ...editedItem.value };
@@ -531,11 +611,9 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
     }
 
     //ACTUALIZARE REGISTRO
-    let _respuesta
+    let _respuesta;
 
     if (editedIndex.value > -1) {
-
-
       if (modelName === "usuario") {
         delete dataToSend.clave;
       }
@@ -543,26 +621,23 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
         delete dataToSend.id_sitio;
       }
 
-      if (modelName === "sucursal") {
+      if (modelName === "sucursal" || modelName === "configuracion") {
         dataToSend.id_sitio = dataToSend.id_sitio.value;
       }
-      
+
       if (dataToSend.offset) {
         dataToSend.offset = Number(dataToSend.offset);
       }
 
-
-      _respuesta = await peticionService.actualizar(modelName, dataToSend)
-
+      _respuesta = await peticionService.actualizar(modelName, dataToSend);
     } else {
-
       //CREAR NUEVO REGISTRO
 
       if (modelName === "sitio") {
         delete dataToSend.id_sitio;
       }
 
-      if (modelName === "sucursal") {
+      if (modelName === "sucursal" || modelName === "configuracion") {
         dataToSend.id_sitio = dataToSend.id_sitio.value;
       }
 
@@ -570,19 +645,15 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
         dataToSend.offset = Number(dataToSend.offset);
       }
 
-      _respuesta = await peticionService.crear(modelName, dataToSend)
-
+      _respuesta = await peticionService.crear(modelName, dataToSend);
     }
 
-    console.log(_respuesta)
+    console.log(_respuesta);
 
     if (!_respuesta.status) {
-
       getData();
       close();
-
     }
-
   };
 
   const close = () => {
@@ -590,9 +661,7 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
     editedIndex.value = -1;
     myForm.value.resetValidation();
     formDialogModal.value = false;
-
   };
-
 
   return {
     tableData,
@@ -612,6 +681,6 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
     agregarRegistro,
     formDialogModal,
     mostrarContrasenia,
-    formTitle
+    formTitle,
   };
 }

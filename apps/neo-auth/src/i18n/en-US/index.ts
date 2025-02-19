@@ -43,6 +43,7 @@ export default {
       institutional: {
         title: 'Institutional',
         entity: 'Entity',
+        entityconf: 'Entity Configuration',
         branch: 'Branch'
       },
       security: {

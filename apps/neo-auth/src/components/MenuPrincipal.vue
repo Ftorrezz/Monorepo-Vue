@@ -16,7 +16,7 @@
 
     <q-expansion-item :icon="'settings'" :label="$t('mainMenu.settings.title')">
       <q-list class="q-pl-lg">
-        
+
 
         <q-expansion-item :icon="'lock'" :label="$t('mainMenu.settings.security.title')">
           <q-list class="q-pl-lg">
@@ -70,16 +70,28 @@
             </q-item>
           </q-list>
         </q-expansion-item>
-        <q-expansion-item 
+        <q-expansion-item
           v-if="authStore.useIsSuperAdmin"
-          :icon="'admin_panel_settings'" 
+          :icon="'admin_panel_settings'"
           :label="$t('mainMenu.settings.admin.title')"
         >
-          
+
         <q-list class="q-pl-lg">
           <q-expansion-item :icon="'home_work'" :label="$t('mainMenu.settings.institutional.title')">
           <q-list class="q-pl-lg">
             <q-list class="q-pl-lg">
+              <q-item
+                to="/configuracion"
+                active-class="my-menu-link"
+                class="q-ma-xs navigation-item"
+              >
+                <q-item-section avatar side>
+                  <q-icon name="adjust" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>{{ $t('mainMenu.settings.institutional.entityconf') }}</q-item-label>
+                </q-item-section>
+              </q-item>
               <q-item
                 to="/sitio"
                 active-class="my-menu-link"
@@ -107,17 +119,17 @@
             </q-list>
           </q-list>
         </q-expansion-item>
-        
-            
-         
+
+
+
           </q-list>
         </q-expansion-item>
 
-        
+
       </q-list>
     </q-expansion-item>
     <!-- Nueva sección de Administrador -->
-    
+
   </q-list>
 </template>
 
