@@ -20,13 +20,13 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
   const editedIndex = ref(-1);
   const sitios = ref([]);
   const editedItem = ref({
-    id_sitio: ubicacionStore.id_sitio,
+    id_sitio: null,//ubicacionStore.id_sitio,
     activo: "S",
     //id_configuracion: 1
   });
 
   const defaultItem = ref({
-    id_sitio: ubicacionStore.id_sitio,
+    id_sitio: null,//ubicacionStore.id_sitio,
     activo: "S",
     //id_configuracion: 1
   });
@@ -604,6 +604,11 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
 
   const guardarRegistro = async () => {
     const peticionService = new PeticionService();
+
+    // Verificar si id_sitio es null y asignar el valor del store
+  if (editedItem.value.id_sitio === null) {
+    editedItem.value.id_sitio = ubicacionStore.id_sitio;
+  }
 
     let dataToSend = { ...editedItem.value };
     if (dataToSend.descripcion) {

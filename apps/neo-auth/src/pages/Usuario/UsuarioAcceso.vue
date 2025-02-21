@@ -303,7 +303,7 @@ const obtenerAccessList = async () => {
         const _respuesta = await _peticion.invocarMetodo("acceso", "get");
 
         console.log('Respuesta del backend (lista de accesos):', _respuesta);
-        
+
         return _respuesta.map((acceso) => ({
             id: acceso.id,
             label: acceso.descripcion,
@@ -335,7 +335,7 @@ const filterAccess = computed(() => {
     if (!accessFilter.value) return accessList.value;
     const filt = accessFilter.value.toLowerCase();
     return accessList.value.filter(
-        access => 
+        access =>
             access.label.toLowerCase().includes(filt) ||
             access.identificador.toLowerCase().includes(filt)
     );
@@ -355,7 +355,7 @@ const initializeData = async () => {
     try {
         // Obtener usuarios primero ya que son necesarios para el árbol
         usuarios.value = await fetchUsuarios();
-        
+
         // Obtener perfiles, roles y lista de accesos
         const [perfilesData, rolesData, accessListData] = await Promise.all([
             fetchPerfiles(),
@@ -385,9 +385,9 @@ const fetchUserAccesses = async () => {
     try {
         const _peticion = new NdPeticionControl();
         const _respuesta = await _peticion.invocarMetodo("usuarioacceso", "get");
-        
+
         console.log('Respuesta del backend (accesos de usuario):', _respuesta);
-        
+
         return _respuesta.map(acceso => {
             // Si es un perfil (id_acceso = -1)
             if (acceso.id_acceso === -1) {
@@ -399,7 +399,7 @@ const fetchUserAccesses = async () => {
                     label: 'Perfil asignado'
                 };
             }
-            
+
             // Si es un acceso normal
             const accessInfo = accessList.value.find(a => a.id === acceso.id_acceso);
             return {
@@ -449,10 +449,10 @@ const fetchPerfiles = async () => {
   try {
     const _peticion = new NdPeticionControl();
 
-    const _respuesta = await _peticion.invocarMetodo("perfil", "get");
+    const _respuesta = await _peticion.invocarMetodo("perfilconfiguracion", "get");
 
     console.log('Respuesta del backend (perfiles):', _respuesta);
-    
+
     return _respuesta.map((perfil) => ({
       value: perfil.id.toString(),
       label: perfil.descripcion,
@@ -471,7 +471,7 @@ const fetchRoles = async () => {
     const _respuesta = await _peticion.invocarMetodo("ndrolusuario", "get");
 
     console.log('Respuesta del backend (roles):', _respuesta);
-    
+
     return _respuesta.map((rol) => ({
       value: rol.id.toString(),
       label: rol.descripcion,
@@ -530,7 +530,7 @@ const formatTreeData = (userAccesses) => {
         userAccesses.forEach((access) => {
             const userKey = access.usuario;
             const user = usersMap[userKey];
-            
+
             if (!user) return;
 
             const [profileNode, roleNode, accessNode] = user.children;
@@ -595,7 +595,7 @@ const deleteAccess = async (node) => {
     try {
         const _peticion = new NdPeticionControl();
         await _peticion.invocarMetodo("usuarioacceso", "delete", { id: node.id });
-        
+
         // Actualizar UI después de éxito
         const user = treeData.value.find((u) => u.id === node.usuario);
         user.children.forEach((category) => {
