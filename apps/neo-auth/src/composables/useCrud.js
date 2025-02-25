@@ -235,6 +235,69 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
           align: "center",
         },
       ]);
+    } else if (modelName === "tipositioubicacion") {
+      columnsConfig = columnsConfig.concat([
+        {
+          name: "descripcion",
+          align: "left",
+          label: "Descripción",
+          field: "descripcion",
+          sortable: true,
+        },
+        {
+          name: "identificador",
+          align: "left",
+          label: "Identificador",
+          field: "identificador",
+          sortable: true,
+        },
+        {
+          name: "activo",
+          label: "Activo",
+          field: "activo",
+          sortable: true,
+          align: "center",
+        },
+
+      ]);
+    } else if (modelName === "sitioubicacion") {
+      columnsConfig = columnsConfig.concat([
+        {
+          name: "descripcion",
+          align: "left",
+          label: "Nombre",
+          field: "descripcion",
+          sortable: true,
+        },
+        {
+          name: "id_sitio",
+          align: "left",
+          label: "Sitio",
+          field: "id_sitio",
+          sortable: true,
+        },
+        {
+          name: "id_tipositioubicacion",
+          align: "left",
+          label: "Id Tipo Sitio Ubicación",
+          field: "id_tipositioubicacion",
+          sortable: true,
+        },
+        {
+          name: "id_ubicacionexterno",
+          align: "left",
+          label: "Id Ubicación Externo",
+          field: "id_ubicacionexterno",
+          sortable: true,
+        },
+        {
+          name: "activo",
+          label: "Activo",
+          field: "activo",
+          sortable: true,
+          align: "center",
+        },
+      ]);
     }
 
     columnsConfig = columnsConfig.concat([
@@ -404,6 +467,76 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
       // Otros campos según el modelo...
     ],
 
+    tipositioubicacion: [
+      //{ name: "id", label: "Id", component: "q-input" },
+      {
+        name: "descripcion",
+        label: "Descripción",
+        component: "q-input",
+        classes: ["q-mb-xs"],
+        rules: [
+          (val) =>
+            (val && val.length > 0) || "Ingrese la descripción del tipo de ubicación",
+        ],
+      },
+      {
+        name: "identificador",
+        label: "Identificador",
+        component: "q-input",
+        classes: ["q-mb-xs"],
+        rules: [
+          (val) =>
+            (val && val.length > 0) || "Ingrese el identificador del tipo de ubicación",
+        ],
+      },
+      {
+        name: "activo",
+        label: "Activo",
+        component: "q-checkbox",
+        classes: ["q-mb-xs"],
+      },
+
+    ],
+    sitioubicacion: [
+      //{ name: "id", label: "Id", component: "q-input" },
+      {
+        name: "descripcion",
+        label: "Descripción",
+        component: "q-input",
+        classes: ["q-mb-xs"],
+        rules: [
+          (val) =>
+            (val && val.length > 0) || "Ingrese la descripción de la configuración",
+        ],
+      },
+      {
+        name: "id_sitio",
+        label: "Sitio",
+        component: "q-select",
+        classes: ["q-mb-xs"],
+        options: sitios.value,
+        rules: [(val) => !!val || "Seleccione un sitio"],
+        //rules: [(val) => (val && val.length > 0) || "Seleccione un sitio"]
+      },
+      {
+        name: "id_tipositioubicacion",
+        label: "Id Tipo Sitio Ubicación",
+        component: "q-select",
+        classes: ["q-mb-xs"],
+        options: sitios.value,
+        rules: [(val) => !!val || "Seleccione el tipo de ubicación del sitio"],
+        //rules: [(val) => (val && val.length > 0) || "Seleccione un sitio"]
+      },
+      {
+        name: "activo",
+        label: "Activo",
+        component: "q-checkbox",
+        classes: ["q-mb-xs"],
+      },
+
+      // Otros campos según el modelo...
+    ],
+
     EjemploModel: [
       { name: "id", label: "Id", component: "q-input" },
       { name: "name", label: "Nombre", component: "q-input" },
@@ -419,13 +552,17 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
       modelName === "perfilconfiguracion" ||
       modelName === "sitio" ||
       modelName === "sucursal" ||
-      modelName === "configuracion"
+      modelName === "configuracion" ||
+      modelName === "tipositioubicacion"
     ) {
       mostrarFormIntegrado.value = true;
 
       // Utilizar el formulario genérico de observación
 
-      if (modelName === "sitio" || modelName === "sucursal" || modelName === "configuracion") {
+      if (modelName === "sitio" ||
+        modelName === "sucursal" ||
+        modelName === "configuracion" ||
+        modelName === "tipositioubicacion") {
         return formConfig[modelName] || [];
       } else return formConfig["genericodescripcion"] || [];
     } else {
@@ -622,12 +759,19 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
       if (modelName === "usuario") {
         delete dataToSend.clave;
       }
-      if (modelName === "sitio") {
+      if (modelName === "sitio" ||
+        modelName === "tipositioubicacion") {
         delete dataToSend.id_sitio;
       }
 
-      if (modelName === "sucursal" || modelName === "configuracion") {
+      if (modelName === "sucursal" ||
+        modelName === "configuracion" ||
+        modelName === "perfilconfiguracion") {
         dataToSend.id_sitio = dataToSend.id_sitio.value;
+      }
+
+      if (modelName === "perfilconfiguracion") {
+        dataToSend.id_configuracion = 1;
       }
 
       if (dataToSend.offset) {
@@ -638,12 +782,19 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
     } else {
       //CREAR NUEVO REGISTRO
 
-      if (modelName === "sitio") {
+      if (modelName === "sitio" ||
+        modelName === "tipositioubicacion") {
         delete dataToSend.id_sitio;
       }
 
-      if (modelName === "sucursal" || modelName === "configuracion") {
+      if (modelName === "sucursal" ||
+        modelName === "configuracion" ||
+        modelName === "perfilconfiguracion") {
         dataToSend.id_sitio = dataToSend.id_sitio.value;
+      }
+
+      if (modelName === "perfilconfiguracion") {
+        dataToSend.id_configuracion = 1;
       }
 
       if (dataToSend.offset) {

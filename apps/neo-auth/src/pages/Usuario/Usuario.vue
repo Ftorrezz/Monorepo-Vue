@@ -64,7 +64,7 @@
                     label="Usuario"
                     lazy-rules
                     :rules="[(val) => !!val || 'Ingrese un nombre de usuario']"
-                    class="q-mb-md"
+                    class="q-mb-md uppercase"
                   >
                     <template v-slot:prepend>
                       <q-icon name="person" />

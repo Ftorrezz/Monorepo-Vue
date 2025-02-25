@@ -44,7 +44,9 @@ export default {
           title: 'Institucional',
           entity: 'Sitio',
           entityconf: 'Sitio Configuración',
-          branch: 'Sucursal'
+          branch: 'Sucursal',
+          type: 'Tipo de Sitio Ubicación',
+          location: 'Sitio Ubicación'
         },
         security: {
           title: 'Seguridad',

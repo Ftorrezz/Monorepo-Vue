@@ -42,9 +42,11 @@ export default {
       title: 'Settings',
       institutional: {
         title: 'Institutional',
-        entity: 'Entity',
-        entityconf: 'Entity Configuration',
-        branch: 'Branch'
+        entity: 'Site',
+        entityconf: 'Site Configuration',
+        branch: 'Branch',
+        type: 'Site Location Type',
+        location: 'Site Location'
       },
       security: {
         title: 'Security',

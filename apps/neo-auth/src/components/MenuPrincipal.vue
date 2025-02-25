@@ -105,6 +105,30 @@
                 </q-item-section>
               </q-item>
               <q-item
+                to="/tipositioubicacion"
+                active-class="my-menu-link"
+                class="q-ma-xs navigation-item"
+              >
+                <q-item-section avatar side>
+                  <q-icon name="adjust" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>{{ $t('mainMenu.settings.institutional.type') }}</q-item-label>
+                </q-item-section>
+              </q-item>
+              <q-item
+                to="/sitioubicacion"
+                active-class="my-menu-link"
+                class="q-ma-xs navigation-item"
+              >
+                <q-item-section avatar side>
+                  <q-icon name="adjust" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>{{ $t('mainMenu.settings.institutional.location') }}</q-item-label>
+                </q-item-section>
+              </q-item>
+              <q-item
                 to="/sucursal"
                 active-class="my-menu-link"
                 class="q-ma-xs navigation-item"

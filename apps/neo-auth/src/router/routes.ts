@@ -46,8 +46,18 @@ const routes: RouteRecordRaw[] = [
         component: () => import("src/pages/Institucional/Sucursal.vue"),
         meta: { requireAuth: true },
       },
-
-
+      {
+        path: "tipositioubicacion",
+        name: "tipositioubicacion",
+        component: () => import("src/pages/Institucional/TipoSitioUbicacion.vue"),
+        meta: { requireAuth: true },
+      },
+      {
+        path: "sitioubicacion",
+        name: "sitioubicacion",
+        component: () => import("src/pages/Institucional/SitioUbicacion.vue"),
+        meta: { requireAuth: true },
+      },
 
 
       ],
