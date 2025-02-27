@@ -19,6 +19,7 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
   let formDialogModal = ref(false);
   const editedIndex = ref(-1);
   const sitios = ref([]);
+  const _listaTipoSitioUbicacion = ref([]);
   const editedItem = ref({
     id_sitio: null,//ubicacionStore.id_sitio,
     activo: "S",
@@ -520,10 +521,10 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
       },
       {
         name: "id_tipositioubicacion",
-        label: "Id Tipo Sitio Ubicación",
+        label: "Sitio Ubicación",
         component: "q-select",
         classes: ["q-mb-xs"],
-        options: sitios.value,
+        options: _listaTipoSitioUbicacion.value,
         rules: [(val) => !!val || "Seleccione el tipo de ubicación del sitio"],
         //rules: [(val) => (val && val.length > 0) || "Seleccione un sitio"]
       },
@@ -553,7 +554,8 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
       modelName === "sitio" ||
       modelName === "sucursal" ||
       modelName === "configuracion" ||
-      modelName === "tipositioubicacion"
+      modelName === "tipositioubicacion" ||
+      modelName === "sitioubicacion"
     ) {
       mostrarFormIntegrado.value = true;
 
@@ -562,7 +564,8 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
       if (modelName === "sitio" ||
         modelName === "sucursal" ||
         modelName === "configuracion" ||
-        modelName === "tipositioubicacion") {
+        modelName === "tipositioubicacion" ||
+        modelName === "sitioubicacion") {
         return formConfig[modelName] || [];
       } else return formConfig["genericodescripcion"] || [];
     } else {
@@ -575,10 +578,16 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
 
   const getFormConfig = async () => {
     await getSitios();
+    await getTipoSitioUbicacion();
     formFields.value = generateFormConfig();
-    if (modelName === "sucursal"  || modelName === "configuracion") {
+    if (modelName === "sucursal"  || modelName === "configuracion" || modelName === "sitioubicacion") {
       formFields.value.find((field) => field.name === "id_sitio").options =
         sitios.value;
+    }
+    if (modelName === "sitioubicacion") {
+      formFields.value.find(
+        (field) => field.name === "id_tipositioubicacion"
+      ).options = _listaTipoSitioUbicacion.value;
     }
   };
 
@@ -595,6 +604,23 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
         "error",
         "Sitios",
         "Error al obtener la lista de sitios"
+      );
+    }
+  };
+
+  const getTipoSitioUbicacion = async () => {
+    try {
+      const _peticion = new NdPeticionControl();
+      const _respuesta = await _peticion.invocarMetodo("tipositioubicacion", "get");
+      _listaTipoSitioUbicacion.value = _respuesta.map((sitioUbicacion) => ({
+        label: sitioUbicacion.descripcion,
+        value: sitioUbicacion.id,
+      }));
+    } catch (error) {
+      alertas.mostrarMensaje(
+        "error",
+        "Tipo Sitio Ubicación",
+        "Error al obtener la lista de tipos de sitios"
       );
     }
   };
@@ -789,8 +815,14 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
 
       if (modelName === "sucursal" ||
         modelName === "configuracion" ||
-        modelName === "perfilconfiguracion") {
+        modelName === "perfilconfiguracion" ||
+        modelName === "sitioubicacion") {
         dataToSend.id_sitio = dataToSend.id_sitio.value;
+      }
+
+      if (modelName === "sitioubicacion") {
+        dataToSend.id_tipositioubicacion = dataToSend.id_tipositioubicacion.value;
+        dataToSend.id_ubicacionexterno = 0;
       }
 
       if (modelName === "perfilconfiguracion") {
@@ -803,8 +835,6 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
 
       _respuesta = await peticionService.crear(modelName, dataToSend);
     }
-
-    console.log(_respuesta);
 
     if (!_respuesta.status) {
       getData();

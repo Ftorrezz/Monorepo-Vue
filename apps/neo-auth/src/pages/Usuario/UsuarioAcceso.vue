@@ -61,6 +61,7 @@
                     :data-id="scope.node.id"
                     :draggable="scope.node.type !== 'user'"
                     @dragstart="onDragStart(scope.node)"
+                    @contextmenu.prevent="showContextMenu($event, scope.node)"
                   >
                     <q-item-section side v-if="scope.node.icon">
                       <q-icon :name="scope.node.icon" />
@@ -88,6 +89,16 @@
           </div>
         </q-card>
       </template>
+
+      <!-- Menú contextual -->
+    <q-menu v-model="contextMenuVisible" :anchor="contextMenuAnchor" self="top left" fit>
+      <q-list>
+        <q-item clickable v-ripple @click="copyUser">
+          <q-item-section>Copiar usuario</q-item-section>
+        </q-item>
+        <!-- Otras opciones del menú contextual -->
+      </q-list>
+    </q-menu>
 
       <template v-slot:separator>
         <q-avatar
@@ -295,6 +306,10 @@ const userFilter = ref("");
 const userFilterRef = ref(null);
 const accessFilter = ref("");
 const accessFilterRef = ref(null);
+
+const contextMenuVisible = ref(false);
+const contextMenuAnchor = ref(null);
+const selectedNode = ref(null);
 
 const obtenerAccessList = async () => {
     try {
@@ -682,6 +697,86 @@ const onDrop = async (event) => {
 
 const allowDrop = (event) => {
   event.preventDefault();
+};
+
+const showContextMenu = (event, node) => {
+  contextMenuAnchor.value = event;
+  contextMenuVisible.value = true;
+  selectedNode.value = node;
+};
+
+const copyUser = async () => {
+  if (!selectedNode.value) return;
+
+  const originalUser = selectedNode.value;
+  const newUserName = prompt("Ingrese el nuevo nombre de usuario:");
+
+  if (!newUserName) return;
+
+  try {
+    const _peticion = new NdPeticionControl();
+
+    // Crear el nuevo usuario con los mismos accesos que el original
+    const newUser = await _peticion.invocarMetodo("usuario", "post", {
+      nombreusuario: newUserName,
+      // Otros campos necesarios para crear el usuario
+    });
+
+    // Obtener los accesos del usuario original
+    const userAccesses = await _peticion.invocarMetodo("usuarioacceso", "get", {
+      id_usuario: originalUser.id,
+    });
+
+    // Asignar los mismos accesos al nuevo usuario
+    for (const access of userAccesses) {
+      await _peticion.invocarMetodo("usuarioacceso", "post", {
+        id_usuario: newUser.id,
+        id_acceso: access.id_acceso,
+        id_configuracion: access.id_configuracion,
+        permitir: access.permitir,
+      });
+    }
+
+    // Actualizar la UI
+    usuarios.value.push({
+      label: newUserName,
+      value: newUser.id.toString(),
+    });
+
+    const newUserNode = {
+      id: newUser.id.toString(),
+      label: newUserName,
+      icon: "person",
+      type: "user",
+      children: [
+        {
+          id: `${newUser.id}-perfiles`,
+          label: "Perfiles",
+          type: "category",
+          icon: "group",
+          children: [],
+        },
+        {
+          id: `${newUser.id}-roles`,
+          label: "Roles",
+          type: "category",
+          icon: "settings_accessibility",
+          children: [],
+        },
+        {
+          id: `${newUser.id}-accesos`,
+          label: "Accesos",
+          type: "category",
+          icon: "key",
+          children: [],
+        },
+      ],
+    };
+
+    treeData.value.push(newUserNode);
+  } catch (error) {
+    console.error("Error al copiar usuario:", error);
+  }
 };
 </script>
 
