@@ -5,8 +5,8 @@
       v-model="splitterModel"
       style="height: calc(100vh - 50px)"
       separator-class="bg-primary"
-      separator-style="width: 3px"
-      class="q-pa-xs q-col-gutter-sm"
+      separator-style="width: 0px"
+      class="q-pa-xs q-col-gutter-xs"
     >
       <!-- Árbol de Usuarios -->
       <template v-slot:before>
@@ -91,14 +91,14 @@
       </template>
 
       <!-- Menú contextual -->
-    <q-menu v-model="contextMenuVisible" :anchor="contextMenuAnchor" self="top left" fit>
+    <!--<q-menu v-model="contextMenuVisible" :anchor="contextMenuAnchor" self="top left" fit>
       <q-list>
         <q-item clickable v-ripple @click="copyUser">
           <q-item-section>Copiar usuario</q-item-section>
         </q-item>
-        <!-- Otras opciones del menú contextual -->
+
       </q-list>
-    </q-menu>
+    </q-menu>-->
 
       <template v-slot:separator>
         <q-avatar
@@ -113,6 +113,8 @@
           </q-tooltip>
         </q-avatar>
       </template>
+
+
 
       <!-- Paneles de Perfiles, Roles y Accesos -->
       <template v-slot:after>
@@ -699,13 +701,13 @@ const allowDrop = (event) => {
   event.preventDefault();
 };
 
-const showContextMenu = (event, node) => {
+/*const showContextMenu = (event, node) => {
   contextMenuAnchor.value = event;
   contextMenuVisible.value = true;
   selectedNode.value = node;
-};
+};*/
 
-const copyUser = async () => {
+/*const copyUser = async () => {
   if (!selectedNode.value) return;
 
   const originalUser = selectedNode.value;
@@ -777,7 +779,7 @@ const copyUser = async () => {
   } catch (error) {
     console.error("Error al copiar usuario:", error);
   }
-};
+};*/
 </script>
 
 <style lang="scss" scoped>
