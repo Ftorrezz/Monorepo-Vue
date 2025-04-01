@@ -1,12 +1,13 @@
 <template>
   <q-page>
-       CONTROL DE CALIDAD
+      asasas
+      <EncabezadoGenericoPrincipal :tituloVentana="'Administración de accesos de usuario'" />
+  
   </q-page>
-</template>
-
-<script setup lang="ts">
-
-defineOptions({
-  name: "Index",
-});
-</script>
+  
+  </template>
+  
+  <script setup lang="ts">
+  import EncabezadoGenericoPrincipal from 'components/EncabezadoGenericoPrincipal.vue';
+  
+  </script>

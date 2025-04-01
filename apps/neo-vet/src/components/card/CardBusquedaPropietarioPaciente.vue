@@ -1,4 +1,5 @@
 <template>
+   
   <div class="q-pa-xs col-lg-12 col-md-6 col-sm-12 col-xs-12">
     <q-table title="Treats" :rows="rows" :columns="columns" row-key="name">
       <template v-slot:top>
@@ -101,6 +102,8 @@
 
 <script setup>
 import { ref } from "vue";
+
+const rows = []
 
 const columns = ref([
   {

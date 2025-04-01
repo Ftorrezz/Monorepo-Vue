@@ -194,33 +194,6 @@
           @click="buscar()"
         />
       </div>
-      
-      <div class="col-xs-8 col-md-8 col-sm-12 col-xs-12">
-         <CardBusquedaPropietarioPaciente />
-      </div>
-
-      <div class="col-xs-2 col-md-4 col-sm-12 col-xs-12">
-        <q-card elevated>
-          <q-card-section>
-            <div class="text-h6">Mascota</div>
-          </q-card-section>
-
-          <q-separator inset></q-separator>
-
-          <q-card-section class="row q-col-gutter-xs">
-            <q-item class="col-lg-6 col-md-12 col-sm-12 col-xs-12">
-              <q-item-section>
-                <q-input v-model="prueba" label="Nombre" />
-              </q-item-section>
-            </q-item>
-            <q-item class="col-lg-6 col-md-12 col-sm-12 col-xs-12">
-              <q-item-section>
-                <q-input v-model="prueba" label="Historia Clínica"
-              /></q-item-section>
-            </q-item>
-          </q-card-section>
-        </q-card>
-      </div>
 
       
     </div>
