@@ -9,6 +9,7 @@
   "scripts": {
     "dev:neo-auth": "yarn workspace neo-auth dev",
     "dev:neo-qc": "yarn workspace neo-qc dev",
+    "dev:neo-vet": "yarn workspace neo-vet dev",
     "build:all": "yarn workspaces run build"
   },
   "dependencies": {
