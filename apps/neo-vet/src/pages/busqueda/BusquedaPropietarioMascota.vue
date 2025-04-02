@@ -4,7 +4,7 @@
       <div class="col-xs-8 col-md-8 col-sm-12 col-xs-12">
         <q-card elevated>
           <q-expansion-item
-          
+
           style="border-radius: 10px"
           popup
           header-class="bg-green"
@@ -52,7 +52,7 @@
                   v-model="prueba"
                   label="Telefono móvil"
                   lazy-rules
-                  
+
                 >
                   <template v-slot:prepend>
                     <q-icon name="phone_android" />
@@ -95,7 +95,7 @@
           @click="buscar()"
         />
       </div>
-     
+
     </div>
     <CardBusquedaPropietarioPaciente />
   </q-page>
@@ -103,11 +103,11 @@
 
 
 <template>
-   
+
     <div class="row q-col-gutter-xs q-ma-xs q-mr-sm">
       <div class="col-xs-8 col-md-8 col-sm-12 col-xs-12">
         <q-card elevated>
-          
+
           <q-card-section>
             <div class="text-h6">Propietario</div>
           </q-card-section>
@@ -133,7 +133,7 @@
             <q-item class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
               <q-item-section>
                 <q-input
-                  
+
                   v-model="prueba"
                   label="Correo electronico"
                   type="email"
@@ -147,11 +147,11 @@
             <q-item class="col-lg-2 col-md-6 col-sm-12 col-xs-12">
               <q-item-section>
                 <q-input
-                  
+
                   v-model="prueba"
                   label="Telefono móvil"
                   lazy-rules
-                  
+
                 >
                   <template v-slot:prepend>
                     <q-icon name="phone_android" />
@@ -190,13 +190,13 @@
         <q-btn
           label="Buscar"
           class="full-width bg-cyan-8 text-white"
-          icon="person_search"
+          icon="search"
           @click="buscar()"
         />
       </div>
-      
+
       <div class="col-xs-8 col-md-8 col-sm-12 col-xs-12">
-         <CardBusquedaPropietarioPaciente />
+         <CardBusquedaPropietarioMascota />
       </div>
 
       <div class="col-xs-2 col-md-4 col-sm-12 col-xs-12">
@@ -222,32 +222,32 @@
         </q-card>
       </div>
 
-      
+
     </div>
-    <CardBusquedaPropietarioPaciente />
-    
+
+
 </template>
 
 <script setup lang="ts" scoped>
 import { ref } from "vue";
 import { useQuasar } from "quasar";
-import CardBusquedaPropietarioPaciente from "../../components/card/CardBusquedaPropietarioPaciente.vue";
-  
+import CardBusquedaPropietarioMascota from "../../components/card/CardBusquedaPropietarioMascota.vue";
+
     const $q = useQuasar();
     const size = ref({ width: "200px", height: "200px" });
     const prueba = ref(null);
     const listaPropietarios = ref([]);
-  
+
 
     let tab = ref("all")
     let search = ref("")
-        
+
     const buscar = async () => {
       try {
         console.log("entro a buscar");
 
         listaPropietarios.value = [];
-            
+
 
         /*const resp = await Api.get("/buscar/propietario/nombre/prueba4");
 
@@ -274,8 +274,8 @@ import CardBusquedaPropietarioPaciente from "../../components/card/CardBusquedaP
       const emailPattern =
           /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.){1,8}[a-zA-Z]{2,63}$/;
         return emailPattern.test(val) || "El correo no parece ser válido";
-    }  
-        
+    }
+
     /*return {
       tab: ref("all"),
       search: ref(""),
