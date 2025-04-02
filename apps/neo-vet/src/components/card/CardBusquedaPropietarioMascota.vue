@@ -1,6 +1,6 @@
 <template>
 
-  <div class="q-pa-xs col-lg-12 col-md-6 col-sm-12 col-xs-12">
+  <div class="q-pa-xs col-lg-8 col-md-6 col-sm-12 col-xs-12">
     <q-table title="Treats" :rows="rows" :columns="columns" row-key="name">
       <template v-slot:top>
         <q-space />
@@ -42,7 +42,7 @@
     </q-table>
   </div>
 
-  <div class="q-pa-xs col-lg-12 col-md-6 col-sm-12 col-xs-12">
+  <div class="q-pa-xs col-lg-4 col-md-6 col-sm-12 col-xs-12">
     <q-table title="Treats" :rows="rows" :columns="columnsMascota" row-key="name">
       <template v-slot:top>
         <q-space />

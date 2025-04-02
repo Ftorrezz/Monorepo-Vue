@@ -163,7 +163,7 @@
         </q-card>
       </div>
 
-      <div class="col-xs-2 col-md-4 col-sm-12 col-xs-12">
+      <div class="col-xs-4 col-md-4 col-sm-12 col-xs-12">
         <q-card elevated>
           <q-card-section>
             <div class="text-h6">Mascota</div>
@@ -195,11 +195,13 @@
         />
       </div>
 
-      <div class="col-xs-8 col-md-8 col-sm-12 col-xs-12">
-         <CardBusquedaPropietarioMascota />
-      </div>
+      <CardBusquedaPropietarioMascota />
 
-      <div class="col-xs-2 col-md-4 col-sm-12 col-xs-12">
+      <!--<div class="col-xs-8 col-md-8 col-sm-12 col-xs-12">
+         <CardBusquedaPropietarioMascota />
+      </div>-->
+
+      <!--<div class="col-xs-2 col-md-4 col-sm-12 col-xs-12">
         <q-card elevated>
           <q-card-section>
             <div class="text-h6">Mascota</div>
@@ -220,12 +222,13 @@
             </q-item>
           </q-card-section>
         </q-card>
-      </div>
+      </div>-->
 
 
     </div>
-
-
+  
+    
+    
 </template>
 
 <script setup lang="ts" scoped>
