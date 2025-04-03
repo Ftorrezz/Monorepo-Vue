@@ -4,7 +4,7 @@
     <q-table title="Treats" :rows="rows" :columns="columns" row-key="name">
       <template v-slot:top>
         <q-space />
-        <q-btn round color="secondary" icon="add" @click="addItem" />
+        <q-btn round color="secondary" icon="add" @click="abrirDialogo" />
       </template>
       <template v-slot:header="props">
         <q-tr :props="props">
@@ -46,7 +46,7 @@
     <q-table title="Treats" :rows="rows" :columns="columnsMascota" row-key="name">
       <template v-slot:top>
         <q-space />
-        <q-btn round color="secondary" icon="add" @click="addItem" />
+        <q-btn round color="secondary" icon="add" @click="abrirDialogo" />
       </template>
       <template v-slot:header="props">
         <q-tr :props="props">
@@ -82,6 +82,18 @@
         </q-tr>
       </template>
     </q-table>
+
+    <!-- Componente del diálogo -->
+    <DialogAgregarPropietario
+      v-if="mostrarDialogo"
+      @guardar="guardarPropietario"
+      @cancelar="cerrarDialogo"
+    />
+    <!--<DialogAgregarPropietario
+      v-if="mostrarDialogo"
+      @guardar="guardarPropietario"
+      @cancelar="cerrarDialogo"
+    />-->
   </div>
 </template>
 <!--<template>
@@ -144,6 +156,8 @@
 
 <script setup>
 import { ref } from "vue";
+const mostrarDialogo = ref(false);
+import DialogAgregarPropietario from "../dialog/DialogAgregarPropietario.vue";
 
 const rows = []
 
@@ -212,6 +226,26 @@ const columnsMascota = ref([
 ]);
 
 const expanded = ref(false);
+
+// Función para abrir el diálogo
+const abrirDialogo = () => {
+  mostrarDialogo.value = true;
+};
+
+// Función para cerrar el diálogo
+const cerrarDialogo = () => {
+  mostrarDialogo.value = false;
+};
+
+// Función para guardar los datos del propietario y la mascota
+const guardarPropietario = ({ propietario, mascota }) => {
+  console.log("Propietario guardado:", propietario);
+  console.log("Mascota guardada:", mascota);
+
+  // Aquí puedes realizar la lógica para guardar los datos en el backend
+  cerrarDialogo();
+};
+
 </script>
 
 <style lang="sass" scoped>
