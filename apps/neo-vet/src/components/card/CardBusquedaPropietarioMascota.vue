@@ -84,17 +84,17 @@
     </q-table>
 
     <!-- Componente del diálogo -->
-    <DialogAgregarPropietario
-      v-if="mostrarDialogo"
-      @guardar="guardarPropietario"
-      @cancelar="cerrarDialogo"
-    />
+    
     <!--<DialogAgregarPropietario
       v-if="mostrarDialogo"
       @guardar="guardarPropietario"
       @cancelar="cerrarDialogo"
     />-->
   </div>
+  <DialogAgregarPropietario
+      v-if="mostrarDialogo"
+      
+    />
 </template>
 <!--<template>
   <div class="col-lg-12 col-md-6 col-sm-12 col-xs-12">
