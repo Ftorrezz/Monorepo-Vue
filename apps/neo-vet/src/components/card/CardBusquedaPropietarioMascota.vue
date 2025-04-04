@@ -94,6 +94,10 @@
   <DialogAgregarPropietario
       v-if="mostrarDialogo"
       
+  />
+  <DialogAgregarMascota
+      v-if="mostrarDialogo"
+  
     />
 </template>
 <!--<template>
@@ -158,6 +162,7 @@
 import { ref } from "vue";
 const mostrarDialogo = ref(false);
 import DialogAgregarPropietario from "../dialog/DialogAgregarPropietario.vue";
+import DialogAgregarMascota from "../dialog/DialogAgregarMascota.vue";
 
 const rows = []
 

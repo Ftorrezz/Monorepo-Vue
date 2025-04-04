@@ -104,8 +104,14 @@
 
 <template>
 
-    <div class="row q-col-gutter-xs q-ma-xs q-mr-sm">
+      
+  <EncabezadoGenericoPrincipal :tituloVentana="crudName" />  
+   
+
+  <div class="row q-col-gutter-xs q-ma-xs q-mr-sm">
+      
       <div class="col-xs-8 col-md-8 col-sm-12 col-xs-12">
+       
         <q-card elevated>
 
           <q-card-section>
@@ -235,7 +241,9 @@
 import { ref } from "vue";
 import { useQuasar } from "quasar";
 import CardBusquedaPropietarioMascota from "../../components/card/CardBusquedaPropietarioMascota.vue";
+import EncabezadoGenericoPrincipal from "src/components/EncabezadoGenericoPrincipal.vue";
 
+    const crudName: string = "Propietario / Mascota";    
     const $q = useQuasar();
     const size = ref({ width: "200px", height: "200px" });
     const prueba = ref(null);
