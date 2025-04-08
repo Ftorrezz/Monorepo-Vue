@@ -52,6 +52,36 @@
     <q-expansion-item icon="settings" label="Configuración">
       <q-list class="q-pl-lg">
 
+        <q-expansion-item icon="settings" label="Mascota">
+          <q-list class="q-pl-lg">
+            <q-item
+              to="/color"
+              active-class="my-menu-link"
+              class="q-ma-xs navigation-item"
+            >
+              <q-item-section avatar side>
+                <q-icon name="pets" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Color</q-item-label>
+              </q-item-section>
+            </q-item>
+
+            <q-item
+              to="/raza"
+              active-class="my-menu-link"
+              class="q-ma-xs navigation-item"
+            >
+              <q-item-section avatar side>
+                <q-icon name="pets" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Raza</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-expansion-item>
+
       </q-list>
     </q-expansion-item>
   </q-list>

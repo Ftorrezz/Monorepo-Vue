@@ -55,7 +55,7 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
     ];
 
     // Agregar columnas específicas de cada modelo
-    if (modelName === "perfilconfiguracion") {
+    if (modelName === "color") {
       columnsConfig = columnsConfig.concat([
         {
           name: "descripcion",
@@ -65,230 +65,10 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
           sortable: true,
         },
         {
-          name: "activo",
-          label: "Activo",
-          field: "activo",
-          sortable: true,
-          align: "center",
-        },
-      ]);
-    } else if (modelName === "ProductModel") {
-      columnsConfig = columnsConfig.concat([
-        {
-          name: "name",
+          name: "paridad",
           align: "left",
-          label: "Nombre",
-          field: "name",
-          sortable: true,
-        },
-        {
-          name: "email",
-          label: "Correo electrónico",
-          field: "email",
-          sortable: true,
-          align: "center",
-        },
-        {
-          name: "fechacaducidadclave",
-          label: "Vigencia",
-          field: "fechacaducidadclave",
-          sortable: true,
-          align: "center",
-        },
-
-        {
-          name: "activo",
-          label: "Activo",
-          field: "activo",
-          sortable: true,
-          align: "center",
-        },
-      ]);
-    } else if (modelName === "usuario") {
-      columnsConfig = columnsConfig.concat([
-        {
-          name: "nombreusuario",
-          align: "left",
-          label: "Nombre usuario",
-          field: "nombreusuario",
-          sortable: true,
-        },
-        {
-          name: "email",
-          label: "Correo electrónico",
-          field: "email",
-          sortable: true,
-          align: "center",
-        },
-        {
-          name: "fechacaducidadclave",
-          label: "Vigencia",
-          field: "fechacaducidadclave",
-          sortable: true,
-          align: "center",
-        },
-
-        {
-          name: "activo",
-          label: "Activo",
-          field: "activo",
-          sortable: true,
-          align: "center",
-        },
-      ]);
-    } else if (modelName === "sitio") {
-      columnsConfig = columnsConfig.concat([
-        {
-          name: "descripcion",
-          align: "left",
-          label: "Descripción",
-          field: "descripcion",
-          sortable: true,
-        },
-        {
-          name: "paisidentificador",
-          align: "left",
-          label: "Identificador País",
-          field: "paisidentificador",
-          sortable: true,
-        },
-        {
-          name: "urlservidor",
-          align: "left",
-          label: "Url Servidor",
-          field: "urlservidor",
-          sortable: true,
-        },
-        {
-          name: "activo",
-          label: "Activo",
-          field: "activo",
-          sortable: true,
-          align: "center",
-        },
-      ]);
-    } else if (modelName === "sucursal") {
-      columnsConfig = columnsConfig.concat([
-        {
-          name: "descripcion",
-          align: "left",
-          label: "Nombre",
-          field: "descripcion",
-          sortable: true,
-        },
-        {
-          name: "abreviatura",
-          align: "left",
-          label: "Abreviatura",
-          field: "abreviatura",
-          sortable: true,
-        },
-        {
-          name: "responsable",
-          align: "left",
-          label: "Responsable",
-          field: "responsable",
-          sortable: true,
-        },
-        {
-          name: "direccion",
-          align: "left",
-          label: "Dirección",
-          field: "direccion",
-          sortable: true,
-        },
-        {
-          name: "id_sitio",
-          align: "left",
-          label: "Sitio",
-          field: "id_sitio",
-          sortable: true,
-        },
-        {
-          name: "activo",
-          label: "Activo",
-          field: "activo",
-          sortable: true,
-          align: "center",
-        },
-      ]);
-    } else if (modelName === "configuracion") {
-      columnsConfig = columnsConfig.concat([
-        {
-          name: "descripcion",
-          align: "left",
-          label: "Nombre",
-          field: "descripcion",
-          sortable: true,
-        },
-        {
-          name: "id_sitio",
-          align: "left",
-          label: "Sitio",
-          field: "id_sitio",
-          sortable: true,
-        },
-        {
-          name: "activo",
-          label: "Activo",
-          field: "activo",
-          sortable: true,
-          align: "center",
-        },
-      ]);
-    } else if (modelName === "tipositioubicacion") {
-      columnsConfig = columnsConfig.concat([
-        {
-          name: "descripcion",
-          align: "left",
-          label: "Descripción",
-          field: "descripcion",
-          sortable: true,
-        },
-        {
-          name: "identificador",
-          align: "left",
-          label: "Identificador",
-          field: "identificador",
-          sortable: true,
-        },
-        {
-          name: "activo",
-          label: "Activo",
-          field: "activo",
-          sortable: true,
-          align: "center",
-        },
-
-      ]);
-    } else if (modelName === "sitioubicacion") {
-      columnsConfig = columnsConfig.concat([
-        {
-          name: "descripcion",
-          align: "left",
-          label: "Nombre",
-          field: "descripcion",
-          sortable: true,
-        },
-        {
-          name: "id_sitio",
-          align: "left",
-          label: "Sitio",
-          field: "id_sitio",
-          sortable: true,
-        },
-        {
-          name: "id_tipositioubicacion",
-          align: "left",
-          label: "Id Tipo Sitio Ubicación",
-          field: "id_tipositioubicacion",
-          sortable: true,
-        },
-        {
-          name: "id_ubicacionexterno",
-          align: "left",
-          label: "Id Ubicación Externo",
-          field: "id_ubicacionexterno",
+          label: "Paridad",
+          field: "paridad",
           sortable: true,
         },
         {
@@ -468,7 +248,7 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
       // Otros campos según el modelo...
     ],
 
-    tipositioubicacion: [
+    color: [
       //{ name: "id", label: "Id", component: "q-input" },
       {
         name: "descripcion",
@@ -481,13 +261,13 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
         ],
       },
       {
-        name: "identificador",
-        label: "Identificador",
+        name: "paridad",
+        label: "Paridad",
         component: "q-input",
         classes: ["q-mb-xs"],
         rules: [
           (val) =>
-            (val && val.length > 0) || "Ingrese el identificador del tipo de ubicación",
+            (val && val.length > 0) || "Ingrese la paridad externa",
         ],
       },
       {
@@ -550,7 +330,7 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
 
   const generateFormConfig = () => {
     if (
-      modelName === "perfilconfiguracion" ||
+      modelName === "color" ||
       modelName === "sitio" ||
       modelName === "sucursal" ||
       modelName === "configuracion" ||
@@ -561,7 +341,7 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
 
       // Utilizar el formulario genérico de observación
 
-      if (modelName === "sitio" ||
+      if (modelName === "color" ||
         modelName === "sucursal" ||
         modelName === "configuracion" ||
         modelName === "tipositioubicacion" ||

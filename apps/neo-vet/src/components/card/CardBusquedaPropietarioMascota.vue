@@ -1,11 +1,7 @@
 <template>
 
   <div class="q-pa-xs col-lg-8 col-md-6 col-sm-12 col-xs-12">
-    <q-table title="Treats" :rows="rows" :columns="columns" row-key="name">
-      <template v-slot:top>
-        <q-space />
-        <q-btn round color="secondary" icon="add" @click="abrirDialogo" />
-      </template>
+    <q-table :rows="rows" :columns="columns" row-key="name">
       <template v-slot:header="props">
         <q-tr :props="props">
           <q-th auto-width />
@@ -43,11 +39,7 @@
   </div>
 
   <div class="q-pa-xs col-lg-4 col-md-6 col-sm-12 col-xs-12">
-    <q-table title="Treats" :rows="rows" :columns="columnsMascota" row-key="name">
-      <template v-slot:top>
-        <q-space />
-        <q-btn round color="secondary" icon="add" @click="abrirDialogo" />
-      </template>
+    <q-table :rows="rows" :columns="columnsMascota" row-key="name">
       <template v-slot:header="props">
         <q-tr :props="props">
           <q-th auto-width />
@@ -84,7 +76,7 @@
     </q-table>
 
     <!-- Componente del diálogo -->
-    
+
     <!--<DialogAgregarPropietario
       v-if="mostrarDialogo"
       @guardar="guardarPropietario"
@@ -93,11 +85,11 @@
   </div>
   <DialogAgregarPropietario
       v-if="mostrarDialogo"
-      
+
   />
   <DialogAgregarMascota
       v-if="mostrarDialogo"
-  
+
     />
 </template>
 <!--<template>
@@ -189,14 +181,6 @@ const columns = ref([
     sortable: true,
   },
   {
-    name: "genero",
-    align: "left",
-    label: "Género",
-    field: "genero",
-    sortable: true,
-  },
-
-  {
     name: "email",
     align: "left",
     label: "Correo electrónico",
@@ -210,23 +194,35 @@ const columns = ref([
     sortable: true,
     align: "center",
   },
+  {
+        name: "action",
+        align: "center",
+        field: "action",
+        sortable: false,
+      },
 ]);
 
 const columnsMascota = ref([
   {
-    name: "primerapellido",
+    name: "nombre",
     align: "left",
-    label: "Primer Apellido",
-    field: "primerapellido",
+    label: "Nombre",
+    field: "nombre",
     sortable: true,
   },
   {
-    name: "segundoapellido",
+    name: "historiaclinica",
     align: "left",
-    label: "Segundo Apellido",
-    field: "segundoapellido",
+    label: "Historia Clinica",
+    field: "historiaclinica",
     sortable: true,
   },
+  {
+        name: "action",
+        align: "center",
+        field: "action",
+        sortable: false,
+      },
 
 ]);
 
