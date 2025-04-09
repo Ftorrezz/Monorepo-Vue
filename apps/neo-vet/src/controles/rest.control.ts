@@ -31,7 +31,9 @@ class NdPeticionControl {
     // this.infoRequestService.agregarMensaje(_urlEndPoint); // Ajusta esto según tus necesidades
 
     let headers = {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'idsitio': 1,
+      'offset': '0'
     };
 
     if (!atributos) atributos = [];
@@ -124,11 +126,11 @@ class NdPeticionControl {
     else {
 
       /*if (error && error.error[0] && error.error[0].mensajes[0].mensaje > ''){
-         
+
         alertas.mostrarMensaje(error.error[0].mensajes[0].tipomensaje, error.error[0].mensajes[0].titulo, error.error[0].mensajes[0].mensaje);
 
       }
-        
+
       else if (error && error.message) alertas.mostrarMensaje('error', 'Error en la solicitud: ' + error.statusText + ' (Código: ' + error.status + ')', error.message);
       */
       let tipoMensaje = '';
