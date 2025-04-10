@@ -5,6 +5,8 @@ import NdAlertasControl from "src/controles/alertas.control";
 import { useDialogStore } from "../../../neo-auth/src/stores/DialogoUbicacion";
 import PeticionService from "src/services/peticion.service";
 import { computed } from "vue";
+import { columnsConfig } from "src/config/columnsConfig";
+import { formConfig } from "src/config/formConfig";
 
 export default function useCrud(modelName, tituloVentanaeliminacion) {
   const ubicacionStore = useDialogStore();
@@ -41,7 +43,10 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
   };*/
 
   const generateColumnsConfig = (modelName) => {
-    let columnsConfig = [
+    return columnsConfig[modelName] || [];
+  }
+
+   /* let columnsConfig = [
       {
         name: "id",
         required: true,
@@ -93,9 +98,9 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
     // Agregar más casos según tus modelos y sus columnas específicas...
 
     return columnsConfig;
-  };
+  };*/
 
-  const formConfig = {
+  /*const formConfig = {
     genericodescripcion: [
       {
         name: "descripcion",
@@ -326,26 +331,17 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
     ],
 
     // Otros modelos y sus campos aquí...
-  };
+  };*/
 
   const generateFormConfig = () => {
     if (
-      modelName === "color" ||
-      modelName === "sitio" ||
-      modelName === "sucursal" ||
-      modelName === "configuracion" ||
-      modelName === "tipositioubicacion" ||
-      modelName === "sitioubicacion"
+      modelName === "color"
     ) {
       mostrarFormIntegrado.value = true;
 
       // Utilizar el formulario genérico de observación
 
-      if (modelName === "color" ||
-        modelName === "sucursal" ||
-        modelName === "configuracion" ||
-        modelName === "tipositioubicacion" ||
-        modelName === "sitioubicacion") {
+      if (modelName === "color") {
         return formConfig[modelName] || [];
       } else return formConfig["genericodescripcion"] || [];
     } else {
@@ -406,7 +402,7 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
   };
 
   onMounted(() => {
-    getFormConfig();
+    //getFormConfig();
   });
 
   const getData = async () => {
