@@ -16,6 +16,37 @@ const routes: RouteRecordRaw[] = [
         meta: { requireAuth: false },
 
       },
+      { path: '/sexo',
+        name: 'sexo',
+        component: () => import('../../../neo-vet/src/pages/configuration/mascota/sexo.vue'),
+        meta: { requireAuth: false },
+
+      },
+      { path: '/habitat',
+        name: 'habitat',
+        component: () => import('../../../neo-vet/src/pages/configuration/mascota/habitat.vue'),
+        meta: { requireAuth: false },
+
+      },
+      { path: '/especie',
+        name: 'especie',
+        component: () => import('../../../neo-vet/src/pages/configuration/mascota/especie.vue'),
+        meta: { requireAuth: false },
+
+      },
+      { path: '/razamascota',
+        name: 'razamascota',
+        component: () => import('../../../neo-vet/src/pages/configuration/mascota/raza.vue'),
+        meta: { requireAuth: false },
+
+      },
+      { path: '/caracter',
+        name: 'caracter',
+        component: () => import('../../../neo-vet/src/pages/configuration/mascota/caracter.vue'),
+        meta: { requireAuth: false },
+
+      },
+
     ],
     //meta: { requireAuth: true },
 

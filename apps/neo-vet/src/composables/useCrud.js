@@ -43,7 +43,17 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
   };*/
 
   const generateColumnsConfig = (modelName) => {
-    return columnsConfig[modelName] || [];
+
+    if (modelName === "color" ||
+        modelName === "sexo" ||
+        modelName === "especie" ||
+        modelName === "razamascota" ||
+        modelName === "caracter" ||
+        modelName === "dieta" ||
+        modelName === "habitat" ||) {
+      return columnsConfig['genericoDescripcion'] || [];
+    }
+    else return columnsConfig[modelName] || [];
   }
 
    /* let columnsConfig = [
@@ -335,15 +345,21 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
 
   const generateFormConfig = () => {
     if (
-      modelName === "color"
+      modelName === "color" ||
+      modelName === "sexo" ||
+      modelName === "especie" ||
+      modelName === "razamascota" ||
+      modelName === "caracter" ||
+      modelName === "dieta" ||
+      modelName === "habitat"
     ) {
       mostrarFormIntegrado.value = true;
 
       // Utilizar el formulario genérico de observación
 
-      if (modelName === "color") {
+      if (modelName === "modeloespecifico") {
         return formConfig[modelName] || [];
-      } else return formConfig["genericodescripcion"] || [];
+      } else return formConfig["genericoDescripcion"] || [];
     } else {
       // Utilizar el formulario específico para el modelo
       return formConfig[modelName] || [];

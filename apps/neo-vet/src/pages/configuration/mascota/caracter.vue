@@ -5,8 +5,8 @@
 <script setup lang="ts" scoped>
 import baseCrud from '../../../components/BaseCrud.vue';
 
-const modelName: string = "color";
-const crudName: string = "Color";
-const tituloVentanaeliminacion: string = "Color";
+const modelName: string = "caracter";
+const crudName: string = "Carácter";
+const tituloVentanaeliminacion: string = "Carácter";
 
 </script>
