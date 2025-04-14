@@ -1,5 +1,70 @@
 <template>
   <q-list>
+    <template v-for="(menu, index) in menuConfig" :key="index">
+      <q-expansion-item :icon="menu.icon" :label="menu.label">
+        <q-list class="q-pl-lg">
+          <template v-for="(item, subIndex) in menu.items" :key="subIndex">
+            <q-item
+              v-if="!item.subItems"
+              :to="item.to"
+              active-class="my-menu-link"
+              class="q-ma-xs navigation-item"
+            >
+              <q-item-section avatar>
+                <q-icon :name="item.icon" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>{{ item.label }}</q-item-label>
+              </q-item-section>
+            </q-item>
+
+            <q-expansion-item
+              v-else
+              :icon="item.icon"
+              :label="item.label"
+              class="q-pl-lg"
+            >
+              <q-list>
+                <q-item
+                  v-for="(subItem, subSubIndex) in item.subItems"
+                  :key="subSubIndex"
+                  :to="subItem.to"
+                  active-class="my-menu-link"
+                  class="q-ma-xs navigation-item"
+                >
+                  <q-item-section avatar>
+                    <q-icon :name="subItem.icon" />
+                  </q-item-section>
+                  <q-item-section>
+                    <q-item-label>{{ subItem.label }}</q-item-label>
+                  </q-item-section>
+                </q-item>
+              </q-list>
+            </q-expansion-item>
+          </template>
+        </q-list>
+      </q-expansion-item>
+    </template>
+  </q-list>
+</template>
+
+<script setup>
+import { menuConfig } from "src/config/menuConfig";
+</script>
+
+<style lang="scss">
+.my-menu-link {
+  color: white;
+  background: $primary;
+  border-radius: 5px;
+}
+.navigation-item {
+  border-radius: 8px;
+}
+</style>
+
+<!--<template>
+  <q-list>
 
     <q-expansion-item icon="home" label="Inicio">
       <q-list class="q-pl-lg">
@@ -139,6 +204,96 @@
                 <q-item-label>Dieta</q-item-label>
               </q-item-section>
             </q-item>
+            <q-item
+              to="/diagnostico"
+              active-class="my-menu-link"
+              class="q-ma-xs navigation-item"
+            >
+              <q-item-section avatar side>
+                <q-icon name="send" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Especialidad</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item
+              to="/especialidad"
+              active-class="my-menu-link"
+              class="q-ma-xs navigation-item"
+            >
+              <q-item-section avatar side>
+                <q-icon name="send" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Especialidad</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-expansion-item>
+        <q-expansion-item icon="person" label="Propietario">
+          <q-list class="q-pl-lg">
+            <q-item
+              to="/escolaridad"
+              active-class="my-menu-link"
+              class="q-ma-xs navigation-item"
+            >
+              <q-item-section avatar side>
+                <q-icon name="send" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Escolaridad</q-item-label>
+              </q-item-section>
+            </q-item>
+
+            <q-item
+              to="/estadocivil"
+              active-class="my-menu-link"
+              class="q-ma-xs navigation-item"
+            >
+              <q-item-section avatar side>
+                <q-icon name="send" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Estado Civil</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item
+              to="/ocupacion"
+              active-class="my-menu-link"
+              class="q-ma-xs navigation-item"
+            >
+              <q-item-section avatar side>
+                <q-icon name="send" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Ocupación</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item
+              to="/raza"
+              active-class="my-menu-link"
+              class="q-ma-xs navigation-item"
+            >
+              <q-item-section avatar side>
+                <q-icon name="send" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Raza</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item
+              to="/religion"
+              active-class="my-menu-link"
+              class="q-ma-xs navigation-item"
+            >
+              <q-item-section avatar side>
+                <q-icon name="send" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Religion</q-item-label>
+              </q-item-section>
+            </q-item>
+
           </q-list>
         </q-expansion-item>
 
@@ -156,4 +311,4 @@
 .navigation-item {
   border-radius: 8px;
 }
-</style>
+</style>-->

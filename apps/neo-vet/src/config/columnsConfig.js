@@ -37,7 +37,52 @@ export const columnsConfig = {
       sortable: false,
     },
   ],
-  color: [
+  sexo: [
+    {
+      name: "id",
+      required: true,
+      label: "Id",
+      align: "left",
+      field: (row) => row.id,
+      format: (val) => `${val}`,
+      sortable: true,
+    },
+    {
+      name: "descripcion",
+      align: "left",
+      label: "Descripción",
+      field: "descripcion",
+      sortable: true,
+    },
+    {
+      name: "identificador",
+      align: "left",
+      label: "Identificador",
+      field: "identificador",
+      sortable: true,
+    },
+    {
+      name: "paridad",
+      align: "left",
+      label: "Paridad",
+      field: "paridad",
+      sortable: true,
+    },
+    {
+      name: "activo",
+      label: "Activo",
+      field: "activo",
+      sortable: true,
+      align: "center",
+    },
+    {
+      name: "action",
+      align: "center",
+      field: "action",
+      sortable: false,
+    },
+  ],
+  diagnostico: [
     {
       name: "id",
       required: true,
@@ -65,6 +110,13 @@ export const columnsConfig = {
       name: "activo",
       label: "Activo",
       field: "activo",
+      sortable: true,
+      align: "center",
+    },
+    {
+      name: "causamuerte",
+      label: "Causa Muerte",
+      field: "causamuerte",
       sortable: true,
       align: "center",
     },

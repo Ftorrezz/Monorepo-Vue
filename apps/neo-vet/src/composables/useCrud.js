@@ -34,23 +34,22 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
     //id_configuracion: 1
   });
   /********************** DEFINO LAS COLUMNAS Y CAMPOS DE LAS TABLAS****************************/
-  /*const columnConfig = {
-    perfilconfiguracion: ["id", "descripcion", "activo"],
-    ProductModel: ["id", "name", "price"],
-    usuario: ["id", "nombreusuario", "clave"],
-    sitio: ["id", "descripcion", "activo"],
-    // Otros modelos y sus columnas aquí...
-  };*/
 
   const generateColumnsConfig = (modelName) => {
 
     if (modelName === "color" ||
-        modelName === "sexo" ||
         modelName === "especie" ||
         modelName === "razamascota" ||
         modelName === "caracter" ||
         modelName === "dieta" ||
-        modelName === "habitat" ||) {
+        modelName === "habitat" ||
+        modelName === "especialidad" ||
+        modelName === "escolaridad" ||
+        modelName === "estadocivil" ||
+        modelName === "religion" ||
+        modelName === "raza" ||
+        modelName === "ocupacion"
+      ) {
       return columnsConfig['genericoDescripcion'] || [];
     }
     else return columnsConfig[modelName] || [];
@@ -351,13 +350,21 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
       modelName === "razamascota" ||
       modelName === "caracter" ||
       modelName === "dieta" ||
-      modelName === "habitat"
+      modelName === "habitat" ||
+      modelName === "especialidad" ||
+      modelName === "diagnostico" ||
+      modelName === "escolaridad" ||
+      modelName === "estadocivil" ||
+      modelName === "religion" ||
+      modelName === "raza" ||
+      modelName === "ocupacion" ||
     ) {
       mostrarFormIntegrado.value = true;
 
       // Utilizar el formulario genérico de observación
 
-      if (modelName === "modeloespecifico") {
+      if (modelName === "sexo" ||
+          modelName === "diagnostico") {
         return formConfig[modelName] || [];
       } else return formConfig["genericoDescripcion"] || [];
     } else {
