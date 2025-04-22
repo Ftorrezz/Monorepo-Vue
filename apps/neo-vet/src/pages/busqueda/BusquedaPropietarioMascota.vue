@@ -1,5 +1,5 @@
 <template>
-  <EncabezadoGenericoPrincipal :tituloVentana="crudName" />
+  <!--<EncabezadoGenericoPrincipal :tituloVentana="crudName" />-->
 
   <div class="row q-col-gutter-xs q-ma-xs q-mr-sm">
     <div class="col-xs-8 col-md-8 col-sm-12 col-xs-12">
@@ -7,7 +7,7 @@
         <q-card-section>
           <div class="row items-center justify-between">
             <div class="text-h6">Propietario</div>
-            <q-btn round color="secondary" icon="add" @click="abrirDialogoPropietario" />
+            <!--<q-btn round color="secondary" icon="add" @click="abrirDialogoPropietario" />-->
           </div>
         </q-card-section>
 
@@ -56,7 +56,7 @@
         <q-card-section>
           <div class="row items-center justify-between">
             <div class="text-h6">Mascota</div>
-            <q-btn round color="secondary" icon="add" @click="abrirDialogoMascota" />
+            <!--<q-btn round color="secondary" icon="add" @click="abrirDialogoMascota" />-->
           </div>
         </q-card-section>
 
@@ -86,38 +86,27 @@
       />
     </div>
 
-    <CardBusquedaPropietarioMascota />
-
-    <DialogAgregarPropietario v-if="mostrarDialogoPropietario" />
-    <DialogAgregarMascota v-if="mostrarDialogoMascota" />
-
+    <CardBusquedaPropietarioMascota :rows="listaPropietarios" />
 
   </div>
 </template>
 
-<script setup lang="ts" scoped>
+<script setup lang="ts">
 import { ref } from "vue";
 import { useQuasar } from "quasar";
 import CardBusquedaPropietarioMascota from "../../components/card/CardBusquedaPropietarioMascota.vue";
-import EncabezadoGenericoPrincipal from "src/components/EncabezadoGenericoPrincipal.vue";
-import DialogAgregarMascota from "src/components/dialog/DialogAgregarMascota.vue";
-import DialogAgregarPropietario from "src/components/dialog/DialogAgregarPropietario.vue";
+import NdPeticionControl from "src/controles/rest.control";
+//import EncabezadoGenericoPrincipal from "src/components/EncabezadoGenericoPrincipal.vue";
+//import DialogAgregarMascota from "src/components/dialog/DialogAgregarMascota.vue";
+//import DialogAgregarPropietario from "src/components/dialog/DialogAgregarPropietario.vue";
 
 const mostrarDialogoPropietario = ref(false);
 const mostrarDialogoMascota = ref(false);
-const crudName: string = "Propietario / Mascota";
+const crudName: string = " Propietario / Mascota";
 const $q = useQuasar();
 const size = ref({ width: "200px", height: "200px" });
 const prueba = ref(null);
 const listaPropietarios = ref([]);
-
-const abrirDialogoPropietario = () => {
-  mostrarDialogoPropietario.value = true;
-};
-
-const abrirDialogoMascota = () => {
-  mostrarDialogoMascota.value = true;
-};
 
 let tab = ref("all");
 let search = ref("");
@@ -127,6 +116,13 @@ const buscar = async () => {
     console.log("entro a buscar");
 
     listaPropietarios.value = [];
+
+    const _peticion = new NdPeticionControl();
+
+    const _respuesta = await _peticion.invocarMetodo("filtropropietariomascota", "get");
+
+    console.log('Respuesta del backend (propietario):', _respuesta);
+
 
     /*const resp = await Api.get("/buscar/propietario/nombre/prueba4");
 

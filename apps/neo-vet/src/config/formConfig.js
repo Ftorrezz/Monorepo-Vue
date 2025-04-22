@@ -1,5 +1,12 @@
 export const formConfig = {
   genericoDescripcion: [
+    /*{
+      name: "id",
+      label: "id",
+      component: "q-input",
+      classes: ["q-mb-xs"],
+      visible: false,
+    },*/
     {
       name: "descripcion",
       label: "Descripción",
@@ -9,6 +16,7 @@ export const formConfig = {
         (val) =>
           (val && val.length > 0) || "Ingrese la descripción del tipo de ubicación",
       ],
+      visible: true,
     },
     {
       name: "paridad",
@@ -19,12 +27,14 @@ export const formConfig = {
         (val) =>
           (val && val.length > 0) || "Ingrese la paridad externa",
       ],
+      visible: true,
     },
     {
       name: "activo",
       label: "Activo",
       component: "q-checkbox",
       classes: ["q-mb-xs"],
+      visible: true,
     },
   ],
   sexo: [

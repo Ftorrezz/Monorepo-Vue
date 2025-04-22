@@ -357,7 +357,7 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
       modelName === "estadocivil" ||
       modelName === "religion" ||
       modelName === "raza" ||
-      modelName === "ocupacion" ||
+      modelName === "ocupacion"
     ) {
       mostrarFormIntegrado.value = true;
 

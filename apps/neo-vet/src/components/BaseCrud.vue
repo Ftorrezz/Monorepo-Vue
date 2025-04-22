@@ -9,7 +9,6 @@
     <div
       v-if="mostrarFormIntegrado"
       class="col-lg-3 col-md-12 col-sm-12 col-xs-12 shadow-bg"
-
     >
       <q-card bordered elevated>
         <q-card-section class="text-h6">
@@ -20,7 +19,6 @@
 
         <q-card-section>
           <q-form ref="myForm">
-
             <template v-for="(field, index) in formFields" :key="index">
               <template v-if="field.component === 'q-input'">
                 <q-input
@@ -30,7 +28,6 @@
                   :class="field.classes"
                   lazy-rules
                   :rules="field.rules"
-
                 />
               </template>
               <template v-else-if="field.component === 'q-checkbox'">
@@ -55,7 +52,7 @@
             </template>
           </q-form>
         </q-card-section>
-         <q-separator inset color="primary"></q-separator>
+        <q-separator inset color="primary"></q-separator>
         <OpcionCancelarGuardar
           @accionCerrar="close"
           @accionValidar="validate"
@@ -65,55 +62,56 @@
 
     <div v-if="!mostrarFormIntegrado">
       <q-dialog v-model="formDialogModal" persistent>
+        <q-card bordered elevated style="width: 400px">
+          <q-card-section class="text-h6">
+            {{ props.crudName }}
+          </q-card-section>
 
-        <q-card bordered elevated style="width: 400px" >
-        <q-card-section class="text-h6">
-          {{ props.crudName }}
-        </q-card-section>
+          <q-separator inset color="primary"></q-separator>
 
-        <q-separator inset color="primary"></q-separator>
+          <q-card-section>
+            <q-form ref="myForm">
+              <template
+                v-for="(field, index) in formFields"
+                :key="index"
+              >
+                  <template v-if="field.component === 'q-input'">
+                    <q-input
+                      v-model="editedItem[field.name]"
+                      :label="field.label"
+                      :class="field.classes"
+                      lazy-rules
+                      :rules="field.rules"
+                    />
+                  </template>
+                  <template v-else-if="field.component === 'q-checkbox'">
+                    <q-checkbox
+                      v-model="editedItem[field.name]"
+                      :label="field.label"
+                      :class="field.classes"
+                      :true-value="'S'"
+                      :false-value="'N'"
+                    />
+                  </template>
+                  <template v-else-if="field.component === 'q-select'">
+                    <q-select
+                      v-model="editedItem[field.name]"
+                      :label="field.label"
+                      :options="field.options"
+                      :class="field.classes"
+                      :rules="field.rules"
+                    />
+                  </template>
+                </template>
 
-        <q-card-section>
-          <q-form ref="myForm">
-
-            <template v-for="(field, index) in formFields" :key="index">
-              <template v-if="field.component === 'q-input'">
-                <q-input
-                  v-model="editedItem[field.name]"
-                  :label="field.label"
-                  :class="field.classes"
-                  lazy-rules
-                  :rules="field.rules"
-
-                />
-              </template>
-              <template v-else-if="field.component === 'q-checkbox'">
-                <q-checkbox
-                  v-model="editedItem[field.name]"
-                  :label="field.label"
-                  :class="field.classes"
-                  :true-value="'S'"
-                  :false-value="'N'"
-                />
-              </template>
-              <template v-else-if="field.component === 'q-select'">
-                <q-select
-                  v-model="editedItem[field.name]"
-                  :label="field.label"
-                  :options="field.options"
-                  :class="field.classes"
-                  :rules="field.rules"
-                />
-              </template>
-            </template>
-          </q-form>
-        </q-card-section>
-         <q-separator inset color="primary"></q-separator>
-        <OpcionCancelarGuardar
-          @accionCerrar="close"
-          @accionValidar="validate"
-        />
-      </q-card>
+            </q-form>
+          </q-card-section>
+          <q-separator inset color="primary"></q-separator>
+          <OpcionCancelarGuardar
+            @accionCerrar="close"
+            @accionValidar="validate"
+          />
+        </q-card>
       </q-dialog>
     </div>
 
@@ -154,14 +152,15 @@
 
             <q-space />
 
-            <q-btn v-show="!mostrarFormIntegrado"
+            <q-btn
+              v-show="!mostrarFormIntegrado"
               round
               color="secondary"
               icon="add"
               @click="agregarRegistro"
               size="17px"
             >
-            <q-tooltip>agregar registro {{ crudName }}</q-tooltip>
+              <q-tooltip>agregar registro {{ crudName }}</q-tooltip>
             </q-btn>
           </template>
           <template v-slot:body-cell-action="props">
@@ -223,25 +222,25 @@
         </q-table>
       </q-card>
       <div class="text-right ml-auto">
-  <q-btn
-    color="primary"
-    icon-right="archive"
-    label="Exportar a .csv"
-    no-caps
-
-    @click="exportTable"
-    outline
-  >
-    <q-tooltip>exportar información de la tabla, en un archivo .csv</q-tooltip>
-  </q-btn>
-  </div>
+        <q-btn
+          color="primary"
+          icon-right="archive"
+          label="Exportar a .csv"
+          no-caps
+          @click="exportTable"
+          outline
+        >
+          <q-tooltip
+            >exportar información de la tabla, en un archivo .csv</q-tooltip
+          >
+        </q-btn>
+      </div>
     </div>
-
   </div>
-
 </template>
 
 <script setup>
+import { computed } from "vue";
 import useCrud from "../composables/useCrud";
 import OpcionCancelarGuardar from "./OpcionCancelarGuardar.vue";
 import EncabezadoGenericoPrincipal from "./EncabezadoGenericoPrincipal.vue";
@@ -249,7 +248,14 @@ import EncabezadoGenericoPrincipal from "./EncabezadoGenericoPrincipal.vue";
 const props = defineProps({
   modelName: String,
   crudName: String,
-  tituloVentanaeliminacion: String
+  tituloVentanaeliminacion: String,
+});
+
+const visibleFormFields = computed(() => {
+  if (Array.isArray(formFields)) {
+    return formFields.filter((field) => field.visible !== false);
+  }
+  return []; // Devuelve un arreglo vacío si formFields no es un arreglo
 });
 
 const {
@@ -268,7 +274,7 @@ const {
   close,
   mostrarFormIntegrado,
   agregarRegistro,
-  formDialogModal
+  formDialogModal,
 } = useCrud(props.modelName, props.tituloVentanaeliminacion);
 
 const handleFileInput = (event, fieldName) => {
@@ -286,5 +292,4 @@ const handleFileInput = (event, fieldName) => {
 .my-card {
   border-radius: 15px;
 }
-
 </style>

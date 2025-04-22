@@ -25,6 +25,14 @@ export const menuConfig = [
     icon: "settings",
     items: [
       {
+        label: "General",
+        icon: "view_timeline",
+        subItems: [
+          { label: "Servicio", icon: "send", to: "/servicio" },
+
+        ],
+      },
+      {
         label: "Mascota",
         icon: "pets",
         subItems: [

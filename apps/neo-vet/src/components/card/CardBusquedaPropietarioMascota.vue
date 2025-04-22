@@ -2,13 +2,32 @@
 
   <div class="q-pa-xs col-lg-8 col-md-6 col-sm-12 col-xs-12">
     <q-table :rows="rows" :columns="columns" row-key="name">
+
+      <template v-slot:top>
+        <q-space />
+        <q-btn
+              round
+              color="secondary"
+              icon="add"
+              @click="abrirDialogoPropietario"
+            >
+            <q-tooltip>agregar registro Propietario</q-tooltip>
+            </q-btn>
+      </template>
+
       <template v-slot:header="props">
+
+        <!-- Contenedor para el botón -->
+
+
         <q-tr :props="props">
           <q-th auto-width />
           <q-th v-for="col in props.cols" :key="col.name" :props="props">
             {{ col.label }}
           </q-th>
         </q-tr>
+
+
       </template>
 
       <template v-slot:body="props">
@@ -40,6 +59,18 @@
 
   <div class="q-pa-xs col-lg-4 col-md-6 col-sm-12 col-xs-12">
     <q-table :rows="rows" :columns="columnsMascota" row-key="name">
+      <template v-slot:top>
+        <q-space />
+        <q-btn
+              round
+              color="secondary"
+              icon="add"
+              @click="abrirDialogoMascota"
+
+            >
+            <q-tooltip>agregar registro Mascota</q-tooltip>
+            </q-btn>
+      </template>
       <template v-slot:header="props">
         <q-tr :props="props">
           <q-th auto-width />
@@ -77,12 +108,17 @@
 
     <!-- Componente del diálogo -->
 
+
+
     <!--<DialogAgregarPropietario
       v-if="mostrarDialogo"
       @guardar="guardarPropietario"
       @cancelar="cerrarDialogo"
     />-->
   </div>
+  <DialogAgregarPropietario v-if="mostrarDialogoPropietario" />
+  <DialogAgregarMascota v-if="mostrarDialogoMascota" />
+
   <DialogAgregarPropietario
       v-if="mostrarDialogo"
 
@@ -156,7 +192,23 @@ const mostrarDialogo = ref(false);
 import DialogAgregarPropietario from "../dialog/DialogAgregarPropietario.vue";
 import DialogAgregarMascota from "../dialog/DialogAgregarMascota.vue";
 
-const rows = []
+const mostrarDialogoPropietario = ref(false);
+const mostrarDialogoMascota = ref(false);
+
+const abrirDialogoPropietario = () => {
+  mostrarDialogoPropietario.value = true;
+};
+
+const abrirDialogoMascota = () => {
+  mostrarDialogoMascota.value = true;
+};
+
+defineProps({
+  rows: {
+    type: Array,
+    default: () => [], // Por defecto, un arreglo vacío
+  },
+});
 
 const columns = ref([
   {

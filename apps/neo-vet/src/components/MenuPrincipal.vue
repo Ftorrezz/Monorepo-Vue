@@ -1,12 +1,14 @@
 <template>
   <q-list>
     <template v-for="(menu, index) in menuConfig" :key="index">
+
       <q-expansion-item :icon="menu.icon" :label="menu.label">
         <q-list class="q-pl-lg">
           <template v-for="(item, subIndex) in menu.items" :key="subIndex">
             <q-item
               v-if="!item.subItems"
               :to="item.to"
+              clickable
               active-class="my-menu-link"
               class="q-ma-xs navigation-item"
             >
@@ -22,13 +24,14 @@
               v-else
               :icon="item.icon"
               :label="item.label"
-              class="q-pl-lg"
+
             >
-              <q-list>
+              <q-list class="q-pl-lg">
                 <q-item
                   v-for="(subItem, subSubIndex) in item.subItems"
                   :key="subSubIndex"
                   :to="subItem.to"
+                  clickable
                   active-class="my-menu-link"
                   class="q-ma-xs navigation-item"
                 >
@@ -121,6 +124,7 @@ import { menuConfig } from "src/config/menuConfig";
           <q-list class="q-pl-lg">
             <q-item
               to="/color"
+              clickable
               active-class="my-menu-link"
               class="q-ma-xs navigation-item"
             >
@@ -230,7 +234,7 @@ import { menuConfig } from "src/config/menuConfig";
             </q-item>
           </q-list>
         </q-expansion-item>
-        <q-expansion-item icon="person" label="Propietario">
+        <!--<q-expansion-item icon="person" label="Propietario">
           <q-list class="q-pl-lg">
             <q-item
               to="/escolaridad"
@@ -295,9 +299,9 @@ import { menuConfig } from "src/config/menuConfig";
             </q-item>
 
           </q-list>
-        </q-expansion-item>
+        </q-expansion-item>-->
 
-      </q-list>
+      <!--</q-list>
     </q-expansion-item>
   </q-list>
 </template>
@@ -306,9 +310,14 @@ import { menuConfig } from "src/config/menuConfig";
 .my-menu-link {
   color: white;
   background: $primary;
-  border-radius: 5px;
 }
+
 .navigation-item {
   border-radius: 8px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
 }
 </style>-->

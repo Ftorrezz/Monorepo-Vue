@@ -34,11 +34,11 @@ export default route(function (/* { store, ssrContext } */) {
   });
 
   Router.beforeEach((to, from, next) =>{
-    const store = useAuthStore();    
-    const rutaProtegida: boolean = to.matched.some(record => record.meta.requireAuth)
-    
+    //const store = useAuthStore();
+    //const rutaProtegida: boolean = to.matched.some(record => record.meta.requireAuth)
+
     next()
-  
+
   })
 
   return Router;
