@@ -96,6 +96,7 @@ import { ref } from "vue";
 import { useQuasar } from "quasar";
 import CardBusquedaPropietarioMascota from "../../components/card/CardBusquedaPropietarioMascota.vue";
 import NdPeticionControl from "src/controles/rest.control";
+import { DtoParametros } from "src/controles/dto.parametros";
 //import EncabezadoGenericoPrincipal from "src/components/EncabezadoGenericoPrincipal.vue";
 //import DialogAgregarMascota from "src/components/dialog/DialogAgregarMascota.vue";
 //import DialogAgregarPropietario from "src/components/dialog/DialogAgregarPropietario.vue";
@@ -119,7 +120,14 @@ const buscar = async () => {
 
     const _peticion = new NdPeticionControl();
 
-    const _respuesta = await _peticion.invocarMetodo("filtropropietariomascota", "get");
+    let _unDtoParametros = new DtoParametros();
+      _unDtoParametros.filtro = { nombre: prueba.value,
+      primerapellido: prueba.value,
+      segundoapellido: prueba.value,
+      correo: prueba.value,
+      telefonocelular: prueba.value, };
+
+    const _respuesta = await _peticion.invocarMetodo("filtropropietariomascota/filtro", "post", undefined);
 
     console.log('Respuesta del backend (propietario):', _respuesta);
 
