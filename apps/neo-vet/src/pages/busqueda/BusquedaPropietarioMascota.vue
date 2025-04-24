@@ -127,7 +127,7 @@ const buscar = async () => {
       correo: prueba.value,
       telefonocelular: prueba.value, };
 
-    const _respuesta = await _peticion.invocarMetodo("filtropropietariomascota/filtro", "post", undefined);
+    const _respuesta = await _peticion.invocarMetodo("filtropropietariomascota/filtro", "post", _unDtoParametros);
 
     console.log('Respuesta del backend (propietario):', _respuesta);
 
