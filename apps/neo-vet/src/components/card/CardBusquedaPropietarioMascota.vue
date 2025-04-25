@@ -1,194 +1,126 @@
 <template>
-
-  <div class="q-pa-xs col-lg-8 col-md-6 col-sm-12 col-xs-12">
-    <q-table :rows="rows" :columns="columns" row-key="name">
-
-      <template v-slot:top>
-        <q-space />
-        <q-btn
+  <div class="row q-col-gutter-md full-width q-pl-md">
+    <div class="col-lg-8 col-md-8 col-sm-12 col-xs-12 q-pa-none">
+      <q-card class="custom-card full-width">
+        <q-card-section class="bg-primary text-white q-py-sm">
+          <div class="row items-center justify-between">
+            <div class="text-subtitle1">
+              <q-icon name="list" size="sm" class="q-mr-sm" />
+              Lista de Propietarios
+            </div>
+            <q-btn
               round
-              color="secondary"
+              flat
+              color="white"
+              size="sm"
               icon="add"
+              class="floating-btn"
               @click="abrirDialogoPropietario"
             >
-            <q-tooltip>agregar registro Propietario</q-tooltip>
+              <q-tooltip>Agregar Propietario</q-tooltip>
             </q-btn>
-      </template>
+          </div>
+        </q-card-section>
 
-      <template v-slot:header="props">
+        <q-table
+          :rows="rows"
+          :columns="columns"
+          row-key="name"
+          flat
+          bordered
+        >
+          <template v-slot:body="props">
+            <q-tr :props="props">
+              <q-td auto-width>
+                <q-btn
+                  size="sm"
+                  color="accent"
+                  round
+                  dense
+                  @click="props.expand = !props.expand"
+                  :icon="props.expand ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
+                />
+              </q-td>
+              <q-td v-for="col in props.cols" :key="col.name" :props="props">
+                {{ col.value }}
+              </q-td>
+            </q-tr>
+            <q-tr v-show="props.expand" :props="props">
+              <q-td colspan="100%">
+                <div class="text-left">
+                  This is expand slot for row above: {{ props.row.name }}.
+                </div>
+              </q-td>
+            </q-tr>
+          </template>
+        </q-table>
+      </q-card>
+    </div>
 
-        <!-- Contenedor para el botón -->
-
-
-        <q-tr :props="props">
-          <q-th auto-width />
-          <q-th v-for="col in props.cols" :key="col.name" :props="props">
-            {{ col.label }}
-          </q-th>
-        </q-tr>
-
-
-      </template>
-
-      <template v-slot:body="props">
-        <q-tr :props="props">
-          <q-td auto-width>
-            <q-btn
-              size="sm"
-              color="accent"
-              round
-              dense
-              @click="props.expand = !props.expand"
-              :icon="props.expand ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
-            />
-          </q-td>
-          <q-td v-for="col in props.cols" :key="col.name" :props="props">
-            {{ col.value }}
-          </q-td>
-        </q-tr>
-        <q-tr v-show="props.expand" :props="props">
-          <q-td colspan="100%">
-            <div class="text-left">
-              This is expand slot for row above: {{ props.row.name }}.
+    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12 q-pa-none">
+      <q-card class="custom-card full-width">
+        <q-card-section class="bg-secondary text-white q-py-sm">
+          <div class="row items-center justify-between">
+            <div class="text-subtitle1">
+              <q-icon name="pets" size="sm" class="q-mr-sm" />
+              Lista de Mascotas
             </div>
-          </q-td>
-        </q-tr>
-      </template>
-    </q-table>
-  </div>
-
-  <div class="q-pa-xs col-lg-4 col-md-6 col-sm-12 col-xs-12">
-    <q-table :rows="rows" :columns="columnsMascota" row-key="name">
-      <template v-slot:top>
-        <q-space />
-        <q-btn
+            <q-btn
               round
-              color="secondary"
+              flat
+              color="white"
+              size="sm"
               icon="add"
+              class="floating-btn"
               @click="abrirDialogoMascota"
-
             >
-            <q-tooltip>agregar registro Mascota</q-tooltip>
+              <q-tooltip>Agregar Mascota</q-tooltip>
             </q-btn>
-      </template>
-      <template v-slot:header="props">
-        <q-tr :props="props">
-          <q-th auto-width />
-          <q-th v-for="col in props.cols" :key="col.name" :props="props">
-            {{ col.label }}
-          </q-th>
-        </q-tr>
-      </template>
+          </div>
+        </q-card-section>
 
-      <template v-slot:body="props">
-        <q-tr :props="props">
-          <q-td auto-width>
-            <q-btn
-              size="sm"
-              color="accent"
-              round
-              dense
-              @click="props.expand = !props.expand"
-              :icon="props.expand ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
-            />
-          </q-td>
-          <q-td v-for="col in props.cols" :key="col.name" :props="props">
-            {{ col.value }}
-          </q-td>
-        </q-tr>
-        <q-tr v-show="props.expand" :props="props">
-          <q-td colspan="100%">
-            <div class="text-left">
-              This is expand slot for row above: {{ props.row.name }}.
-            </div>
-          </q-td>
-        </q-tr>
-      </template>
-    </q-table>
-
-    <!-- Componente del diálogo -->
-
-
-
-    <!--<DialogAgregarPropietario
-      v-if="mostrarDialogo"
-      @guardar="guardarPropietario"
-      @cancelar="cerrarDialogo"
-    />-->
+        <q-table
+          :rows="rows"
+          :columns="columnsMascota"
+          row-key="name"
+          flat
+          bordered
+        >
+          <template v-slot:body="props">
+            <q-tr :props="props">
+              <q-td auto-width>
+                <q-btn
+                  size="sm"
+                  color="accent"
+                  round
+                  dense
+                  @click="props.expand = !props.expand"
+                  :icon="props.expand ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
+                />
+              </q-td>
+              <q-td v-for="col in props.cols" :key="col.name" :props="props">
+                {{ col.value }}
+              </q-td>
+            </q-tr>
+            <q-tr v-show="props.expand" :props="props">
+              <q-td colspan="100%">
+                <div class="text-left">
+                  This is expand slot for row above: {{ props.row.name }}.
+                </div>
+              </q-td>
+            </q-tr>
+          </template>
+        </q-table>
+      </q-card>
+    </div>
   </div>
+
   <DialogAgregarPropietario v-if="mostrarDialogoPropietario" />
   <DialogAgregarMascota v-if="mostrarDialogoMascota" />
-
-  <DialogAgregarPropietario
-      v-if="mostrarDialogo"
-
-  />
-  <DialogAgregarMascota
-      v-if="mostrarDialogo"
-
-    />
 </template>
-<!--<template>
-  <div class="col-lg-12 col-md-6 col-sm-12 col-xs-12">
-    <q-card class="q-mt-md" borderead>
-      <q-card-section class="q-mt-xs" horizontal>
-        <q-card-section class="row q-col-gutter-xs">
-          <q-item>
-            <q-item-section>
-              <q-input
-                outlined
-                v-model="text"
-                label="Nombres"
-                stack-label
-                :dense="true"
-              />
-            </q-item-section>
-          </q-item>
-
-          <q-input
-            outlined
-            v-model="text"
-            label="Nombres"
-            stack-label
-            :dense="true"
-          />
-
-          <q-input
-            outlined
-            v-model="text"
-            label="Telefono"
-            stack-label
-            :dense="true"
-          />
-        </q-card-section>
-      </q-card-section>
-
-      <q-card-actions>
-        <q-btn
-          color="grey"
-          round
-          flat
-          dense
-          :icon="expanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
-          @click="expanded = !expanded"
-        />
-      </q-card-actions>
-
-      <q-slide-transition>
-        <div v-show="expanded">
-          <q-separator />
-          <q-card-section class="text-subitle2">
-            {{ lorem }}
-          </q-card-section>
-        </div>
-      </q-slide-transition>
-    </q-card>
-  </div>
-</template>-->
 
 <script setup>
 import { ref } from "vue";
-const mostrarDialogo = ref(false);
 import DialogAgregarPropietario from "../dialog/DialogAgregarPropietario.vue";
 import DialogAgregarMascota from "../dialog/DialogAgregarMascota.vue";
 
@@ -206,7 +138,7 @@ const abrirDialogoMascota = () => {
 defineProps({
   rows: {
     type: Array,
-    default: () => [], // Por defecto, un arreglo vacío
+    default: () => [],
   },
 });
 
@@ -241,17 +173,17 @@ const columns = ref([
   },
   {
     name: "telefonomovil",
-    label: "Telefono movil",
+    label: "Teléfono móvil",
     field: "activo",
     sortable: true,
     align: "center",
   },
   {
-        name: "action",
-        align: "center",
-        field: "action",
-        sortable: false,
-      },
+    name: "action",
+    align: "center",
+    field: "action",
+    sortable: false,
+  },
 ]);
 
 const columnsMascota = ref([
@@ -265,44 +197,63 @@ const columnsMascota = ref([
   {
     name: "historiaclinica",
     align: "left",
-    label: "Historia Clinica",
+    label: "Historia Clínica",
     field: "historiaclinica",
     sortable: true,
   },
   {
-        name: "action",
-        align: "center",
-        field: "action",
-        sortable: false,
-      },
-
+    name: "action",
+    align: "center",
+    field: "action",
+    sortable: false,
+  },
 ]);
-
-const expanded = ref(false);
-
-// Función para abrir el diálogo
-const abrirDialogo = () => {
-  mostrarDialogo.value = true;
-};
-
-// Función para cerrar el diálogo
-const cerrarDialogo = () => {
-  mostrarDialogo.value = false;
-};
-
-// Función para guardar los datos del propietario y la mascota
-const guardarPropietario = ({ propietario, mascota }) => {
-  console.log("Propietario guardado:", propietario);
-  console.log("Mascota guardada:", mascota);
-
-  // Aquí puedes realizar la lógica para guardar los datos en el backend
-  cerrarDialogo();
-};
-
 </script>
 
-<style lang="sass" scoped>
-.my-card
-  width: 100%
-  max-width: 350px
+<style scoped>
+.custom-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  width: 100%;
+  margin: 0;
+}
+
+.custom-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.full-width {
+  width: 100%;
+  margin: 0;
+}
+
+.floating-btn {
+  transform: translateY(-2px);
+  margin-right: -8px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  transition: all 0.3s ease;
+}
+
+.floating-btn:hover {
+  background: rgba(255, 255, 255, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.floating-btn:active {
+  transform: translateY(-1px);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.q-pl-md {
+  padding-left: 16px !important;
+}
+
+/* Ajuste del espaciado entre columnas */
+.q-col-gutter-md > * {
+  padding: 6px !important;
+}
 </style>
