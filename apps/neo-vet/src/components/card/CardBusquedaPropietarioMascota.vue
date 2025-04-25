@@ -23,21 +23,26 @@
         </q-card-section>
 
         <q-table
-          :rows="rows"
+          :rows="propietariosRows"
           :columns="columns"
-          row-key="name"
+          row-key="id"
           flat
           bordered
         >
           <template v-slot:body="props">
-            <q-tr :props="props">
+            <q-tr 
+              :props="props" 
+              :class="{'bg-blue-1': propietarioSeleccionadoId === props.row.id}"
+              class="cursor-pointer"
+              @click="seleccionarPropietario(props.row)"
+            >
               <q-td auto-width>
                 <q-btn
                   size="sm"
                   color="accent"
                   round
                   dense
-                  @click="props.expand = !props.expand"
+                  @click.stop="props.expand = !props.expand"
                   :icon="props.expand ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
                 />
               </q-td>
@@ -48,7 +53,7 @@
             <q-tr v-show="props.expand" :props="props">
               <q-td colspan="100%">
                 <div class="text-left">
-                  This is expand slot for row above: {{ props.row.name }}.
+                  Detalles adicionales del propietario: {{ props.row.nombre }}.
                 </div>
               </q-td>
             </q-tr>
@@ -64,25 +69,43 @@
             <div class="text-subtitle1">
               <q-icon name="pets" size="sm" class="q-mr-sm" />
               Lista de Mascotas
+              <span v-if="propietarioSeleccionado" class="text-caption q-ml-sm">
+                ({{ propietarioSeleccionado.nombre }} {{ propietarioSeleccionado.primerapellido }})
+              </span>
             </div>
-            <q-btn
-              round
-              flat
-              color="white"
-              size="sm"
-              icon="add"
-              class="floating-btn"
-              @click="abrirDialogoMascota"
-            >
-              <q-tooltip>Agregar Mascota</q-tooltip>
-            </q-btn>
+            <div>
+              <q-btn
+                v-if="propietarioSeleccionadoId"
+                round
+                flat
+                color="white"
+                size="sm"
+                icon="clear"
+                class="floating-btn q-mr-xs"
+                @click="limpiarSeleccion"
+              >
+                <q-tooltip>Mostrar todas las mascotas</q-tooltip>
+              </q-btn>
+              <q-btn
+                round
+                flat
+                color="white"
+                size="sm"
+                icon="add"
+                class="floating-btn"
+                @click="abrirDialogoMascota"
+                :disabled="!propietarioSeleccionadoId"
+              >
+                <q-tooltip>Agregar Mascota</q-tooltip>
+              </q-btn>
+            </div>
           </div>
         </q-card-section>
 
         <q-table
-          :rows="rows"
+          :rows="mascotasFiltradas"
           :columns="columnsMascota"
-          row-key="name"
+          row-key="id"
           flat
           bordered
         >
@@ -105,10 +128,15 @@
             <q-tr v-show="props.expand" :props="props">
               <q-td colspan="100%">
                 <div class="text-left">
-                  This is expand slot for row above: {{ props.row.name }}.
+                  Detalles adicionales de la mascota: {{ props.row.nombre || 'Sin nombre' }}.
                 </div>
               </q-td>
             </q-tr>
+          </template>
+          <template v-slot:no-data>
+            <div class="full-width row flex-center q-pa-md text-grey-8">
+              {{ propietarioSeleccionadoId ? 'Este propietario no tiene mascotas registradas' : 'No hay mascotas disponibles' }}
+            </div>
           </template>
         </q-table>
       </q-card>
@@ -116,30 +144,98 @@
   </div>
 
   <DialogAgregarPropietario v-if="mostrarDialogoPropietario" />
-  <DialogAgregarMascota v-if="mostrarDialogoMascota" />
+  <DialogAgregarMascota 
+    v-if="mostrarDialogoMascota" 
+    :propietario-id="propietarioSeleccionadoId" 
+    @mascota-agregada="actualizarMascotas"
+  />
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import DialogAgregarPropietario from "../dialog/DialogAgregarPropietario.vue";
 import DialogAgregarMascota from "../dialog/DialogAgregarMascota.vue";
 
 const mostrarDialogoPropietario = ref(false);
 const mostrarDialogoMascota = ref(false);
+const propietarioSeleccionadoId = ref(null);
+const propietarioSeleccionado = ref(null);
 
 const abrirDialogoPropietario = () => {
   mostrarDialogoPropietario.value = true;
 };
 
 const abrirDialogoMascota = () => {
-  mostrarDialogoMascota.value = true;
+  if (propietarioSeleccionadoId.value) {
+    mostrarDialogoMascota.value = true;
+  }
 };
 
-defineProps({
+const seleccionarPropietario = (propietario) => {
+  if (propietarioSeleccionadoId.value === propietario.id) {
+    // Si se hace clic en el mismo propietario, deseleccionarlo
+    propietarioSeleccionadoId.value = null;
+    propietarioSeleccionado.value = null;
+  } else {
+    propietarioSeleccionadoId.value = propietario.id;
+    propietarioSeleccionado.value = propietario;
+  }
+};
+
+const limpiarSeleccion = () => {
+  propietarioSeleccionadoId.value = null;
+  propietarioSeleccionado.value = null;
+};
+
+const actualizarMascotas = () => {
+  // Esta función se llamaría después de agregar una mascota
+  // Aquí podrías emitir un evento para actualizar los datos desde el componente padre
+  // o implementar alguna lógica para refrescar los datos
+};
+
+const props = defineProps({
   rows: {
     type: Array,
     default: () => [],
   },
+});
+
+// Procesar los datos para la tabla de propietarios
+const propietariosRows = computed(() => {
+  return props.rows
+    .filter(item => item.propietario)
+    .map(item => ({
+      id: item.propietario.id,
+      primerapellido: item.propietario.primerapellido || '',
+      segundoapellido: item.propietario.segundoapellido || '',
+      nombre: item.propietario.nombre || '',
+      email: '', // No viene en los datos proporcionados
+      telefonomovil: '', // No viene en los datos proporcionados
+      activo: item.activo
+    }));
+});
+
+// Procesar los datos para la tabla de mascotas
+const mascotasRows = computed(() => {
+  return props.rows
+    .filter(item => item.mascota)
+    .map(item => ({
+      id: item.mascota?.id,
+      nombre: item.mascota?.nombre || '',
+      historiaclinica: item.mascota?.historiaclinica || '',
+      propietarioId: item.propietario?.id // Agregamos el ID del propietario para filtrar
+    }));
+});
+
+// Mascotas filtradas según el propietario seleccionado
+const mascotasFiltradas = computed(() => {
+  if (!propietarioSeleccionadoId.value) {
+    return mascotasRows.value; // Mostrar todas las mascotas si no hay propietario seleccionado
+  }
+  
+  return mascotasRows.value.filter(mascota => 
+    mascota.propietarioId === propietarioSeleccionadoId.value
+  );
 });
 
 const columns = ref([
@@ -255,5 +351,8 @@ const columnsMascota = ref([
 /* Ajuste del espaciado entre columnas */
 .q-col-gutter-md > * {
   padding: 6px !important;
+}
+.cursor-pointer {
+  cursor: pointer;
 }
 </style>
