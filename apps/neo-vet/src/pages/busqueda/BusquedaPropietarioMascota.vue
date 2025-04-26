@@ -71,7 +71,7 @@
       </q-card>
     </div>
 
-    <div class="col-xs-4 col-md-4 col-sm-12 col-xs-12">
+    <div class="col-xs-3 col-md-3 col-sm-12 col-xs-12">
       <q-card class="custom-card">
         <q-card-section class="bg-secondary text-white q-py-sm">
           <div class="row items-center justify-between">
@@ -106,18 +106,32 @@
             </q-item>
           </div>
         </q-card-section>
-      </q-card>
-    </div>
 
-    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-      <q-btn
-      outline
-        label="Buscar"
-        class="full-width"
-        icon="search"
-        style="color: #FF0080"
-        @click="buscar()"
-      />
+       <!-- <q-card-actions align="right" class="q-pa-md">
+          <q-btn
+            outline
+            label="Buscar"
+            icon="search"
+            style="color: #FF0080"
+            @click="buscar()"
+          />
+        </q-card-actions>-->
+      </q-card>
+
+      <div class="fab-container">
+        <q-fab
+          color="accent"
+          icon="search"
+          label="Buscar"
+          label-position="left"
+          external-label
+          direction="up"
+          size="1.2rem"
+          font-size="1rem"
+          padding="12px"
+          @click="buscar()"
+        />
+      </div>
     </div>
 
     <CardBusquedaPropietarioMascota :rows="listaPropietarios" />
@@ -240,5 +254,34 @@ const isValidEmail = (val: string) => {
 .custom-container {
   margin-left: 0 !important;
   margin-right: auto !important;
+}
+
+.floating-search-btn {
+  height: 45px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.floating-search-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.fab-container {
+  position: relative;
+  height: 0;
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.fab-container .q-fab {
+  position: absolute;
+  right: -100px;
+  top: -90px;
+  z-index: 2;
+  transform: scale(1.6); /* Hace el botón un 20% más grande */
 }
 </style>

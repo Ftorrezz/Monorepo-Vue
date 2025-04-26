@@ -30,24 +30,53 @@
           bordered
         >
           <template v-slot:body="props">
-            <q-tr 
-              :props="props" 
+            <q-tr
+              :props="props"
               :class="{'bg-blue-1': propietarioSeleccionadoId === props.row.id}"
               class="cursor-pointer"
               @click="seleccionarPropietario(props.row)"
             >
-              <q-td auto-width>
-                <q-btn
-                  size="sm"
-                  color="accent"
-                  round
-                  dense
-                  @click.stop="props.expand = !props.expand"
-                  :icon="props.expand ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
-                />
-              </q-td>
               <q-td v-for="col in props.cols" :key="col.name" :props="props">
-                {{ col.value }}
+                <template v-if="col.name === 'expand'">
+                  <q-btn
+                    size="sm"
+                    color="accent"
+                    round
+                    dense
+                    @click.stop="props.expand = !props.expand"
+                    :icon="props.expand ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
+                  />
+                </template>
+                <template v-else-if="col.name === 'action'">
+                  <div class="q-gutter-sm">
+                    <q-btn
+                      round
+                      color="primary"
+                      icon="edit"
+                      @click.stop="editarPropietario(props)"
+                      size="sm"
+                      flat
+                      dense
+                    >
+                      <q-tooltip>Editar propietario</q-tooltip>
+                    </q-btn>
+                    <q-btn
+                      round
+                      color="negative"
+                      icon="delete"
+                      @click.stop="eliminarPropietario(props)"
+                      size="sm"
+                      flat
+                      dense
+                      :disabled="props.row.activo === 'N'"
+                    >
+                      <q-tooltip>Eliminar propietario</q-tooltip>
+                    </q-btn>
+                  </div>
+                </template>
+                <template v-else>
+                  {{ col.value }}
+                </template>
               </q-td>
             </q-tr>
             <q-tr v-show="props.expand" :props="props">
@@ -69,7 +98,7 @@
             <div class="text-subtitle1">
               <q-icon name="pets" size="sm" class="q-mr-sm" />
               Lista de Mascotas
-              <span v-if="propietarioSeleccionado" class="text-caption q-ml-sm">
+              <span v-if="propietarioSeleccionado" class="text-caption q-ml-sm propietario-seleccionado">
                 ({{ propietarioSeleccionado.nombre }} {{ propietarioSeleccionado.primerapellido }})
               </span>
             </div>
@@ -111,18 +140,46 @@
         >
           <template v-slot:body="props">
             <q-tr :props="props">
-              <q-td auto-width>
-                <q-btn
-                  size="sm"
-                  color="accent"
-                  round
-                  dense
-                  @click="props.expand = !props.expand"
-                  :icon="props.expand ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
-                />
-              </q-td>
               <q-td v-for="col in props.cols" :key="col.name" :props="props">
-                {{ col.value }}
+                <template v-if="col.name === 'expand'">
+                  <q-btn
+                    size="sm"
+                    color="accent"
+                    round
+                    dense
+                    @click="props.expand = !props.expand"
+                    :icon="props.expand ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
+                  />
+                </template>
+                <template v-else-if="col.name === 'action'">
+                  <div class="q-gutter-sm">
+                    <q-btn
+                      round
+                      color="primary"
+                      icon="edit"
+                      @click="editarMascota(props)"
+                      size="sm"
+                      flat
+                      dense
+                    >
+                      <q-tooltip>Editar mascota</q-tooltip>
+                    </q-btn>
+                    <q-btn
+                      round
+                      color="negative"
+                      icon="delete"
+                      @click="eliminarMascota(props)"
+                      size="sm"
+                      flat
+                      dense
+                    >
+                      <q-tooltip>Eliminar mascota</q-tooltip>
+                    </q-btn>
+                  </div>
+                </template>
+                <template v-else>
+                  {{ col.value }}
+                </template>
               </q-td>
             </q-tr>
             <q-tr v-show="props.expand" :props="props">
@@ -144,15 +201,15 @@
   </div>
 
   <DialogAgregarPropietario v-if="mostrarDialogoPropietario" />
-  <DialogAgregarMascota 
-    v-if="mostrarDialogoMascota" 
-    :propietario-id="propietarioSeleccionadoId" 
+  <DialogAgregarMascota
+    v-if="mostrarDialogoMascota"
+    :propietario-id="propietarioSeleccionadoId"
     @mascota-agregada="actualizarMascotas"
   />
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, nextTick } from "vue";
 import DialogAgregarPropietario from "../dialog/DialogAgregarPropietario.vue";
 import DialogAgregarMascota from "../dialog/DialogAgregarMascota.vue";
 
@@ -202,17 +259,33 @@ const props = defineProps({
 
 // Procesar los datos para la tabla de propietarios
 const propietariosRows = computed(() => {
-  return props.rows
-    .filter(item => item.propietario)
-    .map(item => ({
-      id: item.propietario.id,
-      primerapellido: item.propietario.primerapellido || '',
-      segundoapellido: item.propietario.segundoapellido || '',
-      nombre: item.propietario.nombre || '',
-      email: '', // No viene en los datos proporcionados
-      telefonomovil: '', // No viene en los datos proporcionados
-      activo: item.activo
-    }));
+  // Crear un Map para almacenar propietarios únicos usando su ID como clave
+  const propietariosUnicos = new Map();
+  
+  props.rows.forEach(item => {
+    if (item.propietario && !propietariosUnicos.has(item.propietario.id)) {
+      propietariosUnicos.set(item.propietario.id, {
+        id: item.propietario.id,
+        primerapellido: item.propietario.primerapellido || '',
+        segundoapellido: item.propietario.segundoapellido || '',
+        nombre: item.propietario.nombre || '',
+        email: '', // No viene en los datos proporcionados
+        telefonomovil: '', // No viene en los datos proporcionados
+        activo: item.activo
+      });
+    }
+  });
+
+  const propietarios = Array.from(propietariosUnicos.values());
+  
+  // Si hay propietarios y ninguno está seleccionado, seleccionar el primero
+  if (propietarios.length > 0 && !propietarioSeleccionadoId.value) {
+    nextTick(() => {
+      seleccionarPropietario(propietarios[0]);
+    });
+  }
+
+  return propietarios;
 });
 
 // Procesar los datos para la tabla de mascotas
@@ -232,13 +305,20 @@ const mascotasFiltradas = computed(() => {
   if (!propietarioSeleccionadoId.value) {
     return mascotasRows.value; // Mostrar todas las mascotas si no hay propietario seleccionado
   }
-  
-  return mascotasRows.value.filter(mascota => 
+
+  return mascotasRows.value.filter(mascota =>
     mascota.propietarioId === propietarioSeleccionadoId.value
   );
 });
 
 const columns = ref([
+  {
+    name: 'expand',
+    label: '',
+    field: 'expand',
+    sortable: false,
+    align: 'left',
+  },
   {
     name: "primerapellido",
     align: "left",
@@ -284,6 +364,13 @@ const columns = ref([
 
 const columnsMascota = ref([
   {
+    name: 'expand',
+    label: '',
+    field: 'expand',
+    sortable: false,
+    align: 'left',
+  },
+  {
     name: "nombre",
     align: "left",
     label: "Nombre",
@@ -304,6 +391,26 @@ const columnsMascota = ref([
     sortable: false,
   },
 ]);
+
+const editarPropietario = (props) => {
+  // Implementar la lógica para editar propietario
+  console.log('Editar propietario:', props.row);
+};
+
+const eliminarPropietario = (props) => {
+  // Implementar la lógica para eliminar propietario
+  console.log('Eliminar propietario:', props.row);
+};
+
+const editarMascota = (props) => {
+  // Implementar la lógica para editar mascota
+  console.log('Editar mascota:', props.row);
+};
+
+const eliminarMascota = (props) => {
+  // Implementar la lógica para eliminar mascota
+  console.log('Eliminar mascota:', props.row);
+};
 </script>
 
 <style scoped>
@@ -333,6 +440,11 @@ const columnsMascota = ref([
   transition: all 0.3s ease;
 }
 
+/* Modificar el margen derecho para el botón de limpiar */
+.q-mr-xs.floating-btn {
+  margin-right: 8px !important; /* Aumentamos el margen entre botones */
+}
+
 .floating-btn:hover {
   background: rgba(255, 255, 255, 0.4);
   transform: translateY(-3px);
@@ -354,5 +466,42 @@ const columnsMascota = ref([
 }
 .cursor-pointer {
   cursor: pointer;
+}
+
+.propietario-seleccionado {
+  font-weight: bold;
+  color: #110707;
+  /*text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);*/
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+/* Estilos para la fila seleccionada */
+:deep(.bg-blue-1) {
+  background-color: rgba(25, 118, 210, 0.1) !important;
+}
+
+/* Estilo para el texto en modo claro cuando está seleccionado */
+:deep(.bg-blue-1) td {
+  color: rgba(25, 118, 210, 0.87) !important;
+  font-weight: 600 !important;
+}
+
+/* Estilo para el texto en modo oscuro cuando está seleccionado */
+.body--dark :deep(.bg-blue-1) {
+  background-color: rgba(64, 196, 255, 0.2) !important;
+}
+
+.body--dark :deep(.bg-blue-1) td {
+  color: #fff !important;
+  font-weight: 600 !important;
+}
+
+/* Ajuste del color del texto del propietario seleccionado en modo oscuro */
+.body--dark .propietario-seleccionado {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.15);
 }
 </style>
