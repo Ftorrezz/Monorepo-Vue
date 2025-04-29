@@ -167,6 +167,8 @@
             <q-td :props="props">
               <div class="q-gutter-sm">
                 <q-btn
+
+
                   round
                   color="primary"
                   icon="edit"

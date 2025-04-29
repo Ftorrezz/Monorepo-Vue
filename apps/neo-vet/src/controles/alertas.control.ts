@@ -2,7 +2,7 @@ import Swal from 'sweetalert2'
 import { Notify, Dialog } from 'quasar'
 
 class NdAlertasControl {
-    
+
     public mostrarMensaje(tipo: string, titulo: string, mensaje: string): void{
 
         switch (tipo.toLowerCase()) {
@@ -11,7 +11,7 @@ class NdAlertasControl {
                 break
             }
             case 'error': {
-                
+
                 this.mostrarNotificacion('negative', titulo, mensaje)
                 break;
             }
@@ -32,10 +32,15 @@ class NdAlertasControl {
     }
 
     public mostrarConfirmacionEliminacion(mensaje: any = 'el registro', modelo: any): any {
+
+        // Obtener el identificador del modelo (descripción o nombre)
+        const identificador = modelo.descripcion || modelo.nombre || '';
+
         return new Promise((resolve, reject) => {
+
             Dialog.create({
-                
-                title: `¿ Confirma el borrado ${mensaje} ${modelo.descripcion} ?`,
+
+                title: `¿ Confirma el borrado ${mensaje} ${identificador} ?`,
                 message: 'Esta operación no se puede revertir.',
                 cancel: {
                     label: 'Cancelar',
@@ -54,15 +59,15 @@ class NdAlertasControl {
                     outline: false,
                     padding: "xs lg",
                     size: "14px",
-                    
+
                 },
                 //class: 'dialog-custom-width',
                 style: {
                     width: '600px',  // Aquí puedes especificar el ancho deseado
                     maxWidth: '90vw' // Esto es opcional, pero asegura que el diálogo no exceda el 90% del ancho de la ventana
                   }
-                
-                
+
+
             })
             .onOk(() => {
                 resolve(true); // Resolves with true if user clicks 'Si, borrarlo'
@@ -82,7 +87,7 @@ class NdAlertasControl {
             cancelButtonColor: '#dc3545',
             confirmButtonText: 'Si, borrarlo!',
             cancelButtonText: 'Cancelar',
-            
+
         });
     }*/
 
@@ -96,10 +101,10 @@ class NdAlertasControl {
             cancelButtonColor: '#dc3545',
             confirmButtonText: 'Si, inactivar!',
             cancelButtonText: 'Cancelar',
-            
+
         });
     }
-    
+
     public mostrarConfirmacion(mensaje: string = ''): any {
         return Swal.fire({
             title: 'Esta seguro?',

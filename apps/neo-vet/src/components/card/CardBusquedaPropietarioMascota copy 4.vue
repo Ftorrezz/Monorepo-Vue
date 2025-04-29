@@ -28,7 +28,6 @@
           row-key="id"
           flat
           bordered
-          translate="no"
         >
           <template v-slot:body="props">
             <q-tr
@@ -76,7 +75,7 @@
                   </div>
                 </template>
                 <template v-else>
-                  <span translate="no">{{ col.value }}</span>
+                  {{ col.value }}
                 </template>
               </q-td>
             </q-tr>
@@ -138,7 +137,6 @@
           row-key="id"
           flat
           bordered
-          translate="no"
         >
           <template v-slot:body="props">
             <q-tr :props="props">
@@ -187,7 +185,7 @@
             <q-tr v-show="props.expand" :props="props">
               <q-td colspan="100%">
                 <div class="text-left">
-                  Detalles adicionales de la mascota: <span translate="no">{{ props.row.nombre || 'Sin nombre' }}</span>.
+                  Detalles adicionales de la mascota: {{ props.row.nombre || 'Sin nombre' }}.
                 </div>
               </q-td>
             </q-tr>

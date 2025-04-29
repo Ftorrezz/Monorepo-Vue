@@ -132,7 +132,7 @@
       </div>
     </div>
 
-    <CardBusquedaPropietarioMascota :rows="listaPropietarios"  @refresh-data="buscar" />
+    <CardBusquedaPropietarioMascota :rows="listaPropietarios" />
   </div>
 </template>
 
@@ -276,21 +276,10 @@ const isValidEmail = (val: string) => {
 }
 
 .search-fab {
-  position: fixed;
+  position: absolute;
+  right: -100px;
+  top: -90px;
   z-index: 2;
   transform: scale(1.6);
-  top: 140px; /* Ajustado 2cm más abajo (aproximadamente 20px = 1cm) */
-  right: 80px; /* Ajustado para mover 1cm a la izquierda */
-  background: white;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-
-/* Ajustes responsive */
-@media (max-width: 599px) {
-  .search-fab {
-    top: 36px; /* Ajustado proporcionalmente para móviles */
-    right: 36px;
-    transform: scale(1.4);
-  }
 }
 </style>

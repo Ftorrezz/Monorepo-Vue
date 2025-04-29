@@ -91,7 +91,7 @@ defineOptions({
 const leftDrawerOpen = ref(false);
 const miniState = ref(true);
 const footerOpen = ref(false);
-const title = ref('NeoHIS :: Veterinaria');
+const title = ref('NeoVET :: Sistema de Gestión Veterinaria');
 //const { useIsAdmin } = useAuthStore()
 
 // Manejadores de transición del footer

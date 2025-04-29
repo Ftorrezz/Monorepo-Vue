@@ -28,7 +28,6 @@
           row-key="id"
           flat
           bordered
-          translate="no"
         >
           <template v-slot:body="props">
             <q-tr
@@ -76,7 +75,7 @@
                   </div>
                 </template>
                 <template v-else>
-                  <span translate="no">{{ col.value }}</span>
+                  {{ col.value }}
                 </template>
               </q-td>
             </q-tr>
@@ -138,7 +137,6 @@
           row-key="id"
           flat
           bordered
-          translate="no"
         >
           <template v-slot:body="props">
             <q-tr :props="props">
@@ -187,7 +185,7 @@
             <q-tr v-show="props.expand" :props="props">
               <q-td colspan="100%">
                 <div class="text-left">
-                  Detalles adicionales de la mascota: <span translate="no">{{ props.row.nombre || 'Sin nombre' }}</span>.
+                  Detalles adicionales de la mascota: {{ props.row.nombre || 'Sin nombre' }}.
                 </div>
               </q-td>
             </q-tr>
@@ -404,23 +402,26 @@ const editarPropietario = (props) => {
 };
 
 const eliminarPropietario = async (props) => {
+
   try {
     const peticionService = new PeticionService();
-    const resultado = await peticionService.eliminar(
+    await peticionService.eliminar(
       'propietario',
       Object.assign({}, props.row),
       true,
       'Propietario'
     );
 
-      // Si el propietario eliminado era el seleccionado, limpiar la selección
-      if (propietarioSeleccionadoId.value === props.row.id) {
-        limpiarSeleccion();
-      }
+    // Actualizar la lista de propietarios
+    const propietarioIndex = propietariosRows.value.findIndex(p => p.id === props.row.id);
+    if (propietarioIndex !== -1) {
+      propietariosRows.value.splice(propietarioIndex, 1);
+    }
 
-      // Emitir evento para actualizar los datos
-      emit('refresh-data');
-
+    // Si el propietario eliminado era el seleccionado, limpiar la selección
+    if (propietarioSeleccionadoId.value === props.row.id) {
+      limpiarSeleccion();
+    }
   } catch (error) {
     const alertas = new NdAlertasControl();
     alertas.mostrarMensaje(
@@ -431,21 +432,23 @@ const eliminarPropietario = async (props) => {
   }
 };
 
-const emit = defineEmits(['update:rows', 'refresh-data']);
-
 const eliminarMascota = async (props) => {
   try {
+    console.log(props.row)
+
     const peticionService = new PeticionService();
-    const resultado = await peticionService.eliminar(
+    await peticionService.eliminar(
       'mascota',
       Object.assign({}, props.row),
       true,
       'Mascota'
     );
 
-      // Emitir un evento para que el padre actualice los datos
-      emit('refresh-data');
-
+    // Actualizar la lista de mascotas
+    const mascotaIndex = mascotasRows.value.findIndex(m => m.id === props.row.id);
+    if (mascotaIndex !== -1) {
+      mascotasRows.value.splice(mascotaIndex, 1);
+    }
   } catch (error) {
     const alertas = new NdAlertasControl();
     alertas.mostrarMensaje(
