@@ -28,6 +28,7 @@
           row-key="id"
           flat
           bordered
+          translate="no"
         >
           <template v-slot:body="props">
             <q-tr
@@ -75,7 +76,7 @@
                   </div>
                 </template>
                 <template v-else>
-                  {{ col.value }}
+                  <span translate="no">{{ col.value }}</span>
                 </template>
               </q-td>
             </q-tr>
@@ -103,7 +104,7 @@
               </span>
             </div>
             <div>
-              <q-btn
+              <!--<q-btn
                 v-if="propietarioSeleccionadoId"
                 round
                 flat
@@ -114,7 +115,7 @@
                 @click="limpiarSeleccion"
               >
                 <q-tooltip>Mostrar todas las mascotas</q-tooltip>
-              </q-btn>
+              </q-btn>-->
               <q-btn
                 round
                 flat
@@ -137,6 +138,7 @@
           row-key="id"
           flat
           bordered
+          translate="no"
         >
           <template v-slot:body="props">
             <q-tr :props="props">
@@ -185,7 +187,7 @@
             <q-tr v-show="props.expand" :props="props">
               <q-td colspan="100%">
                 <div class="text-left">
-                  Detalles adicionales de la mascota: {{ props.row.nombre || 'Sin nombre' }}.
+                  Detalles adicionales de la mascota: <span translate="no">{{ props.row.nombre || 'Sin nombre' }}</span>.
                 </div>
               </q-td>
             </q-tr>
@@ -212,11 +214,15 @@
 import { ref, computed, nextTick } from "vue";
 import DialogAgregarPropietario from "../dialog/DialogAgregarPropietario.vue";
 import DialogAgregarMascota from "../dialog/DialogAgregarMascota.vue";
+import NdAlertasControl from "src/controles/alertas.control";
+import PeticionService from "src/services/peticion.service";
+
 
 const mostrarDialogoPropietario = ref(false);
 const mostrarDialogoMascota = ref(false);
 const propietarioSeleccionadoId = ref(null);
 const propietarioSeleccionado = ref(null);
+let alertas = new NdAlertasControl()
 
 const abrirDialogoPropietario = () => {
   mostrarDialogoPropietario.value = true;
@@ -261,7 +267,7 @@ const props = defineProps({
 const propietariosRows = computed(() => {
   // Crear un Map para almacenar propietarios únicos usando su ID como clave
   const propietariosUnicos = new Map();
-  
+
   props.rows.forEach(item => {
     if (item.propietario && !propietariosUnicos.has(item.propietario.id)) {
       propietariosUnicos.set(item.propietario.id, {
@@ -277,7 +283,7 @@ const propietariosRows = computed(() => {
   });
 
   const propietarios = Array.from(propietariosUnicos.values());
-  
+
   // Si hay propietarios y ninguno está seleccionado, seleccionar el primero
   if (propietarios.length > 0 && !propietarioSeleccionadoId.value) {
     nextTick(() => {
@@ -397,19 +403,61 @@ const editarPropietario = (props) => {
   console.log('Editar propietario:', props.row);
 };
 
-const eliminarPropietario = (props) => {
-  // Implementar la lógica para eliminar propietario
-  console.log('Eliminar propietario:', props.row);
+const eliminarPropietario = async (props) => {
+  try {
+    const peticionService = new PeticionService();
+    const resultado = await peticionService.eliminar(
+      'propietario',
+      Object.assign({}, props.row),
+      true,
+      'Propietario'
+    );
+
+    if (resultado !== false) {
+
+
+    // Si el propietario eliminado era el seleccionado, limpiar la selección
+      if (propietarioSeleccionadoId.value === props.row.id) {
+        limpiarSeleccion();
+      }
+
+      // Emitir evento para actualizar los datos
+      emit('refresh-data');
+    }
+
+  } catch (error) {
+    const alertas = new NdAlertasControl();
+    alertas.mostrarMensaje(
+      "error",
+      "Eliminar",
+      "No fue posible eliminar el propietario"
+    );
+  }
 };
 
-const editarMascota = (props) => {
-  // Implementar la lógica para editar mascota
-  console.log('Editar mascota:', props.row);
-};
+const emit = defineEmits(['update:rows', 'refresh-data']);
 
-const eliminarMascota = (props) => {
-  // Implementar la lógica para eliminar mascota
-  console.log('Eliminar mascota:', props.row);
+const eliminarMascota = async (props) => {
+  try {
+    const peticionService = new PeticionService();
+    const resultado = await peticionService.eliminar(
+      'mascota',
+      Object.assign({}, props.row),
+      true,
+      'Mascota'
+    );
+      // Emitir un evento para que el padre actualice los datos
+      if (resultado !== false)  emit('refresh-data');
+
+
+  } catch (error) {
+    const alertas = new NdAlertasControl();
+    alertas.mostrarMensaje(
+      "error",
+      "Eliminar",
+      "No fue posible eliminar la mascota"
+    );
+  }
 };
 </script>
 

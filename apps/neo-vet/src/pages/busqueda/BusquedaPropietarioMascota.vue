@@ -127,8 +127,13 @@
           size="1.2rem"
           padding="12px"
           @click="buscar()"
+          :disable="!tieneAlgunCampoLleno"
           class="search-fab"
-        />
+        >
+          <q-tooltip>
+            {{ !tieneAlgunCampoLleno ? 'Ingrese al menos un criterio de búsqueda' : 'Buscar' }}
+          </q-tooltip>
+        </q-btn>
       </div>
     </div>
 
@@ -139,7 +144,7 @@
 
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useQuasar } from "quasar";
 import CardBusquedaPropietarioMascota from "../../components/card/CardBusquedaPropietarioMascota.vue";
 import NdPeticionControl from "src/controles/rest.control";
@@ -165,6 +170,15 @@ const formData = ref({
 
 const buscar = async () => {
   try {
+    if (!tieneAlgunCampoLleno.value) {
+      $q.notify({
+        type: 'warning',
+        message: 'Debe ingresar al menos un criterio de búsqueda',
+        position: 'top'
+      });
+      return;
+    }
+
     loading.value = true;
     listaPropietarios.value = [];
     const _peticion = new NdPeticionControl();
@@ -211,6 +225,19 @@ const isValidEmail = (val: string) => {
   const emailPattern = /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.){1,8}[a-zA-Z]{2,63}$/;
   return emailPattern.test(val) || "El correo no parece ser válido";
 };
+
+const tieneAlgunCampoLleno = computed(() => {
+  const propietario = formData.value.propietario;
+  const mascota = formData.value.mascota;
+
+  return propietario.primerapellido.trim() !== '' ||
+         propietario.segundoapellido.trim() !== '' ||
+         propietario.nombre.trim() !== '' ||
+         propietario.correo.trim() !== '' ||
+         propietario.telefonocelular.trim() !== '' ||
+         mascota.nombre.trim() !== '' ||
+         mascota.historia_clinica.trim() !== '';
+});
 </script>
 
 <style scoped>

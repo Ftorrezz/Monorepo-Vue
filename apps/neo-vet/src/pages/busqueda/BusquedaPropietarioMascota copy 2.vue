@@ -127,19 +127,24 @@
           size="1.2rem"
           padding="12px"
           @click="buscar()"
+          :disable="!tieneAlgunCampoLleno"
           class="search-fab"
-        />
+        >
+          <q-tooltip>
+            {{ !tieneAlgunCampoLleno ? 'Ingrese al menos un criterio de búsqueda' : 'Buscar' }}
+          </q-tooltip>
+        </q-btn>
       </div>
     </div>
 
-    <CardBusquedaPropietarioMascota :rows="listaPropietarios" />
+    <CardBusquedaPropietarioMascota :rows="listaPropietarios"  @refresh-data="buscar" />
   </div>
 </template>
 
 
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useQuasar } from "quasar";
 import CardBusquedaPropietarioMascota from "../../components/card/CardBusquedaPropietarioMascota.vue";
 import NdPeticionControl from "src/controles/rest.control";
@@ -165,6 +170,15 @@ const formData = ref({
 
 const buscar = async () => {
   try {
+    if (!tieneAlgunCampoLleno.value) {
+      $q.notify({
+        type: 'warning',
+        message: 'Debe ingresar al menos un criterio de búsqueda',
+        position: 'top'
+      });
+      return;
+    }
+
     loading.value = true;
     listaPropietarios.value = [];
     const _peticion = new NdPeticionControl();
@@ -211,6 +225,19 @@ const isValidEmail = (val: string) => {
   const emailPattern = /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.){1,8}[a-zA-Z]{2,63}$/;
   return emailPattern.test(val) || "El correo no parece ser válido";
 };
+
+const tieneAlgunCampoLleno = computed(() => {
+  const propietario = formData.value.propietario;
+  const mascota = formData.value.mascota;
+
+  return propietario.primerapellido.trim() !== '' ||
+         propietario.segundoapellido.trim() !== '' ||
+         propietario.nombre.trim() !== '' ||
+         propietario.correo.trim() !== '' ||
+         propietario.telefonocelular.trim() !== '' ||
+         mascota.nombre.trim() !== '' ||
+         mascota.historia_clinica.trim() !== '';
+});
 </script>
 
 <style scoped>
@@ -276,10 +303,21 @@ const isValidEmail = (val: string) => {
 }
 
 .search-fab {
-  position: absolute;
-  right: -100px;
-  top: -90px;
+  position: fixed;
   z-index: 2;
   transform: scale(1.6);
+  top: 140px; /* Ajustado 2cm más abajo (aproximadamente 20px = 1cm) */
+  right: 80px; /* Ajustado para mover 1cm a la izquierda */
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* Ajustes responsive */
+@media (max-width: 599px) {
+  .search-fab {
+    top: 36px; /* Ajustado proporcionalmente para móviles */
+    right: 36px;
+    transform: scale(1.4);
+  }
 }
 </style>

@@ -264,8 +264,8 @@ const props = defineProps({
 });
 
 // Procesar los datos para la tabla de propietarios
+// Modificar el computed de propietariosRows
 const propietariosRows = computed(() => {
-  // Crear un Map para almacenar propietarios únicos usando su ID como clave
   const propietariosUnicos = new Map();
 
   props.rows.forEach(item => {
@@ -275,8 +275,8 @@ const propietariosRows = computed(() => {
         primerapellido: item.propietario.primerapellido || '',
         segundoapellido: item.propietario.segundoapellido || '',
         nombre: item.propietario.nombre || '',
-        email: '', // No viene en los datos proporcionados
-        telefonomovil: '', // No viene en los datos proporcionados
+        email: '', 
+        telefonomovil: '',
         activo: item.activo
       });
     }
@@ -284,11 +284,20 @@ const propietariosRows = computed(() => {
 
   const propietarios = Array.from(propietariosUnicos.values());
 
-  // Si hay propietarios y ninguno está seleccionado, seleccionar el primero
-  if (propietarios.length > 0 && !propietarioSeleccionadoId.value) {
+  // Seleccionar el primer propietario solo cuando hay nuevos resultados
+  if (propietarios.length > 0) {
     nextTick(() => {
-      seleccionarPropietario(propietarios[0]);
+      // Verificar si el propietario seleccionado actual existe en los nuevos resultados
+      const propietarioExiste = propietarios.some(p => p.id === propietarioSeleccionadoId.value);
+      
+      // Si no existe un propietario seleccionado o el actual no está en los resultados
+      if (!propietarioSeleccionadoId.value || !propietarioExiste) {
+        seleccionarPropietario(propietarios[0]);
+      }
     });
+  } else {
+    // Si no hay propietarios, limpiar la selección
+    limpiarSeleccion();
   }
 
   return propietarios;
@@ -413,13 +422,17 @@ const eliminarPropietario = async (props) => {
       'Propietario'
     );
 
-      // Si el propietario eliminado era el seleccionado, limpiar la selección
+    if (resultado !== false) {
+
+
+    // Si el propietario eliminado era el seleccionado, limpiar la selección
       if (propietarioSeleccionadoId.value === props.row.id) {
         limpiarSeleccion();
       }
 
       // Emitir evento para actualizar los datos
       emit('refresh-data');
+    }
 
   } catch (error) {
     const alertas = new NdAlertasControl();
@@ -442,9 +455,9 @@ const eliminarMascota = async (props) => {
       true,
       'Mascota'
     );
-
       // Emitir un evento para que el padre actualice los datos
-      emit('refresh-data');
+      if (resultado !== false)  emit('refresh-data');
+
 
   } catch (error) {
     const alertas = new NdAlertasControl();

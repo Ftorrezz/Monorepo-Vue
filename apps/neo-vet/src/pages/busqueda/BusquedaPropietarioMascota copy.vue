@@ -71,7 +71,7 @@
       </q-card>
     </div>
 
-    <div class="col-xs-3 col-md-3 col-sm-12 col-xs-12">
+    <div class="col-xs-3 col-md-3 col-sm-11 col-xs-11">
       <q-card class="custom-card">
         <q-card-section class="bg-secondary text-white q-py-sm">
           <div class="row items-center justify-between">
@@ -119,22 +119,20 @@
       </q-card>
 
       <div class="fab-container">
-        <q-fab
-          color="accent"
+        <q-btn
+          round
+          flat
+          style="color: #FF0080"
           icon="search"
-          label="Buscar"
-          label-position="left"
-          external-label
-          direction="up"
           size="1.2rem"
-          font-size="1rem"
           padding="12px"
           @click="buscar()"
+          class="search-fab"
         />
       </div>
     </div>
 
-    <CardBusquedaPropietarioMascota :rows="listaPropietarios" />
+    <CardBusquedaPropietarioMascota :rows="listaPropietarios"  @refresh-data="buscar" />
   </div>
 </template>
 
@@ -277,11 +275,22 @@ const isValidEmail = (val: string) => {
   margin-top: 16px;
 }
 
-.fab-container .q-fab {
-  position: absolute;
-  right: -100px;
-  top: -90px;
+.search-fab {
+  position: fixed;
   z-index: 2;
-  transform: scale(1.6); /* Hace el botón un 20% más grande */
+  transform: scale(1.6);
+  top: 140px; /* Ajustado 2cm más abajo (aproximadamente 20px = 1cm) */
+  right: 80px; /* Ajustado para mover 1cm a la izquierda */
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* Ajustes responsive */
+@media (max-width: 599px) {
+  .search-fab {
+    top: 36px; /* Ajustado proporcionalmente para móviles */
+    right: 36px;
+    transform: scale(1.4);
+  }
 }
 </style>
