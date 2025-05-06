@@ -3,20 +3,22 @@
     <q-card
       bordered
       elevated
-      class="dialog-card"
+      style="max-width: 1500px; border-radius: 10px; overflow: hidden"
     >
       <q-bar class="bg-primary text-white">
         <q-icon name="person" />
         <div>Propietario / Mascota</div>
+
         <q-space />
+
         <q-btn dense flat icon="close" v-close-popup>
           <q-tooltip>Cerrar</q-tooltip>
         </q-btn>
       </q-bar>
 
-      <q-card-section class="fixed-height-section">
+      <q-card-section>
         <q-card elevated>
-          <q-splitter v-model="splitterModel" style="height: calc(600px - 50px)">
+          <q-splitter v-model="splitterModel" style="height: 500px">
             <template v-slot:before>
               <q-tabs v-model="tab" vertical class="text-teal">
                 <q-tab name="propietario" icon="person" label="Propietario" />
@@ -32,7 +34,6 @@
                 vertical
                 transition-prev="jump-up"
                 transition-next="jump-up"
-                class="fixed-height-panel"
               >
                 <q-tab-panel name="propietario">
                   <div class="text-h5 q-mb-md text-teal">Propietario</div>
@@ -126,7 +127,11 @@
                       </q-form>
 
                       <q-separator inset color="primary" />
-                      <!-- Eliminamos el OpcionCancelarGuardar de aquí -->
+
+                      <OpcionCancelarGuardar
+                        @accionCerrar="close"
+                        @accionValidar="validate"
+                      />
                     </q-tab-panel>
 
                     <q-tab-panel name="adicional">
@@ -177,23 +182,58 @@
               </q-tab-panels>
             </template>
           </q-splitter>
+
+          <!--<q-form ref="myForm">
+            <div class="row q-col-gutter-sm">
+              <q-card-section class="row q-col-gutter-xs">
+                <q-item class="col-lg-2 col-md-6 col-sm-12 col-xs-12">
+                  <q-item-section>
+                    <q-input v-model="prueba" label="Primer Apellido" />
+                  </q-item-section>
+                </q-item>
+                <q-item class="col-lg-2 col-md-6 col-sm-12 col-xs-12">
+                  <q-item-section>
+                    <q-input v-model="prueba" label="Segundo Apellido" />
+                  </q-item-section>
+                </q-item>
+                <q-item class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
+                  <q-item-section>
+                    <q-input v-model="prueba" label="Nombres" />
+                  </q-item-section>
+                </q-item>
+                <q-item class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
+                  <q-item-section>
+                    <q-input
+                      v-model="prueba"
+                      label="Correo electronico"
+                      type="email"
+                    >
+                      <template v-slot:prepend>
+                        <q-icon name="mail" />
+                      </template>
+                    </q-input>
+                  </q-item-section>
+                </q-item>
+                <q-item class="col-lg-2 col-md-6 col-sm-12 col-xs-12">
+                  <q-item-section>
+                    <q-input v-model="prueba" label="Telefono móvil" lazy-rules>
+                      <template v-slot:prepend>
+                        <q-icon name="phone_android" />
+                      </template>
+                    </q-input>
+                  </q-item-section>
+                </q-item> </q-card-section
+              >
+            </div>
+          </q-form>-->
         </q-card>
-      </q-card-section>
-
-
-
-      <q-card-section class="q-pa-md">
-        <OpcionCancelarGuardar
-          @accionCerrar="close"
-          @accionValidar="validate"
-        />
       </q-card-section>
     </q-card>
   </q-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref } from "vue";
 import OpcionCancelarGuardar from "../OpcionCancelarGuardar.vue";
 
 const tab = ref("propietario");
@@ -230,106 +270,13 @@ const uploadPhoto = () => {
 const close = () => {
   mostrarDialogo.value = false;
 };
-
-// Computed property para determinar el tipo de formulario
-const tipoFormulario = computed(() => {
-  return tab.value;
-});
-
-// Método para validar según el tipo de formulario
-const validate = async () => {
-  if (tab.value === 'propietario') {
-    if (tabPropietario.value === 'general') {
-      // Lógica para guardar datos generales del propietario
-      console.log('Guardando datos generales del propietario');
-    } else if (tabPropietario.value === 'adicional') {
-      // Lógica para guardar datos adicionales del propietario
-      console.log('Guardando datos adicionales del propietario');
-    } else if (tabPropietario.value === 'facturacion') {
-      // Lógica para guardar datos de facturación del propietario
-      console.log('Guardando datos de facturación del propietario');
-    }
-  } else if (tab.value === 'mascota') {
-    // Lógica para guardar mascota
-    console.log('Guardando datos de la mascota');
+const validate = () => {
+  const form = ref(null);
+  if (form.value.validate()) {
+    // Aquí puedes realizar la acción de guardar
+    console.log("Formulario válido");
+  } else {
+    console.log("Formulario inválido");
   }
 };
-
-// Props para el componente OpcionCancelarGuardar
-const botonesProps = computed(() => ({
-  textoCancelar: 'Cancelar',
-  textoGuardar: tipoFormulario.value === 'propietario' ? 'Guardar Propietario' : 'Guardar Mascota',
-  colorGuardar: tipoFormulario.value === 'propietario' ? 'primary' : 'secondary'
-}));
 </script>
-
-
-
-<style scoped>
-.dialog-card {
-  max-width: 1500px;
-  display: flex;
-  flex-direction: column;
-}
-
-.fixed-height-section {
-  flex: 1;
-  overflow: hidden;
-}
-</style>
-
-<style scoped>
-.dialog-card {
-  width: 90vw;
-  max-width: 1200px;
-  min-width: 320px;
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.fixed-height-section {
-  height: 650px;
-  overflow: hidden;
-}
-
-.fixed-height-panel {
-  height: 100%;
-  overflow-y: auto;
-}
-
-/* Estilo para mantener consistente el tamaño de los paneles */
-:deep(.q-tab-panel) {
-  padding: 16px;
-  height: calc(100% - 50px); /* Ajusta según el alto del header */
-  overflow-y: auto;
-}
-
-/* Ajustes responsive */
-@media (max-width: 600px) {
-  .dialog-card {
-    width: 95vw;
-    margin: 10px;
-  }
-
-  .fixed-height-section {
-    height: 80vh;
-  }
-}
-
-/* Asegura que el contenido del formulario no afecte el tamaño del diálogo */
-:deep(.q-form) {
-  height: 100%;
-  overflow-y: auto;
-}
-
-/* Mantiene el botón de guardar/cancelar siempre visible */
-:deep(.opciones-footer) {
-  position: sticky;
-  bottom: 0;
-  background: white;
-  padding: 16px;
-  border-top: 1px solid #ddd;
-  z-index: 1;
-}
-</style>
-

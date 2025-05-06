@@ -1,7 +1,7 @@
 <template>
   <q-card-actions align="right">
     <q-btn
-      
+
       no-caps
       padding="xs lg"
       color="green-8"
@@ -13,7 +13,7 @@
     <q-tooltip>Guardar información</q-tooltip>
     </q-btn>
     <q-btn
-      
+
       no-caps
       padding="xs lg"
       color="red-14"

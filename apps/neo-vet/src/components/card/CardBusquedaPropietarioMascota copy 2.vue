@@ -177,7 +177,25 @@
                     >
                       <q-tooltip>Eliminar mascota</q-tooltip>
                     </q-btn>
+                    <div class="q-mt-md">
+      <q-fab
 
+        v-model="fab2"
+        label="Actions"
+        label-position="top"
+        external-label
+        color="purple"
+        icon="keyboard_arrow_right"
+        direction="right"
+        padding="xs"
+
+      >
+        <q-fab-action color="primary" @click="onClick" icon="mail" label="Email" />
+        <q-fab-action color="secondary" @click="onClick" icon="alarm" label="Alarm" />
+        <q-fab-action color="orange" @click="onClick" icon="airplay" label="Airplay" />
+        <q-fab-action color="accent" @click="onClick" icon="room" label="Map" />
+      </q-fab>
+    </div>
                   </div>
                 </template>
                 <template v-else>
