@@ -36,48 +36,64 @@
 
         <q-tab-panels v-model="tab" animated class="flex-panels">
           <q-tab-panel name="general" class="flex-panel-content">
-            <q-form ref="myForm">
+            <q-form ref="formPropietario">
               <div class="row q-col-gutter-sm">
                 <q-card-section class="row q-col-gutter-xs">
                   <q-item class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
                     <q-item-section>
-                      <q-input v-model="prueba" label="Primer Apellido" />
+                      <q-input 
+                        v-model="propietario.primerapellido" 
+                        label="Primer Apellido *"
+                        :rules="[val => !!val || 'El primer apellido es requerido']"
+                      />
                     </q-item-section>
                   </q-item>
                   <q-item class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
                     <q-item-section>
-                      <q-input v-model="prueba" label="Segundo Apellido" />
+                      <q-input 
+                        v-model="propietario.segundoapellido" 
+                        label="Segundo Apellido"
+                      />
                     </q-item-section>
                   </q-item>
                   <q-item class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
                     <q-item-section>
-                      <q-input v-model="prueba" label="Nombres" />
+                      <q-input 
+                        v-model="propietario.nombre" 
+                        label="Nombres *"
+                        :rules="[val => !!val || 'El nombre es requerido']"
+                      />
                     </q-item-section>
                   </q-item>
                   <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                     <q-item-section>
-                      <q-input
-                        v-model="prueba"
-                        label="Correo electronico"
-                        type="email"
-                      >
-                        <template v-slot:prepend>
-                          <q-icon name="mail" />
-                        </template>
-                      </q-input>
+                      <q-select
+                        v-model="propietario.id_genero"
+                        :options="opcionesGenero"
+                        label="Género"
+                        emit-value
+                        map-options
+                      />
                     </q-item-section>
                   </q-item>
-                  <q-item class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
+                  <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                     <q-item-section>
-                      <q-input
-                        v-model="prueba"
-                        label="Telefono móvil"
-                        lazy-rules
+                      <q-date
+                        v-model="propietario.fechanacimiento"
+                        label="Fecha de Nacimiento"
+                        mask="YYYY-MM-DD"
+                        @update:model-value="calcularEdad"
                       >
-                        <template v-slot:prepend>
-                          <q-icon name="phone_android" />
-                        </template>
-                      </q-input>
+                        <div class="row items-center justify-end">
+                          <q-input
+                            v-model="propietario.edadcalculada"
+                            label="Edad"
+                            readonly
+                            dense
+                            class="q-ml-sm"
+                          />
+                        </div>
+                      </q-date>
                     </q-item-section>
                   </q-item>
                 </q-card-section>
@@ -86,13 +102,81 @@
           </q-tab-panel>
 
           <q-tab-panel name="adicional">
-            <div class="text-h6">Alarms</div>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit.
+            <q-form ref="formAdicional">
+              <div class="row q-col-gutter-sm">
+                <q-card-section class="row q-col-gutter-xs">
+                  <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                    <q-item-section>
+                      <q-select
+                        v-model="propietario.id_estadocivil"
+                        :options="opcionesEstadoCivil"
+                        label="Estado Civil"
+                        emit-value
+                        map-options
+                      />
+                    </q-item-section>
+                  </q-item>
+                  <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                    <q-item-section>
+                      <q-select
+                        v-model="propietario.id_ocupacion"
+                        :options="opcionesOcupacion"
+                        label="Ocupación"
+                        emit-value
+                        map-options
+                      />
+                    </q-item-section>
+                  </q-item>
+                  <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                    <q-item-section>
+                      <q-select
+                        v-model="propietario.id_escolaridad"
+                        :options="opcionesEscolaridad"
+                        label="Escolaridad"
+                        emit-value
+                        map-options
+                      />
+                    </q-item-section>
+                  </q-item>
+                  <q-item class="col-12">
+                    <q-item-section>
+                      <q-input
+                        v-model="propietario.observacion"
+                        type="textarea"
+                        label="Observaciones"
+                        rows="3"
+                      />
+                    </q-item-section>
+                  </q-item>
+                </q-card-section>
+              </div>
+            </q-form>
           </q-tab-panel>
 
           <q-tab-panel name="facturacion">
-            <div class="text-h6">Movies</div>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit.
+            <q-form ref="formFacturacion">
+              <div class="row q-col-gutter-sm">
+                <q-card-section class="row q-col-gutter-xs">
+                  <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                    <q-item-section>
+                      <q-input
+                        v-model="propietario.claveaccesoweb"
+                        label="Clave de Acceso Web"
+                        type="password"
+                      >
+                        <template v-slot:append>
+                          <q-icon
+                            :name="isPwd ? 'visibility_off' : 'visibility'"
+                            class="cursor-pointer"
+                            @click="isPwd = !isPwd"
+                          />
+                        </template>
+                      </q-input>
+                    </q-item-section>
+                  </q-item>
+                </q-card-section>
+              </div>
+            </q-form>
           </q-tab-panel>
         </q-tab-panels>
       </q-card-section>
@@ -105,50 +189,102 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from 'vue';
 import OpcionCancelarGuardar from "../OpcionCancelarGuardar.vue";
 
+interface Propietario {
+  id?: number;
+  id_sitio: number;
+  id_grupopoblacion: number;
+  nombre: string;
+  primerapellido: string;
+  segundoapellido?: string;
+  id_raza?: number;
+  id_religion?: number;
+  id_estadocivil?: number;
+  id_ocupacion?: number;
+  id_escolaridad?: number;
+  id_genero?: number;
+  fechanacimiento?: Date;
+  edadcalculada?: string;
+  observacion?: string;
+  fechaalta?: Date;
+  claveaccesoweb?: string;
+  estado: string;
+  fechanacimientooffset?: number;
+  codigoverificacion?: string;
+}
+
 const tab = ref("general");
-const splitterModel = ref(10);
-
+const formPropietario = ref(null);
+const formAdicional = ref(null);
+const formFacturacion = ref(null);
 const mostrarDialogo = ref(true);
-const editedItem = ref({
-  nombreusuario: "",
-  email: "",
-  clave: "",
-  claverepetir: "",
-  foto: "",
-  activo: "S",
-});
 const isPwd = ref(true);
-const isPwdRep = ref(true);
-const mostrarContrasenia = ref(true);
-const isValidEmail = (email: string) => {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return re.test(email);
-};
-const isValidPassword = (password: string) => {
-  const re =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,16}$/;
-  return re.test(password);
+
+const propietario = ref<Propietario>({
+  id_sitio: 1, // Valor por defecto
+  id_grupopoblacion: 1, // Valor por defecto
+  nombre: '',
+  primerapellido: '',
+  estado: 'A', // Activo por defecto
+});
+
+// Opciones para los selects (deberían venir de una API)
+const opcionesGenero = ref([
+  { label: 'Masculino', value: 1 },
+  { label: 'Femenino', value: 2 }
+]);
+
+const opcionesEstadoCivil = ref([
+  { label: 'Soltero', value: 1 },
+  { label: 'Casado', value: 2 }
+]);
+
+const opcionesOcupacion = ref([
+  { label: 'Empleado', value: 1 },
+  { label: 'Independiente', value: 2 }
+]);
+
+const opcionesEscolaridad = ref([
+  { label: 'Primaria', value: 1 },
+  { label: 'Secundaria', value: 2 }
+]);
+
+const calcularEdad = () => {
+  if (propietario.value.fechanacimiento) {
+    const hoy = new Date();
+    const fechaNac = new Date(propietario.value.fechanacimiento);
+    let edad = hoy.getFullYear() - fechaNac.getFullYear();
+    const mes = hoy.getMonth() - fechaNac.getMonth();
+    
+    if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
+      edad--;
+    }
+    
+    propietario.value.edadcalculada = `${edad} años`;
+  }
 };
 
-const photoInput = ref(null);
-const uploadPhoto = () => {
-  const photoInput = ref(null);
+const validate = async () => {
+  let isValid = true;
+  
+  if (tab.value === 'general') {
+    isValid = await formPropietario.value?.validate();
+  } else if (tab.value === 'adicional') {
+    isValid = await formAdicional.value?.validate();
+  } else if (tab.value === 'facturacion') {
+    isValid = await formFacturacion.value?.validate();
+  }
+
+  if (isValid) {
+    // Aquí iría la lógica para guardar el propietario
+    console.log('Guardando propietario:', propietario.value);
+  }
 };
 
 const close = () => {
   mostrarDialogo.value = false;
-};
-const validate = () => {
-  const form = ref(null);
-  if (form.value.validate()) {
-    // Aquí puedes realizar la acción de guardar
-    console.log("Formulario válido");
-  } else {
-    console.log("Formulario inválido");
-  }
 };
 </script>
 <style scoped>
