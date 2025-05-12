@@ -108,6 +108,19 @@ const routes: RouteRecordRaw[] = [
     path: '/:catchAll(.*)*',
     component: () => import('pages/ErrorNotFound.vue'),
   },
+
+  /*const routes = [
+    {
+      path: '/',
+      component: () => import('layouts/MainLayout.vue'),
+      children: [
+        { path: '', component: () => import('pages/IndexPage.vue') },
+        { path: 'agenda', component: () => import('pages/AgendaPage.vue') }
+        // Otras rutas...
+      ]
+    }
+  ];*/
+
 ];
 
 export default routes;
