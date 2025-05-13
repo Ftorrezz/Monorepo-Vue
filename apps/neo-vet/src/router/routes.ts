@@ -103,23 +103,19 @@ const routes: RouteRecordRaw[] = [
 
       },
 
+      { path: '/agenda',
+        component: () => import('layouts/Layout.vue'),
+        children: [{ path: '', name: 'agenda', component: () => import('pages/agenda/Agenda.vue') }],
+        meta: { requireAuth: false },
+
+      },
 
   {
     path: '/:catchAll(.*)*',
     component: () => import('pages/ErrorNotFound.vue'),
   },
 
-  /*const routes = [
-    {
-      path: '/',
-      component: () => import('layouts/MainLayout.vue'),
-      children: [
-        { path: '', component: () => import('pages/IndexPage.vue') },
-        { path: 'agenda', component: () => import('pages/AgendaPage.vue') }
-        // Otras rutas...
-      ]
-    }
-  ];*/
+
 
 ];
 

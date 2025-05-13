@@ -17,14 +17,14 @@
       <q-card-section class="fixed-height-section">
         <q-card elevated>
           <q-splitter v-model="splitterModel" style="height: calc(600px - 50px)">
-            <template v-slot:before>
+            <template #before>
               <q-tabs v-model="tab" vertical class="text-teal">
                 <q-tab name="propietario" icon="person" label="Propietario" />
                 <q-tab name="mascota" icon="pets" label="Mascota" />
               </q-tabs>
             </template>
 
-            <template v-slot:after>
+            <template #after>
               <q-tab-panels
                 v-model="tab"
                 animated

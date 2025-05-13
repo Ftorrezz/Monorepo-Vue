@@ -4,14 +4,9 @@
       <agenda-calendario />
     </q-page>
   </template>
-  
-  <script>
-  import AgendaCalendario from 'components/AgendaCalendario.vue';
-  
-  export default {
-    name: 'AgendaPage',
-    components: {
-      AgendaCalendario
-    }
-  };
+
+  <script setup lang="ts">
+  import AgendaCalendario from "../../components/agenda/AgendaCalendario.vue";
+
+
   </script>

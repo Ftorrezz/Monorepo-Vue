@@ -762,50 +762,26 @@ const tipoFormulario = computed(() => {
 });
 
 // Método para validar según el tipo de formulario
-// Función para validar el formulario según la pestaña activa
 const validate = async () => {
-  try {
-    let isValid = false;
-    
-    if (tab.value === 'propietario') {
-      if (tabPropietario.value === 'general') {
-        // Validar el formulario general del propietario
-        const myFormRef = myForm.value;
-        if (myFormRef) {
-          isValid = await myFormRef.validate();
-        } else {
-          console.warn('La referencia al formulario general del propietario es nula');
-          return false;
-        }
-      } else if (tabPropietario.value === 'adicional') {
-        // Validar el formulario adicional del propietario
-        const formAdicionalRef = formAdicional.value;
-        if (formAdicionalRef) {
-          isValid = await formAdicionalRef.validate();
-        } else {
-          // Para el formulario adicional, podemos considerar que es válido si no existe
-          console.warn('La referencia al formulario adicional del propietario es nula');
-          isValid = true;
-        }
-      } else {
-        // Para la pestaña de facturación, consideramos que es válido por ahora
-        isValid = true;
+  if (tab.value === 'propietario') {
+    if (tabPropietario.value === 'general') {
+      const myForm = ref<any>(null);
+      const isValid = await myForm.value.validate();
+
+      if (isValid) {
+        // Lógica para guardar datos generales del propietario
+        console.log('Guardando datos generales del propietario', formData.value.propietario);
       }
-    } else if (tab.value === 'mascota') {
-      // Validar el formulario de la mascota
-      const formMascotaRef = formMascota.value;
-      if (formMascotaRef) {
-        isValid = await formMascotaRef.validate();
-      } else {
-        console.warn('La referencia al formulario de la mascota es nula');
-        return false;
-      }
+    } else if (tabPropietario.value === 'adicional') {
+      // Lógica para guardar datos adicionales del propietario
+      console.log('Guardando datos adicionales del propietario');
+    } else if (tabPropietario.value === 'facturacion') {
+      // Lógica para guardar datos de facturación del propietario
+      console.log('Guardando datos de facturación del propietario');
     }
-    
-    return isValid;
-  } catch (error) {
-    console.error('Error al validar el formulario:', error);
-    return false;
+  } else if (tab.value === 'mascota') {
+    // Lógica para guardar mascota
+    console.log('Guardando datos de la mascota');
   }
 };
 
