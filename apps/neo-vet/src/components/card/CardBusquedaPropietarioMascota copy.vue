@@ -203,8 +203,8 @@
     </div>
   </div>
 
-  <DialogAgregarPropietario v-if="mostrarDialogoPropietario" />
-  <DialogAgregarMascota
+
+  <DialogAgregarMascotaPropietario
     v-if="mostrarDialogoMascota"
     :propietario-id="propietarioSeleccionadoId"
     @mascota-agregada="actualizarMascotas"
@@ -213,8 +213,7 @@
 
 <script setup>
 import { ref, computed, nextTick } from "vue";
-import DialogAgregarPropietario from "../dialog/DialogAgregarPropietario.vue";
-import DialogAgregarMascota from "../dialog/DialogAgregarMascota.vue";
+import DialogAgregarMascotaPropietario from "../dialog/DialogAgregarMascotaPropietario.vue";
 import NdAlertasControl from "src/controles/alertas.control";
 import PeticionService from "src/services/peticion.service";
 
@@ -236,14 +235,9 @@ const abrirDialogoMascota = () => {
 };
 
 const seleccionarPropietario = (propietario) => {
-  if (propietarioSeleccionadoId.value === propietario.id) {
-    // Si se hace clic en el mismo propietario, deseleccionarlo
-    propietarioSeleccionadoId.value = null;
-    propietarioSeleccionado.value = null;
-  } else {
-    propietarioSeleccionadoId.value = propietario.id;
-    propietarioSeleccionado.value = propietario;
-  }
+  // Siempre seleccionamos el propietario, sin importar si ya estaba seleccionado
+  propietarioSeleccionadoId.value = propietario.id;
+  propietarioSeleccionado.value = propietario;
 };
 
 const limpiarSeleccion = () => {

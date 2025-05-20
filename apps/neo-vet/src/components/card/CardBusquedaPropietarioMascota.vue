@@ -203,18 +203,25 @@
     </div>
   </div>
 
-  <DialogAgregarPropietario v-if="mostrarDialogoPropietario" />
-  <DialogAgregarMascota
+
+  <DialogAgregarMascotaPropietario 
+    v-if="mostrarDialogoPropietario" 
+    @propietario-guardado="propietarioAgregado"
+    @cerrar="cerrarDialogoPropietario"
+  />
+
+  <DialogAgregarMascotaPropietario
     v-if="mostrarDialogoMascota"
     :propietario-id="propietarioSeleccionadoId"
-    @mascota-agregada="actualizarMascotas"
+    :modo-mascota-directa="true"
+    @mascota-guardada="actualizarMascotas"
+    @cerrar="cerrarDialogoMascota"
   />
 </template>
 
 <script setup>
 import { ref, computed, nextTick } from "vue";
-import DialogAgregarPropietario from "../dialog/DialogAgregarPropietario.vue";
-import DialogAgregarMascota from "../dialog/DialogAgregarMascota.vue";
+import DialogAgregarMascotaPropietario from "../dialog/DialogAgregarMascotaPropietario.vue";
 import NdAlertasControl from "src/controles/alertas.control";
 import PeticionService from "src/services/peticion.service";
 
@@ -236,14 +243,9 @@ const abrirDialogoMascota = () => {
 };
 
 const seleccionarPropietario = (propietario) => {
-  if (propietarioSeleccionadoId.value === propietario.id) {
-    // Si se hace clic en el mismo propietario, deseleccionarlo
-    propietarioSeleccionadoId.value = null;
-    propietarioSeleccionado.value = null;
-  } else {
-    propietarioSeleccionadoId.value = propietario.id;
-    propietarioSeleccionado.value = propietario;
-  }
+  // Siempre seleccionamos el propietario, sin importar si ya estaba seleccionado
+  propietarioSeleccionadoId.value = propietario.id;
+  propietarioSeleccionado.value = propietario;
 };
 
 const limpiarSeleccion = () => {
@@ -468,6 +470,17 @@ const eliminarMascota = async (props) => {
       "No fue posible eliminar la mascota"
     );
   }
+};
+
+// Agregar estas funciones
+const propietarioAgregado = (propietario) => {
+  // Actualizar la lista de propietarios o realizar otras acciones necesarias
+  buscar(); // Asumiendo que tienes una función buscar para actualizar la lista
+  mostrarDialogoPropietario.value = false;
+};
+
+const cerrarDialogoPropietario = () => {
+  mostrarDialogoPropietario.value = false;
 };
 </script>
 

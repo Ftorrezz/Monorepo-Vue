@@ -10,7 +10,9 @@
         <div>Propietario / Mascota</div>
         <q-space />
         <q-btn dense flat icon="close" v-close-popup>
-          <q-tooltip>Cerrar</q-tooltip>
+          <template #default>
+            <q-tooltip>Cerrar</q-tooltip>
+          </template>
         </q-btn>
       </q-bar>
 
@@ -20,7 +22,18 @@
             <template #before>
               <q-tabs v-model="tab" vertical class="text-teal">
                 <q-tab name="propietario" icon="person" label="Propietario" />
-                <q-tab name="mascota" icon="pets" label="Mascota" />
+                <q-tab
+                  name="mascota"
+                  icon="pets"
+                  label="Mascota"
+                  :disable="!propietarioActual.id"
+                >
+                  <template #default>
+                    <q-tooltip v-if="!propietarioActual.id">
+                      Debe agregar un propietario primero
+                    </q-tooltip>
+                  </template>
+                </q-tab>
               </q-tabs>
             </template>
 
@@ -230,62 +243,60 @@
 
                     <q-tab-panel name="adicional">
                       <q-form ref="formAdicional">
-                        <div class="row q-col-gutter-sm">
-                          <q-card-section class="row q-col-gutter-xs">
-                            <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                              <q-item-section>
-                                <q-select
-                                  v-model="formData.propietario.id_genero"
-                                  :options="opcionesGenero"
-                                  label="Género"
-                                  emit-value
-                                  map-options
-                                />
-                              </q-item-section>
-                            </q-item>
-                            <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                              <q-item-section>
-                                <q-select
-                                  v-model="formData.propietario.id_estadocivil"
-                                  :options="opcionesEstadoCivil"
-                                  label="Estado Civil"
-                                  emit-value
-                                  map-options
-                                />
-                              </q-item-section>
-                            </q-item>
-                            <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                              <q-item-section>
-                                <q-select
-                                  v-model="formData.propietario.id_escolaridad"
-                                  :options="opcionesEscolaridad"
-                                  label="Escolaridad"
-                                  emit-value
-                                  map-options
-                                />
-                              </q-item-section>
-                            </q-item>
-                            <q-item class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                              <q-item-section>
-                                <q-input
-                                  v-model="formData.propietario.fechanacimiento"
-                                  label="Fecha de Nacimiento"
-                                  type="date"
-                                  @update:model-value="calcularEdad"
-                                />
-                              </q-item-section>
-                            </q-item>
-                            <q-item class="col-12">
-                              <q-item-section>
-                                <q-input
-                                  v-model="formData.propietario.observacion"
-                                  type="textarea"
-                                  label="Observaciones"
-                                  rows="3"
-                                />
-                              </q-item-section>
-                            </q-item>
-                          </q-card-section>
+                        <div class="row q-col-gutter-md">
+                          <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                            <q-select
+                              v-model="formData.propietario.id_genero"
+                              :options="opcionesGenero"
+                              label="Género"
+                              emit-value
+                              map-options
+                              filled
+                              class="full-width"
+                            />
+                          </div>
+                          <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                            <q-select
+                              v-model="formData.propietario.id_estadocivil"
+                              :options="opcionesEstadoCivil"
+                              label="Estado Civil"
+                              emit-value
+                              map-options
+                              filled
+                              class="full-width"
+                            />
+                          </div>
+                          <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                            <q-select
+                              v-model="formData.propietario.id_escolaridad"
+                              :options="opcionesEscolaridad"
+                              label="Escolaridad"
+                              emit-value
+                              map-options
+                              filled
+                              class="full-width"
+                            />
+                          </div>
+                          <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                            <q-input
+                              v-model="formData.propietario.fechanacimiento"
+                              label="Fecha de Nacimiento"
+                              type="date"
+                              @update:model-value="calcularEdad"
+                              filled
+                              class="full-width"
+                            />
+                          </div>
+                          <div class="col-12">
+                            <q-input
+                              v-model="formData.propietario.observacion"
+                              type="textarea"
+                              label="Observaciones"
+                              rows="3"
+                              filled
+                              class="full-width"
+                            />
+                          </div>
                         </div>
                       </q-form>
                     </q-tab-panel>
@@ -650,7 +661,7 @@
   </q-dialog>
 </template>
 
-<script setup lang="ts">
+<script setup  lang="ts">
 import { ref, computed, onBeforeUnmount } from "vue";
 import OpcionCancelarGuardar from "../OpcionCancelarGuardar.vue";
 
@@ -751,26 +762,50 @@ const tipoFormulario = computed(() => {
 });
 
 // Método para validar según el tipo de formulario
+// Función para validar el formulario según la pestaña activa
 const validate = async () => {
-  if (tab.value === 'propietario') {
-    if (tabPropietario.value === 'general') {
-      const myForm = ref<any>(null);
-      const isValid = await myForm.value.validate();
-
-      if (isValid) {
-        // Lógica para guardar datos generales del propietario
-        console.log('Guardando datos generales del propietario', formData.value.propietario);
+  try {
+    let isValid = false;
+    
+    if (tab.value === 'propietario') {
+      if (tabPropietario.value === 'general') {
+        // Validar el formulario general del propietario
+        const myFormRef = myForm.value;
+        if (myFormRef) {
+          isValid = await myFormRef.validate();
+        } else {
+          console.warn('La referencia al formulario general del propietario es nula');
+          return false;
+        }
+      } else if (tabPropietario.value === 'adicional') {
+        // Validar el formulario adicional del propietario
+        const formAdicionalRef = formAdicional.value;
+        if (formAdicionalRef) {
+          isValid = await formAdicionalRef.validate();
+        } else {
+          // Para el formulario adicional, podemos considerar que es válido si no existe
+          console.warn('La referencia al formulario adicional del propietario es nula');
+          isValid = true;
+        }
+      } else {
+        // Para la pestaña de facturación, consideramos que es válido por ahora
+        isValid = true;
       }
-    } else if (tabPropietario.value === 'adicional') {
-      // Lógica para guardar datos adicionales del propietario
-      console.log('Guardando datos adicionales del propietario');
-    } else if (tabPropietario.value === 'facturacion') {
-      // Lógica para guardar datos de facturación del propietario
-      console.log('Guardando datos de facturación del propietario');
+    } else if (tab.value === 'mascota') {
+      // Validar el formulario de la mascota
+      const formMascotaRef = formMascota.value;
+      if (formMascotaRef) {
+        isValid = await formMascotaRef.validate();
+      } else {
+        console.warn('La referencia al formulario de la mascota es nula');
+        return false;
+      }
     }
-  } else if (tab.value === 'mascota') {
-    // Lógica para guardar mascota
-    console.log('Guardando datos de la mascota');
+    
+    return isValid;
+  } catch (error) {
+    console.error('Error al validar el formulario:', error);
+    return false;
   }
 };
 
@@ -834,6 +869,15 @@ onBeforeUnmount(() => {
     stream.value.getTracks().forEach(track => track.stop());
   }
 });
+
+// Inicializar propietarioActual con un objeto vacío que tenga la propiedad id
+const propietarioActual = ref({
+  id: 0,
+  nombre: '',
+  primerapellido: '',
+  segundoapellido: ''
+});
+
 </script>
 
 <style scoped>
@@ -934,6 +978,7 @@ onBeforeUnmount(() => {
   padding-bottom: 8px;
 }
 </style>
+
 
 
 
