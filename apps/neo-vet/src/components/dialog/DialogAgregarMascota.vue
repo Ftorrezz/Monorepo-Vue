@@ -363,17 +363,20 @@ watch(mascota, (newValue) => {
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
+  margin: 0;
 }
 
 .photo-container {
-  width: 100%;
-  aspect-ratio: 1;
+  width: 130px;
+  height: 130px;
+  border: 3px dashed #ccc;
   border-radius: 8px;
   overflow: hidden;
-  background-color: #f5f5f5;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  background-color: #f5f5f5;
   cursor: pointer;
   position: relative;
 }
@@ -389,21 +392,67 @@ watch(mascota, (newValue) => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  width: 100%;
   height: 100%;
 }
 
 .camera-controls {
+  margin-top: 0.5rem;
   display: flex;
+  gap: 0.5rem;
   justify-content: center;
 }
 
-.flex-panels {
-  display: flex;
-  flex-direction: column;
+/* Ajustes responsive */
+@media (max-width: 600px) {
+  .photo-container {
+    width: 120px;
+    height: 120px;
+  }
+}
+.dialog-card {
+  width: 90vw;
+  max-width: 1200px;
+  min-width: 320px;
+  border-radius: 10px;
+  overflow: hidden;
 }
 
-.flex-panel-content {
-  flex: 1;
-  overflow: auto;
+.fixed-height-section {
+  height: 650px;
+  overflow: hidden;
+}
+
+.fixed-height-panel {
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* Estilo para mantener consistente el tamaño de los paneles */
+:deep(.q-tab-panel) {
+  padding: 8px !important;
+}
+
+.q-pa-none {
+  padding: 0 !important;
+}
+
+.row.q-col-gutter-md {
+  margin: 0;
+}
+
+.row.q-col-gutter-sm {
+  margin: 0;
+}
+
+/* Ajuste específico para la sección de la cámara */
+.camera-section {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.q-item {
+  padding-top: 0;
+  padding-bottom: 8px;
 }
 </style>

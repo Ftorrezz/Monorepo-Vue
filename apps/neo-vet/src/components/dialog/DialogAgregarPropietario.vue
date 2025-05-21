@@ -11,7 +11,7 @@
       indicator-color="primary"
       align="justify"
     >
-      <q-tab name="general" label="General" />
+      <q-tab name="general" label="Principal" />
       <q-tab name="adicional" label="Adicional" />
       <q-tab name="facturacion" label="Facturación" />
     </q-tabs>
@@ -37,7 +37,7 @@
                       ref="canvas"
                       width="640"
                       height="480"
-                      style="display: none;"
+                      style="display: none"
                     ></canvas>
                     <img
                       v-if="imagenCapturada"
@@ -45,9 +45,14 @@
                       class="captured-image"
                       alt="Foto del propietario"
                     />
-                    <div v-if="!camaraActiva && !imagenCapturada" class="photo-placeholder">
+                    <div
+                      v-if="!camaraActiva && !imagenCapturada"
+                      class="photo-placeholder"
+                    >
                       <q-icon name="photo_camera" size="32px" color="grey-7" />
-                      <div class="text-grey-7 text-caption q-mt-sm">Click para foto</div>
+                      <div class="text-grey-7 text-caption q-mt-sm">
+                        Click para foto
+                      </div>
                     </div>
                   </div>
                   <!-- Modificar los controles de la cámara -->
@@ -101,14 +106,16 @@
               <!-- Campos de nombre y apellidos -->
               <div class="col-lg-10 col-md-9 col-sm-6 col-xs-12 q-pa-none">
                 <div class="row q-col-gutter-sm">
-                  <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                  <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                     <q-input
                       v-model="propietario.primerapellido"
                       label="Primer Apellido"
-                      :rules="[val => !!val || 'El primer apellido es requerido']"
+                      :rules="[
+                        (val) => !!val || 'El primer apellido es requerido',
+                      ]"
                     />
                   </div>
-                  <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                  <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                     <q-input
                       v-model="propietario.segundoapellido"
                       label="Segundo Apellido"
@@ -118,18 +125,65 @@
                     <q-input
                       v-model="propietario.nombre"
                       label="Nombres"
-                      :rules="[val => !!val || 'El nombre es requerido']"
+                      :rules="[(val) => !!val || 'El nombre es requerido']"
                     />
                   </div>
+
+                  <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                    <q-select
+                      v-model="propietario.id_genero"
+                      :options="opcionesGenero"
+                      label="Género"
+                      emit-value
+                      map-options
+                      class="full-width"
+                    />
+                  </div>
+                  <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                    <q-input
+                      v-model="propietario.fechanacimiento"
+                      label="Fecha de Nacimiento"
+                      type="date"
+                      @update:model-value="calcularEdad"
+
+                      class="full-width"
+                    />
+                  </div>
+
+                  <div class="col-lg-3 col-md- col-sm-12 col-xs-12">
+                    <q-input
+                      v-model="propietario.telefonocelular"
+                      label="Teléfono móvil"
+                      :rules="[
+                        (val) => !!val || 'El teléfono móvil es requerido',
+                      ]"
+                    >
+                      <template v-slot:prepend>
+                        <q-icon name="phone_android" />
+                      </template>
+                    </q-input>
+                  </div>
+                  <div class="col-lg-3 col-md- col-sm-12 col-xs-12">
+                    <q-input
+                      v-model="propietario.telefonoadicional"
+                      label="Teléfono adicional"
+
+                    >
+                      <template v-slot:prepend>
+                        <q-icon name="phone" />
+                      </template>
+                    </q-input>
+                  </div>
                   <!-- Correo y teléfono alineados -->
-                  <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                  <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                     <q-input
                       v-model="propietario.correo"
                       label="Correo electrónico"
                       type="email"
                       :rules="[
-                        val => !!val || 'El correo electrónico es requerido',
-                        val => isValidEmail(val) || 'Formato de correo inválido'
+                        (val) => !!val || 'El correo electrónico es requerido',
+                        (val) =>
+                          isValidEmail(val) || 'Formato de correo inválido',
                       ]"
                     >
                       <template v-slot:prepend>
@@ -137,18 +191,140 @@
                       </template>
                     </q-input>
                   </div>
-                  <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                    <q-input
-                      v-model="propietario.telefonocelular"
-                      label="Teléfono móvil"
-                      :rules="[val => !!val || 'El teléfono móvil es requerido']"
-                    >
-                      <template v-slot:prepend>
-                        <q-icon name="phone_android" />
-                      </template>
-                    </q-input>
-                  </div>
                 </div>
+
+                <!-- Card de Domicilio -->
+                <!--<div class="col-12 q-mt-md">
+                  <q-card flat bordered>
+                    <q-card-section class="q-pa-sm">
+                      <div class="text-subtitle1 text-teal">Domicilio</div>
+                      <q-separator class="q-my-sm" color="grey-3" />
+
+                      <div class="row q-col-gutter-sm">
+                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                          <q-input
+                            v-model="propietario.calle"
+                            label="Calle"
+                            dense
+                          />
+                        </div>
+                        <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12">
+                          <q-input
+                            v-model="propietario.numero_exterior"
+                            label="Número Exterior"
+                            dense
+                          />
+                        </div>
+                        <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12">
+                          <q-input
+                            v-model="propietario.numero_interior"
+                            label="Número Interior"
+                            dense
+                          />
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                          <q-input
+                            v-model="propietario.colonia"
+                            label="Colonia"
+                            dense
+                          />
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                          <q-input
+                            v-model="propietario.delegacion"
+                            label="Delegación/Municipio"
+                            dense
+                          />
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                          <q-input
+                            v-model="propietario.estado"
+                            label="Estado"
+                            dense
+                          />
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                          <q-input
+                            v-model="propietario.pais"
+                            label="País"
+                            dense
+                          />
+                        </div>
+                      </div>
+                    </q-card-section>
+                  </q-card>
+                </div>-->
+              </div>
+            </div>
+
+            <!-- Card de Domicilio alineado a la izquierda -->
+            <div class="row full-width q-col-gutter-md q-mt-md q-pa-none">
+              <div class="col-12">
+                <q-card flat bordered class="domicilio-card">
+                  <q-card-section class="q-pa-sm">
+                    <div class="text-subtitle1 text-teal">Domicilio</div>
+                    <q-separator class="q-my-sm" color="grey-3" />
+
+                    <div class="row q-col-gutter-sm">
+                      <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                        <q-input
+                          v-model="propietario.calle"
+                          label="Calle"
+                          dense
+                        />
+                      </div>
+                      <div class="col-lg-1 col-md-1 col-sm-6 col-xs-12">
+                        <q-input
+                          v-model="propietario.numero_exterior"
+                          label="# Exterior"
+                          dense
+                        />
+                      </div>
+                      <div class="col-lg-1 col-md-1 col-sm-6 col-xs-12">
+                        <q-input
+                          v-model="propietario.numero_interior"
+                          label="# Interior"
+                          dense
+                        />
+                      </div>
+                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                        <q-input
+                          v-model="propietario.colonia"
+                          label="Colonia"
+                          dense
+                        />
+                      </div>
+                      <div class="col-lg-1 col-md-1 col-sm-12 col-xs-12">
+                        <q-input
+                          v-model="propietario.codigopostal"
+                          label="C.P."
+                          dense
+                        />
+                      </div>
+                      <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                        <q-input
+                          v-model="propietario.delegacion"
+                          label="Delegación/Municipio"
+                          dense
+                        />
+                      </div>
+                      <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                        <q-input
+                          v-model="propietario.estado"
+                          label="Estado"
+                          dense
+                        />
+                      </div>
+                      <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                        <q-input
+                          v-model="propietario.pais"
+                          label="País"
+                          dense
+                        />
+                      </div>
+                    </div>
+                  </q-card-section>
+                </q-card>
               </div>
             </div>
           </div>
@@ -158,56 +334,14 @@
       <q-tab-panel name="adicional">
         <q-form ref="formAdicional">
           <div class="row q-col-gutter-md">
-            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-              <q-select
-                v-model="propietario.id_genero"
-                :options="opcionesGenero"
-                label="Género"
-                emit-value
-                map-options
-                filled
-                class="full-width"
-              />
-            </div>
-            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-              <q-select
-                v-model="propietario.id_estadocivil"
-                :options="opcionesEstadoCivil"
-                label="Estado Civil"
-                emit-value
-                map-options
-                filled
-                class="full-width"
-              />
-            </div>
-            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-              <q-select
-                v-model="propietario.id_escolaridad"
-                :options="opcionesEscolaridad"
-                label="Escolaridad"
-                emit-value
-                map-options
-                filled
-                class="full-width"
-              />
-            </div>
-            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-              <q-input
-                v-model="propietario.fechanacimiento"
-                label="Fecha de Nacimiento"
-                type="date"
-                @update:model-value="calcularEdad"
-                filled
-                class="full-width"
-              />
-            </div>
+
+
             <div class="col-12">
               <q-input
                 v-model="propietario.observacion"
                 type="textarea"
                 label="Observaciones"
-                rows="3"
-                filled
+                rows="7"
                 class="full-width"
               />
             </div>
@@ -216,8 +350,97 @@
       </q-tab-panel>
 
       <q-tab-panel name="facturacion">
-        <div class="text-h6">Facturación</div>
-        <!-- Campos de facturación aquí -->
+        <q-form ref="formFacturacion">
+          <div class="row q-col-gutter-xs">
+            <div class="col-12">
+              <q-card flat bordered class="facturacion-card">
+                <q-card-section class="q-pa-sm">
+                  <div class="text-subtitle1 text-teal">Datos de Facturación</div>
+                  <q-separator class="q-my-sm" color="grey-3" />
+
+                  <div class="row q-col-gutter-sm">
+                    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                      <q-input
+                        v-model="propietario.rfc"
+                        label="RFC"
+                        hint="Registro Federal de Contribuyentes"
+                        :rules="[
+                          val => !!val || 'El RFC es requerido',
+                          val => val.length >= 12 || 'El RFC debe tener al menos 12 caracteres'
+                        ]"
+                        dense
+                      />
+                    </div>
+                    <div class="col-lg-8 col-md-8 col-sm-12 col-xs-12">
+                      <q-input
+                        v-model="propietario.razon_social"
+                        label="Razón Social"
+                        hint="Nombre o razón social registrada ante el SAT"
+                        :rules="[val => !!val || 'La razón social es requerida']"
+                        dense
+                      />
+                    </div>
+
+                    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                      <q-select
+                        v-model="propietario.regimen_fiscal"
+                        :options="opcionesRegimenFiscal"
+                        label="Régimen Fiscal"
+                        hint="Régimen fiscal registrado ante el SAT"
+                        emit-value
+                        map-options
+                        :rules="[val => !!val || 'El régimen fiscal es requerido']"
+                        dense
+                      />
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                      <q-select
+                        v-model="propietario.uso_cfdi"
+                        :options="opcionesUsoCFDI"
+                        label="Uso de CFDI"
+                        hint="Uso que le dará al comprobante fiscal"
+                        emit-value
+                        map-options
+                        :rules="[val => !!val || 'El uso de CFDI es requerido']"
+                        dense
+                      />
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                      <q-input
+                        v-model="propietario.cp_fiscal"
+                        label="Código Postal Fiscal"
+                        hint="Código postal del domicilio fiscal"
+                        :rules="[
+                          val => !!val || 'El código postal es requerido',
+                          val => val.length === 5 || 'El código postal debe tener 5 dígitos'
+                        ]"
+                        dense
+                      />
+                    </div>
+
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                      <q-input
+                        v-model="propietario.correo_facturacion"
+                        label="Correo para Facturación"
+                        hint="Correo electrónico donde recibirá sus facturas"
+                        type="email"
+                        :rules="[
+                          val => !!val || 'El correo para facturación es requerido',
+                          val => isValidEmail(val) || 'Formato de correo inválido'
+                        ]"
+                        dense
+                      >
+                        <template v-slot:prepend>
+                          <q-icon name="mail" />
+                        </template>
+                      </q-input>
+                    </div>
+                  </div>
+                </q-card-section>
+              </q-card>
+            </div>
+          </div>
+        </q-form>
       </q-tab-panel>
     </q-tab-panels>
   </div>
@@ -231,24 +454,40 @@ const props = defineProps({
     type: Object,
     default: () => ({
       id: null,
-      primerapellido: '',
-      segundoapellido: '',
-      nombre: '',
-      correo: '',
-      telefonocelular: '',
+      primerapellido: "",
+      segundoapellido: "",
+      nombre: "",
+      correo: "",
+      telefonocelular: "",
+      telefonoadicional: "",
       id_genero: null,
       id_estadocivil: null,
       id_escolaridad: null,
       fechanacimiento: null,
-      observacion: ''
-    })
-  }
+      observacion: "",
+      // Campos para el domicilio
+      calle: "",
+      numero_exterior: "",
+      numero_interior: "",
+      colonia: "",
+      delegacion: "",
+      estado: "",
+      pais: "México",
+      // Campos para facturación
+      rfc: "",
+      razon_social: "",
+      regimen_fiscal: null,
+      uso_cfdi: null,
+      cp_fiscal: "",
+      correo_facturacion: ""
+    }),
+  },
 });
 
-const emit = defineEmits(['update:propietario', 'propietario-guardado']);
+const emit = defineEmits(["update:propietario", "propietario-guardado"]);
 
 // Tabs
-const tabPropietario = ref('general');
+const tabPropietario = ref("general");
 
 // Cámara
 const video = ref(null);
@@ -262,24 +501,24 @@ const propietario = ref({ ...props.propietarioData });
 
 // Opciones para los selects
 const opcionesGenero = ref([
-  { label: 'Masculino', value: 1 },
-  { label: 'Femenino', value: 2 },
-  { label: 'Otro', value: 3 }
+  { label: "Masculino", value: 1 },
+  { label: "Femenino", value: 2 },
+  { label: "Otro", value: 3 },
 ]);
 
 const opcionesEstadoCivil = ref([
-  { label: 'Soltero/a', value: 1 },
-  { label: 'Casado/a', value: 2 },
-  { label: 'Divorciado/a', value: 3 },
-  { label: 'Viudo/a', value: 4 }
+  { label: "Soltero/a", value: 1 },
+  { label: "Casado/a", value: 2 },
+  { label: "Divorciado/a", value: 3 },
+  { label: "Viudo/a", value: 4 },
 ]);
 
 const opcionesEscolaridad = ref([
-  { label: 'Primaria', value: 1 },
-  { label: 'Secundaria', value: 2 },
-  { label: 'Preparatoria', value: 3 },
-  { label: 'Universidad', value: 4 },
-  { label: 'Posgrado', value: 5 }
+  { label: "Primaria", value: 1 },
+  { label: "Secundaria", value: 2 },
+  { label: "Preparatoria", value: 3 },
+  { label: "Universidad", value: 4 },
+  { label: "Posgrado", value: 5 },
 ]);
 
 // Funciones para la cámara
@@ -289,20 +528,20 @@ const activarCamara = async () => {
     video.value.srcObject = stream.value;
     camaraActiva.value = true;
   } catch (error) {
-    console.error('Error al acceder a la cámara:', error);
+    console.error("Error al acceder a la cámara:", error);
   }
 };
 
 const capturarFoto = () => {
-  const context = canvas.value.getContext('2d');
+  const context = canvas.value.getContext("2d");
   context.drawImage(video.value, 0, 0, canvas.value.width, canvas.value.height);
-  imagenCapturada.value = canvas.value.toDataURL('image/png');
+  imagenCapturada.value = canvas.value.toDataURL("image/png");
   detenerCamara();
 };
 
 const detenerCamara = () => {
   if (stream.value) {
-    stream.value.getTracks().forEach(track => track.stop());
+    stream.value.getTracks().forEach((track) => track.stop());
     stream.value = null;
   }
   camaraActiva.value = false;
@@ -328,8 +567,8 @@ const calcularEdad = () => {
 
 // Validar formulario
 const validarFormulario = async () => {
-  const formPropietario = document.querySelector('ref[formPropietario]');
-  if (formPropietario && !await formPropietario.validate()) {
+  const formPropietario = document.querySelector("ref[formPropietario]");
+  if (formPropietario && !(await formPropietario.validate())) {
     return false;
   }
   return true;
@@ -338,13 +577,65 @@ const validarFormulario = async () => {
 // Exponer métodos y propiedades para el componente padre
 defineExpose({
   propietario,
-  validarFormulario
+  validarFormulario,
 });
 
 // Actualizar el propietario cuando cambie
-watch(propietario, (newValue) => {
-  emit('update:propietario', newValue);
-}, { deep: true });
+watch(
+  propietario,
+  (newValue) => {
+    emit("update:propietario", newValue);
+  },
+  { deep: true }
+);
+
+// Opciones para los selects de facturación
+const opcionesRegimenFiscal = ref([
+  { label: "601 - General de Ley Personas Morales", value: "601" },
+  { label: "603 - Personas Morales con Fines no Lucrativos", value: "603" },
+  { label: "605 - Sueldos y Salarios e Ingresos Asimilados a Salarios", value: "605" },
+  { label: "606 - Arrendamiento", value: "606" },
+  { label: "608 - Demás ingresos", value: "608" },
+  { label: "609 - Consolidación", value: "609" },
+  { label: "610 - Residentes en el Extranjero sin Establecimiento Permanente en México", value: "610" },
+  { label: "611 - Ingresos por Dividendos (socios y accionistas)", value: "611" },
+  { label: "612 - Personas Físicas con Actividades Empresariales y Profesionales", value: "612" },
+  { label: "614 - Ingresos por intereses", value: "614" },
+  { label: "616 - Sin obligaciones fiscales", value: "616" },
+  { label: "620 - Sociedades Cooperativas de Producción que optan por diferir sus ingresos", value: "620" },
+  { label: "621 - Incorporación Fiscal", value: "621" },
+  { label: "622 - Actividades Agrícolas, Ganaderas, Silvícolas y Pesqueras", value: "622" },
+  { label: "623 - Opcional para Grupos de Sociedades", value: "623" },
+  { label: "624 - Coordinados", value: "624" },
+  { label: "625 - Régimen de las Actividades Empresariales con ingresos a través de Plataformas Tecnológicas", value: "625" },
+  { label: "626 - Régimen Simplificado de Confianza", value: "626" }
+]);
+
+const opcionesUsoCFDI = ref([
+  { label: "G01 - Adquisición de mercancías", value: "G01" },
+  { label: "G02 - Devoluciones, descuentos o bonificaciones", value: "G02" },
+  { label: "G03 - Gastos en general", value: "G03" },
+  { label: "I01 - Construcciones", value: "I01" },
+  { label: "I02 - Mobiliario y equipo de oficina por inversiones", value: "I02" },
+  { label: "I03 - Equipo de transporte", value: "I03" },
+  { label: "I04 - Equipo de cómputo y accesorios", value: "I04" },
+  { label: "I05 - Dados, troqueles, moldes, matrices y herramental", value: "I05" },
+  { label: "I06 - Comunicaciones telefónicas", value: "I06" },
+  { label: "I07 - Comunicaciones satelitales", value: "I07" },
+  { label: "I08 - Otra maquinaria y equipo", value: "I08" },
+  { label: "D01 - Honorarios médicos, dentales y gastos hospitalarios", value: "D01" },
+  { label: "D02 - Gastos médicos por incapacidad o discapacidad", value: "D02" },
+  { label: "D03 - Gastos funerales", value: "D03" },
+  { label: "D04 - Donativos", value: "D04" },
+  { label: "D05 - Intereses reales efectivamente pagados por créditos hipotecarios (casa habitación)", value: "D05" },
+  { label: "D06 - Aportaciones voluntarias al SAR", value: "D06" },
+  { label: "D07 - Primas por seguros de gastos médicos", value: "D07" },
+  { label: "D08 - Gastos de transportación escolar obligatoria", value: "D08" },
+  { label: "D09 - Depósitos en cuentas para el ahorro, primas que tengan como base planes de pensiones", value: "D09" },
+  { label: "D10 - Pagos por servicios educativos (colegiaturas)", value: "D10" },
+  { label: "P01 - Por definir", value: "P01" }
+]);
+
 </script>
 
 <style scoped>
@@ -370,7 +661,8 @@ watch(propietario, (newValue) => {
   position: relative;
 }
 
-.camera-preview, .captured-image {
+.camera-preview,
+.captured-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -444,4 +736,29 @@ watch(propietario, (newValue) => {
   padding-top: 0;
   padding-bottom: 8px;
 }
+
+/* Estilo para el card de domicilio con altura aumentada */
+.domicilio-card {
+  min-height: calc(130px + 1.0cm); /* Altura base + medio centímetro adicional */
+}
+
+/* Ajuste del padding interno para distribuir mejor el espacio */
+.domicilio-card .q-card-section {
+  padding-top: 12px;
+  padding-bottom: 52px;
+}
+
+/* Estilo para el card de facturación */
+.facturacion-card {
+  min-height: 250px;
+}
+
+.facturacion-card .q-card-section {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
 </style>
+
+
+
+

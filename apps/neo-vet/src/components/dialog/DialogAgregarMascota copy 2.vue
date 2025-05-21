@@ -1,10 +1,10 @@
 <template>
   <div>
-    <div class="text-h5 q-mb-md text-teal">Propietario</div>
+    <div class="text-h5 q-mb-md text-teal">Mascota</div>
     <q-separator class="q-mb-md" color="grey-3" style="height: 2px" />
 
     <q-tabs
-      v-model="tabPropietario"
+      v-model="tabMascota"
       dense
       class="text-grey q-mb-lg"
       active-color="primary"
@@ -13,12 +13,11 @@
     >
       <q-tab name="general" label="General" />
       <q-tab name="adicional" label="Adicional" />
-      <q-tab name="facturacion" label="Facturación" />
     </q-tabs>
 
-    <q-tab-panels v-model="tabPropietario" animated class="flex-panels">
+    <q-tab-panels v-model="tabMascota" animated class="flex-panels">
       <q-tab-panel name="general" class="flex-panel-content">
-        <q-form ref="formPropietario">
+        <q-form ref="formMascota">
           <div class="row q-col-gutter-sm q-pa-none">
             <!-- Contenedor principal que agrupa la foto y los campos -->
             <div class="row full-width q-col-gutter-md q-pa-none">
@@ -43,14 +42,14 @@
                       v-if="imagenCapturada"
                       :src="imagenCapturada"
                       class="captured-image"
-                      alt="Foto del propietario"
+                      alt="Foto de la mascota"
                     />
                     <div v-if="!camaraActiva && !imagenCapturada" class="photo-placeholder">
-                      <q-icon name="photo_camera" size="32px" color="grey-7" />
+                      <q-icon name="pets" size="32px" color="grey-7" />
                       <div class="text-grey-7 text-caption q-mt-sm">Click para foto</div>
                     </div>
                   </div>
-                  <!-- Modificar los controles de la cámara -->
+                  <!-- Controles de la cámara -->
                   <div class="camera-controls q-mt-sm">
                     <q-btn
                       v-if="!camaraActiva && !imagenCapturada"
@@ -69,9 +68,7 @@
                         icon="camera"
                         size="sm"
                         @click="capturarFoto"
-                      >
-                        <q-tooltip>Capturar</q-tooltip>
-                      </q-btn>
+                      ></q-btn>
                       <q-btn
                         color="negative"
                         dense
@@ -98,55 +95,63 @@
                 </div>
               </div>
 
-              <!-- Campos de nombre y apellidos -->
+              <!-- Campos principales de la mascota -->
               <div class="col-lg-10 col-md-9 col-sm-6 col-xs-12 q-pa-none">
                 <div class="row q-col-gutter-sm">
                   <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                     <q-input
-                      v-model="propietario.primerapellido"
-                      label="Primer Apellido"
-                      :rules="[val => !!val || 'El primer apellido es requerido']"
-                    />
-                  </div>
-                  <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                    <q-input
-                      v-model="propietario.segundoapellido"
-                      label="Segundo Apellido"
-                    />
-                  </div>
-                  <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                    <q-input
-                      v-model="propietario.nombre"
-                      label="Nombres"
+                      v-model="mascota.nombre"
+                      label="Nombre *"
                       :rules="[val => !!val || 'El nombre es requerido']"
+                      filled
                     />
                   </div>
-                  <!-- Correo y teléfono alineados -->
-                  <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                  <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                     <q-input
-                      v-model="propietario.correo"
-                      label="Correo electrónico"
-                      type="email"
-                      :rules="[
-                        val => !!val || 'El correo electrónico es requerido',
-                        val => isValidEmail(val) || 'Formato de correo inválido'
-                      ]"
-                    >
-                      <template v-slot:prepend>
-                        <q-icon name="mail" />
-                      </template>
-                    </q-input>
+                      v-model="mascota.historiaclinica"
+                      label="Historia Clínica"
+                      filled
+                    />
                   </div>
-                  <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                  <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                    <q-select
+                      v-model="mascota.id_especie"
+                      :options="opcionesEspecie"
+                      label="Especie *"
+                      :rules="[val => !!val || 'La especie es requerida']"
+                      emit-value
+                      map-options
+                      filled
+                    />
+                  </div>
+                  <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                    <q-select
+                      v-model="mascota.id_raza"
+                      :options="opcionesRaza"
+                      label="Raza"
+                      emit-value
+                      map-options
+                      filled
+                    />
+                  </div>
+                  <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                    <q-select
+                      v-model="mascota.id_sexo"
+                      :options="opcionesSexo"
+                      label="Sexo *"
+                      :rules="[val => !!val || 'El sexo es requerido']"
+                      emit-value
+                      map-options
+                      filled
+                    />
+                  </div>
+                  <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                     <q-input
-                      v-model="propietario.telefonocelular"
-                      label="Teléfono móvil"
-                      :rules="[val => !!val || 'El teléfono móvil es requerido']"
-                    >
-                      <template v-slot:prepend>
-                        <q-icon name="phone_android" />
-                      </template>
-                    </q-input>
+                      v-model="mascota.fechanacimiento"
+                      label="Fecha de Nacimiento"
+                      type="date"
+                      filled
+                    />
                   </div>
                 </div>
               </div>
@@ -156,54 +161,50 @@
       </q-tab-panel>
 
       <q-tab-panel name="adicional">
-        <q-form ref="formAdicional">
+        <q-form ref="formAdicionalMascota">
           <div class="row q-col-gutter-md">
             <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-              <q-select
-                v-model="propietario.id_genero"
-                :options="opcionesGenero"
-                label="Género"
-                emit-value
-                map-options
-                filled
-                class="full-width"
-              />
-            </div>
-            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-              <q-select
-                v-model="propietario.id_estadocivil"
-                :options="opcionesEstadoCivil"
-                label="Estado Civil"
-                emit-value
-                map-options
-                filled
-                class="full-width"
-              />
-            </div>
-            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-              <q-select
-                v-model="propietario.id_escolaridad"
-                :options="opcionesEscolaridad"
-                label="Escolaridad"
-                emit-value
-                map-options
+              <q-input
+                v-model="mascota.chip"
+                label="Número de Chip"
                 filled
                 class="full-width"
               />
             </div>
             <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
               <q-input
-                v-model="propietario.fechanacimiento"
-                label="Fecha de Nacimiento"
+                v-model="mascota.fechachip"
+                label="Fecha de Chip"
                 type="date"
-                @update:model-value="calcularEdad"
+                filled
+                class="full-width"
+              />
+            </div>
+            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+              <q-select
+                v-model="mascota.id_color"
+                :options="opcionesColor"
+                label="Color"
+                emit-value
+                map-options
+                filled
+                class="full-width"
+              />
+            </div>
+            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+              <q-select
+                v-model="mascota.id_tamano"
+                :options="opcionesTamano"
+                label="Tamaño"
+                emit-value
+                map-options
                 filled
                 class="full-width"
               />
             </div>
             <div class="col-12">
               <q-input
-                v-model="propietario.observacion"
+                v-model="mascota.observacion"
                 type="textarea"
                 label="Observaciones"
                 rows="3"
@@ -214,41 +215,42 @@
           </div>
         </q-form>
       </q-tab-panel>
-
-      <q-tab-panel name="facturacion">
-        <div class="text-h6">Facturación</div>
-        <!-- Campos de facturación aquí -->
-      </q-tab-panel>
     </q-tab-panels>
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, onBeforeUnmount, watch } from "vue";
+<script setup>
+import { ref, computed, onMounted, defineProps, defineEmits, watch } from 'vue';
 
 const props = defineProps({
-  propietarioData: {
+  propietarioId: {
+    type: Number,
+    required: true
+  },
+  mascotaData: {
     type: Object,
     default: () => ({
       id: null,
-      primerapellido: '',
-      segundoapellido: '',
+      id_propietario: null,
       nombre: '',
-      correo: '',
-      telefonocelular: '',
-      id_genero: null,
-      id_estadocivil: null,
-      id_escolaridad: null,
+      historiaclinica: '',
+      id_especie: null,
+      id_raza: null,
+      id_sexo: null,
       fechanacimiento: null,
+      chip: '',
+      fechachip: null,
+      id_color: null,
+      id_tamano: null,
       observacion: ''
     })
   }
 });
 
-const emit = defineEmits(['update:propietario', 'propietario-guardado']);
+const emit = defineEmits(['update:mascota', 'mascota-guardada']);
 
 // Tabs
-const tabPropietario = ref('general');
+const tabMascota = ref('general');
 
 // Cámara
 const video = ref(null);
@@ -257,29 +259,51 @@ const camaraActiva = ref(false);
 const imagenCapturada = ref(null);
 const stream = ref(null);
 
-// Datos del propietario
-const propietario = ref({ ...props.propietarioData });
+// Datos de la mascota
+const mascota = ref({
+  ...props.mascotaData,
+  id_propietario: props.propietarioId
+});
+
+// Actualizar el ID del propietario cuando cambie
+watch(() => props.propietarioId, (newValue) => {
+  mascota.value.id_propietario = newValue;
+});
 
 // Opciones para los selects
-const opcionesGenero = ref([
-  { label: 'Masculino', value: 1 },
-  { label: 'Femenino', value: 2 },
-  { label: 'Otro', value: 3 }
+const opcionesEspecie = ref([
+  { label: 'Perro', value: 1 },
+  { label: 'Gato', value: 2 },
+  { label: 'Ave', value: 3 },
+  { label: 'Reptil', value: 4 },
+  { label: 'Otro', value: 5 }
 ]);
 
-const opcionesEstadoCivil = ref([
-  { label: 'Soltero/a', value: 1 },
-  { label: 'Casado/a', value: 2 },
-  { label: 'Divorciado/a', value: 3 },
-  { label: 'Viudo/a', value: 4 }
+const opcionesRaza = ref([
+  { label: 'Labrador', value: 1 },
+  { label: 'Pastor Alemán', value: 2 },
+  { label: 'Siamés', value: 3 },
+  { label: 'Persa', value: 4 },
+  { label: 'Otra', value: 5 }
 ]);
 
-const opcionesEscolaridad = ref([
-  { label: 'Primaria', value: 1 },
-  { label: 'Secundaria', value: 2 },
-  { label: 'Preparatoria', value: 3 },
-  { label: 'Universidad', value: 4 },
-  { label: 'Posgrado', value: 5 }
+const opcionesSexo = ref([
+  { label: 'Macho', value: 1 },
+  { label: 'Hembra', value: 2 }
+]);
+
+const opcionesColor = ref([
+  { label: 'Negro', value: 1 },
+  { label: 'Blanco', value: 2 },
+  { label: 'Marrón', value: 3 },
+  { label: 'Gris', value: 4 },
+  { label: 'Otro', value: 5 }
+]);
+
+const opcionesTamano = ref([
+  { label: 'Pequeño', value: 1 },
+  { label: 'Mediano', value: 2 },
+  { label: 'Grande', value: 3 }
 ]);
 
 // Funciones para la cámara
@@ -313,23 +337,10 @@ const reiniciarCamara = () => {
   activarCamara();
 };
 
-// Validación de email
-const isValidEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
-
-// Calcular edad
-const calcularEdad = () => {
-  if (propietario.value.fechanacimiento) {
-    // Lógica para calcular la edad
-  }
-};
-
 // Validar formulario
 const validarFormulario = async () => {
-  const formPropietario = document.querySelector('ref[formPropietario]');
-  if (formPropietario && !await formPropietario.validate()) {
+  const formMascota = document.querySelector('ref[formMascota]');
+  if (formMascota && !await formMascota.validate()) {
     return false;
   }
   return true;
@@ -337,13 +348,13 @@ const validarFormulario = async () => {
 
 // Exponer métodos y propiedades para el componente padre
 defineExpose({
-  propietario,
+  mascota,
   validarFormulario
 });
 
-// Actualizar el propietario cuando cambie
-watch(propietario, (newValue) => {
-  emit('update:propietario', newValue);
+// Actualizar la mascota cuando cambie
+watch(mascota, (newValue) => {
+  emit('update:mascota', newValue);
 }, { deep: true });
 </script>
 
@@ -392,13 +403,56 @@ watch(propietario, (newValue) => {
   justify-content: center;
 }
 
-.flex-panels {
-  display: flex;
-  flex-direction: column;
+/* Ajustes responsive */
+@media (max-width: 600px) {
+  .photo-container {
+    width: 120px;
+    height: 120px;
+  }
+}
+.dialog-card {
+  width: 90vw;
+  max-width: 1200px;
+  min-width: 320px;
+  border-radius: 10px;
+  overflow: hidden;
 }
 
-.flex-panel-content {
-  flex: 1;
-  overflow: auto;
+.fixed-height-section {
+  height: 650px;
+  overflow: hidden;
+}
+
+.fixed-height-panel {
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* Estilo para mantener consistente el tamaño de los paneles */
+:deep(.q-tab-panel) {
+  padding: 8px !important;
+}
+
+.q-pa-none {
+  padding: 0 !important;
+}
+
+.row.q-col-gutter-md {
+  margin: 0;
+}
+
+.row.q-col-gutter-sm {
+  margin: 0;
+}
+
+/* Ajuste específico para la sección de la cámara */
+.camera-section {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.q-item {
+  padding-top: 0;
+  padding-bottom: 8px;
 }
 </style>
