@@ -140,6 +140,10 @@
                     />
                   </div>
                   <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                  <ListaGenero v-model="propietario.id_genero" />
+                  </div>
+
+                  <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
                     <q-input
                       v-model="propietario.fechanacimiento"
                       label="Fecha de Nacimiento"
@@ -351,7 +355,7 @@
 
       <q-tab-panel name="facturacion">
         <q-form ref="formFacturacion">
-          <div class="row q-col-gutter-xs">
+          <div class="row q-col-gutter-md q-pa-none">
             <div class="col-12">
               <q-card flat bordered class="facturacion-card">
                 <q-card-section class="q-pa-sm">
@@ -448,6 +452,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onBeforeUnmount, watch } from "vue";
+import  ListaGenero from "../../../../../libs/shared/src/components/listas/ListaGenero.vue";
 
 const props = defineProps({
   propietarioData: {
