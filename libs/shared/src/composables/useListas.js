@@ -37,9 +37,8 @@ export default function useListas() {
           parametros = { filtro };
         }
         
-        //const _respuesta = await _peticion.invocarMetodo(endpoint, "get", null, parametros);
-        const _respuesta = await _peticion.invocarMetodo("sitio", "get");
-        
+        const _respuesta = await _peticion.invocarMetodo(endpoint, "get", null, parametros);
+               
         // Transformar la respuesta al formato esperado por q-select
         lista.value = _respuesta.map(item => ({
           value: item[valueField],

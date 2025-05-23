@@ -130,17 +130,7 @@
                   </div>
 
                   <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
-                    <q-select
-                      v-model="propietario.id_genero"
-                      :options="opcionesGenero"
-                      label="Género"
-                      emit-value
-                      map-options
-                      class="full-width"
-                    />
-                  </div>
-                  <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
-                  <ListaGenero v-model="propietario.id_genero" />
+                     <ListaGenero v-model="propietario.id_genero" />
                   </div>
 
                   <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
