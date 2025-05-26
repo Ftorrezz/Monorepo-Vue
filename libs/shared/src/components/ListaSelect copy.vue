@@ -26,8 +26,7 @@ const props = defineProps({
   },
   endpoint: {
     type: String,
-    default: undefined
-    //required: true
+    required: true
   },
   label: {
     type: String,
@@ -74,42 +73,6 @@ const modeloInterno = computed({
 
 // Exponer opciones y métodos para el componente padre
 const opciones = computed(() => lista.value);
-const loading = ref(false);
-
-const fetchData = async () => {
-  if (!props.endpoint) { // Si no hay endpoint, no hacer nada o resetear
-    opciones.value = [];
-    // Aquí también podrías resetear el v-model interno si es necesario
-    // emit('update:modelValue', null); // o undefined
-    return;
-  }
-  loading.value = true;
-  try {
-    // Lógica para llamar a tu API con props.endpoint
-    // const response = await api.get(props.endpoint);
-    // opciones.value = response.data;
-    console.log(`ListaSelect: Fetching data from ${props.endpoint}`); // Para depuración
-  } catch (error) {
-    console.error("Error fetching data in ListaSelect:", error);
-    opciones.value = []; // Resetear en caso de error
-  } finally {
-    loading.value = false;
-  }
-};
-
-// Observar cambios en el endpoint para recargar datos
-watch(() => props.endpoint, (newEndpoint, oldEndpoint) => {
-  // Solo recargar si el nuevo endpoint es diferente y no es la carga inicial (manejada por onMounted si se prefiere)
-  // o si queremos que siempre recargue cuando el endpoint cambie (incluso de undefined a una url)
-  fetchData();
-}, { immediate: false }); // `immediate: false` para que no se ejecute al montar si ya lo hace onMounted
-
-onMounted(() => {
-  // Cargar datos al montar solo si el endpoint ya está definido
-  if (props.endpoint) {
-    fetchData();
-  }
-});
 
 // Exponer método para recargar datos
 defineExpose({

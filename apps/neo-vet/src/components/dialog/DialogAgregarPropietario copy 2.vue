@@ -220,10 +220,18 @@
                         />
                       </div>
                       <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                        <ListaColonia
+                        <q-select
                           v-model="propietario.id_colonia"
-                          :id-municipio="propietario.id_municipio"
-                          :rules="[val => !!val || 'La colonia es requerida']"
+                          label="Colonia"
+                          dense
+                          :options="coloniasOptions"
+                          option-value="id"
+                          option-label="descripcion"
+                          emit-value
+                          map-options
+                          clearable
+                          :loading="loadingColonias"
+                          :disable="!propietario.id_municipio"
                         />
                       </div>
                        <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
@@ -234,23 +242,47 @@
                         />
                       </div>
                       <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                        <ListaMunicipio
+                        <q-select
                           v-model="propietario.id_municipio"
-                          :id-estado="propietario.id_estado"
-                          :rules="[val => !!val || 'El municipio es requerido']"
+                          label="Delegación/Municipio"
+                          dense
+                          :options="municipiosOptions"
+                          option-value="id"
+                          option-label="descripcion"
+                          emit-value
+                          map-options
+                          clearable
+                          :loading="loadingMunicipios"
+                          :disable="!propietario.id_estado"
                         />
                       </div>
                       <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                        <ListaEstado
+                        <q-select
                           v-model="propietario.id_estado"
-                          :id-pais="propietario.id_pais"
-                          :rules="[val => !!val || 'El estado es requerido']"
+                          label="Estado"
+                          dense
+                          :options="estadosOptions"
+                          option-value="id"
+                          option-label="descripcion"
+                          emit-value
+                          map-options
+                          clearable
+                          :loading="loadingEstados"
+                          :disable="!propietario.id_pais"
                         />
                       </div>
                       <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                        <ListaPais
+                        <q-select
                           v-model="propietario.id_pais"
-
+                          label="País"
+                          dense
+                          :options="paisesOptions"
+                          option-value="id"
+                          option-label="descripcion"
+                          emit-value
+                          map-options
+                          clearable
+                          :loading="loadingPaises"
                         />
                       </div>
                     </div>
@@ -278,11 +310,6 @@
 import { ref, computed, onBeforeUnmount, watch, onMounted } from "vue";
 import { QForm } from 'quasar';
 import  ListaGenero from "../../../../../libs/shared/src/components/listas/ListaGenero.vue";
-// Importar los nuevos componentes de lista de ubicación
-import ListaPais from "../../../../../libs/shared/src/components/listas/ListaPais.vue";
-import ListaEstado from "../../../../../libs/shared/src/components/listas/ListaEstado.vue";
-import ListaMunicipio from "../../../../../libs/shared/src/components/listas/ListaMunicipio.vue";
-import ListaColonia from "../../../../../libs/shared/src/components/listas/ListaColonia.vue";
 
 const props = defineProps({
   propietarioData: {
@@ -337,6 +364,47 @@ const formPropietarioRef = ref<QForm | null>(null);
 
 // Datos del propietario
 const propietario = ref({ ...props.propietarioData });
+
+// --- INICIO: Lógica para selects de ubicación ---
+interface UbicacionBase {
+  id: number;
+  descripcion: string;
+  activo?: boolean; // Opcional, ya que no se usa en el formulario directamente
+}
+interface PaisConfig extends UbicacionBase { id_configuracion?: number; paridad?: string; }
+interface EstadoConfig extends UbicacionBase { id_pais: number; }
+interface MunicipioConfig extends UbicacionBase { id_estado: number; }
+interface ColoniaConfig extends UbicacionBase { id_municipio: number; }
+
+const paisesOptions = ref<PaisConfig[]>([]);
+const estadosOptions = ref<EstadoConfig[]>([]);
+const municipiosOptions = ref<MunicipioConfig[]>([]);
+const coloniasOptions = ref<ColoniaConfig[]>([]);
+
+const loadingPaises = ref(false);
+const loadingEstados = ref(false);
+const loadingMunicipios = ref(false);
+const loadingColonias = ref(false);
+
+// Mock Data (simulando datos de API como en ubicacion.vue)
+const mockPaisesDBConfig: PaisConfig[] = [
+  { id: 1, descripcion: 'México', id_configuracion: 1, paridad: 'MXN', activo: true },
+  { id: 2, descripcion: 'USA', id_configuracion: 2, paridad: 'USD', activo: true },
+];
+const mockEstadosDBConfig: EstadoConfig[] = [
+  { id: 10, id_pais: 1, descripcion: 'Jalisco' }, { id: 11, id_pais: 1, descripcion: 'Ciudad de México' },
+  { id: 12, id_pais: 2, descripcion: 'California' }, { id: 13, id_pais: 2, descripcion: 'Texas' },
+];
+const mockMunicipiosDBConfig: MunicipioConfig[] = [
+  { id: 100, id_estado: 10, descripcion: 'Guadalajara' }, { id: 101, id_estado: 10, descripcion: 'Zapopan' },
+  { id: 102, id_estado: 11, descripcion: 'Coyoacán' },
+  { id: 103, id_estado: 12, descripcion: 'Los Angeles' },
+];
+const mockColoniasDBConfig: ColoniaConfig[] = [
+  { id: 1000, id_municipio: 100, descripcion: 'Chapultepec' }, { id: 1001, id_municipio: 100, descripcion: 'Providencia' },
+  { id: 1002, id_municipio: 101, descripcion: 'Puerta de Hierro' },
+];
+// --- FIN: Lógica para selects de ubicación ---
 
 // Opciones para los selects
 const opcionesGenero = ref([
@@ -412,32 +480,79 @@ const validarFormulario = async () => {
   return false;
 };
 
-// Watchers para la lógica de cascada de ubicaciones
+// --- INICIO: Funciones y watchers para ubicación ---
+const fetchPaisesConfig = async () => {
+  loadingPaises.value = true;
+  await new Promise(resolve => setTimeout(resolve, 100)); // Simula delay
+  paisesOptions.value = [...mockPaisesDBConfig.filter(p => p.activo)];
+  loadingPaises.value = false;
+};
+
+const fetchEstadosConfig = async (paisId: number | null) => {
+  loadingEstados.value = true;
+  estadosOptions.value = [];
+  if (paisId) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    estadosOptions.value = mockEstadosDBConfig.filter(e => e.id_pais === paisId);
+  }
+  loadingEstados.value = false;
+};
+
+const fetchMunicipiosConfig = async (estadoId: number | null) => {
+  loadingMunicipios.value = true;
+  municipiosOptions.value = [];
+  if (estadoId) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    municipiosOptions.value = mockMunicipiosDBConfig.filter(m => m.id_estado === estadoId);
+  }
+  loadingMunicipios.value = false;
+};
+
+const fetchColoniasConfig = async (municipioId: number | null) => {
+  loadingColonias.value = true;
+  coloniasOptions.value = [];
+  if (municipioId) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    coloniasOptions.value = mockColoniasDBConfig.filter(c => c.id_municipio === municipioId);
+  }
+  loadingColonias.value = false;
+};
+
 watch(() => propietario.value.id_pais, (newPaisId, oldPaisId) => {
   if (newPaisId !== oldPaisId) {
     propietario.value.id_estado = null;
     propietario.value.id_municipio = null;
     propietario.value.id_colonia = null;
-    // La lógica de carga de estados se maneja dentro de ListaEstado.vue
+    municipiosOptions.value = [];
+    coloniasOptions.value = [];
+    fetchEstadosConfig(newPaisId);
   }
 });
-
-
 
 watch(() => propietario.value.id_estado, (newEstadoId, oldEstadoId) => {
   if (newEstadoId !== oldEstadoId) {
     propietario.value.id_municipio = null;
     propietario.value.id_colonia = null;
-    // La lógica de carga de municipios se maneja dentro de ListaMunicipio.vue
+    coloniasOptions.value = [];
+    fetchMunicipiosConfig(newEstadoId);
   }
 });
 
 watch(() => propietario.value.id_municipio, (newMunicipioId, oldMunicipioId) => {
   if (newMunicipioId !== oldMunicipioId) {
     propietario.value.id_colonia = null;
-    // La lógica de carga de colonias se maneja dentro de ListaColonia.vue
+    fetchColoniasConfig(newMunicipioId);
   }
 });
+
+onMounted(() => {
+  fetchPaisesConfig();
+  // Si se está editando, y hay IDs, cargar las listas correspondientes
+  if (propietario.value.id_pais) fetchEstadosConfig(propietario.value.id_pais);
+  if (propietario.value.id_estado) fetchMunicipiosConfig(propietario.value.id_estado);
+  if (propietario.value.id_municipio) fetchColoniasConfig(propietario.value.id_municipio);
+});
+// --- FIN: Funciones y watchers para ubicación ---
 
 onBeforeUnmount(() => {
   detenerCamara(); // Asegurarse de detener la cámara al desmontar

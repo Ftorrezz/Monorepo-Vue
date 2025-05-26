@@ -90,13 +90,18 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../../../neo-vet/src/pages/configuration/propietario/religion.vue'),
         meta: { requireAuth: false },
       },
+      { path: '/ubicacion',
+        name: 'ubicacion',
+        component: () => import('pages/configuration/general/ubicacion.vue'),
+        meta: { requireAuth: false },
+      }
 
     ],
     //meta: { requireAuth: true },
 
   },
 
-  { path: '/propietariomascota',
+      { path: '/propietariomascota',
         component: () => import('layouts/Layout.vue'),
         children: [{ path: '', name: 'busquedapropietariomascota', component: () => import('pages/busqueda/BusquedaPropietarioMascota.vue') }],
         meta: { requireAuth: false },
@@ -109,6 +114,8 @@ const routes: RouteRecordRaw[] = [
         meta: { requireAuth: false },
 
       },
+
+
 
   {
     path: '/:catchAll(.*)*',

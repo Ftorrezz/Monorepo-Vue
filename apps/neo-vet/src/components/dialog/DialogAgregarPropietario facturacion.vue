@@ -3,7 +3,7 @@
     <div class="text-h5 q-mb-md text-teal">Propietario</div>
     <q-separator class="q-mb-md" color="grey-3" style="height: 2px" />
 
-    <!--<q-tabs
+    <q-tabs
       v-model="tabPropietario"
       dense
       class="text-grey q-mb-lg"
@@ -14,9 +14,11 @@
       <q-tab name="general" label="Principal" />
       <q-tab name="adicional" label="Adicional" />
       <q-tab name="facturacion" label="Facturación" />
-    </q-tabs>-->
+    </q-tabs>
 
-        <q-form ref="formPropietarioRef">
+    <q-tab-panels v-model="tabPropietario" animated class="flex-panels">
+      <q-tab-panel name="general" class="flex-panel-content">
+        <q-form ref="formPropietario">
           <div class="row q-col-gutter-sm q-pa-none">
             <!-- Contenedor principal que agrupa la foto y los campos -->
             <div class="row full-width q-col-gutter-md q-pa-none">
@@ -185,7 +187,67 @@
                   </div>
                 </div>
 
+                <!-- Card de Domicilio -->
+                <!--<div class="col-12 q-mt-md">
+                  <q-card flat bordered>
+                    <q-card-section class="q-pa-sm">
+                      <div class="text-subtitle1 text-teal">Domicilio</div>
+                      <q-separator class="q-my-sm" color="grey-3" />
 
+                      <div class="row q-col-gutter-sm">
+                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                          <q-input
+                            v-model="propietario.calle"
+                            label="Calle"
+                            dense
+                          />
+                        </div>
+                        <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12">
+                          <q-input
+                            v-model="propietario.numero_exterior"
+                            label="Número Exterior"
+                            dense
+                          />
+                        </div>
+                        <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12">
+                          <q-input
+                            v-model="propietario.numero_interior"
+                            label="Número Interior"
+                            dense
+                          />
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                          <q-input
+                            v-model="propietario.colonia"
+                            label="Colonia"
+                            dense
+                          />
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                          <q-input
+                            v-model="propietario.delegacion"
+                            label="Delegación/Municipio"
+                            dense
+                          />
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                          <q-input
+                            v-model="propietario.estado"
+                            label="Estado"
+                            dense
+                          />
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                          <q-input
+                            v-model="propietario.pais"
+                            label="País"
+                            dense
+                          />
+                        </div>
+                      </div>
+                    </q-card-section>
+                  </q-card>
+                </div>-->
               </div>
             </div>
 
@@ -220,37 +282,38 @@
                         />
                       </div>
                       <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                        <ListaColonia
-                          v-model="propietario.id_colonia"
-                          :id-municipio="propietario.id_municipio"
-                          :rules="[val => !!val || 'La colonia es requerida']"
+                        <q-input
+                          v-model="propietario.colonia"
+                          label="Colonia"
+                          dense
                         />
                       </div>
-                       <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                      <div class="col-lg-1 col-md-1 col-sm-12 col-xs-12">
                         <q-input
                           v-model="propietario.codigopostal"
                           label="C.P."
                           dense
                         />
                       </div>
-                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                        <ListaMunicipio
-                          v-model="propietario.id_municipio"
-                          :id-estado="propietario.id_estado"
-                          :rules="[val => !!val || 'El municipio es requerido']"
+                      <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                        <q-input
+                          v-model="propietario.delegacion"
+                          label="Delegación/Municipio"
+                          dense
                         />
                       </div>
-                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                        <ListaEstado
-                          v-model="propietario.id_estado"
-                          :id-pais="propietario.id_pais"
-                          :rules="[val => !!val || 'El estado es requerido']"
+                      <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                        <q-input
+                          v-model="propietario.estado"
+                          label="Estado"
+                          dense
                         />
                       </div>
-                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                        <ListaPais
-                          v-model="propietario.id_pais"
-
+                      <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                        <q-input
+                          v-model="propietario.pais"
+                          label="País"
+                          dense
                         />
                       </div>
                     </div>
@@ -258,31 +321,128 @@
                 </q-card>
               </div>
             </div>
-            <div class="row full-width q-col-gutter-md q-mt-md q-pa-none">
+          </div>
+        </q-form>
+      </q-tab-panel>
+
+      <q-tab-panel name="adicional">
+        <q-form ref="formAdicional">
+          <div class="row q-col-gutter-md">
+
+
             <div class="col-12">
               <q-input
                 v-model="propietario.observacion"
                 type="textarea"
                 label="Observaciones"
-                rows="3"
+                rows="7"
                 class="full-width"
               />
             </div>
           </div>
+        </q-form>
+      </q-tab-panel>
+
+      <q-tab-panel name="facturacion">
+        <q-form ref="formFacturacion">
+          <div class="row q-col-gutter-md q-pa-none">
+            <div class="col-12">
+              <q-card flat bordered class="facturacion-card">
+                <q-card-section class="q-pa-sm">
+                  <div class="text-subtitle1 text-teal">Datos de Facturación</div>
+                  <q-separator class="q-my-sm" color="grey-3" />
+
+                  <div class="row q-col-gutter-sm">
+                    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                      <q-input
+                        v-model="propietario.rfc"
+                        label="RFC"
+                        hint="Registro Federal de Contribuyentes"
+                        :rules="[
+                          val => !!val || 'El RFC es requerido',
+                          val => val.length >= 12 || 'El RFC debe tener al menos 12 caracteres'
+                        ]"
+                        dense
+                      />
+                    </div>
+                    <div class="col-lg-8 col-md-8 col-sm-12 col-xs-12">
+                      <q-input
+                        v-model="propietario.razon_social"
+                        label="Razón Social"
+                        hint="Nombre o razón social registrada ante el SAT"
+                        :rules="[val => !!val || 'La razón social es requerida']"
+                        dense
+                      />
+                    </div>
+
+                    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                      <q-select
+                        v-model="propietario.regimen_fiscal"
+                        :options="opcionesRegimenFiscal"
+                        label="Régimen Fiscal"
+                        hint="Régimen fiscal registrado ante el SAT"
+                        emit-value
+                        map-options
+                        :rules="[val => !!val || 'El régimen fiscal es requerido']"
+                        dense
+                      />
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                      <q-select
+                        v-model="propietario.uso_cfdi"
+                        :options="opcionesUsoCFDI"
+                        label="Uso de CFDI"
+                        hint="Uso que le dará al comprobante fiscal"
+                        emit-value
+                        map-options
+                        :rules="[val => !!val || 'El uso de CFDI es requerido']"
+                        dense
+                      />
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                      <q-input
+                        v-model="propietario.cp_fiscal"
+                        label="Código Postal Fiscal"
+                        hint="Código postal del domicilio fiscal"
+                        :rules="[
+                          val => !!val || 'El código postal es requerido',
+                          val => val.length === 5 || 'El código postal debe tener 5 dígitos'
+                        ]"
+                        dense
+                      />
+                    </div>
+
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                      <q-input
+                        v-model="propietario.correo_facturacion"
+                        label="Correo para Facturación"
+                        hint="Correo electrónico donde recibirá sus facturas"
+                        type="email"
+                        :rules="[
+                          val => !!val || 'El correo para facturación es requerido',
+                          val => isValidEmail(val) || 'Formato de correo inválido'
+                        ]"
+                        dense
+                      >
+                        <template v-slot:prepend>
+                          <q-icon name="mail" />
+                        </template>
+                      </q-input>
+                    </div>
+                  </div>
+                </q-card-section>
+              </q-card>
+            </div>
           </div>
         </q-form>
-      </div>
+      </q-tab-panel>
+    </q-tab-panels>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onBeforeUnmount, watch, onMounted } from "vue";
-import { QForm } from 'quasar';
+import { ref, computed, onBeforeUnmount, watch } from "vue";
 import  ListaGenero from "../../../../../libs/shared/src/components/listas/ListaGenero.vue";
-// Importar los nuevos componentes de lista de ubicación
-import ListaPais from "../../../../../libs/shared/src/components/listas/ListaPais.vue";
-import ListaEstado from "../../../../../libs/shared/src/components/listas/ListaEstado.vue";
-import ListaMunicipio from "../../../../../libs/shared/src/components/listas/ListaMunicipio.vue";
-import ListaColonia from "../../../../../libs/shared/src/components/listas/ListaColonia.vue";
 
 const props = defineProps({
   propietarioData: {
@@ -301,14 +461,13 @@ const props = defineProps({
       fechanacimiento: null,
       observacion: "",
       // Campos para el domicilio
-      id_pais: null,
-      id_estado: null,
-      id_municipio: null,
-      id_colonia: null,
       calle: "",
       numero_exterior: "",
       numero_interior: "",
-      codigopostal: "",
+      colonia: "",
+      delegacion: "",
+      estado: "",
+      pais: "México",
       // Campos para facturación
       rfc: "",
       razon_social: "",
@@ -331,9 +490,6 @@ const canvas = ref(null);
 const camaraActiva = ref(false);
 const imagenCapturada = ref(null);
 const stream = ref(null);
-
-// Referencia al formulario
-const formPropietarioRef = ref<QForm | null>(null);
 
 // Datos del propietario
 const propietario = ref({ ...props.propietarioData });
@@ -406,42 +562,12 @@ const calcularEdad = () => {
 
 // Validar formulario
 const validarFormulario = async () => {
-  if (formPropietarioRef.value) {
-    return await formPropietarioRef.value.validate();
+  const formPropietario = document.querySelector("ref[formPropietario]");
+  if (formPropietario && !(await formPropietario.validate())) {
+    return false;
   }
-  return false;
+  return true;
 };
-
-// Watchers para la lógica de cascada de ubicaciones
-watch(() => propietario.value.id_pais, (newPaisId, oldPaisId) => {
-  if (newPaisId !== oldPaisId) {
-    propietario.value.id_estado = null;
-    propietario.value.id_municipio = null;
-    propietario.value.id_colonia = null;
-    // La lógica de carga de estados se maneja dentro de ListaEstado.vue
-  }
-});
-
-
-
-watch(() => propietario.value.id_estado, (newEstadoId, oldEstadoId) => {
-  if (newEstadoId !== oldEstadoId) {
-    propietario.value.id_municipio = null;
-    propietario.value.id_colonia = null;
-    // La lógica de carga de municipios se maneja dentro de ListaMunicipio.vue
-  }
-});
-
-watch(() => propietario.value.id_municipio, (newMunicipioId, oldMunicipioId) => {
-  if (newMunicipioId !== oldMunicipioId) {
-    propietario.value.id_colonia = null;
-    // La lógica de carga de colonias se maneja dentro de ListaColonia.vue
-  }
-});
-
-onBeforeUnmount(() => {
-  detenerCamara(); // Asegurarse de detener la cámara al desmontar
-});
 
 // Exponer métodos y propiedades para el componente padre
 defineExpose({
@@ -627,3 +753,7 @@ const opcionesUsoCFDI = ref([
   padding-bottom: 12px;
 }
 </style>
+
+
+
+

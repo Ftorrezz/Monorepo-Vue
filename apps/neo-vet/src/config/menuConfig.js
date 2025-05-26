@@ -29,6 +29,7 @@ export const menuConfig = [
         icon: "view_timeline",
         subItems: [
           { label: "Servicio", icon: "send", to: "/servicio" },
+          { label: "Ubicación", icon: "send", to: "/ubicacion" },
 
         ],
       },
@@ -55,6 +56,7 @@ export const menuConfig = [
           { label: "Ocupación", icon: "send", to: "/ocupacion" },
           { label: "Raza", icon: "send", to: "/raza" },
           { label: "Religión", icon: "send", to: "/religion" },
+          { label: "Género", icon: "send", to: "/genero" },
         ],
       },
     ],
