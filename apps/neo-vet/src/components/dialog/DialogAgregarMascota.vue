@@ -1,20 +1,26 @@
 <template>
   <div>
+
+    <q-dialog v-model="mostrarDialogo" persistent>
+    <q-card
+      bordered
+      elevated
+      class="dialog-card"
+    >
+      <q-bar class="bg-primary text-white">
+        <q-icon name="person" />
+        <div>Mascota</div>
+        <q-space />
+        <q-btn dense flat icon="close" v-close-popup>
+          <template #default>
+            <q-tooltip>Cerrar</q-tooltip>
+          </template>
+        </q-btn>
+      </q-bar>
+
     <div class="text-h5 q-mb-md text-teal">Mascota</div>
     <q-separator class="q-mb-md" color="grey-3" style="height: 2px" />
-
-    <!--<q-tabs
-      v-model="tabMascota"
-      dense
-      class="text-grey q-mb-lg"
-      active-color="primary"
-      indicator-color="primary"
-      align="justify"
-    >
-      <q-tab name="general" label="General" />
-      <q-tab name="adicional" label="Adicional" />
-    </q-tabs>-->
-
+    
     <q-tab-panels v-model="tabMascota" animated class="flex-panels">
       <q-tab-panel name="general" class="flex-panel-content">
         <q-form ref="formMascota">
@@ -227,6 +233,17 @@
         </q-form>
       </q-tab-panel>
     </q-tab-panels>
+  
+    <q-card-section class="q-pa-md">
+        <OpcionCancelarGuardar
+          @accionCerrar="close"
+          @accionValidar="validarFormulario"
+        />
+      </q-card-section>
+      
+    </q-card>
+    </q-dialog>
+  
   </div>
 </template>
 

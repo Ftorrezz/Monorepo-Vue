@@ -203,25 +203,25 @@
     </div>
   </div>
 
-
-  <DialogAgregarMascotaPropietario 
-    v-if="mostrarDialogoPropietario" 
+  <DialogAgregarPropietario
+    v-if="mostrarDialogoPropietario"
     @propietario-guardado="propietarioAgregado"
     @cerrar="cerrarDialogoPropietario"
   />
 
-  <DialogAgregarMascotaPropietario
+  <DialogAgregarMascota
     v-if="mostrarDialogoMascota"
-    :propietario-id="propietarioSeleccionadoId"
-    :modo-mascota-directa="true"
-    @mascota-guardada="actualizarMascotas"
+    @mascota-guardada="mascotaAgregada"
     @cerrar="cerrarDialogoMascota"
   />
+  
 </template>
 
 <script setup>
 import { ref, computed, nextTick } from "vue";
 import DialogAgregarMascotaPropietario from "../dialog/DialogAgregarMascotaPropietario.vue";
+import DialogAgregarPropietario from "../dialog/DialogAgregarPropietario.vue";
+import DialogAgregarMascota from "../dialog/DialogAgregarMascota.vue";
 import NdAlertasControl from "src/controles/alertas.control";
 import PeticionService from "src/services/peticion.service";
 

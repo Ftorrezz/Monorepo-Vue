@@ -103,6 +103,7 @@
               <!-- Campos principales de la mascota -->
               <div class="col-lg-10 col-md-9 col-sm-6 col-xs-12 q-pa-none">
                 <div class="row q-col-gutter-sm">
+                  <!-- Fila para campos identificativos -->
                   <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                     <q-input
                       v-model="mascota.nombre"
@@ -110,13 +111,84 @@
                       :rules="[(val) => !!val || 'El nombre es requerido']"
                     />
                   </div>
-                  <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                  <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
                     <q-input
-                      v-model="mascota.historiaclinica"
-                      label="Historia Clínica"
+                      v-model="mascota.fechanacimiento"
+                      label="Fecha de Nacimiento"
+                      type="date"
                     />
                   </div>
-                  <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                  <div class="col-lg-1 col-md-1 col-sm-12 col-xs-12">
+                    <q-input v-model="mascota.edad" label="Edad" />
+                  </div>
+                  <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                    <q-select
+                      v-model="mascota.id_sexo"
+                      :options="opcionesSexo"
+                      label="Sexo *"
+                      :rules="[(val) => !!val || 'El sexo es requerido']"
+                      emit-value
+                      map-options
+                    />
+                  </div>
+                </div>
+                <!-- Fin de fila para campos identificativos -->
+              </div>
+              <!-- Fin de col-lg-10 para campos identificativos -->
+            </div>
+            <!-- Fin de row full-width para foto y campos identificativos -->
+
+            <!-- Sección de Detalles de la Mascota -->
+            <div class="row full-width q-col-gutter-md q-mt-md q-pa-none">
+              <div class="col-12">
+                <q-card flat bordered>
+                  <q-card-section class="q-pa-sm">
+                    <div class="text-subtitle1 text-teal">
+                      Detalles Adicionales
+                    </div>
+                    <q-separator class="q-my-sm" color="grey-3" />
+                    <div class="row q-col-gutter-sm">
+                      <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                        <q-select
+                          v-model="mascota.id_especie"
+                          :options="opcionesEspecie"
+                          label="Especie *"
+                          :rules="[(val) => !!val || 'La especie es requerida']"
+                          emit-value
+                          map-options
+                        />
+                      </div>
+                      <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                        <q-select
+                          v-model="mascota.id_raza"
+                          :options="opcionesRaza"
+                          label="Raza"
+                          emit-value
+                          map-options
+                        />
+                      </div>
+
+                      <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                        <q-select
+                          v-model="mascota.id_color"
+                          :options="opcionesColor"
+                          label="Color"
+                          emit-value
+                          map-options
+                          class="full-width"
+                        />
+                      </div>
+                      <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                        <q-select
+                          v-model="mascota.id_tamano"
+                          :options="opcionesTamano"
+                          label="Tamaño"
+                          emit-value
+                          map-options
+                          class="full-width"
+                        />
+                      </div>
+                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                     <q-input
                       v-model="mascota.chip"
                       label="Número de Chip"
@@ -132,75 +204,26 @@
                     />
                   </div>
 
-                  <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                    <q-select
-                      v-model="mascota.id_especie"
-                      :options="opcionesEspecie"
-                      label="Especie *"
-                      :rules="[(val) => !!val || 'La especie es requerida']"
-                      emit-value
-                      map-options
-                    />
-                  </div>
-                  <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                    <q-select
-                      v-model="mascota.id_raza"
-                      :options="opcionesRaza"
-                      label="Raza"
-                      emit-value
-                      map-options
-                    />
-                  </div>
-                  <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                    <q-select
-                      v-model="mascota.id_sexo"
-                      :options="opcionesSexo"
-                      label="Sexo *"
-                      :rules="[(val) => !!val || 'El sexo es requerido']"
-                      emit-value
-                      map-options
-                    />
-                  </div>
-                  <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                    <q-input
-                      v-model="mascota.fechanacimiento"
-                      label="Fecha de Nacimiento"
-                      type="date"
-                    />
-                  </div>
-                  <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                    <q-select
-                      v-model="mascota.id_color"
-                      :options="opcionesColor"
-                      label="Color"
-                      emit-value
-                      map-options
-                      class="full-width"
-                    />
-                  </div>
-                  <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                    <q-select
-                      v-model="mascota.id_tamano"
-                      :options="opcionesTamano"
-                      label="Tamaño"
-                      emit-value
-                      map-options
-                      class="full-width"
-                    />
-                  </div>
-                  <div class="col-12">
-                    <q-input
-                      v-model="mascota.observacion"
-                      type="textarea"
-                      label="Observaciones"
-                      rows="3"
-                      class="full-width"
-                    />
-                  </div>
-                </div>
+                    </div>
+                  </q-card-section>
+                </q-card>
+              </div>
+            </div>
+
+            <!-- Sección de Observaciones -->
+            <div class="row full-width q-col-gutter-md q-mt-md q-pa-none">
+              <div class="col-12">
+                <q-input
+                  v-model="mascota.observacion"
+                  type="textarea"
+                  label="Observaciones"
+                  rows="3"
+                  class="full-width"
+                />
               </div>
             </div>
           </div>
+          <!-- Fin de row q-col-gutter-sm q-pa-none (contenedor principal del form) -->
         </q-form>
       </q-tab-panel>
     </q-tab-panels>
@@ -222,6 +245,7 @@ const props = defineProps({
       id_propietario: null,
       nombre: "",
       historiaclinica: "",
+      edad: "",
       id_especie: null,
       id_raza: null,
       id_sexo: null,

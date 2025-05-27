@@ -1,30 +1,20 @@
 <template>
   <div>
-    <q-dialog v-model="mostrarDialogo" persistent>
-    <q-card
-      bordered
-      elevated
-      class="dialog-card"
-    >
-      <q-bar class="bg-primary text-white">
-        <q-icon name="person" />
-        <div>Propietario</div>
-        <q-space />
-        <q-btn dense flat icon="close" v-close-popup>
-          <template #default>
-            <q-tooltip>Cerrar</q-tooltip>
-          </template>
-        </q-btn>
-      </q-bar>
+    <div class="text-h5 q-mb-md text-teal">Propietario</div>
+    <q-separator class="q-mb-md" color="grey-3" style="height: 2px" />
 
-     
-    <!--<div class="text-h5 q-mb-md text-teal">Propietario</div>
-    <q-separator class="q-mb-md" color="grey-3" style="height: 2px" />-->
-        
-    <q-card
-      bordered
-      elevated
-      class="row q-col-gutter-md full-width q-pl-md">
+    <!--<q-tabs
+      v-model="tabPropietario"
+      dense
+      class="text-grey q-mb-lg"
+      active-color="primary"
+      indicator-color="primary"
+      align="justify"
+    >
+      <q-tab name="general" label="Principal" />
+      <q-tab name="adicional" label="Adicional" />
+      <q-tab name="facturacion" label="Facturación" />
+    </q-tabs>-->
 
         <q-form ref="formPropietarioRef">
           <div class="row q-col-gutter-sm q-pa-none">
@@ -285,18 +275,7 @@
           </div>
           </div>
         </q-form>
-        </q-card>
-
-        <q-card-section class="q-pa-md">
-        <OpcionCancelarGuardar
-          @accionCerrar="close"
-          @accionValidar="validarFormulario"
-        />
-      </q-card-section>
-      
-    </q-card>
-    </q-dialog>
-  </div>
+      </div>
 </template>
 
 <script setup lang="ts">
@@ -308,7 +287,6 @@ import ListaPais from "../../../../../libs/shared/src/components/listas/ListaPai
 import ListaEstado from "../../../../../libs/shared/src/components/listas/ListaEstado.vue";
 import ListaMunicipio from "../../../../../libs/shared/src/components/listas/ListaMunicipio.vue";
 import ListaColonia from "../../../../../libs/shared/src/components/listas/ListaColonia.vue";
-import OpcionCancelarGuardar from "../OpcionCancelarGuardar.vue";
 
 const props = defineProps({
   propietarioData: {
@@ -345,12 +323,6 @@ const props = defineProps({
     }),
   },
 });
-
-const mostrarDialogo = ref(true);
-
-const close = () => {
-  mostrarDialogo.value = false;
-};
 
 const emit = defineEmits(["update:propietario", "propietario-guardado"]);
 
@@ -489,6 +461,53 @@ watch(
   },
   { deep: true }
 );
+
+// Opciones para los selects de facturación
+const opcionesRegimenFiscal = ref([
+  { label: "601 - General de Ley Personas Morales", value: "601" },
+  { label: "603 - Personas Morales con Fines no Lucrativos", value: "603" },
+  { label: "605 - Sueldos y Salarios e Ingresos Asimilados a Salarios", value: "605" },
+  { label: "606 - Arrendamiento", value: "606" },
+  { label: "608 - Demás ingresos", value: "608" },
+  { label: "609 - Consolidación", value: "609" },
+  { label: "610 - Residentes en el Extranjero sin Establecimiento Permanente en México", value: "610" },
+  { label: "611 - Ingresos por Dividendos (socios y accionistas)", value: "611" },
+  { label: "612 - Personas Físicas con Actividades Empresariales y Profesionales", value: "612" },
+  { label: "614 - Ingresos por intereses", value: "614" },
+  { label: "616 - Sin obligaciones fiscales", value: "616" },
+  { label: "620 - Sociedades Cooperativas de Producción que optan por diferir sus ingresos", value: "620" },
+  { label: "621 - Incorporación Fiscal", value: "621" },
+  { label: "622 - Actividades Agrícolas, Ganaderas, Silvícolas y Pesqueras", value: "622" },
+  { label: "623 - Opcional para Grupos de Sociedades", value: "623" },
+  { label: "624 - Coordinados", value: "624" },
+  { label: "625 - Régimen de las Actividades Empresariales con ingresos a través de Plataformas Tecnológicas", value: "625" },
+  { label: "626 - Régimen Simplificado de Confianza", value: "626" }
+]);
+
+const opcionesUsoCFDI = ref([
+  { label: "G01 - Adquisición de mercancías", value: "G01" },
+  { label: "G02 - Devoluciones, descuentos o bonificaciones", value: "G02" },
+  { label: "G03 - Gastos en general", value: "G03" },
+  { label: "I01 - Construcciones", value: "I01" },
+  { label: "I02 - Mobiliario y equipo de oficina por inversiones", value: "I02" },
+  { label: "I03 - Equipo de transporte", value: "I03" },
+  { label: "I04 - Equipo de cómputo y accesorios", value: "I04" },
+  { label: "I05 - Dados, troqueles, moldes, matrices y herramental", value: "I05" },
+  { label: "I06 - Comunicaciones telefónicas", value: "I06" },
+  { label: "I07 - Comunicaciones satelitales", value: "I07" },
+  { label: "I08 - Otra maquinaria y equipo", value: "I08" },
+  { label: "D01 - Honorarios médicos, dentales y gastos hospitalarios", value: "D01" },
+  { label: "D02 - Gastos médicos por incapacidad o discapacidad", value: "D02" },
+  { label: "D03 - Gastos funerales", value: "D03" },
+  { label: "D04 - Donativos", value: "D04" },
+  { label: "D05 - Intereses reales efectivamente pagados por créditos hipotecarios (casa habitación)", value: "D05" },
+  { label: "D06 - Aportaciones voluntarias al SAR", value: "D06" },
+  { label: "D07 - Primas por seguros de gastos médicos", value: "D07" },
+  { label: "D08 - Gastos de transportación escolar obligatoria", value: "D08" },
+  { label: "D09 - Depósitos en cuentas para el ahorro, primas que tengan como base planes de pensiones", value: "D09" },
+  { label: "D10 - Pagos por servicios educativos (colegiaturas)", value: "D10" },
+  { label: "P01 - Por definir", value: "P01" }
+]);
 
 </script>
 
