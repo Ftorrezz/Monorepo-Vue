@@ -3,7 +3,7 @@
     <div class="text-h5 q-mb-md text-teal">Mascota</div>
     <q-separator class="q-mb-md" color="grey-3" style="height: 2px" />
 
-    <q-tabs
+    <!--<q-tabs
       v-model="tabMascota"
       dense
       class="text-grey q-mb-lg"
@@ -13,7 +13,7 @@
     >
       <q-tab name="general" label="General" />
       <q-tab name="adicional" label="Adicional" />
-    </q-tabs>
+    </q-tabs>-->
 
     <q-tab-panels v-model="tabMascota" animated class="flex-panels">
       <q-tab-panel name="general" class="flex-panel-content">
@@ -36,7 +36,7 @@
                       ref="canvas"
                       width="640"
                       height="480"
-                      style="display: none;"
+                      style="display: none"
                     ></canvas>
                     <img
                       v-if="imagenCapturada"
@@ -44,9 +44,14 @@
                       class="captured-image"
                       alt="Foto de la mascota"
                     />
-                    <div v-if="!camaraActiva && !imagenCapturada" class="photo-placeholder">
+                    <div
+                      v-if="!camaraActiva && !imagenCapturada"
+                      class="photo-placeholder"
+                    >
                       <q-icon name="pets" size="32px" color="grey-7" />
-                      <div class="text-grey-7 text-caption q-mt-sm">Click para foto</div>
+                      <div class="text-grey-7 text-caption q-mt-sm">
+                        Click para foto
+                      </div>
                     </div>
                   </div>
                   <!-- Controles de la cámara -->
@@ -98,121 +103,127 @@
               <!-- Campos principales de la mascota -->
               <div class="col-lg-10 col-md-9 col-sm-6 col-xs-12 q-pa-none">
                 <div class="row q-col-gutter-sm">
-                  <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                  <!-- Fila para campos identificativos -->
+                  <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                     <q-input
                       v-model="mascota.nombre"
                       label="Nombre *"
-                      :rules="[val => !!val || 'El nombre es requerido']"
-                      filled
+                      :rules="[(val) => !!val || 'El nombre es requerido']"
                     />
                   </div>
-                  <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                    <q-input
-                      v-model="mascota.historiaclinica"
-                      label="Historia Clínica"
-                      filled
-                    />
-                  </div>
-                  <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                    <q-select
-                      v-model="mascota.id_especie"
-                      :options="opcionesEspecie"
-                      label="Especie *"
-                      :rules="[val => !!val || 'La especie es requerida']"
-                      emit-value
-                      map-options
-                      filled
-                    />
-                  </div>
-                  <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                    <q-select
-                      v-model="mascota.id_raza"
-                      :options="opcionesRaza"
-                      label="Raza"
-                      emit-value
-                      map-options
-                      filled
-                    />
-                  </div>
-                  <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                    <q-select
-                      v-model="mascota.id_sexo"
-                      :options="opcionesSexo"
-                      label="Sexo *"
-                      :rules="[val => !!val || 'El sexo es requerido']"
-                      emit-value
-                      map-options
-                      filled
-                    />
-                  </div>
-                  <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                  <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
                     <q-input
                       v-model="mascota.fechanacimiento"
                       label="Fecha de Nacimiento"
                       type="date"
-                      filled
+                    />
+                  </div>
+                  <div class="col-lg-1 col-md-1 col-sm-12 col-xs-12">
+                    <q-input v-model="mascota.edad" label="Edad" />
+                  </div>
+                  <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                    <q-select
+                      v-model="mascota.id_sexo"
+                      :options="opcionesSexo"
+                      label="Sexo *"
+                      :rules="[(val) => !!val || 'El sexo es requerido']"
+                      emit-value
+                      map-options
                     />
                   </div>
                 </div>
+                <!-- Fin de fila para campos identificativos -->
+              </div>
+              <!-- Fin de col-lg-10 para campos identificativos -->
+            </div>
+            <!-- Fin de row full-width para foto y campos identificativos -->
+
+            <!-- Sección de Detalles de la Mascota -->
+            <div class="row full-width q-col-gutter-md q-mt-md q-pa-none">
+              <div class="col-12">
+                <q-card flat bordered>
+                  <q-card-section class="q-pa-sm">
+                    <div class="text-subtitle1 text-teal">
+                      Detalles Adicionales
+                    </div>
+                    <q-separator class="q-my-sm" color="grey-3" />
+                    <div class="row q-col-gutter-sm">
+                      <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                        <q-select
+                          v-model="mascota.id_especie"
+                          :options="opcionesEspecie"
+                          label="Especie *"
+                          :rules="[(val) => !!val || 'La especie es requerida']"
+                          emit-value
+                          map-options
+                        />
+                      </div>
+                      <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                        <q-select
+                          v-model="mascota.id_raza"
+                          :options="opcionesRaza"
+                          label="Raza"
+                          emit-value
+                          map-options
+                        />
+                      </div>
+
+                      <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                        <q-select
+                          v-model="mascota.id_color"
+                          :options="opcionesColor"
+                          label="Color"
+                          emit-value
+                          map-options
+                          class="full-width"
+                        />
+                      </div>
+                      <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                        <q-select
+                          v-model="mascota.id_tamano"
+                          :options="opcionesTamano"
+                          label="Tamaño"
+                          emit-value
+                          map-options
+                          class="full-width"
+                        />
+                      </div>
+                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                    <q-input
+                      v-model="mascota.chip"
+                      label="Número de Chip"
+                      class="full-width"
+                    />
+                  </div>
+                  <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                    <q-input
+                      v-model="mascota.fechachip"
+                      label="Fecha de Chip"
+                      type="date"
+                      class="full-width"
+                    />
+                  </div>
+
+                    </div>
+                  </q-card-section>
+                </q-card>
+              </div>
+            </div>
+
+            <!-- Sección de Observaciones -->
+            <div class="row full-width q-col-gutter-md q-mt-md q-pa-none">
+              <div class="col-12">
+                <q-input
+                  v-model="mascota.observacion"
+                  type="textarea"
+                  label="Observaciones"
+                  rows="3"
+                  class="full-width"
+                />
               </div>
             </div>
           </div>
-        </q-form>
-      </q-tab-panel>
-
-      <q-tab-panel name="adicional">
-        <q-form ref="formAdicionalMascota">
-          <div class="row q-col-gutter-md">
-            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-              <q-input
-                v-model="mascota.chip"
-                label="Número de Chip"
-                filled
-                class="full-width"
-              />
-            </div>
-            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-              <q-input
-                v-model="mascota.fechachip"
-                label="Fecha de Chip"
-                type="date"
-                filled
-                class="full-width"
-              />
-            </div>
-            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-              <q-select
-                v-model="mascota.id_color"
-                :options="opcionesColor"
-                label="Color"
-                emit-value
-                map-options
-                filled
-                class="full-width"
-              />
-            </div>
-            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-              <q-select
-                v-model="mascota.id_tamano"
-                :options="opcionesTamano"
-                label="Tamaño"
-                emit-value
-                map-options
-                filled
-                class="full-width"
-              />
-            </div>
-            <div class="col-12">
-              <q-input
-                v-model="mascota.observacion"
-                type="textarea"
-                label="Observaciones"
-                rows="3"
-                filled
-                class="full-width"
-              />
-            </div>
-          </div>
+          <!-- Fin de row q-col-gutter-sm q-pa-none (contenedor principal del form) -->
         </q-form>
       </q-tab-panel>
     </q-tab-panels>
@@ -220,37 +231,38 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, defineProps, defineEmits, watch } from 'vue';
+import { ref, computed, onMounted, defineProps, defineEmits, watch } from "vue";
 
 const props = defineProps({
   propietarioId: {
     type: Number,
-    required: true
+    required: true,
   },
   mascotaData: {
     type: Object,
     default: () => ({
       id: null,
       id_propietario: null,
-      nombre: '',
-      historiaclinica: '',
+      nombre: "",
+      historiaclinica: "",
+      edad: "",
       id_especie: null,
       id_raza: null,
       id_sexo: null,
       fechanacimiento: null,
-      chip: '',
+      chip: "",
       fechachip: null,
       id_color: null,
       id_tamano: null,
-      observacion: ''
-    })
-  }
+      observacion: "",
+    }),
+  },
 });
 
-const emit = defineEmits(['update:mascota', 'mascota-guardada']);
+const emit = defineEmits(["update:mascota", "mascota-guardada"]);
 
 // Tabs
-const tabMascota = ref('general');
+const tabMascota = ref("general");
 
 // Cámara
 const video = ref(null);
@@ -262,48 +274,51 @@ const stream = ref(null);
 // Datos de la mascota
 const mascota = ref({
   ...props.mascotaData,
-  id_propietario: props.propietarioId
+  id_propietario: props.propietarioId,
 });
 
 // Actualizar el ID del propietario cuando cambie
-watch(() => props.propietarioId, (newValue) => {
-  mascota.value.id_propietario = newValue;
-});
+watch(
+  () => props.propietarioId,
+  (newValue) => {
+    mascota.value.id_propietario = newValue;
+  }
+);
 
 // Opciones para los selects
 const opcionesEspecie = ref([
-  { label: 'Perro', value: 1 },
-  { label: 'Gato', value: 2 },
-  { label: 'Ave', value: 3 },
-  { label: 'Reptil', value: 4 },
-  { label: 'Otro', value: 5 }
+  { label: "Perro", value: 1 },
+  { label: "Gato", value: 2 },
+  { label: "Ave", value: 3 },
+  { label: "Reptil", value: 4 },
+  { label: "Otro", value: 5 },
 ]);
 
 const opcionesRaza = ref([
-  { label: 'Labrador', value: 1 },
-  { label: 'Pastor Alemán', value: 2 },
-  { label: 'Siamés', value: 3 },
-  { label: 'Persa', value: 4 },
-  { label: 'Otra', value: 5 }
+  { label: "Labrador", value: 1 },
+  { label: "Pastor Alemán", value: 2 },
+  { label: "Siamés", value: 3 },
+  { label: "Persa", value: 4 },
+  { label: "Otra", value: 5 },
 ]);
 
 const opcionesSexo = ref([
-  { label: 'Macho', value: 1 },
-  { label: 'Hembra', value: 2 }
+  { label: "Macho", value: 1 },
+  { label: "Hembra", value: 2 },
 ]);
 
 const opcionesColor = ref([
-  { label: 'Negro', value: 1 },
-  { label: 'Blanco', value: 2 },
-  { label: 'Marrón', value: 3 },
-  { label: 'Gris', value: 4 },
-  { label: 'Otro', value: 5 }
+  { label: "Negro", value: 1 },
+  { label: "Blanco", value: 2 },
+  { label: "Marrón", value: 3 },
+  { label: "Gris", value: 4 },
+  { label: "Otro", value: 5 },
 ]);
 
 const opcionesTamano = ref([
-  { label: 'Pequeño', value: 1 },
-  { label: 'Mediano', value: 2 },
-  { label: 'Grande', value: 3 }
+  { label: "Pequeño", value: 1 },
+  { label: "Mediano", value: 2 },
+  { label: "Grande", value: 3 },
 ]);
 
 // Funciones para la cámara
@@ -313,20 +328,20 @@ const activarCamara = async () => {
     video.value.srcObject = stream.value;
     camaraActiva.value = true;
   } catch (error) {
-    console.error('Error al acceder a la cámara:', error);
+    console.error("Error al acceder a la cámara:", error);
   }
 };
 
 const capturarFoto = () => {
-  const context = canvas.value.getContext('2d');
+  const context = canvas.value.getContext("2d");
   context.drawImage(video.value, 0, 0, canvas.value.width, canvas.value.height);
-  imagenCapturada.value = canvas.value.toDataURL('image/png');
+  imagenCapturada.value = canvas.value.toDataURL("image/png");
   detenerCamara();
 };
 
 const detenerCamara = () => {
   if (stream.value) {
-    stream.value.getTracks().forEach(track => track.stop());
+    stream.value.getTracks().forEach((track) => track.stop());
     stream.value = null;
   }
   camaraActiva.value = false;
@@ -339,8 +354,8 @@ const reiniciarCamara = () => {
 
 // Validar formulario
 const validarFormulario = async () => {
-  const formMascota = document.querySelector('ref[formMascota]');
-  if (formMascota && !await formMascota.validate()) {
+  const formMascota = document.querySelector("ref[formMascota]");
+  if (formMascota && !(await formMascota.validate())) {
     return false;
   }
   return true;
@@ -349,13 +364,17 @@ const validarFormulario = async () => {
 // Exponer métodos y propiedades para el componente padre
 defineExpose({
   mascota,
-  validarFormulario
+  validarFormulario,
 });
 
 // Actualizar la mascota cuando cambie
-watch(mascota, (newValue) => {
-  emit('update:mascota', newValue);
-}, { deep: true });
+watch(
+  mascota,
+  (newValue) => {
+    emit("update:mascota", newValue);
+  },
+  { deep: true }
+);
 </script>
 
 <style scoped>
@@ -381,7 +400,8 @@ watch(mascota, (newValue) => {
   position: relative;
 }
 
-.camera-preview, .captured-image {
+.camera-preview,
+.captured-image {
   width: 100%;
   height: 100%;
   object-fit: cover;

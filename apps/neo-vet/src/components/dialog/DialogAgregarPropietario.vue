@@ -142,7 +142,7 @@
                     />
                   </div>
 
-                  <div class="col-lg-3 col-md- col-sm-12 col-xs-12">
+                  <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                     <q-input
                       v-model="propietario.telefonocelular"
                       label="Teléfono móvil"
@@ -197,7 +197,7 @@
                     <div class="text-subtitle1 text-teal">Domicilio</div>
                     <q-separator class="q-my-sm" color="grey-3" />
 
-                    <div class="row q-col-gutter-sm">
+                    <div class="row q-col-gutter-sm items-end">
                       <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                         <q-input
                           v-model="propietario.calle"
@@ -205,25 +205,18 @@
                           dense
                         />
                       </div>
-                      <div class="col-lg-1 col-md-1 col-sm-6 col-xs-12">
+                      <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12">
                         <q-input
                           v-model="propietario.numero_exterior"
-                          label="# Exterior"
+                          label="Número Exterior"
                           dense
                         />
                       </div>
-                      <div class="col-lg-1 col-md-1 col-sm-6 col-xs-12">
+                      <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12">
                         <q-input
                           v-model="propietario.numero_interior"
-                          label="# Interior"
+                          label="Número Interior"
                           dense
-                        />
-                      </div>
-                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                        <ListaColonia
-                          v-model="propietario.id_colonia"
-                          :id-municipio="propietario.id_municipio"
-                          :rules="[val => !!val || 'La colonia es requerida']"
                         />
                       </div>
                        <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
@@ -233,11 +226,12 @@
                           dense
                         />
                       </div>
+
+
                       <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                        <ListaMunicipio
-                          v-model="propietario.id_municipio"
-                          :id-estado="propietario.id_estado"
-                          :rules="[val => !!val || 'El municipio es requerido']"
+                        <ListaPais
+                          v-model="propietario.id_pais"
+
                         />
                       </div>
                       <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
@@ -248,11 +242,21 @@
                         />
                       </div>
                       <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                        <ListaPais
-                          v-model="propietario.id_pais"
-
+                        <ListaMunicipio
+                          v-model="propietario.id_municipio"
+                          :id-estado="propietario.id_estado"
+                          :rules="[val => !!val || 'El municipio es requerido']"
                         />
                       </div>
+                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                        <ListaColonia
+                          v-model="propietario.id_colonia"
+                          :id-municipio="propietario.id_municipio"
+                          :rules="[val => !!val || 'La colonia es requerida']"
+                        />
+                      </div>
+
+
                     </div>
                   </q-card-section>
                 </q-card>
