@@ -1,6 +1,8 @@
 <template>
   <q-page padding class="configuracion-ubicacion">
-    <h1 class="q-mb-md text-h4">Configuración de Ubicaciones Geográficas</h1>
+    <div class="q-mb-md">
+    <EncabezadoGenericoPrincipal :tituloVentana="crudName" />
+    </div>
 
     <div class="row q-col-gutter-md">
       <!-- Columna Países -->
@@ -14,22 +16,22 @@
             <q-form @submit.prevent="savePais" class="q-gutter-md">
               <div class="text-subtitle1">{{ paisForm.id ? 'Editar' : 'Agregar' }} País</div>
               <q-input
-                filled
+
                 v-model="paisForm.descripcion"
                 label="Descripción *"
                 lazy-rules
                 :rules="[ val => val && val.length > 0 || 'Por favor, ingrese una descripción']"
               />
-              <q-input
-                filled
+              <!--<q-input
+
                 type="number"
                 v-model.number="paisForm.id_configuracion"
                 label="ID Configuración *"
                 lazy-rules
                 :rules="[ val => val !== null && val !== undefined || 'Por favor, ingrese un ID de configuración']"
-              />
+              />-->
               <q-input
-                filled
+
                 v-model="paisForm.paridad"
                 label="Paridad"
               />
@@ -75,8 +77,13 @@
           <q-card-section v-if="selectedPaisId" class="q-pt-none">
             <q-form @submit.prevent="saveEstado" class="q-gutter-md">
               <div class="text-subtitle1">{{ estadoForm.id ? 'Editar' : 'Agregar' }} Estado</div>
-              <q-input filled v-model="estadoForm.descripcion" label="Descripción *" lazy-rules :rules="[ val => val && val.length > 0 || 'Ingrese una descripción']"/>
-              <q-checkbox v-model="estadoForm.activo" label="Activo" />
+              <q-input v-model="estadoForm.descripcion" label="Descripción *" lazy-rules :rules="[ val => val && val.length > 0 || 'Ingrese una descripción']"/>
+              <q-input
+
+                v-model="estadoForm.paridad"
+                label="Paridad"
+              />
+                <q-checkbox v-model="estadoForm.activo" label="Activo" />
               <q-card-actions align="right">
                 <q-btn :label="estadoForm.id ? 'Actualizar' : 'Guardar'" type="submit" color="primary"/>
                 <q-btn label="Cancelar" type="button" color="grey" flat @click="resetEstadoForm" v-if="estadoForm.id" />
@@ -112,8 +119,13 @@
           <q-card-section v-if="selectedEstadoId" class="q-pt-none">
             <q-form @submit.prevent="saveMunicipio" class="q-gutter-md">
               <div class="text-subtitle1">{{ municipioForm.id ? 'Editar' : 'Agregar' }} Municipio</div>
-              <q-input filled v-model="municipioForm.descripcion" label="Descripción *" lazy-rules :rules="[ val => val && val.length > 0 || 'Ingrese una descripción']"/>
-              <q-checkbox v-model="municipioForm.activo" label="Activo" />
+              <q-input v-model="municipioForm.descripcion" label="Descripción *" lazy-rules :rules="[ val => val && val.length > 0 || 'Ingrese una descripción']"/>
+              <q-input
+
+                v-model="municipioForm.paridad"
+                label="Paridad"
+              />
+                <q-checkbox v-model="municipioForm.activo" label="Activo" />
               <q-card-actions align="right">
                 <q-btn :label="municipioForm.id ? 'Actualizar' : 'Guardar'" type="submit" color="primary"/>
                 <q-btn label="Cancelar" type="button" color="grey" flat @click="resetMunicipioForm" v-if="municipioForm.id" />
@@ -149,8 +161,13 @@
           <q-card-section v-if="selectedMunicipioId" class="q-pt-none">
             <q-form @submit.prevent="saveColonia" class="q-gutter-md">
               <div class="text-subtitle1">{{ coloniaForm.id ? 'Editar' : 'Agregar' }} Colonia</div>
-              <q-input filled v-model="coloniaForm.descripcion" label="Descripción *" lazy-rules :rules="[ val => val && val.length > 0 || 'Ingrese una descripción']"/>
-              <q-checkbox v-model="coloniaForm.activo" label="Activo" />
+              <q-input v-model="coloniaForm.descripcion" label="Descripción *" lazy-rules :rules="[ val => val && val.length > 0 || 'Ingrese una descripción']"/>
+              <q-input
+
+                v-model="coloniaForm.paridad"
+                label="Paridad"
+              />
+                <q-checkbox v-model="coloniaForm.activo" label="Activo" />
               <q-card-actions align="right">
                 <q-btn :label="coloniaForm.id ? 'Actualizar' : 'Guardar'" type="submit" color="primary"/>
                 <q-btn label="Cancelar" type="button" color="grey" flat @click="resetColoniaForm" v-if="coloniaForm.id" />
@@ -183,8 +200,12 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, nextTick } from 'vue';
 import { QForm, useQuasar } from 'quasar'; // Import QForm for potential ref usage, useQuasar for Notify
+import EncabezadoGenericoPrincipal from '../../../components/EncabezadoGenericoPrincipal.vue';
+
 
 const $q = useQuasar(); // For Quasar plugins like Notify
+
+const crudName: string = "Configuración de Ubicaciones Geográficas";
 
 // --- Modelos ---
 interface Pais {
@@ -199,6 +220,7 @@ interface Estado {
   id?: number;
   id_pais: number;
   descripcion: string;
+  paridad: string;
   activo: boolean;
 }
 
@@ -206,6 +228,7 @@ interface Municipio {
   id?: number;
   id_estado: number;
   descripcion: string;
+  paridad: string;
   activo: boolean;
 }
 
@@ -213,6 +236,7 @@ interface Colonia {
   id?: number;
   id_municipio: number;
   descripcion: string;
+  paridad: string;
   activo: boolean;
 }
 
@@ -243,6 +267,7 @@ const estadoForm = reactive({
   id: undefined as number | undefined,
   id_pais: 0,
   descripcion: '',
+  paridad: '',
   activo: true,
 });
 
@@ -250,6 +275,7 @@ const municipioForm = reactive({
   id: undefined as number | undefined,
   id_estado: 0,
   descripcion: '',
+  paridad: '',
   activo: true,
 });
 
@@ -257,6 +283,7 @@ const coloniaForm = reactive({
   id: undefined as number | undefined,
   id_municipio: 0,
   descripcion: '',
+  paridad: '',
   activo: true,
 });
 

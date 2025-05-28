@@ -48,7 +48,8 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
         modelName === "estadocivil" ||
         modelName === "religion" ||
         modelName === "raza" ||
-        modelName === "ocupacion"
+        modelName === "ocupacion" ||
+        modelName === "servicio"
       ) {
       return columnsConfig['genericoDescripcion'] || [];
     }
@@ -357,7 +358,8 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
       modelName === "estadocivil" ||
       modelName === "religion" ||
       modelName === "raza" ||
-      modelName === "ocupacion"
+      modelName === "ocupacion" ||
+      modelName === "servicio"
     ) {
       mostrarFormIntegrado.value = true;
 
@@ -595,7 +597,7 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
         dataToSend.id_sitio = dataToSend.id_sitio.value;
       }
 
-      if (modelName === "perfilconfiguracion") {
+      if (modelName === "perfilconfiguracion" || modelName === "servicio") {
         dataToSend.id_configuracion = 1;
       }
 
@@ -624,7 +626,8 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
         dataToSend.id_ubicacionexterno = 0;
       }
 
-      if (modelName === "perfilconfiguracion") {
+      if (modelName === "perfilconfiguracion" || modelName === "servicio") {
+
         dataToSend.id_configuracion = 1;
       }
 

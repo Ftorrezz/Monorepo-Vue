@@ -94,6 +94,11 @@ const routes: RouteRecordRaw[] = [
         name: 'ubicacion',
         component: () => import('pages/configuration/general/ubicacion.vue'),
         meta: { requireAuth: false },
+      },
+      { path: '/servicio',
+        name: 'servicio',
+        component: () => import('pages/configuration/general/servicio.vue'),
+        meta: { requireAuth: false },
       }
 
     ],
