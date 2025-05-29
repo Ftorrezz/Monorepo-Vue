@@ -105,16 +105,16 @@
             </div>
             <div>
               <!--<q-btn
-                v-if="propietarioSeleccionadoId"
                 round
                 flat
                 color="white"
                 size="sm"
-                icon="clear"
-                class="floating-btn q-mr-xs"
-                @click="limpiarSeleccion"
+                icon="add"
+                class="floating-btn"
+                @click="abrirDialogoMascota"
+                :disabled="!propietarioSeleccionadoId"
               >
-                <q-tooltip>Mostrar todas las mascotas</q-tooltip>
+                <q-tooltip>Agregar Mascota</q-tooltip>
               </q-btn>-->
               <q-btn
                 round
@@ -125,6 +125,7 @@
                 class="floating-btn"
                 @click="abrirDialogoMascota"
                 :disabled="!propietarioSeleccionadoId"
+
               >
                 <q-tooltip>Agregar Mascota</q-tooltip>
               </q-btn>
@@ -214,7 +215,7 @@
     @mascota-guardada="mascotaAgregada"
     @cerrar="cerrarDialogoMascota"
   />
-  
+
 </template>
 
 <script setup>
