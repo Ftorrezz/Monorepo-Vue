@@ -16,11 +16,11 @@ class PeticionService {
     }
   }*/
 
-  obtenerGet(unDtoParametros?: DtoParametros) {
+  obtenerGet(endPoint: string, unDtoParametros?: DtoParametros) {
 
     let peticion = new NdPeticionControl();
 
-    return peticion.invocarMetodo('get', unDtoParametros);
+    return peticion.invocarMetodo(endPoint, 'get', unDtoParametros);
 
   }
 
