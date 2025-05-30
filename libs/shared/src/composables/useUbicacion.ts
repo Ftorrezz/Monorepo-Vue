@@ -85,7 +85,8 @@ export function useUbicacion() {
     loadingEstados.value = true;
     estados.value = [];
     try {
-      estados.value = await peticionService.obtenerGet({ endPoint: 'estado', filtro: { id_pais: paisId } });
+      estados.value = await peticionService.obtenerGet('estado');
+      //estados.value = await peticionService.obtenerGet({ 'estado', filtro: { id_pais: paisId } });
     } catch (error) {
       console.error("Error fetching estados:", error);
       $q.notify({ type: 'negative', message: `Error al cargar estados para el país ID: ${paisId}.` });
