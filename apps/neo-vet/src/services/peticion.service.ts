@@ -73,8 +73,6 @@ class PeticionService {
 
   eliminarLogico(endPoint: string, modelo: any, consultar = false) {
 
-    console.log('entro a eliminar')
-
     if (endPoint !== '') {
 
       let peticion = new NdPeticionControl();
