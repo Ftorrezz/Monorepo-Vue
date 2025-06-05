@@ -413,13 +413,7 @@ const props = defineProps({
       numero_exterior: "",
       numero_interior: "",
       codigopostal: "",
-      // Campos para facturación
-      rfc: "",
-      razon_social: "",
-      regimen_fiscal: null,
-      uso_cfdi: null,
-      cp_fiscal: "",
-      correo_facturacion: "",
+
     }),
   },
 });
@@ -534,14 +528,14 @@ const guardarPropietario = async () => {
     if (datosPropietario.id) {
       // Actualizar propietario existente
       // PeticionService.actualizar toma (endpoint, modelo). El ID del modelo se usa internamente.
-      resultadoOperacion = await peticionService.actualizar('propietarios', datosPropietario);
+      resultadoOperacion = await peticionService.actualizar('propietario', datosPropietario);
     } else {
       // Crear nuevo propietario
       // El backend debería asignar el ID, así que lo eliminamos si es null/undefined
       if (datosPropietario.id === null || datosPropietario.id === undefined) {
         delete datosPropietario.id;
       }
-      resultadoOperacion = await peticionService.crear('propietarios', datosPropietario);
+      resultadoOperacion = await peticionService.crear('propietario', datosPropietario);
     }
 
     // Si la promesa se resolvió (no entró al catch), resultadoOperacion es la respuesta exitosa (respuesta.elemento).
