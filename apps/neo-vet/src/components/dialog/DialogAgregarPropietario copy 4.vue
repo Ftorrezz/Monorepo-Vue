@@ -524,36 +524,19 @@ const guardarPropietario = async () => {
   isLoading.value = true;
   try {
     let resultadoOperacion;
-    // Crear una copia mutable para la transformación
-    const datosPropietarioPayload = { ...propietario.value };
+    const datosPropietario = { ...propietario.value };
 
-    // Helper para extraer el '.value' si el campo es un objeto proveniente de los componentes de lista
-    const extractIdValue = (fieldValue) => {
-      if (fieldValue && typeof fieldValue === 'object' && fieldValue !== null && fieldValue.hasOwnProperty('value')) {
-        return fieldValue.value;
-      }
-      return fieldValue;
-    };
-
-    // Transformar los campos de ID que podrían ser objetos
-    datosPropietarioPayload.id_genero = extractIdValue(datosPropietarioPayload.id_genero);
-    datosPropietarioPayload.id_pais = extractIdValue(datosPropietarioPayload.id_pais);
-    datosPropietarioPayload.id_estado = extractIdValue(datosPropietarioPayload.id_estado);
-    datosPropietarioPayload.id_municipio = extractIdValue(datosPropietarioPayload.id_municipio);
-    datosPropietarioPayload.id_colonia = extractIdValue(datosPropietarioPayload.id_colonia);
-    // Considera también id_estadocivil y id_escolaridad si usas componentes similares para ellos
-
-    if (datosPropietarioPayload.id) {
+    if (datosPropietario.id) {
       // Actualizar propietario existente
       // PeticionService.actualizar toma (endpoint, modelo). El ID del modelo se usa internamente.
-      resultadoOperacion = await peticionService.actualizar('propietario', datosPropietarioPayload);
+      resultadoOperacion = await peticionService.actualizar('propietario', datosPropietario);
     } else {
       // Crear nuevo propietario
       // El backend debería asignar el ID, así que lo eliminamos si es null/undefined
-      if (datosPropietarioPayload.id === null || datosPropietarioPayload.id === undefined) {
-        delete datosPropietarioPayload.id;
+      if (datosPropietario.id === null || datosPropietario.id === undefined) {
+        delete datosPropietario.id;
       }
-      resultadoOperacion = await peticionService.crear('propietario', datosPropietarioPayload);
+      resultadoOperacion = await peticionService.crear('propietario', datosPropietario);
     }
 
     // Si la promesa se resolvió (no entró al catch), resultadoOperacion es la respuesta exitosa (respuesta.elemento).
@@ -566,7 +549,7 @@ const guardarPropietario = async () => {
     // Opcional: Notificación de éxito adicional si las de PeticionService no son suficientes
     // o si se desea un mensaje específico del componente que no viene del backend.
     // Por ejemplo:
-    // alertas.mostrarMensaje("verificacion", "Propietario", datosPropietarioPayload.id ? "Actualizado correctamente." : "Registrado correctamente.");
+    // alertas.mostrarMensaje("verificacion", "Propietario", datosPropietario.id ? "Actualizado correctamente." : "Registrado correctamente.");
 
   } catch (error: any) {
     // PeticionService.procesarRespuestaError (llamado internamente) ya muestra la notificación de error de la API.
