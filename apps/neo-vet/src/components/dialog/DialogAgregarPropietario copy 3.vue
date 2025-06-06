@@ -364,7 +364,7 @@
         <q-card-actions align="right" class="modern-actions q-pa-md">
           <OpcionCancelarGuardar
             @accionCerrar="close"
-            @accionValidar="guardarPropietario"
+            @accionValidar="validarFormulario"
           />
         </q-card-actions>
       </q-card>
@@ -373,8 +373,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onBeforeUnmount, watch } from "vue";
-import { QForm, useQuasar } from "quasar";
+import { ref, computed, onBeforeUnmount, watch, onMounted } from "vue";
+import { QForm } from "quasar";
 import ListaGenero from "../../../../../libs/shared/src/components/listas/ListaGenero.vue";
 // Importar los nuevos componentes de lista de ubicación
 import ListaPais from "../../../../../libs/shared/src/components/listas/ListaPais.vue";
@@ -382,11 +382,6 @@ import ListaEstado from "../../../../../libs/shared/src/components/listas/ListaE
 import ListaMunicipio from "../../../../../libs/shared/src/components/listas/ListaMunicipio.vue";
 import ListaColonia from "../../../../../libs/shared/src/components/listas/ListaColonia.vue";
 import OpcionCancelarGuardar from "../OpcionCancelarGuardar.vue";
-import PeticionService from "src/services/peticion.service"; // Importar el servicio real
-import NdAlertasControl from "src/controles/alertas.control";
-
-
-let alertas = new NdAlertasControl();
 
 const props = defineProps({
   propietarioData: {
@@ -413,7 +408,13 @@ const props = defineProps({
       numero_exterior: "",
       numero_interior: "",
       codigopostal: "",
-
+      // Campos para facturación
+      rfc: "",
+      razon_social: "",
+      regimen_fiscal: null,
+      uso_cfdi: null,
+      cp_fiscal: "",
+      correo_facturacion: "",
     }),
   },
 });
@@ -426,8 +427,11 @@ const close = () => {
 
 const emit = defineEmits(["update:propietario", "propietario-guardado"]);
 
+// Tabs
+const tabPropietario = ref("general");
+
 // Cámara
-const video = ref<HTMLVideoElement | null>(null);
+const video = ref(null);
 const canvas = ref(null);
 const camaraActiva = ref(false);
 const imagenCapturada = ref(null);
@@ -439,29 +443,29 @@ const formPropietarioRef = ref<QForm | null>(null);
 // Datos del propietario
 const propietario = ref({ ...props.propietarioData });
 
-const $q = useQuasar();
-const isLoading = ref(false);
+const opcionesEstadoCivil = ref([
+  { label: "Soltero/a", value: 1 },
+  { label: "Casado/a", value: 2 },
+  { label: "Divorciado/a", value: 3 },
+  { label: "Viudo/a", value: 4 },
+]);
 
-// Instanciar el servicio real
-const peticionService = new PeticionService();
+const opcionesEscolaridad = ref([
+  { label: "Primaria", value: 1 },
+  { label: "Secundaria", value: 2 },
+  { label: "Preparatoria", value: 3 },
+  { label: "Universidad", value: 4 },
+  { label: "Posgrado", value: 5 },
+]);
 
 // Funciones para la cámara
 const activarCamara = async () => {
   try {
     stream.value = await navigator.mediaDevices.getUserMedia({ video: true });
-    if (video.value) {
-      video.value.srcObject = stream.value;
-      camaraActiva.value = true;
-    } else {
-      console.error("Elemento de video no encontrado.");
-      detenerCamara(); // Limpiar si algo salió mal
-    }
+    video.value.srcObject = stream.value;
+    camaraActiva.value = true;
   } catch (error) {
     console.error("Error al acceder a la cámara:", error);
-    $q.notify({
-      type: "negative",
-      message: "No se pudo acceder a la cámara. Verifica los permisos.",
-    });
   }
 };
 
@@ -506,59 +510,6 @@ const validarFormulario = async () => {
   return false;
 };
 
-// Guardar propietario
-const guardarPropietario = async () => {
-  const esValido = await validarFormulario();
-  if (!esValido) {
-    alertas.mostrarMensaje(
-        "error",
-        "Propietario",
-        "Por favor, completa los campos requeridos."
-      );
-
-
-    return;
-  }
-
-  isLoading.value = true;
-  try {
-    let resultadoOperacion;
-    const datosPropietario = { ...propietario.value };
-
-    if (datosPropietario.id) {
-      // Actualizar propietario existente
-      // PeticionService.actualizar toma (endpoint, modelo). El ID del modelo se usa internamente.
-      resultadoOperacion = await peticionService.actualizar('propietario', datosPropietario);
-    } else {
-      // Crear nuevo propietario
-      // El backend debería asignar el ID, así que lo eliminamos si es null/undefined
-      if (datosPropietario.id === null || datosPropietario.id === undefined) {
-        delete datosPropietario.id;
-      }
-      resultadoOperacion = await peticionService.crear('propietario', datosPropietario);
-    }
-
-    // Si la promesa se resolvió (no entró al catch), resultadoOperacion es la respuesta exitosa (respuesta.elemento).
-    // PeticionService (a través de NdPeticionControl y NdAlertasControl) ya habrá mostrado
-    // las notificaciones de éxito/error provenientes del backend.
-    // El `catch` de abajo manejará los errores de la API que PeticionService propaga.
-    emit('propietario-guardado', resultadoOperacion); // resultadoOperacion es `respuesta.elemento` o el error si no se maneja en catch
-    close();
-
-    // Opcional: Notificación de éxito adicional si las de PeticionService no son suficientes
-    // o si se desea un mensaje específico del componente que no viene del backend.
-    // Por ejemplo:
-    // alertas.mostrarMensaje("verificacion", "Propietario", datosPropietario.id ? "Actualizado correctamente." : "Registrado correctamente.");
-
-  } catch (error: any) {
-    // PeticionService.procesarRespuestaError (llamado internamente) ya muestra la notificación de error de la API.
-    // Este catch es para errores de programación no previstos o para registrar el error que PeticionService propaga.
-    console.error("Error en la operación de guardado (DialogAgregarPropietario):", error);
-  } finally {
-    isLoading.value = false;
-  }
-};
-
 // Watchers para la lógica de cascada de ubicaciones
 watch(
   () => propietario.value.id_pais,
@@ -601,7 +552,6 @@ onBeforeUnmount(() => {
 defineExpose({
   propietario,
   validarFormulario,
-  guardarPropietario, // Exponer también la función de guardar si es necesario
 });
 
 // Actualizar el propietario cuando cambie
@@ -612,7 +562,6 @@ watch(
   },
   { deep: true }
 );
-
 </script>
 
 <style scoped>
