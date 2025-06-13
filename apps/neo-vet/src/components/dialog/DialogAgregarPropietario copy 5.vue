@@ -20,7 +20,7 @@
         </q-bar>
 
         <!-- Contenido principal -->
-        <q-card-section class="q-pa-md scrollable-form-content">
+        <q-card-section class="q-pa-md">
           <q-form ref="formPropietarioRef">
             <div class="row q-col-gutter-md">
               <!-- Sección de foto y Información Personal -->
@@ -556,12 +556,15 @@ const guardarPropietario = async () => {
       resultadoOperacion = await peticionService.crear('propietario', datosPropietarioPayload);
     }
 
+    console.log("Resultado de la operación:", resultadoOperacion);
+    console.log("Resultado de la operación:", resultadoOperacion.value);
+
     // Si la promesa se resolvió (no entró al catch), resultadoOperacion es la respuesta exitosa (respuesta.elemento).
     // PeticionService (a través de NdPeticionControl y NdAlertasControl) ya habrá mostrado
     // las notificaciones de éxito/error provenientes del backend.
     // El `catch` de abajo manejará los errores de la API que PeticionService propaga.
     emit('propietario-guardado', resultadoOperacion); // resultadoOperacion es `respuesta.elemento` o el error si no se maneja en catch
-    //close();
+    close();
 
     // Opcional: Notificación de éxito adicional si las de PeticionService no son suficientes
     // o si se desea un mensaje específico del componente que no viene del backend.
@@ -635,30 +638,12 @@ watch(
 
 <style scoped>
 .modern-dialog {
-  display: flex; /* Usar flexbox para controlar el layout interno */
-  flex-direction: column; /* Apilar header, content, actions verticalmente */
   width: 90vw;
   max-width: 1200px;
   min-width: 320px;
-  max-height: 90vh; /* Limitar la altura máxima del diálogo */
   border-radius: 12px;
-  /* overflow: hidden; Quasar maneja esto, o si se necesita para border-radius.
-                     El scroll interno se manejará en .scrollable-form-content */
+  overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-.modern-header { /* Para el q-bar */
-  flex-shrink: 0; /* Evitar que el header se encoja */
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-/* Clase específica para la sección de contenido principal del formulario */
-.scrollable-form-content {
-  flex-grow: 1; /* Permitir que esta sección crezca para llenar el espacio disponible */
-  overflow-y: auto; /* Habilitar scroll vertical si el contenido desborda */
-  /* El padding (q-pa-md) se aplica directamente en el template */
-  min-height: 0; /* Necesario en algunos casos para que flex-grow funcione correctamente con overflow */
 }
 
 .modern-header {
@@ -734,7 +719,6 @@ watch(
 }
 
 .modern-actions {
-  flex-shrink: 0; /* Evitar que las acciones se encojan */
   border-top: 1px solid rgba(0, 0, 0, 0.1);
   background-color: rgba(0, 0, 0, 0.02);
 }
@@ -761,15 +745,6 @@ watch(
 
   .modern-dialog {
     width: 95vw;
-    max-height: 85vh; /* Reducir un poco la altura máxima en móviles */
-  }
-
-  .modern-actions {
-    padding: 8px !important; /* Reduce el padding y asegura que se aplique sobre q-pa-md */
-    /* Centra los botones y permite que se envuelvan */
-    justify-content: center !important; /* !important para sobreescribir el 'align' de q-card-actions */
-    flex-wrap: wrap;
-    gap: 8px; /* Espacio entre botones, incluso si se envuelven */
   }
 }
 

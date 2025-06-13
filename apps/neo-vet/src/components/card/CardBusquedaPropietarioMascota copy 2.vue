@@ -474,26 +474,13 @@ const eliminarMascota = async (props) => {
 };
 
 // Agregar estas funciones
-const propietarioAgregado = async (propietarioGuardado) => {
+const propietarioAgregado = (propietario) => {
+
+  console.log(propietario)
+  console.log(propietario.value)
+  // Actualizar la lista de propietarios o realizar otras acciones necesarias
+  //buscar(); // Asumiendo que tienes una función buscar para actualizar la lista
   mostrarDialogoPropietario.value = false;
-  // 1. Emitir 'refresh-data' para que el componente que provee 'props.rows'
-  //    pueda recargar la lista completa desde el backend.
-  emit('refresh-data');
-
-  // 2. Esperar al siguiente ciclo de actualización del DOM (nextTick).
-  //    Esto da tiempo a que 'props.rows' se actualice y 'propietariosRows' se recalcule.
-  await nextTick();
-
-  // 3. Intentar seleccionar el propietario que se acaba de guardar/actualizar.
-  if (propietarioGuardado && propietarioGuardado.id) {
-    const propietarioEnNuevaLista = propietariosRows.value.find(p => p.id === propietarioGuardado.id);
-    if (propietarioEnNuevaLista) {
-      seleccionarPropietario(propietarioEnNuevaLista);
-    }
-    // Si no se encuentra específicamente, la lógica de 'nextTick' dentro de la computed 'propietariosRows'
-    // ya intenta seleccionar el primer propietario si la selección actual no es válida o no existe,
-    // lo cual puede ser un buen comportamiento de fallback.
-  }
 };
 
 const cerrarDialogoPropietario = () => {
