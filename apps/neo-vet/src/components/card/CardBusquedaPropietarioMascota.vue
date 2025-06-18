@@ -336,20 +336,20 @@ const columns = ref([
     name: "email",
     align: "left",
     label: "Correo electrónico",
-    field: "perfildescripcion",
+    field: "email",
     sortable: true,
   },
   {
     name: "telefonomovil",
     label: "Teléfono móvil",
-    field: "activo",
+    field: "telefono1",
     sortable: true,
     align: "center",
   },
   {
     name: "action",
     align: "center",
-    field: "action",
+    field: "activo",
     sortable: false,
   },
 ]);

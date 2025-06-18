@@ -8,7 +8,7 @@ export interface Propietario {
   segundoapellido: string;
   nombre: string;
   email: string;
-  telefonomovil: string;
+  telefono1: string;
   activo: string;
 }
 
@@ -37,7 +37,7 @@ export const usePropietarioStore = defineStore('propietarioStore', {
             segundoapellido: item.propietario.segundoapellido || '',
             nombre: item.propietario.nombre || '',
             email: '',
-            telefonomovil: '',
+            telefono1: '',
             activo: item.activo
           });
         }
@@ -52,7 +52,7 @@ export const usePropietarioStore = defineStore('propietarioStore', {
             segundoapellido: item.propietario.segundoapellido || '',
             nombre: item.propietario.nombre || '',
             email: '',
-            telefonomovil: '',
+            telefono1: '',
             activo: item.activo
           });
         }
@@ -326,7 +326,7 @@ export const usePropietarioStore = defineStore('propietarioStore', {
         segundoapellido: '',
         nombre: 'Propietario',
         email: '',
-        telefonomovil: '',
+        telefono1: '',
         activo: 'S'
       };
       this.agregarPropietarioTemporal(propietarioBasico);
