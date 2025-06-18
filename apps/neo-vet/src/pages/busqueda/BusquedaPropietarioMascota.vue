@@ -137,14 +137,19 @@
       </div>
     </div>
 
-    <CardBusquedaPropietarioMascota :rows="listaPropietarios"  @refresh-data="buscar" />
+    <CardBusquedaPropietarioMascota 
+      :rows="listaPropietarios"  
+      @refresh-data="buscar"
+      @limpiar-filtro="limpiarFiltro"
+      @llenar-filtro-y-buscar="llenarFiltroYBuscar"
+    />
   </div>
 </template>
 
 
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, nextTick } from "vue";
 import { useQuasar } from "quasar";
 import CardBusquedaPropietarioMascota from "../../components/card/CardBusquedaPropietarioMascota.vue";
 import NdPeticionControl from "src/controles/rest.control";
@@ -168,9 +173,10 @@ const formData = ref({
   }
 });
 
-const buscar = async () => {
+const buscar = async (forzarBusqueda = false) => {
   try {
-    if (!tieneAlgunCampoLleno.value) {
+    // Si no es una búsqueda forzada, verificar que haya criterios
+    if (!forzarBusqueda && !tieneAlgunCampoLleno.value) {
       $q.notify({
         type: 'warning',
         message: 'Debe ingresar al menos un criterio de búsqueda',
@@ -195,10 +201,12 @@ const buscar = async () => {
       historia_clinica: formData.value.mascota.historia_clinica
     };
 
+    console.log('Ejecutando búsqueda con filtros:', _unDtoParametros.filtro);
+
     const _respuesta = await _peticion.invocarMetodo("filtropropietariomascota/filtro", "post", _unDtoParametros);
     listaPropietarios.value = _respuesta || [];
 
-    console.log(listaPropietarios.value);
+    console.log('Resultados de búsqueda:', listaPropietarios.value);
 
     /*$q.notify({
       type: 'positive',
@@ -219,6 +227,83 @@ const buscar = async () => {
   } finally {
     loading.value = false;
   }
+};
+
+// Función para limpiar el filtro
+const limpiarFiltro = () => {
+  formData.value = {
+    propietario: {
+      primerapellido: '',
+      segundoapellido: '',
+      nombre: '',
+      correo: '',
+      telefonocelular: ''
+    },
+    mascota: {
+      nombre: '',
+      historia_clinica: ''
+    }
+  };
+  console.log('Filtro limpiado');
+};
+
+// Función para llenar el filtro con datos de propietario y buscar
+const llenarFiltroYBuscar = async (propietario) => {
+  console.log('=== INICIO llenarFiltroYBuscar ===');
+  console.log('Propietario recibido:', propietario);
+  console.log('Tipo de propietario:', typeof propietario);
+  console.log('Propietario es array:', Array.isArray(propietario));
+  
+  if (propietario && typeof propietario === 'object') {
+    console.log('Propiedades del propietario:', Object.keys(propietario));
+    console.log('primerapellido:', propietario.primerapellido);
+    console.log('segundoapellido:', propietario.segundoapellido);
+  }
+  
+  // Llenar el filtro solo con primer y segundo apellido
+  formData.value.propietario = {
+    primerapellido: propietario?.primerapellido || '',
+    segundoapellido: propietario?.segundoapellido || '',
+    nombre: '', // Dejar vacío para agregar después
+    correo: '', // Dejar vacío para agregar después
+    telefonocelular: '' // Dejar vacío para agregar después
+  };
+  
+  // Limpiar filtros de mascota
+  formData.value.mascota = {
+    nombre: '',
+    historia_clinica: ''
+  };
+  
+  console.log('Filtro llenado:', formData.value);
+  console.log('tieneAlgunCampoLleno:', tieneAlgunCampoLleno.value);
+  
+  // Verificar que al menos uno de los campos del propietario tenga datos
+  const tieneDatosPropietario = formData.value.propietario.primerapellido.trim() !== '' ||
+                                formData.value.propietario.segundoapellido.trim() !== '';
+  
+  console.log('tieneDatosPropietario:', tieneDatosPropietario);
+  
+  if (!tieneDatosPropietario) {
+    console.error('No hay datos del propietario para buscar');
+    $q.notify({
+      type: 'warning',
+      message: 'No hay datos del propietario para buscar',
+      position: 'top'
+    });
+    return;
+  }
+  
+  // Esperar a que Vue actualice el computed antes de ejecutar la búsqueda
+  await nextTick();
+  
+  // Verificar que el computed se haya actualizado
+  console.log('Después de nextTick - tieneAlgunCampoLleno:', tieneAlgunCampoLleno.value);
+  
+  // Ejecutar búsqueda forzada (ignora la validación del computed)
+  console.log('Ejecutando búsqueda forzada...');
+  buscar(true);
+  console.log('=== FIN llenarFiltroYBuscar ===');
 };
 
 const isValidEmail = (val: string) => {

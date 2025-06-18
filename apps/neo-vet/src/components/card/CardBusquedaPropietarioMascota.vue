@@ -101,6 +101,15 @@
               Lista de Mascotas
               <span v-if="propietarioSeleccionado" class="text-caption q-ml-sm propietario-seleccionado">
                 ({{ propietarioSeleccionado.nombre }} {{ propietarioSeleccionado.primerapellido }})
+                <q-icon 
+                  v-if="propietarioRecienAgregado" 
+                  name="new_releases" 
+                  size="xs" 
+                  color="yellow" 
+                  class="q-ml-xs"
+                >
+                  <q-tooltip>Propietario recién agregado</q-tooltip>
+                </q-icon>
               </span>
             </div>
             <div>
@@ -141,6 +150,16 @@
           bordered
           translate="no"
         >
+          <!-- Mensaje informativo para propietario recién agregado -->
+          <template v-slot:top v-if="propietarioRecienAgregado">
+            <div class="full-width q-pa-sm bg-yellow-1 text-yellow-9 rounded-borders">
+              <q-icon name="info" size="sm" class="q-mr-xs" />
+              <span class="text-caption">
+                Propietario recién agregado. Puedes agregar mascotas inmediatamente.
+              </span>
+            </div>
+          </template>
+          
           <template v-slot:body="props">
             <q-tr :props="props">
               <q-td v-for="col in props.cols" :key="col.name" :props="props">
@@ -219,45 +238,35 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick } from "vue";
+import { ref, computed, nextTick, watch } from "vue";
 import DialogAgregarMascotaPropietario from "../dialog/DialogAgregarMascotaPropietario.vue";
 import DialogAgregarPropietario from "../dialog/DialogAgregarPropietario.vue";
 import DialogAgregarMascota from "../dialog/DialogAgregarMascota.vue";
 import NdAlertasControl from "src/controles/alertas.control";
 import PeticionService from "src/services/peticion.service";
-
+import { usePropietarioStore } from 'src/stores/propietarioStore';
 
 const mostrarDialogoPropietario = ref(false);
 const mostrarDialogoMascota = ref(false);
-const propietarioSeleccionadoId = ref(null);
-const propietarioSeleccionado = ref(null);
 let alertas = new NdAlertasControl()
+const propietarioStore = usePropietarioStore();
+
+const emit = defineEmits(['update:rows', 'refresh-data', 'limpiar-filtro', 'llenar-filtro-y-buscar']);
 
 const abrirDialogoPropietario = () => {
+  // Limpiar el filtro antes de abrir el diálogo
+  emit('limpiar-filtro');
   mostrarDialogoPropietario.value = true;
 };
 
 const abrirDialogoMascota = () => {
-  if (propietarioSeleccionadoId.value) {
+  if (propietarioStore.tienePropietarioSeleccionado) {
     mostrarDialogoMascota.value = true;
   }
 };
 
 const seleccionarPropietario = (propietario) => {
-  // Siempre seleccionamos el propietario, sin importar si ya estaba seleccionado
-  propietarioSeleccionadoId.value = propietario.id;
-  propietarioSeleccionado.value = propietario;
-};
-
-const limpiarSeleccion = () => {
-  propietarioSeleccionadoId.value = null;
-  propietarioSeleccionado.value = null;
-};
-
-const actualizarMascotas = () => {
-  // Esta función se llamaría después de agregar una mascota
-  // Aquí podrías emitir un evento para actualizar los datos desde el componente padre
-  // o implementar alguna lógica para refrescar los datos
+  propietarioStore.seleccionarPropietario(propietario);
 };
 
 const props = defineProps({
@@ -267,68 +276,32 @@ const props = defineProps({
   },
 });
 
-// Procesar los datos para la tabla de propietarios
-// Modificar el computed de propietariosRows
-const propietariosRows = computed(() => {
-  const propietariosUnicos = new Map();
-
-  props.rows.forEach(item => {
-    if (item.propietario && !propietariosUnicos.has(item.propietario.id)) {
-      propietariosUnicos.set(item.propietario.id, {
-        id: item.propietario.id,
-        primerapellido: item.propietario.primerapellido || '',
-        segundoapellido: item.propietario.segundoapellido || '',
-        nombre: item.propietario.nombre || '',
-        email: '',
-        telefonomovil: '',
-        activo: item.activo
-      });
+// Watcher para actualizar el store cuando cambien los datos
+watch(() => props.rows, (nuevosDatos, datosAnteriores) => {
+  if (nuevosDatos) {
+    // Verificar si es una nueva búsqueda (datos completamente diferentes)
+    const esNuevaBusqueda = !datosAnteriores || 
+      nuevosDatos.length !== datosAnteriores.length ||
+      !nuevosDatos.some((item, index) => 
+        datosAnteriores[index] && 
+        item.propietario?.id === datosAnteriores[index].propietario?.id
+      );
+    
+    if (esNuevaBusqueda) {
+      // Es una nueva búsqueda, limpiar propietarios temporales
+      propietarioStore.limpiarPropietariosTemporales();
     }
-  });
-
-  const propietarios = Array.from(propietariosUnicos.values());
-
-  // Seleccionar el primer propietario solo cuando hay nuevos resultados
-  if (propietarios.length > 0) {
-    nextTick(() => {
-      // Verificar si el propietario seleccionado actual existe en los nuevos resultados
-      const propietarioExiste = propietarios.some(p => p.id === propietarioSeleccionadoId.value);
-
-      // Si no existe un propietario seleccionado o el actual no está en los resultados
-      if (!propietarioSeleccionadoId.value || !propietarioExiste) {
-        seleccionarPropietario(propietarios[0]);
-      }
-    });
-  } else {
-    // Si no hay propietarios, limpiar la selección
-    limpiarSeleccion();
+    
+    propietarioStore.setDatosOriginales(nuevosDatos);
   }
+}, { immediate: true });
 
-  return propietarios;
-});
-
-// Procesar los datos para la tabla de mascotas
-const mascotasRows = computed(() => {
-  return props.rows
-    .filter(item => item.mascota)
-    .map(item => ({
-      id: item.mascota?.id,
-      nombre: item.mascota?.nombre || '',
-      historiaclinica: item.mascota?.historiaclinica || '',
-      propietarioId: item.propietario?.id // Agregamos el ID del propietario para filtrar
-    }));
-});
-
-// Mascotas filtradas según el propietario seleccionado
-const mascotasFiltradas = computed(() => {
-  if (!propietarioSeleccionadoId.value) {
-    return mascotasRows.value; // Mostrar todas las mascotas si no hay propietario seleccionado
-  }
-
-  return mascotasRows.value.filter(mascota =>
-    mascota.propietarioId === propietarioSeleccionadoId.value
-  );
-});
+// Usar los getters del store
+const propietariosRows = computed(() => propietarioStore.propietariosRows);
+const propietarioSeleccionado = computed(() => propietarioStore.propietarioActual);
+const propietarioSeleccionadoId = computed(() => propietarioStore.propietarioSeleccionadoId);
+const mascotasFiltradas = computed(() => propietarioStore.mascotasFiltradas);
+const propietarioRecienAgregado = computed(() => propietarioStore.propietarioRecienAgregado);
 
 const columns = ref([
   {
@@ -416,6 +389,11 @@ const editarPropietario = (props) => {
   console.log('Editar propietario:', props.row);
 };
 
+const editarMascota = (props) => {
+  // Implementar la lógica para editar mascota
+  console.log('Editar mascota:', props.row);
+};
+
 const eliminarPropietario = async (props) => {
   try {
     const peticionService = new PeticionService();
@@ -427,13 +405,9 @@ const eliminarPropietario = async (props) => {
     );
 
     if (resultado !== false) {
-
-
-    // Si el propietario eliminado era el seleccionado, limpiar la selección
-      if (propietarioSeleccionadoId.value === props.row.id) {
-        limpiarSeleccion();
-      }
-
+      // Usar el store para eliminar
+      propietarioStore.eliminarPropietario(props.row.id);
+      
       // Emitir evento para actualizar los datos
       emit('refresh-data');
     }
@@ -447,8 +421,6 @@ const eliminarPropietario = async (props) => {
     );
   }
 };
-
-const emit = defineEmits(['update:rows', 'refresh-data']);
 
 const eliminarMascota = async (props) => {
   try {
@@ -473,31 +445,30 @@ const eliminarMascota = async (props) => {
   }
 };
 
-// Agregar estas funciones
+// Función mejorada para manejar propietario agregado
 const propietarioAgregado = async (propietarioGuardado) => {
   mostrarDialogoPropietario.value = false;
-  // 1. Emitir 'refresh-data' para que el componente que provee 'props.rows'
-  //    pueda recargar la lista completa desde el backend.
-  emit('refresh-data');
-
-  // 2. Esperar al siguiente ciclo de actualización del DOM (nextTick).
-  //    Esto da tiempo a que 'props.rows' se actualice y 'propietariosRows' se recalcule.
-  await nextTick();
-
-  // 3. Intentar seleccionar el propietario que se acaba de guardar/actualizar.
-  if (propietarioGuardado && propietarioGuardado.id) {
-    const propietarioEnNuevaLista = propietariosRows.value.find(p => p.id === propietarioGuardado.id);
-    if (propietarioEnNuevaLista) {
-      seleccionarPropietario(propietarioEnNuevaLista);
-    }
-    // Si no se encuentra específicamente, la lógica de 'nextTick' dentro de la computed 'propietariosRows'
-    // ya intenta seleccionar el primer propietario si la selección actual no es válida o no existe,
-    // lo cual puede ser un buen comportamiento de fallback.
-  }
+  
+  console.log('Propietario guardado recibido:', propietarioGuardado);
+  
+  // Usar la nueva funcionalidad del store que buscará datos completos si es necesario
+  await propietarioStore.manejarPropietarioAgregado(propietarioGuardado);
+  
+  // Llenar el filtro con los datos del propietario recién agregado y buscar
+  emit('llenar-filtro-y-buscar', propietarioGuardado);
 };
 
 const cerrarDialogoPropietario = () => {
   mostrarDialogoPropietario.value = false;
+};
+
+const mascotaAgregada = () => {
+  mostrarDialogoMascota.value = false;
+  emit('refresh-data');
+};
+
+const cerrarDialogoMascota = () => {
+  mostrarDialogoMascota.value = false;
 };
 </script>
 

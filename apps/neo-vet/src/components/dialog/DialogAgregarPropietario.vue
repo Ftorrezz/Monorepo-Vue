@@ -560,8 +560,18 @@ const guardarPropietario = async () => {
     // PeticionService (a través de NdPeticionControl y NdAlertasControl) ya habrá mostrado
     // las notificaciones de éxito/error provenientes del backend.
     // El `catch` de abajo manejará los errores de la API que PeticionService propaga.
-    emit('propietario-guardado', resultadoOperacion); // resultadoOperacion es `respuesta.elemento` o el error si no se maneja en catch
-    //close();
+    
+    console.log('Resultado de la operación:', resultadoOperacion);
+    
+    // Emitir los datos del propietario guardado (con el ID asignado por el backend)
+    const propietarioGuardado = {
+      ...datosPropietarioPayload,
+      id: resultadoOperacion?.id || resultadoOperacion?.elemento?.id || datosPropietarioPayload.id
+    };
+    
+    console.log('Propietario guardado a emitir:', propietarioGuardado);
+    emit('propietario-guardado', propietarioGuardado);
+    close();
 
     // Opcional: Notificación de éxito adicional si las de PeticionService no son suficientes
     // o si se desea un mensaje específico del componente que no viene del backend.
