@@ -465,6 +465,24 @@ const mascotaAgregada = () => {
 const cerrarDialogoMascota = () => {
   mostrarDialogoMascota.value = false;
 };
+
+// Procesar los datos para la tabla de mascotas
+const mascotasRows = computed(() => {
+  const mascotas = [];
+  props.rows.forEach(item => {
+    if (item.mascotas && Array.isArray(item.mascotas)) {
+      item.mascotas.forEach(mascota => {
+        mascotas.push({
+          id: mascota.id,
+          nombre: mascota.nombre || '',
+          historiaclinica: mascota.historiaclinica || '',
+          propietarioId: item.propietario?.id
+        });
+      });
+    }
+  });
+  return mascotas;
+});
 </script>
 
 <style scoped>

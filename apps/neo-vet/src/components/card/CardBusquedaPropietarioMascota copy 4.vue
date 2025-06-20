@@ -9,16 +9,15 @@
               Lista de Propietarios
             </div>
             <q-btn
-              unelevated
-              color="positive"
-              text-color="white"
+              round
+              flat
+              color="white"
               size="sm"
-              label="Nuevo Propietario"
-              class="action-btn"
+              icon="add"
+              class="floating-btn"
               @click="abrirDialogoPropietario"
             >
-              <q-badge color="white" text-color="positive" floating>+</q-badge>
-              <q-tooltip>Agregar nuevo propietario</q-tooltip>
+              <q-tooltip>Agregar Propietario</q-tooltip>
             </q-btn>
           </div>
         </q-card-section>
@@ -100,38 +99,44 @@
             <div class="text-subtitle1">
               <q-icon name="pets" size="sm" class="q-mr-sm" />
               Lista de Mascotas
-              <span v-if="propietarioStore.propietarioActual" class="text-caption q-ml-sm propietario-seleccionado">
-                ({{ propietarioStore.propietarioActual.nombre }} {{ propietarioStore.propietarioActual.primerapellido }})
+              <span v-if="propietarioSeleccionado" class="text-caption q-ml-sm propietario-seleccionado">
+                ({{ propietarioSeleccionado.nombre }} {{ propietarioSeleccionado.primerapellido }})
+                <q-icon 
+                  v-if="propietarioRecienAgregado" 
+                  name="new_releases" 
+                  size="xs" 
+                  color="yellow" 
+                  class="q-ml-xs"
+                >
+                  <q-tooltip>Propietario recién agregado</q-tooltip>
+                </q-icon>
               </span>
             </div>
             <div>
-              <q-btn
-                unelevated
-                color="purple"
-                text-color="white"
+              <!--<q-btn
+                round
+                flat
+                color="white"
                 size="sm"
-                label="Nueva Mascota"
-                class="action-btn"
+                icon="add"
+                class="floating-btn"
                 @click="abrirDialogoMascota"
-                :disabled="!propietarioStore.tienePropietarioSeleccionado"
+                :disabled="!propietarioSeleccionadoId"
               >
-                <q-badge 
-                  v-if="propietarioStore.tienePropietarioSeleccionado"
-                  color="white" 
-                  text-color="purple" 
-                  floating
-                >
-                  +
-                </q-badge>
-                <q-badge 
-                  v-else
-                  color="warning" 
-                  text-color="white" 
-                  floating
-                >
-                  !
-                </q-badge>
-                <q-tooltip>Agregar nueva mascota</q-tooltip>
+                <q-tooltip>Agregar Mascota</q-tooltip>
+              </q-btn>-->
+              <q-btn
+                round
+                flat
+                color="white"
+                size="sm"
+                icon="add"
+                class="floating-btn"
+                @click="abrirDialogoMascota"
+                :disabled="!propietarioSeleccionadoId"
+
+              >
+                <q-tooltip>Agregar Mascota</q-tooltip>
               </q-btn>
             </div>
           </div>
@@ -474,12 +479,11 @@ const cerrarDialogoMascota = () => {
   transition: all 0.3s ease;
   width: 100%;
   margin: 0;
-  border: 2px solid transparent; /* Borde transparente por defecto */
 }
 
-/* Efecto de borde en lugar de sombra */
 .custom-card:hover {
-  border: 2px solid rgba(25, 118, 210, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .full-width {
@@ -509,63 +513,6 @@ const cerrarDialogoMascota = () => {
 .floating-btn:active {
   transform: translateY(-1px);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-}
-
-/* Nuevos estilos para botones de acción más intuitivos */
-.action-btn {
-  font-weight: 600;
-  border-radius: 8px;
-  padding: 6px 12px;
-  transition: all 0.3s ease;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
-  text-transform: none;
-  letter-spacing: 0.5px;
-  font-size: 13px;
-}
-
-.action-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-}
-
-.action-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
-}
-
-.action-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Estilos para los badges en los botones */
-.action-btn .q-badge {
-  font-weight: bold;
-  font-size: 12px;
-  min-width: 18px;
-  height: 18px;
-  border-radius: 9px;
-  top: -6px;
-  right: -6px;
-}
-
-/* Animación para el badge de advertencia */
-.action-btn .q-badge[color="warning"] {
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1);
-  }
 }
 
 .q-pl-md {

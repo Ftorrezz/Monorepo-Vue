@@ -43,7 +43,7 @@
             <q-item class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
               <q-item-section>
                 <q-input
-                  v-model="formData.propietario.correo"
+                  v-model="formData.propietario.email"
                   label="Correo electronico"
                   type="email"
                 >
@@ -56,7 +56,7 @@
             <q-item class="col-lg-2 col-md-6 col-sm-12 col-xs-12">
               <q-item-section>
                 <q-input
-                  v-model="formData.propietario.telefonocelular"
+                  v-model="formData.propietario.telefono1"
                   label="Teléfono móvil"
                   class="custom-input"
                 >
@@ -69,6 +69,36 @@
           </div>
         </q-card-section>
       </q-card>
+
+      <div class="fab-container row items-center q-gutter-sm">
+        <q-btn
+          round
+          flat
+          style="color: #FF0080"
+          icon="search"
+          size="1.2rem"
+          padding="12px"
+          @click="buscar()"
+          :disable="!tieneAlgunCampoLleno"
+          class="search-fab"
+        >
+          <q-tooltip>
+            {{ !tieneAlgunCampoLleno ? 'Ingrese al menos un criterio de búsqueda' : 'Buscar' }}
+          </q-tooltip>
+        </q-btn>
+        <q-btn
+          round
+          flat
+          color="negative"
+          icon="close"
+          size="1.2rem"
+          padding="12px"
+          @click="limpiarBusqueda"
+          class="search-fab"
+        >
+          <q-tooltip>Limpiar búsqueda</q-tooltip>
+        </q-btn>
+      </div>
     </div>
 
     <div class="col-xs-3 col-md-3 col-sm-11 col-xs-11">
@@ -81,9 +111,7 @@
             </div>
           </div>
         </q-card-section>
-
         <q-separator />
-
         <q-card-section class="q-pa-md">
           <div class="row q-col-gutter-md">
             <q-item class="col-lg-6 col-md-12 col-sm-12 col-xs-12">
@@ -106,47 +134,17 @@
             </q-item>
           </div>
         </q-card-section>
-
-       <!-- <q-card-actions align="right" class="q-pa-md">
-          <q-btn
-            outline
-            label="Buscar"
-            icon="search"
-            style="color: #FF0080"
-            @click="buscar()"
-          />
-        </q-card-actions>-->
       </q-card>
-
-      <div class="fab-container">
-        <q-btn
-          round
-          flat
-          style="color: #FF0080"
-          icon="search"
-          size="1.2rem"
-          padding="12px"
-          @click="buscar()"
-          :disable="!tieneAlgunCampoLleno"
-          class="search-fab"
-        >
-          <q-tooltip>
-            {{ !tieneAlgunCampoLleno ? 'Ingrese al menos un criterio de búsqueda' : 'Buscar' }}
-          </q-tooltip>
-        </q-btn>
-      </div>
     </div>
 
-    <CardBusquedaPropietarioMascota 
-      :rows="listaPropietarios"  
+    <CardBusquedaPropietarioMascota
+      :rows="listaPropietarios"
       @refresh-data="buscar"
       @limpiar-filtro="limpiarFiltro"
       @llenar-filtro-y-buscar="llenarFiltroYBuscar"
     />
   </div>
 </template>
-
-
 
 <script setup lang="ts">
 import { ref, computed, nextTick } from "vue";
@@ -164,14 +162,16 @@ const formData = ref({
     primerapellido: '',
     segundoapellido: '',
     nombre: '',
-    correo: '',
-    telefonocelular: ''
+    email: '',
+    telefono1: ''
   },
   mascota: {
     nombre: '',
     historia_clinica: ''
   }
 });
+
+const hayResultados = computed(() => listaPropietarios.value && listaPropietarios.value.length > 0);
 
 const buscar = async (forzarBusqueda = false) => {
   try {
@@ -195,8 +195,8 @@ const buscar = async (forzarBusqueda = false) => {
       nombre: formData.value.propietario.nombre,
       primerapellido: formData.value.propietario.primerapellido,
       segundoapellido: formData.value.propietario.segundoapellido,
-      correo: formData.value.propietario.correo,
-      telefonocelular: formData.value.propietario.telefonocelular,
+      email: formData.value.propietario.email,
+      telefono1: formData.value.propietario.telefono1,
       nombre_mascota: formData.value.mascota.nombre,
       historia_clinica: formData.value.mascota.historia_clinica
     };
@@ -236,8 +236,8 @@ const limpiarFiltro = () => {
       primerapellido: '',
       segundoapellido: '',
       nombre: '',
-      correo: '',
-      telefonocelular: ''
+      email: '',
+      telefono1: ''
     },
     mascota: {
       nombre: '',
@@ -247,63 +247,46 @@ const limpiarFiltro = () => {
   console.log('Filtro limpiado');
 };
 
+const limpiarBusqueda = () => {
+  limpiarFiltro();
+  listaPropietarios.value = [];
+};
+
 // Función para llenar el filtro con datos de propietario y buscar
-const llenarFiltroYBuscar = async (propietario) => {
+const llenarFiltroYBuscar = async (propietario: any) => {
   console.log('=== INICIO llenarFiltroYBuscar ===');
   console.log('Propietario recibido:', propietario);
   console.log('Tipo de propietario:', typeof propietario);
   console.log('Propietario es array:', Array.isArray(propietario));
-  
+
   if (propietario && typeof propietario === 'object') {
     console.log('Propiedades del propietario:', Object.keys(propietario));
     console.log('primerapellido:', propietario.primerapellido);
     console.log('segundoapellido:', propietario.segundoapellido);
   }
-  
+
   // Llenar el filtro solo con primer y segundo apellido
   formData.value.propietario = {
     primerapellido: propietario?.primerapellido || '',
     segundoapellido: propietario?.segundoapellido || '',
     nombre: '', // Dejar vacío para agregar después
-    correo: '', // Dejar vacío para agregar después
-    telefonocelular: '' // Dejar vacío para agregar después
+    email: '', // Dejar vacío para agregar después
+    telefono1: '' // Dejar vacío para agregar después
   };
-  
+
   // Limpiar filtros de mascota
   formData.value.mascota = {
     nombre: '',
     historia_clinica: ''
   };
-  
+
   console.log('Filtro llenado:', formData.value);
   console.log('tieneAlgunCampoLleno:', tieneAlgunCampoLleno.value);
-  
+
   // Verificar que al menos uno de los campos del propietario tenga datos
-  const tieneDatosPropietario = formData.value.propietario.primerapellido.trim() !== '' ||
-                                formData.value.propietario.segundoapellido.trim() !== '';
-  
-  console.log('tieneDatosPropietario:', tieneDatosPropietario);
-  
-  if (!tieneDatosPropietario) {
-    console.error('No hay datos del propietario para buscar');
-    $q.notify({
-      type: 'warning',
-      message: 'No hay datos del propietario para buscar',
-      position: 'top'
-    });
-    return;
+  if (tieneAlgunCampoLleno.value) {
+    await buscar(true);
   }
-  
-  // Esperar a que Vue actualice el computed antes de ejecutar la búsqueda
-  await nextTick();
-  
-  // Verificar que el computed se haya actualizado
-  console.log('Después de nextTick - tieneAlgunCampoLleno:', tieneAlgunCampoLleno.value);
-  
-  // Ejecutar búsqueda forzada (ignora la validación del computed)
-  console.log('Ejecutando búsqueda forzada...');
-  buscar(true);
-  console.log('=== FIN llenarFiltroYBuscar ===');
 };
 
 const isValidEmail = (val: string) => {
@@ -318,8 +301,8 @@ const tieneAlgunCampoLleno = computed(() => {
   return propietario.primerapellido.trim() !== '' ||
          propietario.segundoapellido.trim() !== '' ||
          propietario.nombre.trim() !== '' ||
-         propietario.correo.trim() !== '' ||
-         propietario.telefonocelular.trim() !== '' ||
+         propietario.email.trim() !== '' ||
+         propietario.telefono1.trim() !== '' ||
          mascota.nombre.trim() !== '' ||
          mascota.historia_clinica.trim() !== '';
 });

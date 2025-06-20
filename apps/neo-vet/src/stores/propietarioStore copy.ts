@@ -37,8 +37,8 @@ export const usePropietarioStore = defineStore('propietarioStore', {
             primerapellido: item.propietario.primerapellido || '',
             segundoapellido: item.propietario.segundoapellido || '',
             nombre: item.propietario.nombre || '',
-            email: item.propietario.contacto?.email || '',
-            telefono1: item.propietario.contacto?.telefono1 || '',
+            email: '',
+            telefono1: '',
             activo: item.activo
           });
         }
@@ -46,15 +46,14 @@ export const usePropietarioStore = defineStore('propietarioStore', {
 
       // Procesar propietarios agregados temporalmente
       state.propietariosAgregadosTemporalmente.forEach(item => {
-        console.log('Procesando 2 item:', item);
         if (item.propietario && !propietariosUnicos.has(item.propietario.id)) {
           propietariosUnicos.set(item.propietario.id, {
             id: item.propietario.id,
             primerapellido: item.propietario.primerapellido || '',
             segundoapellido: item.propietario.segundoapellido || '',
             nombre: item.propietario.nombre || '',
-            email: item.propietario.contacto?.email || '',
-            telefono1: item.propietario.contacto?.telefono1 || '',
+            email: '',
+            telefono1: '',
             activo: item.activo
           });
         }
@@ -76,38 +75,28 @@ export const usePropietarioStore = defineStore('propietarioStore', {
 
     // Obtener mascotas filtradas por propietario seleccionado
     mascotasFiltradas: (state) => {
-      // Filtra propietarios temporales que NO están en los datos originales
-      const originalesIds = new Set(state.datosOriginales.map(item => item.propietario?.id));
-      const soloTemporales = state.propietariosAgregadosTemporalmente.filter(
-        item => item.propietario && !originalesIds.has(item.propietario.id)
-      );
-      const todosLosDatos = [...state.datosOriginales, ...soloTemporales];
-
-      const mascotasMap = new Map<string, any>();
-
-      todosLosDatos.forEach(item => {
-        if (item.mascotas && Array.isArray(item.mascotas)) {
-          item.mascotas.forEach((mascota: any) => {
-            const key = `${mascota.id}-${item.propietario?.id}`;
-            if (!mascotasMap.has(key)) {
-              mascotasMap.set(key, {
-                id: mascota.id,
-                nombre: mascota.nombre || '',
-                historiaclinica: mascota.historiaclinica || '',
-                propietarioId: item.propietario?.id
-              });
-            }
-          });
-        }
-      });
-
-      const mascotas = Array.from(mascotasMap.values());
+      // Combinar datos originales con propietarios agregados temporalmente
+      const todosLosDatos = [...state.datosOriginales, ...state.propietariosAgregadosTemporalmente];
 
       if (!state.propietarioSeleccionadoId) {
-        return mascotas;
+        return todosLosDatos
+          .filter(item => item.mascota)
+          .map(item => ({
+            id: item.mascota?.id,
+            nombre: item.mascota?.nombre || '',
+            historiaclinica: item.mascota?.historiaclinica || '',
+            propietarioId: item.propietario?.id
+          }));
       }
 
-      return mascotas.filter((mascota: any) => mascota.propietarioId === state.propietarioSeleccionadoId);
+      return todosLosDatos
+        .filter(item => item.mascota && item.propietario?.id === state.propietarioSeleccionadoId)
+        .map(item => ({
+          id: item.mascota?.id,
+          nombre: item.mascota?.nombre || '',
+          historiaclinica: item.mascota?.historiaclinica || '',
+          propietarioId: item.propietario?.id
+        }));
     }
   },
 
