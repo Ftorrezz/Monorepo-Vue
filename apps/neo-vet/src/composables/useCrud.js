@@ -49,7 +49,8 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
         modelName === "religion" ||
         modelName === "raza" ||
         modelName === "ocupacion" ||
-        modelName === "servicio"
+        modelName === "servicio" ||
+        modelname === "tipoprofesional"
       ) {
       return columnsConfig['genericoDescripcion'] || [];
     }
@@ -359,7 +360,8 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
       modelName === "religion" ||
       modelName === "raza" ||
       modelName === "ocupacion" ||
-      modelName === "servicio"
+      modelName === "servicio" ||
+      modelName === "tipoprofesional"
     ) {
       mostrarFormIntegrado.value = true;
 

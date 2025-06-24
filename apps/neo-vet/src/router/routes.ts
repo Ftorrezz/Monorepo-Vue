@@ -99,6 +99,11 @@ const routes: RouteRecordRaw[] = [
         name: 'servicio',
         component: () => import('pages/configuration/general/servicio.vue'),
         meta: { requireAuth: false },
+      },
+      { path: '/tipoprofesional',
+        name: 'tipoprofesional',
+        component: () => import('pages/configuration/general/tipoprofesional.vue'),
+        meta: { requireAuth: false },
       }
 
     ],

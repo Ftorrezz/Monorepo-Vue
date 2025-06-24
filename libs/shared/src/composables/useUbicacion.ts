@@ -133,7 +133,8 @@ export function useUbicacion() {
     loadingMunicipios.value = true;
     municipios.value = [];
     try {
-      municipios.value = await peticionService.obtenerGet({ endPoint: 'municipios', filtro: { id_estado: estadoId } });
+      //municipios.value = await peticionService.obtenerGet({ endPoint: 'municipios', filtro: { id_estado: estadoId } });
+      municipios.value = await peticionService.obtenerGet("municipio");
     } catch (error) {
       console.error("Error fetching municipios:", error);
       $q.notify({ type: 'negative', message: `Error al cargar municipios para el estado ID: ${estadoId}.` });
@@ -182,7 +183,8 @@ export function useUbicacion() {
     loadingColonias.value = true;
     colonias.value = [];
     try {
-      colonias.value = await peticionService.obtenerGet({ endPoint: 'colonias', filtro: { id_municipio: municipioId } });
+      //colonias.value = await peticionService.obtenerGet({ endPoint: 'colonias', filtro: { id_municipio: municipioId } });
+      colonias.value = await peticionService.obtenerGet("colonia");
     } catch (error) {
       console.error("Error fetching colonias:", error);
       $q.notify({ type: 'negative', message: `Error al cargar colonias para el municipio ID: ${municipioId}.` });
