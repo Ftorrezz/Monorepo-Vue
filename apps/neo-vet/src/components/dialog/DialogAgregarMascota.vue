@@ -1,160 +1,216 @@
 <template>
   <div>
-
     <q-dialog v-model="mostrarDialogo" persistent>
-    <q-card
-      bordered
-      elevated
-      class="dialog-card"
-    >
-      <q-bar class="bg-primary text-white">
-        <q-icon name="person" />
-        <div>Mascota</div>
-        <q-space />
-        <q-btn dense flat icon="close" v-close-popup>
-          <template #default>
-            <q-tooltip>Cerrar</q-tooltip>
-          </template>
-        </q-btn>
-      </q-bar>
-
-    <div class="text-h5 q-mb-md text-teal">Mascota</div>
-    <q-separator class="q-mb-md" color="grey-3" style="height: 2px" />
-
-    <q-tab-panels v-model="tabMascota" animated class="flex-panels">
-      <q-tab-panel name="general" class="flex-panel-content">
-        <q-form ref="formMascota">
-          <div class="row q-col-gutter-sm q-pa-none">
-            <!-- Contenedor principal que agrupa la foto y los campos -->
-            <div class="row full-width q-col-gutter-md q-pa-none">
-              <!-- Sección de la foto -->
-              <div class="col-lg-2 col-md-3 col-sm-6 col-xs-12 q-pa-none">
-                <div class="camera-section">
-                  <div class="photo-container">
-                    <video
-                      v-show="!imagenCapturada && camaraActiva"
-                      ref="video"
-                      class="camera-preview"
-                      autoplay
-                      playsinline
-                    ></video>
-                    <canvas
-                      ref="canvas"
-                      width="640"
-                      height="480"
-                      style="display: none"
-                    ></canvas>
-                    <img
-                      v-if="imagenCapturada"
-                      :src="imagenCapturada"
-                      class="captured-image"
-                      alt="Foto de la mascota"
-                    />
-                    <div
-                      v-if="!camaraActiva && !imagenCapturada"
-                      class="photo-placeholder"
-                    >
-                      <q-icon name="pets" size="32px" color="grey-7" />
-                      <div class="text-grey-7 text-caption q-mt-sm">
-                        Click para foto
-                      </div>
-                    </div>
-                  </div>
-                  <!-- Controles de la cámara -->
-                  <div class="camera-controls q-mt-sm">
-                    <q-btn
-                      v-if="!camaraActiva && !imagenCapturada"
-                      color="primary"
-                      dense
-                      icon="camera_alt"
-                      size="sm"
-                      @click="activarCamara"
-                    >
-                      <q-tooltip>Activar Cámara</q-tooltip>
-                    </q-btn>
-                    <template v-if="camaraActiva">
-                      <q-btn
-                        color="primary"
-                        dense
-                        icon="camera"
-                        size="sm"
-                        @click="capturarFoto"
-                      ></q-btn>
-                      <q-btn
-                        color="negative"
-                        dense
-                        icon="close"
-                        size="sm"
-                        @click="detenerCamara"
-                        class="q-ml-sm"
-                      >
-                        <q-tooltip>Cancelar</q-tooltip>
-                      </q-btn>
-                    </template>
-                    <q-btn
-                      v-if="imagenCapturada"
-                      color="negative"
-                      dense
-                      icon="refresh"
-                      size="sm"
-                      @click="reiniciarCamara"
-                      class="q-ml-sm"
-                    >
-                      <q-tooltip>Volver a tomar</q-tooltip>
-                    </q-btn>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Campos principales de la mascota -->
-              <div class="col-lg-10 col-md-9 col-sm-6 col-xs-12 q-pa-none">
-                <div class="row q-col-gutter-sm">
-                  <!-- Fila para campos identificativos -->
-                  <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                    <q-input
-                      v-model="mascota.nombre"
-                      label="Nombre *"
-                      :rules="[(val) => !!val || 'El nombre es requerido']"
-                    />
-                  </div>
-                  <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
-                    <q-input
-                      v-model="mascota.fechanacimiento"
-                      label="Fecha de Nacimiento"
-                      type="date"
-                    />
-                  </div>
-                  <div class="col-lg-1 col-md-1 col-sm-12 col-xs-12">
-                    <q-input v-model="mascota.edad" label="Edad" />
-                  </div>
-                  <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
-                    <q-select
-                      v-model="mascota.id_sexo"
-                      :options="opcionesSexo"
-                      label="Sexo *"
-                      :rules="[(val) => !!val || 'El sexo es requerido']"
-                      emit-value
-                      map-options
-                    />
-                  </div>
-                </div>
-                <!-- Fin de fila para campos identificativos -->
-              </div>
-              <!-- Fin de col-lg-10 para campos identificativos -->
+    <q-card class="modern-dialog">
+      <q-bar class="bg-primary text-white modern-header">
+          <div class="row items-center full-width">
+            <div class="col-auto">
+              <q-avatar size="28px" class="q-mr-sm">
+                <q-icon name="pets" />
+              </q-avatar>
             </div>
-            <!-- Fin de row full-width para foto y campos identificativos -->
+            <div class="col text-subtitle1">Registro de Mascota</div>
+            <div class="col-auto">
+              <q-btn flat round dense icon="close" @click="closeDialog">
+                <q-tooltip>Cerrar</q-tooltip>
+              </q-btn>
+            </div>
+          </div>
+        </q-bar>
 
-            <!-- Sección de Detalles de la Mascota -->
-            <div class="row full-width q-col-gutter-md q-mt-md q-pa-none">
+    
+    
+      <!-- Contenido principal -->
+        <q-card-section class="q-pa-md scrollable-form-content">
+          <q-form ref="formMascotaRef">
+            <div class="row q-col-gutter-md">
+              <!-- Sección de foto y Información Personal -->
               <div class="col-12">
-                <q-card flat bordered>
-                  <q-card-section class="q-pa-sm">
-                    <div class="text-subtitle1 text-teal">
-                      Detalles Adicionales
+                <div class="row q-col-gutter-md">
+                  <!-- Sección de la foto -->
+                  <div class="col-lg-2 col-md-3 col-sm-6 col-xs-12">
+                    <q-card flat bordered class="modern-photo-card">
+                      <q-card-section class="column items-center">
+                        <div
+                          class="modern-photo-container"
+                          @click="
+                            !camaraActiva && !imagenCapturada && activarCamara()
+                          "
+                        >
+                          <video
+                            v-show="!imagenCapturada && camaraActiva"
+                            ref="video"
+                            class="camera-preview"
+                            autoplay
+                            playsinline
+                          ></video>
+                          <canvas
+                            ref="canvas"
+                            width="640"
+                            height="480"
+                            style="display: none"
+                          ></canvas>
+                          <img
+                            v-if="imagenCapturada"
+                            :src="imagenCapturada"
+                            class="captured-image"
+                            alt="Foto del propietario"
+                          />
+                          <div
+                            v-if="!camaraActiva && !imagenCapturada"
+                            class="photo-placeholder"
+                          >
+                            <q-icon
+                              name="photo_camera"
+                              size="32px"
+                              color="grey-7"
+                            />
+                            <div class="text-grey-7 text-caption q-mt-sm">
+                              Click para foto
+                            </div>
+                          </div>
+                        </div>
+                        <!-- Modificar los controles de la cámara -->
+                        <div class="modern-camera-controls q-mt-sm">
+                          <q-btn
+                            v-if="!camaraActiva && !imagenCapturada"
+                            color="primary"
+                            dense
+                            icon="camera_alt"
+                            size="sm"
+                            @click="activarCamara"
+                          >
+                            <q-tooltip>Activar Cámara</q-tooltip>
+                          </q-btn>
+                          <template v-if="camaraActiva">
+                            <q-btn
+                              color="primary"
+                              dense
+                              icon="camera"
+                              size="sm"
+                              @click="capturarFoto"
+                            >
+                              <q-tooltip>Capturar</q-tooltip>
+                            </q-btn>
+                            <q-btn
+                              color="negative"
+                              dense
+                              icon="close"
+                              size="sm"
+                              @click="detenerCamara"
+                              class="q-ml-sm"
+                            >
+                              <q-tooltip>Cancelar</q-tooltip>
+                            </q-btn>
+                          </template>
+                          <q-btn
+                            v-if="imagenCapturada"
+                            color="negative"
+                            dense
+                            icon="refresh"
+                            size="sm"
+                            @click="reiniciarCamara"
+                            class="q-ml-sm"
+                          >
+                            <q-tooltip>Volver a tomar</q-tooltip>
+                          </q-btn>
+                        </div>
+                      </q-card-section>
+                    </q-card>
+                  </div>
+
+                  <!-- Información personal -->
+                  <div class="col-lg-10 col-md-9 col-sm-6 col-xs-12">
+                    <q-card flat bordered class="modern-info-card">
+                      <q-card-section>
+                        <div class="text-subtitle1 text-primary q-mb-md">
+                          Información Principal
+                        </div>
+                        <div class="row q-col-gutter-md">
+                          <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                            <q-input
+                              v-model="mascota.nombre"
+                              label="Nombre *"
+                              :rules="[(val) => !!val || 'El nombre es requerido']"
+                              dense
+                            />
+                          </div>
+                          <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                            <q-input
+                              v-model="mascota.fechanacimiento"
+                              label="Fecha de Nacimiento"
+                              type="date"
+                              @update:model-value="calcularEdadMascota"
+                              dense
+                            />
+                          </div>
+                          <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12">
+                            <q-input v-model="mascota.edad" label="Edad" readonly dense />
+                          </div>
+                          <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                            <q-select
+                              v-model="mascota.id_sexo"
+                              :options="opcionesSexo"
+                              label="Sexo *"
+                              :rules="[(val) => !!val || 'El sexo es requerido']"
+                              emit-value
+                              map-options
+                              dense
+                            />
+                          </div>
+                           <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                            <q-input
+                              v-model="mascota.historiaclinica"
+                              label="Historia Clínica"
+                              dense
+                            />
+                          </div>
+                          <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                        <q-input
+                          v-model="mascota.chip"
+                          label="Número de Chip"
+                          dense
+                        />
+                      </div>
+                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                        <q-input
+                          v-model="mascota.fechachip"
+                          label="Fecha de Chip"
+                          type="date"
+                          dense
+                        />
+                      </div>
+                      <div class="col-lg-2 col-md-3 col-sm-12 col-xs-12">
+                        <q-select
+                          v-model="mascota.id_tamano"
+                          :options="opcionesTamano"
+                          label="Tamaño"
+                          emit-value
+                          map-options
+                          dense
+                        />
+                      </div>
+                      <div class="col-lg-1 col-md-2 col-sm-6 col-xs-12">
+                            <q-input v-model="mascota.peso" label="Peso" dense />
+                          </div>
+
+                        </div>
+                      </q-card-section>
+                    </q-card>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Detalles Adicionales -->
+              <div class="col-12">
+                <q-card flat bordered class="modern-details-card">
+                  <q-card-section>
+                    <div class="row items-center q-mb-md">
+                      <q-icon name="list_alt" color="primary" size="sm" class="q-mr-sm" />
+                      <div class="text-subtitle1 text-primary">Datos Adicionales</div>
                     </div>
-                    <q-separator class="q-my-sm" color="grey-3" />
-                    <div class="row q-col-gutter-sm">
-                      <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                    <div class="row q-col-gutter-md">
+                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                         <q-select
                           v-model="mascota.id_especie"
                           :options="opcionesEspecie"
@@ -162,85 +218,104 @@
                           :rules="[(val) => !!val || 'La especie es requerida']"
                           emit-value
                           map-options
+                          dense
                         />
                       </div>
-                      <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                         <q-select
                           v-model="mascota.id_raza"
                           :options="opcionesRaza"
                           label="Raza"
                           emit-value
                           map-options
+                          dense
                         />
                       </div>
-
-                      <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                         <q-select
                           v-model="mascota.id_color"
                           :options="opcionesColor"
                           label="Color"
                           emit-value
                           map-options
-                          class="full-width"
+                          dense
                         />
                       </div>
-                      <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                      
+                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                         <q-select
-                          v-model="mascota.id_tamano"
+                          v-model="mascota.id_dieta"
                           :options="opcionesTamano"
-                          label="Tamaño"
+                          label="Dieta"
                           emit-value
                           map-options
-                          class="full-width"
+                          dense
                         />
                       </div>
                       <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                    <q-input
-                      v-model="mascota.chip"
-                      label="Número de Chip"
-                      class="full-width"
-                    />
-                  </div>
-                  <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                    <q-input
-                      v-model="mascota.fechachip"
-                      label="Fecha de Chip"
-                      type="date"
-                      class="full-width"
-                    />
-                  </div>
-
+                        <q-select
+                          v-model="mascota.id_habitat"
+                          :options="opcionesTamano"
+                          label="Habitat"
+                          emit-value
+                          map-options
+                          dense
+                        />
+                      </div>
+                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                        <q-select
+                          v-model="mascota.id_caracter"
+                          :options="opcionesTamano"
+                          label="Caracter"
+                          emit-value
+                          map-options
+                          dense
+                        />
+                      </div>
+                      
                     </div>
                   </q-card-section>
                 </q-card>
               </div>
-            </div>
 
-            <!-- Sección de Observaciones -->
-            <div class="row full-width q-col-gutter-md q-mt-md q-pa-none">
+              <!-- Observaciones -->
               <div class="col-12">
-                <q-input
-                  v-model="mascota.observacion"
-                  type="textarea"
-                  label="Observaciones"
-                  rows="3"
-                  class="full-width"
-                />
+                <q-card flat bordered class="modern-notes-card">
+                  <q-card-section>
+                    <div class="row items-center q-mb-md">
+                      <q-icon
+                        name="notes"
+                        color="primary"
+                        size="sm"
+                        class="q-mr-sm"
+                      />
+                      <div class="text-subtitle1 text-primary">
+                        Observaciones
+                      </div>
+                    </div>
+                    <q-input
+                      v-model="mascota.observacion"
+                      type="textarea"
+                      label="Observaciones"
+                      rows="3"
+                      class="full-width"
+                      dense
+                    />
+                  </q-card-section>
+                </q-card>
               </div>
             </div>
-          </div>
-          <!-- Fin de row q-col-gutter-sm q-pa-none (contenedor principal del form) -->
-        </q-form>
-      </q-tab-panel>
-    </q-tab-panels>
+          </q-form>
+        </q-card-section>
 
-    <q-card-section class="q-pa-md">
-        <OpcionCancelarGuardar
-          @accionCerrar="close"
-          @accionValidar="validarFormulario"
-        />
-      </q-card-section>
-
+        <!-- Botones de acción -->
+        <q-card-actions align="right" class="modern-actions q-pa-md">
+          <OpcionCancelarGuardar
+            @accionCerrar="closeDialog"
+            @accionValidar="guardarMascota"
+          />
+        </q-card-actions>
+    
     </q-card>
     </q-dialog>
 
@@ -249,7 +324,10 @@
 
 <script setup>
 import { ref, computed, onMounted, defineProps, defineEmits, watch } from "vue";
-
+import { QForm, useQuasar } from "quasar";
+import OpcionCancelarGuardar from "../OpcionCancelarGuardar.vue";
+import PeticionService from "src/services/peticion.service";
+import NdAlertasControl from "src/controles/alertas.control";
 const props = defineProps({
   propietarioId: {
     type: Number,
@@ -276,9 +354,13 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["update:mascota", "mascota-guardada"]);
+const emit = defineEmits(["update:mascota", "mascota-guardada", "cerrar"]);
 
+const $q = useQuasar();
 const mostrarDialogo = ref(true);
+const isLoading = ref(false);
+const peticionService = new PeticionService();
+const alertas = new NdAlertasControl();
 
 const close = () => {
   mostrarDialogo.value = false;
@@ -294,11 +376,107 @@ const camaraActiva = ref(false);
 const imagenCapturada = ref(null);
 const stream = ref(null);
 
+const formMascotaRef = ref<QForm | null>(null);
+
 // Datos de la mascota
 const mascota = ref({
   ...props.mascotaData,
   id_propietario: props.propietarioId,
 });
+
+
+// Calculate age on mount if fechanacimiento is present
+if (mascota.value.fechanacimiento) {
+  calcularEdadMascota();
+}
+
+const calcularEdadMascota = () => {
+  if (mascota.value.fechanacimiento) {
+    const fechaNac = new Date(mascota.value.fechanacimiento);
+    const hoy = new Date();
+    let edad = hoy.getFullYear() - fechaNac.getFullYear();
+    const mes = hoy.getMonth() - fechaNac.getMonth();
+    if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
+      edad--;
+    }
+    mascota.value.edad = edad >= 0 ? edad.toString() : '0';
+  } else {
+    mascota.value.edad = '';
+  }
+};
+
+const validarFormulario = async () => {
+  if (formMascotaRef.value) {
+    return await formMascotaRef.value.validate();
+  }
+  return false;
+};
+
+const guardarMascota = async () => {
+  const esValido = await validarFormulario();
+  if (!esValido) {
+    alertas.mostrarMensaje(
+      "error",
+      "Guardar Mascota",
+      "Por favor, completa los campos requeridos."
+    );
+    return;
+  }
+
+  isLoading.value = true;
+  try {
+    let resultadoOperacion;
+    const datosMascotaPayload = { ...mascota.value };
+
+    // Ensure id_propietario is set
+    if (!datosMascotaPayload.id_propietario && props.propietarioId) {
+        datosMascotaPayload.id_propietario = props.propietarioId;
+    }
+
+    // Remove id if it's null for creation
+    if (datosMascotaPayload.id === null || datosMascotaPayload.id === undefined) {
+      delete datosMascotaPayload.id;
+    }
+
+    if (datosMascotaPayload.id) {
+      resultadoOperacion = await peticionService.actualizar('mascota', datosMascotaPayload);
+    } else {
+      resultadoOperacion = await peticionService.crear('mascota', datosMascotaPayload);
+    }
+
+    const mascotaGuardada = {
+      ...datosMascotaPayload,
+      id: resultadoOperacion?.id || resultadoOperacion?.elemento?.id || datosMascotaPayload.id,
+      // If backend returns full object, spread it: ...resultadoOperacion.elemento
+    };
+
+    emit('mascota-guardada', mascotaGuardada);
+    closeDialog();
+
+  } catch (error) {
+    console.error("Error en la operación de guardado de mascota:", error);
+    // NdAlertasControl (via PeticionService) should handle backend error messages.
+    // This is a fallback or for client-side issues not caught by PeticionService.
+     alertas.mostrarMensaje(
+      "error",
+      "Guardar Mascota",
+      error.message || "No fue posible guardar la mascota."
+    );
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+/*defineExpose({
+  mascota,
+  validarFormulario,
+  guardarMascota,
+});*/
+
+const closeDialog = () => {
+  mostrarDialogo.value = false;
+  emit("cerrar");
+};
 
 // Actualizar el ID del propietario cuando cambie
 watch(
@@ -375,20 +553,7 @@ const reiniciarCamara = () => {
   activarCamara();
 };
 
-// Validar formulario
-const validarFormulario = async () => {
-  const formMascota = document.querySelector("ref[formMascota]");
-  if (formMascota && !(await formMascota.validate())) {
-    return false;
-  }
-  return true;
-};
 
-// Exponer métodos y propiedades para el componente padre
-defineExpose({
-  mascota,
-  validarFormulario,
-});
 
 // Actualizar la mascota cuando cambie
 watch(
@@ -401,26 +566,79 @@ watch(
 </script>
 
 <style scoped>
-.camera-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  margin: 0;
+.modern-dialog {
+  display: flex; /* Usar flexbox para controlar el layout interno */
+  flex-direction: column; /* Apilar header, content, actions verticalmente */
+  width: 90vw;
+  max-width: 1200px;
+  min-width: 320px;
+  max-height: 90vh; /* Limitar la altura máxima del diálogo */
+  border-radius: 12px;
+  /* overflow: hidden; Quasar maneja esto, o si se necesita para border-radius.
+                     El scroll interno se manejará en .scrollable-form-content */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
-.photo-container {
-  width: 130px;
-  height: 130px;
-  border: 3px dashed #ccc;
+.modern-header { /* Para el q-bar */
+  flex-shrink: 0; /* Evitar que el header se encoja */
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Clase específica para la sección de contenido principal del formulario */
+.scrollable-form-content {
+  flex-grow: 1; /* Permitir que esta sección crezca para llenar el espacio disponible */
+  overflow-y: auto; /* Habilitar scroll vertical si el contenido desborda */
+  /* El padding (q-pa-md) se aplica directamente en el template */
+  min-height: 0; /* Necesario en algunos casos para que flex-grow funcione correctamente con overflow */
+}
+
+.modern-photo-card,
+.modern-info-card,
+.modern-address-card,
+.modern-notes-card {
   border-radius: 8px;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background-color: #ffffff; /* Fondo blanco para las tarjetas */
+  margin-bottom: 16px;
+}
+
+.modern-photo-card:hover,
+.modern-info-card:hover,
+.modern-address-card:hover,
+.modern-notes-card:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.modern-photo-container {
+  width: 150px;
+  height: 150px;
+  border-radius: 12px;
+  border: 2px dashed var(--q-primary);
   overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #f5f5f5;
+  background-color: rgba(0, 0, 0, 0.02);
   cursor: pointer;
-  position: relative;
+  position: relative; /* Necesario para posicionar el placeholder */
+  transition: all 0.3s ease;
+}
+
+.modern-photo-container:hover {
+  border-color: var(--q-secondary);
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.modern-camera-controls {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.modern-camera-controls .q-btn {
+  border-radius: 8px;
 }
 
 .camera-preview,
@@ -428,6 +646,7 @@ watch(
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 8px;
 }
 
 .photo-placeholder {
@@ -437,65 +656,57 @@ watch(
   justify-content: center;
   width: 100%;
   height: 100%;
+  position: absolute; /* Posicionar sobre el contenedor */
+  top: 0;
+  left: 0;
 }
 
-.camera-controls {
-  margin-top: 0.5rem;
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
+.modern-actions {
+  flex-shrink: 0; /* Evitar que las acciones se encojan */
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+:deep(.q-field--outlined .q-field__control) {
+  border-radius: 8px;
+}
+
+:deep(.q-field--filled .q-field__control) {
+  border-radius: 8px;
 }
 
 /* Ajustes responsive */
 @media (max-width: 600px) {
-  .photo-container {
+  .modern-photo-container {
     width: 120px;
     height: 120px;
   }
-}
-.dialog-card {
-  width: 90vw;
-  max-width: 1200px;
-  min-width: 320px;
-  border-radius: 10px;
-  overflow: hidden;
+
+  .modern-dialog {
+    width: 95vw;
+    max-height: 85vh; /* Reducir un poco la altura máxima en móviles */
+  }
+
+  .modern-actions {
+    padding: 8px !important; /* Reduce el padding y asegura que se aplique sobre q-pa-md */
+    /* Centra los botones y permite que se envuelvan */
+    justify-content: center !important; /* !important para sobreescribir el 'align' de q-card-actions */
+    flex-wrap: wrap;
+    gap: 8px; /* Espacio entre botones, incluso si se envuelven */
+  }
 }
 
-.fixed-height-section {
-  height: 650px;
-  overflow: hidden;
+/* Animaciones suaves */
+.q-dialog-plugin-enter-active,
+.q-dialog-plugin-leave-active {
+  transition: all 0.3s ease-in-out;
 }
 
-.fixed-height-panel {
-  height: 100%;
-  overflow-y: auto;
+.q-dialog-plugin-enter-from,
+.q-dialog-plugin-leave-to {
+  opacity: 0;
+  transform: scale(0.95);
 }
 
-/* Estilo para mantener consistente el tamaño de los paneles */
-:deep(.q-tab-panel) {
-  padding: 8px !important;
-}
 
-.q-pa-none {
-  padding: 0 !important;
-}
-
-.row.q-col-gutter-md {
-  margin: 0;
-}
-
-.row.q-col-gutter-sm {
-  margin: 0;
-}
-
-/* Ajuste específico para la sección de la cámara */
-.camera-section {
-  margin-top: 0;
-  padding-top: 0;
-}
-
-.q-item {
-  padding-top: 0;
-  padding-bottom: 8px;
-}
 </style>

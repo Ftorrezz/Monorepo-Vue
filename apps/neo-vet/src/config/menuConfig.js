@@ -25,11 +25,21 @@ export const menuConfig = [
     icon: "settings",
     items: [
       {
+        label: "Agenda",
+        icon: "calendar_month",
+        subItems: [
+          { label: "Agenda", icon: "send", to: "/agenda" },
+          
+        ],
+      },
+      {
         label: "General",
         icon: "view_timeline",
         subItems: [
           { label: "Servicio", icon: "send", to: "/servicio" },
           { label: "Ubicación", icon: "send", to: "/ubicacion" },
+          { label: "Profesional", icon: "send", to: "/profesional" },
+          { label: "Tipo de Profesional", icon: "send", to: "/tipoprofesional" },
 
         ],
       },

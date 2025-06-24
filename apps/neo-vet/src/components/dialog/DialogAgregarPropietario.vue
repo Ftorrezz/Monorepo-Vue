@@ -129,7 +129,7 @@
                           <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                             <q-input
                               v-model="propietario.primerapellido"
-                              label="Primer Apellido"
+                              label="Primer Apellido *"
                               :rules="[
                                 (val) =>
                                   !!val || 'El primer apellido es requerido',
@@ -147,7 +147,7 @@
                           <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                             <q-input
                               v-model="propietario.nombre"
-                              label="Nombres"
+                              label="Nombres *"
                               :rules="[
                                 (val) => !!val || 'El nombre es requerido',
                               ]"
@@ -203,7 +203,7 @@
                           <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                             <q-input
                               v-model="propietario.telefono1"
-                              label="Teléfono móvil"
+                              label="Teléfono móvil *"
                               :rules="[
                                 (val) =>
                                   !!val || 'El teléfono móvil es requerido',
@@ -230,7 +230,7 @@
                           <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                             <q-input
                               v-model="propietario.email"
-                              label="Correo electrónico"
+                              label="Correo electrónico *"
                               type="email"
                               :rules="[
                                 (val) =>

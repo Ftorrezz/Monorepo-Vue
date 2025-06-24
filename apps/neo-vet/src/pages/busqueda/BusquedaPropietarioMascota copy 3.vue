@@ -6,7 +6,7 @@
           <div class="row items-center justify-between">
             <div class="text-subtitle1">
               <q-icon name="person" size="sm" class="q-mr-sm" />
-              Búsqueda de Propietario
+              Propietario
             </div>
           </div>
         </q-card-section>
@@ -43,7 +43,7 @@
             <q-item class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
               <q-item-section>
                 <q-input
-                  v-model="formData.propietario.correo"
+                  v-model="formData.propietario.email"
                   label="Correo electronico"
                   type="email"
                 >
@@ -56,7 +56,7 @@
             <q-item class="col-lg-2 col-md-6 col-sm-12 col-xs-12">
               <q-item-section>
                 <q-input
-                  v-model="formData.propietario.telefonocelular"
+                  v-model="formData.propietario.telefono1"
                   label="Teléfono móvil"
                   class="custom-input"
                 >
@@ -69,6 +69,36 @@
           </div>
         </q-card-section>
       </q-card>
+
+      <div class="fab-container row items-center q-gutter-sm">
+        <q-btn
+          round
+          flat
+          style="color: #FF0080"
+          icon="search"
+          size="1.2rem"
+          padding="12px"
+          @click="buscar()"
+          :disable="!tieneAlgunCampoLleno"
+          class="search-fab"
+        >
+          <q-tooltip>
+            {{ !tieneAlgunCampoLleno ? 'Ingrese al menos un criterio de búsqueda' : 'Buscar' }}
+          </q-tooltip>
+        </q-btn>
+        <q-btn
+          round
+          flat
+          color="negative"
+          icon="close"
+          size="1.2rem"
+          padding="12px"
+          @click="limpiarBusqueda"
+          class="search-fab"
+        >
+          <q-tooltip>Limpiar búsqueda</q-tooltip>
+        </q-btn>
+      </div>
     </div>
 
     <div class="col-xs-3 col-md-3 col-sm-11 col-xs-11">
@@ -77,13 +107,11 @@
           <div class="row items-center justify-between">
             <div class="text-subtitle1">
               <q-icon name="pets" size="sm" class="q-mr-sm" />
-              Búsqueda de Mascota
+              Mascota
             </div>
           </div>
         </q-card-section>
-
         <q-separator />
-
         <q-card-section class="q-pa-md">
           <div class="row q-col-gutter-md">
             <q-item class="col-lg-6 col-md-12 col-sm-12 col-xs-12">
@@ -106,46 +134,20 @@
             </q-item>
           </div>
         </q-card-section>
-
-       <!-- <q-card-actions align="right" class="q-pa-md">
-          <q-btn
-            outline
-            label="Buscar"
-            icon="search"
-            style="color: #FF0080"
-            @click="buscar()"
-          />
-        </q-card-actions>-->
       </q-card>
-
-      <div class="fab-container">
-        <q-btn
-          round
-          flat
-          style="color: #FF0080"
-          icon="search"
-          size="1.2rem"
-          padding="12px"
-          @click="buscar()"
-          :disable="!tieneAlgunCampoLleno"
-          class="search-fab"
-        >
-          <q-tooltip>
-            {{ !tieneAlgunCampoLleno ? 'Ingrese al menos un criterio de búsqueda' : 'Buscar' }}
-          </q-tooltip>
-        </q-btn>
-        
-      </div>
     </div>
 
-    <CardBusquedaPropietarioMascota :rows="listaPropietarios"  @refresh-data="buscar" />
+    <CardBusquedaPropietarioMascota
+      :rows="listaPropietarios"
+      @refresh-data="buscar"
+      @limpiar-filtro="limpiarFiltro"
+      @llenar-filtro-y-buscar="llenarFiltroYBuscar"
+    />
   </div>
 </template>
 
-
-
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, nextTick } from "vue";
 import { useQuasar } from "quasar";
 import CardBusquedaPropietarioMascota from "../../components/card/CardBusquedaPropietarioMascota.vue";
 import NdPeticionControl from "src/controles/rest.control";
@@ -160,8 +162,8 @@ const formData = ref({
     primerapellido: '',
     segundoapellido: '',
     nombre: '',
-    correo: '',
-    telefonocelular: ''
+    email: '',
+    telefono1: ''
   },
   mascota: {
     nombre: '',
@@ -169,9 +171,12 @@ const formData = ref({
   }
 });
 
-const buscar = async () => {
+const hayResultados = computed(() => listaPropietarios.value && listaPropietarios.value.length > 0);
+
+const buscar = async (forzarBusqueda = false) => {
   try {
-    if (!tieneAlgunCampoLleno.value) {
+    // Si no es una búsqueda forzada, verificar que haya criterios
+    if (!forzarBusqueda && !tieneAlgunCampoLleno.value) {
       $q.notify({
         type: 'warning',
         message: 'Debe ingresar al menos un criterio de búsqueda',
@@ -190,16 +195,18 @@ const buscar = async () => {
       nombre: formData.value.propietario.nombre,
       primerapellido: formData.value.propietario.primerapellido,
       segundoapellido: formData.value.propietario.segundoapellido,
-      correo: formData.value.propietario.correo,
-      telefonocelular: formData.value.propietario.telefonocelular,
+      email: formData.value.propietario.email,
+      telefono1: formData.value.propietario.telefono1,
       nombre_mascota: formData.value.mascota.nombre,
       historia_clinica: formData.value.mascota.historia_clinica
     };
 
+    console.log('Ejecutando búsqueda con filtros:', _unDtoParametros.filtro);
+
     const _respuesta = await _peticion.invocarMetodo("filtropropietariomascota/filtro", "post", _unDtoParametros);
     listaPropietarios.value = _respuesta || [];
 
-    console.log(listaPropietarios.value);
+    console.log('Resultados de búsqueda:', listaPropietarios.value);
 
     /*$q.notify({
       type: 'positive',
@@ -222,6 +229,66 @@ const buscar = async () => {
   }
 };
 
+// Función para limpiar el filtro
+const limpiarFiltro = () => {
+  formData.value = {
+    propietario: {
+      primerapellido: '',
+      segundoapellido: '',
+      nombre: '',
+      email: '',
+      telefono1: ''
+    },
+    mascota: {
+      nombre: '',
+      historia_clinica: ''
+    }
+  };
+  console.log('Filtro limpiado');
+};
+
+const limpiarBusqueda = () => {
+  limpiarFiltro();
+  listaPropietarios.value = [];
+};
+
+// Función para llenar el filtro con datos de propietario y buscar
+const llenarFiltroYBuscar = async (propietario: any) => {
+  console.log('=== INICIO llenarFiltroYBuscar ===');
+  console.log('Propietario recibido:', propietario);
+  console.log('Tipo de propietario:', typeof propietario);
+  console.log('Propietario es array:', Array.isArray(propietario));
+
+  if (propietario && typeof propietario === 'object') {
+    console.log('Propiedades del propietario:', Object.keys(propietario));
+    console.log('primerapellido:', propietario.primerapellido);
+    console.log('segundoapellido:', propietario.segundoapellido);
+  }
+
+  // Llenar el filtro solo con primer y segundo apellido
+  formData.value.propietario = {
+    primerapellido: propietario?.primerapellido || '',
+    segundoapellido: propietario?.segundoapellido || '',
+    nombre: '', // Dejar vacío para agregar después
+    email: '', // Dejar vacío para agregar después
+    telefono1: '' // Dejar vacío para agregar después
+  };
+
+  // Limpiar filtros de mascota
+  formData.value.mascota = {
+    nombre: '',
+    historia_clinica: ''
+  };
+
+  console.log('Filtro llenado:', formData.value);
+  console.log('tieneAlgunCampoLleno:', tieneAlgunCampoLleno.value);
+
+  // Verificar que al menos uno de los campos del propietario tenga datos
+  if (tieneAlgunCampoLleno.value) {
+    await buscar(true);
+  }
+};
+
 const isValidEmail = (val: string) => {
   const emailPattern = /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.){1,8}[a-zA-Z]{2,63}$/;
   return emailPattern.test(val) || "El correo no parece ser válido";
@@ -234,8 +301,8 @@ const tieneAlgunCampoLleno = computed(() => {
   return propietario.primerapellido.trim() !== '' ||
          propietario.segundoapellido.trim() !== '' ||
          propietario.nombre.trim() !== '' ||
-         propietario.correo.trim() !== '' ||
-         propietario.telefonocelular.trim() !== '' ||
+         propietario.email.trim() !== '' ||
+         propietario.telefono1.trim() !== '' ||
          mascota.nombre.trim() !== '' ||
          mascota.historia_clinica.trim() !== '';
 });
