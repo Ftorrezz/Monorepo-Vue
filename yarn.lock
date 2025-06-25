@@ -1819,15 +1819,15 @@ negotiator@0.6.3:
   resolved "https://registry.npmjs.org/negotiator/-/negotiator-0.6.3.tgz"
   integrity sha512-+EUsqGPLsM+j/zdChZjsnX51g4XrHFOIXwfnCVPGlQk/k5giakcKsuxCObBRu6DSm9opw/O6slWbJdghQM4bBg==
 
-"neo-auth@file:C:\\sistemas\\NeodimioWeb\\Neodimio HIS\\Frontend Neodimio VueJs\\Frontend Neodimio\\apps\\neo-auth":
+"neo-auth@file:C:\\Fuentes\\Desarrollo web\\Neodimio\\Frontend-Neodimio-VueJs\\Monorepo-Vue\\apps\\neo-auth":
   version "0.0.1"
   resolved "file:apps/neo-auth"
 
-"neo-qc@file:C:\\sistemas\\NeodimioWeb\\Neodimio HIS\\Frontend Neodimio VueJs\\Frontend Neodimio\\apps\\neo-qc":
+"neo-qc@file:C:\\Fuentes\\Desarrollo web\\Neodimio\\Frontend-Neodimio-VueJs\\Monorepo-Vue\\apps\\neo-qc":
   version "0.0.1"
   resolved "file:apps/neo-qc"
 
-"neo-vet@file:C:\\sistemas\\NeodimioWeb\\Neodimio HIS\\Frontend Neodimio VueJs\\Frontend Neodimio\\apps\\neo-vet":
+"neo-vet@file:C:\\Fuentes\\Desarrollo web\\Neodimio\\Frontend-Neodimio-VueJs\\Monorepo-Vue\\apps\\neo-vet":
   version "0.0.1"
   resolved "file:apps/neo-vet"
 
@@ -2280,7 +2280,7 @@ shallow-clone@^3.0.0:
   dependencies:
     kind-of "^6.0.2"
 
-"shared@file:C:\\sistemas\\NeodimioWeb\\Neodimio HIS\\Frontend Neodimio VueJs\\Frontend Neodimio\\libs\\shared":
+"shared@file:C:\\Fuentes\\Desarrollo web\\Neodimio\\Frontend-Neodimio-VueJs\\Monorepo-Vue\\libs\\shared":
   version "1.0.0"
   resolved "file:libs/shared"
 

@@ -1,27 +1,29 @@
 <template>
   <q-page class="bg-gradient-to-br from-blue-50 to-green-50 min-h-screen">
-    <!-- Header moderno y responsivo -->
-    <!--<div :class="['q-pa-md q-mb-md', $q.dark.isActive ? 'bg-dark text-white' : 'bg-primary text-white']" style="border-radius: 18px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
-      <div class="row items-center justify-between">
-        <div class="row items-center q-gutter-md">
-          <q-avatar size="48px" color="white" text-color="primary" icon="pets" />
-          <div>
-            <h1 class="text-h5 text-weight-bold q-ma-none">VetCare Dashboard</h1>
-            <p class="text-body2 q-ma-none">Sistema de Gestión Veterinaria</p>
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b">
+      <div class="max-w-7xl mx-auto px-6 py-4">
+        <div class="row items-center justify-between">
+          <div class="row items-center q-gutter-md">
+            <q-avatar size="48px" color="primary" text-color="white" icon="favorite" />
+            <div>
+              <h1 class="text-h4 text-weight-bold text-grey-9 q-ma-none">VetCare Dashboard</h1>
+              <p class="text-body2 text-grey-6 q-ma-none">Sistema de Gestión Veterinaria</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="text-body2 text-weight-medium text-grey-9 q-ma-none">
+              {{ formatDate(currentTime) }}
+            </p>
+            <p class="text-body2 text-grey-6 q-ma-none">
+              {{ formatTime(currentTime) }}
+            </p>
           </div>
         </div>
-        <div class="text-right">
-          <p class="text-body2 text-weight-medium q-ma-none">
-            {{ formatDate(currentTime) }}
-          </p>
-          <p class="text-body2 q-ma-none">
-            {{ formatTime(currentTime) }}
-          </p>
-        </div>
       </div>
-    </div>-->
+    </div>
 
-    <div class="container-fluid q-pt-lg q-px-md">
+    <div class="container-fluid q-pt-lg">
       <div class="row q-col-gutter-xl items-start">
         <!-- Columna Principal (Izquierda) -->
         <div class="col-12 col-md-8">
@@ -40,7 +42,7 @@
             </div>-->
             
             <!-- Gráfico de citas -->
-            <!--<div class="q-mt-md">
+            <!--<div>
               <q-card class="full-height">
                 <q-card-section>
                   <div class="text-h6 text-weight-medium">Citas por Hora - Hoy</div>
@@ -52,7 +54,7 @@
             </div>-->
 
             <!-- Gráficos adicionales -->
-            <div class="row q-gutter-lg q-mt-xs">
+            <div class="row q-gutter-lg">
               <!-- Distribución de servicios -->
               <!--<div>
               <q-card class="full-height">
