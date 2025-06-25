@@ -23,75 +23,37 @@
       </div>
     </div>
 
-    <div class="mx-auto px-6 py-8">
-      <div class="row q-gutter-lg">
-        <!-- Columna Principal (Izquierda) -->
-        <div class="col-12 col-md-8">
-          <div class="column q-gutter-y-lg">
-            <!-- Estadísticas principales -->
-            <div class="row q-gutter-md">
-              <div class="col-12 col-sm-6 col-md-3" v-for="stat in mainStats" :key="stat.id">
-                <stat-card v-bind="stat" />
-              </div>
-            </div>
+    <div class="max-w-7xl mx-auto px-6 py-8">
+      <!-- Estadísticas principales -->
+      <div class="row q-gutter-md q-mb-lg">
+        <div class="col-12 col-md-6 col-lg-3" v-for="stat in mainStats" :key="stat.id">
+          <stat-card v-bind="stat" />
+        </div>
+      </div>
 
-            <!-- Segunda fila de estadísticas -->
-            <div class="row q-gutter-md">
-              <div class="col-12 col-md-4" v-for="stat in secondaryStats" :key="stat.id">
-                <stat-card v-bind="stat" />
-              </div>
-            </div>
+      <!-- Segunda fila de estadísticas -->
+      <div class="row q-gutter-md q-mb-lg">
+        <div class="col-12 col-md-4" v-for="stat in secondaryStats" :key="stat.id">
+          <stat-card v-bind="stat" />
+        </div>
+      </div>
 
-            <!-- Gráfico de citas -->
-            <div>
-              <q-card class="full-height">
-                <q-card-section>
-                  <div class="text-h6 text-weight-medium">Citas por Hora - Hoy</div>
-                </q-card-section>
-                <q-card-section>
-                  <canvas ref="appointmentsChart" height="300"></canvas>
-                </q-card-section>
-              </q-card>
-            </div>
-
-            <!-- Gráficos adicionales -->
-            <div class="row q-gutter-lg">
-              <!-- Distribución de servicios -->
-              <div class="col-12 col-md-6">
-                <q-card>
-                  <q-card-section>
-                    <div class="text-h6 text-weight-medium">Distribución de Servicios</div>
-                  </q-card-section>
-                  <q-card-section>
-                    <canvas ref="servicesChart" height="300"></canvas>
-                  </q-card-section>
-                </q-card>
-              </div>
-
-              <!-- Tendencia mensual -->
-              <div class="col-12 col-md-6">
-                <q-card>
-                  <q-card-section>
-                    <div class="text-h6 text-weight-medium">Tendencia Mensual</div>
-                  </q-card-section>
-                  <q-card-section>
-                    <canvas ref="monthlyChart" height="300"></canvas>
-                  </q-card-section>
-                </q-card>
-              </div>
-            </div>
-
-            <!-- Estadísticas adicionales -->
-            <div class="row q-gutter-md">
-              <div class="col-12 col-md-4" v-for="stat in additionalStats" :key="stat.id">
-                <stat-card v-bind="stat" />
-              </div>
-            </div>
-          </div>
+      <!-- Gráficos y alertas -->
+      <div class="row q-gutter-lg q-mb-lg">
+        <!-- Gráfico de citas -->
+        <div class="col-12 col-lg-8">
+          <q-card class="full-height">
+            <q-card-section>
+              <div class="text-h6 text-weight-medium">Citas por Hora - Hoy</div>
+            </q-card-section>
+            <q-card-section>
+              <canvas ref="appointmentsChart" height="300"></canvas>
+            </q-card-section>
+          </q-card>
         </div>
 
-        <!-- Columna de Alertas (Derecha) -->
-        <div class="col-12 col-md-4">
+        <!-- Alertas -->
+        <div class="col-12 col-lg-4">
           <q-card class="full-height">
             <q-card-section>
               <div class="text-h6 text-weight-medium">Alertas y Notificaciones</div>
@@ -104,12 +66,46 @@
           </q-card>
         </div>
       </div>
+
+      <!-- Gráficos adicionales -->
+      <div class="row q-gutter-lg q-mb-lg">
+        <!-- Distribución de servicios -->
+        <div class="col-12 col-lg-6">
+          <q-card>
+            <q-card-section>
+              <div class="text-h6 text-weight-medium">Distribución de Servicios</div>
+            </q-card-section>
+            <q-card-section>
+              <canvas ref="servicesChart" height="300"></canvas>
+            </q-card-section>
+          </q-card>
+        </div>
+
+        <!-- Tendencia mensual -->
+        <div class="col-12 col-lg-6">
+          <q-card>
+            <q-card-section>
+              <div class="text-h6 text-weight-medium">Tendencia Mensual</div>
+            </q-card-section>
+            <q-card-section>
+              <canvas ref="monthlyChart" height="300"></canvas>
+            </q-card-section>
+          </q-card>
+        </div>
+      </div>
+
+      <!-- Estadísticas adicionales -->
+      <div class="row q-gutter-md">
+        <div class="col-12 col-md-4" v-for="stat in additionalStats" :key="stat.id">
+          <stat-card v-bind="stat" />
+        </div>
+      </div>
     </div>
   </q-page>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { Chart, registerables } from 'chart.js'
 import StatCard from './../components/card/StatCard.vue'
 import AlertCard from './../components/card/AlertCard.vue'
@@ -124,11 +120,6 @@ const monthlyChart = ref(null)
 
 // Timer para actualizar hora
 let timeInterval = null
-
-// Instancias de los gráficos para poder destruirlas
-let appointmentsChartInstance = null
-let servicesChartInstance = null
-let monthlyChartInstance = null
 
 // Datos de estadísticas
 const stats = ref({
@@ -314,155 +305,125 @@ const formatTime = (date) => {
 }
 
 const createAppointmentsChart = () => {
-  if (appointmentsChart.value) {
-    if (appointmentsChartInstance) {
-      appointmentsChartInstance.destroy()
-    }
-    const ctx = appointmentsChart.value.getContext('2d')
-    appointmentsChartInstance = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: appointmentsData.map((d) => d.time),
-        datasets: [
-          {
-            label: 'Citas',
-            data: appointmentsData.map((d) => d.citas),
-            borderColor: '#1976d2',
-            backgroundColor: 'rgba(25, 118, 210, 0.1)',
-            tension: 0.4,
-            fill: true
-          }
-        ]
+  const ctx = appointmentsChart.value.getContext('2d')
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: appointmentsData.map(d => d.time),
+      datasets: [{
+        label: 'Citas',
+        data: appointmentsData.map(d => d.citas),
+        borderColor: '#1976d2',
+        backgroundColor: 'rgba(25, 118, 210, 0.1)',
+        tension: 0.4,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        }
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true
-          }
+      scales: {
+        y: {
+          beginAtZero: true
         }
       }
-    })
-  }
+    }
+  })
 }
 
 const createServicesChart = () => {
-  if (servicesChart.value) {
-    if (servicesChartInstance) {
-      servicesChartInstance.destroy()
-    }
-    const ctx = servicesChart.value.getContext('2d')
-    servicesChartInstance = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: servicesData.map((d) => d.name),
-        datasets: [
-          {
-            data: servicesData.map((d) => d.value),
-            backgroundColor: servicesData.map((d) => d.color),
-            borderWidth: 0
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'bottom'
-          }
+  const ctx = servicesChart.value.getContext('2d')
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: servicesData.map(d => d.name),
+      datasets: [{
+        data: servicesData.map(d => d.value),
+        backgroundColor: servicesData.map(d => d.color),
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom'
         }
       }
-    })
-  }
+    }
+  })
 }
 
 const createMonthlyChart = () => {
-  if (monthlyChart.value) {
-    if (monthlyChartInstance) {
-      monthlyChartInstance.destroy()
-    }
-    const ctx = monthlyChart.value.getContext('2d')
-    monthlyChartInstance = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: monthlyData.map((d) => d.mes),
-        datasets: [
-          {
-            label: 'Mascotas Atendidas',
-            data: monthlyData.map((d) => d.mascotas),
-            backgroundColor: 'rgba(25, 118, 210, 0.8)',
-            yAxisID: 'y'
-          },
-          {
-            label: 'Ingresos (Miles)',
-            data: monthlyData.map((d) => d.ingresos / 1000),
-            type: 'line',
-            borderColor: '#388e3c',
-            backgroundColor: 'transparent',
-            tension: 0.4,
-            yAxisID: 'y1'
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: {
-            type: 'linear',
-            display: true,
-            position: 'left'
-          },
-          y1: {
-            type: 'linear',
-            display: true,
-            position: 'right',
-            grid: {
-              drawOnChartArea: false
-            }
+  const ctx = monthlyChart.value.getContext('2d')
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: monthlyData.map(d => d.mes),
+      datasets: [
+        {
+          label: 'Mascotas Atendidas',
+          data: monthlyData.map(d => d.mascotas),
+          backgroundColor: 'rgba(25, 118, 210, 0.8)',
+          yAxisID: 'y'
+        },
+        {
+          label: 'Ingresos (Miles)',
+          data: monthlyData.map(d => d.ingresos / 1000),
+          type: 'line',
+          borderColor: '#388e3c',
+          backgroundColor: 'transparent',
+          tension: 0.4,
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          type: 'linear',
+          display: true,
+          position: 'left'
+        },
+        y1: {
+          type: 'linear',
+          display: true,
+          position: 'right',
+          grid: {
+            drawOnChartArea: false
           }
         }
       }
-    })
-  }
+    }
+  })
 }
 
 // Lifecycle hooks
-onMounted(async () => {
+onMounted(() => {
   // Actualizar hora cada segundo
   timeInterval = setInterval(() => {
     currentTime.value = new Date()
   }, 1000)
 
-  // Esperar a que el DOM se actualice para asegurar que los <canvas> existan
-  await nextTick()
-
-  // Crear gráficos
-  createAppointmentsChart()
-  createServicesChart()
-  createMonthlyChart()
+  // Crear gráficos después de que el DOM esté listo
+  setTimeout(() => {
+    createAppointmentsChart()
+    createServicesChart()
+    createMonthlyChart()
+  }, 100)
 })
 
 onUnmounted(() => {
   if (timeInterval) {
     clearInterval(timeInterval)
-  }
-  // Destruir instancias de los gráficos para evitar fugas de memoria
-  if (appointmentsChartInstance) {
-    appointmentsChartInstance.destroy()
-  }
-  if (servicesChartInstance) {
-    servicesChartInstance.destroy()
-  }
-  if (monthlyChartInstance) {
-    monthlyChartInstance.destroy()
   }
 })
 </script>
