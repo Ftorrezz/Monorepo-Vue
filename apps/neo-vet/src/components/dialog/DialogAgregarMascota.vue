@@ -222,16 +222,6 @@
                         />
                       </div>
                       <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                        <q-select
-                          v-model="mascota.id_raza"
-                          :options="opcionesRaza"
-                          label="Raza"
-                          emit-value
-                          map-options
-                          dense
-                        />
-                      </div>
-                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                             <ListaRazaMascota
                               v-model="mascota.id_raza"
                               dense
