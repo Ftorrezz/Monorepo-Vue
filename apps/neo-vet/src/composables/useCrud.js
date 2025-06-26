@@ -25,13 +25,13 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
   const editedItem = ref({
     id_sitio: null,//ubicacionStore.id_sitio,
     activo: "S",
-    //id_configuracion: 1
+    id_configuracion: 1
   });
 
   const defaultItem = ref({
     id_sitio: null,//ubicacionStore.id_sitio,
     activo: "S",
-    //id_configuracion: 1
+    id_configuracion: 1
   });
   /********************** DEFINO LAS COLUMNAS Y CAMPOS DE LAS TABLAS****************************/
 

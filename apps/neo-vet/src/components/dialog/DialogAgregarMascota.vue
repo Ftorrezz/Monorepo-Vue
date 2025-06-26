@@ -232,6 +232,12 @@
                         />
                       </div>
                       <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                            <ListaRazaMascota
+                              v-model="mascota.id_raza"
+                              dense
+                            />
+                      </div>
+                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                         <q-select
                           v-model="mascota.id_color"
                           :options="opcionesColor"
@@ -328,6 +334,7 @@ import { QForm, useQuasar } from "quasar";
 import OpcionCancelarGuardar from "../OpcionCancelarGuardar.vue";
 import PeticionService from "src/services/peticion.service";
 import NdAlertasControl from "src/controles/alertas.control";
+import ListaRazaMascota from "../../../../../libs/shared/src/components/listas/ListaRazaMascota.vue";
 const props = defineProps({
   propietarioId: {
     type: Number,

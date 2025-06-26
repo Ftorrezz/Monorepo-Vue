@@ -23,10 +23,6 @@ export const formConfig = {
       label: "Paridad",
       component: "q-input",
       classes: ["q-mb-xs"],
-      rules: [
-        (val) =>
-          (val && val.length > 0) || "Ingrese la paridad externa",
-      ],
       visible: true,
     },
     {
