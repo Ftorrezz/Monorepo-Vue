@@ -135,6 +135,7 @@
                                   !!val || 'El primer apellido es requerido',
                               ]"
                               dense
+                              class="uppercase"
                             />
                           </div>
                           <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
@@ -142,6 +143,7 @@
                               v-model="propietario.segundoapellido"
                               label="Segundo Apellido"
                               dense
+                              class="uppercase"
                             />
                           </div>
                           <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
@@ -152,6 +154,7 @@
                                 (val) => !!val || 'El nombre es requerido',
                               ]"
                               dense
+                              class="uppercase"
                             />
                           </div>
 
@@ -272,6 +275,7 @@
                           v-model="propietario.calle"
                           label="Calle"
                           dense
+
                         />
                       </div>
                       <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12">
@@ -560,15 +564,15 @@ const guardarPropietario = async () => {
     // PeticionService (a través de NdPeticionControl y NdAlertasControl) ya habrá mostrado
     // las notificaciones de éxito/error provenientes del backend.
     // El `catch` de abajo manejará los errores de la API que PeticionService propaga.
-    
+
     console.log('Resultado de la operación:', resultadoOperacion);
-    
+
     // Emitir los datos del propietario guardado (con el ID asignado por el backend)
     const propietarioGuardado = {
       ...datosPropietarioPayload,
       id: resultadoOperacion?.id || resultadoOperacion?.elemento?.id || datosPropietarioPayload.id
     };
-    
+
     console.log('Propietario guardado a emitir:', propietarioGuardado);
     emit('propietario-guardado', propietarioGuardado);
     close();

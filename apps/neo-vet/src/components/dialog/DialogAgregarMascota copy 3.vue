@@ -18,8 +18,8 @@
           </div>
         </q-bar>
 
-
-
+    
+    
       <!-- Contenido principal -->
         <q-card-section class="q-pa-md scrollable-form-content">
           <q-form ref="formMascotaRef">
@@ -133,7 +133,6 @@
                               label="Nombre *"
                               :rules="[(val) => !!val || 'El nombre es requerido']"
                               dense
-                              class="uppercase"
                             />
                           </div>
                           <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
@@ -212,8 +211,13 @@
                     </div>
                     <div class="row q-col-gutter-md">
                       <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                        <ListaEspecie
+                        <q-select
                           v-model="mascota.id_especie"
+                          :options="opcionesEspecie"
+                          label="Especie *"
+                          :rules="[(val) => !!val || 'La especie es requerida']"
+                          emit-value
+                          map-options
                           dense
                         />
                       </div>
@@ -224,31 +228,47 @@
                             />
                       </div>
                       <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                        <ListaColor
+                        <q-select
                           v-model="mascota.id_color"
+                          :options="opcionesColor"
+                          label="Color"
+                          emit-value
+                          map-options
                           dense
                         />
                       </div>
-
+                      
                       <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                        <ListaDieta
+                        <q-select
                           v-model="mascota.id_dieta"
+                          :options="opcionesTamano"
+                          label="Dieta"
+                          emit-value
+                          map-options
                           dense
                         />
                       </div>
                       <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                        <ListaHabitat
+                        <q-select
                           v-model="mascota.id_habitat"
+                          :options="opcionesTamano"
+                          label="Habitat"
+                          emit-value
+                          map-options
                           dense
                         />
                       </div>
                       <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                        <ListaCaracter
-                        v-model="mascota.id_caracter"
-                        dense
+                        <q-select
+                          v-model="mascota.id_caracter"
+                          :options="opcionesTamano"
+                          label="Caracter"
+                          emit-value
+                          map-options
+                          dense
                         />
                       </div>
-
+                      
                     </div>
                   </q-card-section>
                 </q-card>
@@ -291,7 +311,7 @@
             @accionValidar="guardarMascota"
           />
         </q-card-actions>
-
+    
     </q-card>
     </q-dialog>
 
@@ -305,14 +325,6 @@ import OpcionCancelarGuardar from "../OpcionCancelarGuardar.vue";
 import PeticionService from "src/services/peticion.service";
 import NdAlertasControl from "src/controles/alertas.control";
 import ListaRazaMascota from "../../../../../libs/shared/src/components/listas/ListaRazaMascota.vue";
-import ListaSexo from "../../../../../libs/shared/src/components/listas/ListaSexo.vue";
-import ListaHabitat from "../../../../../libs/shared/src/components/listas/ListaHabitat.vue";
-import ListaColor from "../../../../../libs/shared/src/components/listas/ListaColor.vue";
-import ListaDieta from "../../../../../libs/shared/src/components/listas/ListaDieta.vue";
-import ListaEspecie from "../../../../../libs/shared/src/components/listas/ListaEspecie.vue";
-import ListaCaracter from "../../../../../libs/shared/src/components/listas/ListaCaracter.vue";
-
-
 const props = defineProps({
   propietarioId: {
     type: Number,

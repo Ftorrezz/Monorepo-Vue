@@ -11,10 +11,10 @@ export const formConfig = {
       name: "descripcion",
       label: "Descripción",
       component: "q-input",
-      classes: ["q-mb-xs"],
+      classes: ["q-mb-xs uppercase"],
       rules: [
         (val) =>
-          (val && val.length > 0) || "Ingrese la descripción del tipo de ubicación",
+          (val && val.length > 0) || "Ingrese la descripción",
       ],
       visible: true,
     },
@@ -38,7 +38,7 @@ export const formConfig = {
       name: "descripcion",
       label: "Descripción",
       component: "q-input",
-      classes: ["q-mb-xs"],
+      classes: ["q-mb-xs uppercase"],
       rules: [
         (val) =>
           (val && val.length > 0) || "Ingrese la descripción",
@@ -76,7 +76,7 @@ export const formConfig = {
       name: "descripcion",
       label: "Descripción",
       component: "q-input",
-      classes: ["q-mb-xs"],
+      classes: ["q-mb-xs uppercase"],
       rules: [
         (val) =>
           (val && val.length > 0) || "Ingrese la descripción",

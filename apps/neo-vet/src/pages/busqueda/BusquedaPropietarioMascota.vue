@@ -18,7 +18,7 @@
                 <q-input
                   v-model="formData.propietario.primerapellido"
                   label="Primer Apellido"
-                  class="custom-input"
+                  class="custom-input uppercase"
                 />
               </q-item-section>
             </q-item>
@@ -27,7 +27,7 @@
                 <q-input
                   v-model="formData.propietario.segundoapellido"
                   label="Segundo Apellido"
-                  class="custom-input"
+                  class="custom-input uppercase"
                 />
               </q-item-section>
             </q-item>
@@ -36,7 +36,7 @@
                 <q-input
                   v-model="formData.propietario.nombre"
                   label="Nombres"
-                  class="custom-input"
+                  class="custom-input uppercase"
                 />
               </q-item-section>
             </q-item>
@@ -134,7 +134,7 @@
             {{ !tieneAlgunCampoLleno ? 'Ingrese al menos un criterio de búsqueda' : 'Buscar' }}
           </q-tooltip>
         </q-btn>
-        
+
       </div>
     </div>
 
