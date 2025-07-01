@@ -2,6 +2,7 @@ export const menuConfig = [
   {
     label: "Inicio",
     icon: "home",
+    defaultopened: false,    
     items: [
       {
         label: "Tablero",
@@ -19,6 +20,13 @@ export const menuConfig = [
         to: "/agenda",
       },
     ],
+  },
+  {
+    label: "Reportes",
+    icon: "print",
+    defaultopened: false,
+    to: "/reportes",
+    
   },
   {
     label: "Configuración",

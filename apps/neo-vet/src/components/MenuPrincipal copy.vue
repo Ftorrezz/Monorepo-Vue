@@ -2,13 +2,7 @@
   <q-list>
     <template v-for="(menu, index) in menuConfig" :key="index">
 
-      <!-- Si el menú tiene sub-items, se muestra como un menú desplegable -->
-      <q-expansion-item
-        v-if="menu.items && menu.items.length > 0"
-        :icon="menu.icon"
-        :label="menu.label"
-        :default-opened="menu.defaultopened"
-      >
+      <q-expansion-item :icon="menu.icon" :label="menu.label" :default-opened="menu.defaultopened">
         <q-list class="q-pl-lg">
           <template v-for="(item, subIndex) in menu.items" :key="subIndex">
             <q-item
@@ -53,22 +47,6 @@
           </template>
         </q-list>
       </q-expansion-item>
-
-      <!-- Si no tiene sub-items, se muestra como un enlace directo -->
-      <q-item
-        v-else
-        :to="menu.to"
-        clickable
-        active-class="my-menu-link"
-        class="q-my-xs navigation-item"
-      >
-        <q-item-section avatar>
-          <q-icon :name="menu.icon" />
-        </q-item-section>
-        <q-item-section>
-          <q-item-label>{{ menu.label }}</q-item-label>
-        </q-item-section>
-      </q-item>
     </template>
   </q-list>
 </template>

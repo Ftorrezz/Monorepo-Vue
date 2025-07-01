@@ -60,7 +60,7 @@
         :to="menu.to"
         clickable
         active-class="my-menu-link"
-        class="q-my-xs navigation-item"
+        class="q-ma-xs navigation-item"
       >
         <q-item-section avatar>
           <q-icon :name="menu.icon" />

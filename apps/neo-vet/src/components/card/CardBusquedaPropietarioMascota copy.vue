@@ -10,14 +10,14 @@
             </div>
             <q-btn
               unelevated
-              color="deep-purple-14"
+              color="positive"
               text-color="white"
               size="sm"
               label="Nuevo Propietario"
               class="action-btn"
               @click="abrirDialogoPropietario"
             >
-              <q-badge color="white" text-color="purple" floating>+</q-badge>
+              <q-badge color="white" text-color="positive" floating>+</q-badge>
               <q-tooltip>Agregar nuevo propietario</q-tooltip>
             </q-btn>
           </div>
@@ -107,7 +107,7 @@
             <div>
               <q-btn
                 unelevated
-                color="deep-purple-14"
+                color="purple"
                 text-color="white"
                 size="sm"
                 label="Nueva Mascota"
@@ -533,12 +533,12 @@ const mascotasRows = computed(() => {
 .action-btn {
   font-weight: 600;
   border-radius: 8px;
-  padding: 6px 15px;
-  transition: all 0.03s ease;
-  box-shadow: 0 3px 6px rgba(245, 243, 247, 0.15);
+  padding: 6px 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
   text-transform: none;
   letter-spacing: 0.5px;
-  font-size: 10px;
+  font-size: 13px;
 }
 
 .action-btn:hover {
@@ -561,7 +561,7 @@ const mascotasRows = computed(() => {
 /* Estilos para los badges en los botones */
 .action-btn .q-badge {
   font-weight: bold;
-  font-size: 14px;
+  font-size: 12px;
   min-width: 18px;
   height: 18px;
   border-radius: 9px;
@@ -571,7 +571,7 @@ const mascotasRows = computed(() => {
 
 /* Animación para el badge de advertencia */
 .action-btn .q-badge[color="warning"] {
-  animation: pulse 1s infinite;
+  animation: pulse 2s infinite;
 }
 
 @keyframes pulse {

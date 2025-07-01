@@ -36,21 +36,27 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
   /********************** DEFINO LAS COLUMNAS Y CAMPOS DE LAS TABLAS****************************/
 
   const generateColumnsConfig = (modelName) => {
-    // Lista de modelos que usan la configuración de columnas genérica
-    const genericoModels = [
-      "color", "especie", "razamascota", "caracter", "dieta", "habitat",
-      "especialidad", "escolaridad", "estadocivil", "religion", "raza",
-      "ocupacion", "servicio", "tipoprofesional"
-    ];
 
-    if (genericoModels.includes(modelName)) {
-      return columnsConfig["genericoDescripcion"] || [];
+    if (modelName === "color" ||
+        modelName === "especie" ||
+        modelName === "razamascota" ||
+        modelName === "caracter" ||
+        modelName === "dieta" ||
+        modelName === "habitat" ||
+        modelName === "especialidad" ||
+        modelName === "escolaridad" ||
+        modelName === "estadocivil" ||
+        modelName === "religion" ||
+        modelName === "raza" ||
+        modelName === "ocupacion" ||
+        modelName === "servicio" ||
+        modelname === "tipoprofesional"
+      ) {
+      return columnsConfig['genericoDescripcion'] || [];
     }
-
-    // Para el resto, busca una configuración específica (ej. 'sexo', 'diagnostico').
-    // Si no la encuentra, devuelve un array vacío para evitar errores.
-    return columnsConfig[modelName] || [];
-  };
+    else return columnsConfig['sexo'] || [];
+    //else return columnsConfig[modelName] || [];
+  }
 
    /* let columnsConfig = [
       {

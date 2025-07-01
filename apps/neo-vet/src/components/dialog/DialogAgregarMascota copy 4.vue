@@ -23,7 +23,6 @@
       <!-- Contenido principal -->
         <q-card-section class="q-pa-md scrollable-form-content">
           <q-form ref="formMascotaRef">
-            
             <div class="row q-col-gutter-md">
               <!-- Sección de foto y Información Personal -->
               <div class="col-12">
@@ -181,14 +180,16 @@
                       <div class="col-lg-2 col-md-3 col-sm-12 col-xs-12">
                         <q-select
                           v-model="mascota.id_tamano"
-                          :options="OPCIONES_TAMANO_MASCOTA"
+                          :options="opcionesTamano"
                           label="Tamaño"
                           emit-value
                           map-options
                           dense
                         />
                       </div>
-                      
+                      <div class="col-lg-1 col-md-2 col-sm-6 col-xs-12">
+                            <q-input v-model="mascota.peso" label="Peso" dense />
+                          </div>
 
                         </div>
                       </q-card-section>
@@ -293,8 +294,8 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, onMounted, defineEmits, watch } from "vue";
+<script setup>
+import { ref, computed, onMounted, defineProps, defineEmits, watch } from "vue";
 import { QForm, useQuasar } from "quasar";
 import OpcionCancelarGuardar from "../OpcionCancelarGuardar.vue";
 import PeticionService from "src/services/peticion.service";
@@ -306,8 +307,7 @@ import ListaColor from "../../../../../libs/shared/src/components/listas/ListaCo
 import ListaDieta from "../../../../../libs/shared/src/components/listas/ListaDieta.vue";
 import ListaEspecie from "../../../../../libs/shared/src/components/listas/ListaEspecie.vue";
 import ListaCaracter from "../../../../../libs/shared/src/components/listas/ListaCaracter.vue";
-import { OPCIONES_TAMANO_MASCOTA } from "../../../../../libs/shared/src/constant/mascota"
-import { obtenerIDValue } from "../../../../../libs/shared/src/helper/FuncionesGenericas"
+
 
 const props = defineProps({
   propietarioId: {
@@ -331,7 +331,6 @@ const props = defineProps({
       id_color: null,
       id_tamano: null,
       observacion: "",
-      peso: "",
     }),
   },
 });
@@ -367,12 +366,27 @@ const mascota = ref({
 });
 
 
+// Calculate age on mount if fechanacimiento is present
+if (mascota.value.fechanacimiento) {
+  calcularEdadMascota();
+}
 
-// ... (otras refs y funciones)
-// (deja aquí el resto del código igual)
+const calcularEdadMascota = () => {
+  if (mascota.value.fechanacimiento) {
+    const fechaNac = new Date(mascota.value.fechanacimiento);
+    const hoy = new Date();
+    let edad = hoy.getFullYear() - fechaNac.getFullYear();
+    const mes = hoy.getMonth() - fechaNac.getMonth();
+    if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
+      edad--;
+    }
+    mascota.value.edad = edad >= 0 ? edad.toString() : '0';
+  } else {
+    mascota.value.edad = '';
+  }
+};
 
-// ---
-const validar = async () => {
+const validarFormulario = async () => {
   if (formMascotaRef.value) {
     return await formMascotaRef.value.validate();
   }
@@ -380,7 +394,7 @@ const validar = async () => {
 };
 
 const guardarMascota = async () => {
-  const esValido = await validar();
+  const esValido = await validarFormulario();
   if (!esValido) {
     alertas.mostrarMensaje(
       "error",
@@ -411,8 +425,6 @@ const guardarMascota = async () => {
       resultadoOperacion = await peticionService.crear('mascota', datosMascotaPayload);
     }
 
-    datosMascotaPayload.id_sexo = extractIdValue(datosMascotaPayload.id_sexo);
-
     const mascotaGuardada = {
       ...datosMascotaPayload,
       id: resultadoOperacion?.id || resultadoOperacion?.elemento?.id || datosMascotaPayload.id,
@@ -436,45 +448,6 @@ const guardarMascota = async () => {
   }
 };
 
-// Helper para extraer el '.value' si el campo es un objeto proveniente de los componentes de lista
-    const extractIdValue = (fieldValue: any) => {
-      if (fieldValue && typeof fieldValue === 'object' && fieldValue !== null && fieldValue.hasOwnProperty('value')) {
-        return fieldValue.value;
-      }
-      return fieldValue;
-    };
-
-// Asegúrate que esto esté al final del bloque, después de declarar todas las funciones:
-defineExpose({
-  mascota,
-  validar,
-  guardarMascota,
-});
-
-
-
-// Calculate age on mount if fechanacimiento is present
-if (mascota.value.fechanacimiento) {
-  calcularEdadMascota();
-}
-
-const calcularEdadMascota = () => {
-  if (mascota.value.fechanacimiento) {
-    const fechaNac = new Date(mascota.value.fechanacimiento);
-    const hoy = new Date();
-    let edad = hoy.getFullYear() - fechaNac.getFullYear();
-    const mes = hoy.getMonth() - fechaNac.getMonth();
-    if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
-      edad--;
-    }
-    mascota.value.edad = edad >= 0 ? edad.toString() : '0';
-  } else {
-    mascota.value.edad = '';
-  }
-};
-
-
-
 /*defineExpose({
   mascota,
   validarFormulario,
@@ -494,12 +467,41 @@ watch(
   }
 );
 
+// Opciones para los selects
+const opcionesEspecie = ref([
+  { label: "Perro", value: 1 },
+  { label: "Gato", value: 2 },
+  { label: "Ave", value: 3 },
+  { label: "Reptil", value: 4 },
+  { label: "Otro", value: 5 },
+]);
 
-/*const opcionesTamano = ref([
-  { label: "PEQUEÑO", value: 1 },
-  { label: "MEDIANO", value: 2 },
-  { label: "GRANDE", value: 3 },
-]);*/
+const opcionesRaza = ref([
+  { label: "Labrador", value: 1 },
+  { label: "Pastor Alemán", value: 2 },
+  { label: "Siamés", value: 3 },
+  { label: "Persa", value: 4 },
+  { label: "Otra", value: 5 },
+]);
+
+const opcionesSexo = ref([
+  { label: "Macho", value: 1 },
+  { label: "Hembra", value: 2 },
+]);
+
+const opcionesColor = ref([
+  { label: "Negro", value: 1 },
+  { label: "Blanco", value: 2 },
+  { label: "Marrón", value: 3 },
+  { label: "Gris", value: 4 },
+  { label: "Otro", value: 5 },
+]);
+
+const opcionesTamano = ref([
+  { label: "Pequeño", value: 1 },
+  { label: "Mediano", value: 2 },
+  { label: "Grande", value: 3 },
+]);
 
 // Funciones para la cámara
 const activarCamara = async () => {

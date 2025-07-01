@@ -43,7 +43,7 @@
             <q-item class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
               <q-item-section>
                 <q-input
-                  v-model="formData.propietario.email"
+                  v-model="formData.propietario.correo"
                   label="Correo electronico"
                   type="email"
                 >
@@ -56,7 +56,7 @@
             <q-item class="col-lg-2 col-md-6 col-sm-12 col-xs-12">
               <q-item-section>
                 <q-input
-                  v-model="formData.propietario.telefono1"
+                  v-model="formData.propietario.telefonocelular"
                   label="Teléfono móvil"
                   class="custom-input"
                 >
@@ -160,8 +160,8 @@ const formData = ref({
     primerapellido: '',
     segundoapellido: '',
     nombre: '',
-    email: '',
-    telefono1: ''
+    correo: '',
+    telefonocelular: ''
   },
   mascota: {
     nombre: '',
@@ -190,8 +190,8 @@ const buscar = async () => {
       nombre: formData.value.propietario.nombre,
       primerapellido: formData.value.propietario.primerapellido,
       segundoapellido: formData.value.propietario.segundoapellido,
-      email: formData.value.propietario.email,
-      telefono1: formData.value.propietario.telefono1,
+      correo: formData.value.propietario.correo,
+      telefonocelular: formData.value.propietario.telefonocelular,
       nombre_mascota: formData.value.mascota.nombre,
       historia_clinica: formData.value.mascota.historia_clinica
     };
@@ -234,8 +234,8 @@ const tieneAlgunCampoLleno = computed(() => {
   return propietario.primerapellido.trim() !== '' ||
          propietario.segundoapellido.trim() !== '' ||
          propietario.nombre.trim() !== '' ||
-         propietario.email.trim() !== '' ||
-         propietario.telefono1.trim() !== '' ||
+         propietario.correo.trim() !== '' ||
+         propietario.telefonocelular.trim() !== '' ||
          mascota.nombre.trim() !== '' ||
          mascota.historia_clinica.trim() !== '';
 });
@@ -320,10 +320,5 @@ const tieneAlgunCampoLleno = computed(() => {
     right: 36px;
     transform: scale(1.4);
   }
-}
-
-/* Estilo para convertir el texto a mayúsculas dentro de q-input */
-.uppercase :deep(.q-field__native) {
-  text-transform: uppercase;
 }
 </style>
