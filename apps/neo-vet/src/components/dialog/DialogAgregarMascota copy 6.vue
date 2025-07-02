@@ -18,13 +18,7 @@
           </div>
         </q-bar>
 
-      <!-- Mostrar el nombre del propietario -->
-      <q-card-section class="q-pa-sm bg-grey-2 text-primary">
-        <q-icon name="person" size="sm" class="q-mr-sm" />
-        <span class="propietario-destacado">
-          Mascota de: <b>{{ propietario?.nombre }} {{ propietario?.primerapellido }} {{ propietario?.segundoapellido }}</b>
-        </span>
-      </q-card-section>
+
 
       <!-- Contenido principal -->
         <q-card-section class="q-pa-md scrollable-form-content">
@@ -315,33 +309,9 @@ import ListaCaracter from "../../../../../libs/shared/src/components/listas/List
 import { OPCIONES_TAMANO_MASCOTA } from "../../../../../libs/shared/src/constant/mascota"
 import { obtenerIDValue } from "../../../../../libs/shared/src/helper/FuncionesGenericas"
 
-// Definir la interfaz Mascota para tipar correctamente la variable
-interface Mascota {
-  id: number | null;
-  id_propietario: number | null;
-  nombre: string;
-  historiaclinica: string;
-  edad: string;
-  id_especie: number | null;
-  id_raza: number | null;
-  id_sexo: number | null;
-  fechanacimiento: string | null;
-  chip: string;
-  fechachip: string | null;
-  id_color: number | null;
-  id_tamanio: number | null;
-  id_dieta?: number | null;
-  id_habitat?: number | null;
-  id_caracter?: number | null;
-  observaciones: string;
-  activo: string;
-  id_sitio: number;
-  id_sucursal: number;
-}
-
 const props = defineProps({
-  propietario: {
-    type: Object,
+  propietarioId: {
+    type: Number,
     required: true,
   },
   mascotaData: {
@@ -360,15 +330,11 @@ const props = defineProps({
       fechachip: null,
       id_color: null,
       id_tamanio: null,
-      id_dieta: null,
-      id_habitat: null,
-      id_caracter: null,
       observaciones: "",
       activo: "S",
       id_sitio: 1,
       id_sucursal: 2,
-      pedigri: "N",
-      esterilizado: "N",
+
     }),
   },
 });
@@ -400,9 +366,9 @@ const stream = ref(null);
 const formMascotaRef = ref<QForm | null>(null);
 
 // Datos de la mascota
-const mascota = ref<Mascota>({
+const mascota = ref({
   ...props.mascotaData,
-  id_propietario: props.propietario?.id,
+  id_propietario: props.propietarioId,
 });
 
 
@@ -435,8 +401,8 @@ const guardarMascota = async () => {
     const datosMascotaPayload = { ...mascota.value };
 
     // Ensure id_propietario is set
-    if (!datosMascotaPayload.id_propietario && props.propietario?.id) {
-        datosMascotaPayload.id_propietario = props.propietario.id;
+    if (!datosMascotaPayload.id_propietario && props.propietarioId) {
+        datosMascotaPayload.id_propietario = props.propietarioId;
     }
 
     // Remove id if it's null for creation
@@ -531,7 +497,7 @@ const closeDialog = () => {
 
 // Actualizar el ID del propietario cuando cambie
 watch(
-  () => props.propietario?.id,
+  () => props.propietarioId,
   (newValue) => {
     mascota.value.id_propietario = newValue;
   }
@@ -733,17 +699,5 @@ watch(
 /* Estilo para convertir el texto a mayúsculas dentro de q-input */
 .uppercase :deep(.q-field__native) {
   text-transform: uppercase;
-}
-
-.propietario-destacado {
-  font-size: 1.25rem;
-  font-weight: none;
-  color: #eb1919;
-  background: #ede7f6;
-  padding: 8px 18px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(81, 45, 168, 0.07);
-  display: inline-block;
-  margin-left: 8px;
 }
 </style>

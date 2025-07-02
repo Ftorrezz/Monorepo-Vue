@@ -226,7 +226,6 @@
 
   <DialogAgregarMascota
     v-if="mostrarDialogoMascota"
-    :propietario="propietarioSeleccionado"
     @mascota-guardada="mascotaAgregada"
     @cerrar="cerrarDialogoMascota"
   />
