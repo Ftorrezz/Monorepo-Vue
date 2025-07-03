@@ -75,9 +75,9 @@ export const usePropietarioStore = defineStore('propietarioStore', {
     // Obtener mascotas filtradas por propietario seleccionado
     mascotasFiltradas: (state) => {
       // Filtra propietarios temporales que NO están en los datos originales
-      const originalesIds = new Set(state.datosOriginales.map(item => item.id));
+      const originalesIds = new Set(state.datosOriginales.map(item => item.propietario?.id));
       const soloTemporales = state.propietariosAgregadosTemporalmente.filter(
-        item => item.propietario && !originalesIds.has(item.id)
+        item => item.propietario && !originalesIds.has(item.propietario.id)
       );
       const todosLosDatos = [...state.datosOriginales, ...soloTemporales];
 
@@ -86,13 +86,13 @@ export const usePropietarioStore = defineStore('propietarioStore', {
       todosLosDatos.forEach(item => {
         if (item.mascotas && Array.isArray(item.mascotas)) {
           item.mascotas.forEach((mascota: any) => {
-            const key = `${mascota.id}-${item.id}`;
+            const key = `${mascota.id}-${item.propietario?.id}`;
             if (!mascotasMap.has(key)) {
               mascotasMap.set(key, {
                 id: mascota.id,
                 nombre: mascota.nombre || '',
                 historiaclinica: mascota.historiaclinica || '',
-                propietarioId: item.id
+                propietarioId: item.propietario?.id
               });
             }
           });

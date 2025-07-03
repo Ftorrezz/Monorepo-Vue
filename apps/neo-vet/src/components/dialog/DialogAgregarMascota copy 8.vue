@@ -153,13 +153,7 @@
                             />
                           </div>
                           <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12">
-                            <q-input 
-                              v-model="mascota.edad" 
-                              label="Edad" 
-                              :readonly="!!mascota.fechanacimiento"
-                              dense 
-                              @update:model-value="onEdadChange"
-                            />
+                            <q-input v-model="mascota.edad" label="Edad" readonly dense />
                           </div>
                           <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
                             <ListaSexo
@@ -201,7 +195,7 @@
                         />
                       </div>
 
-                      
+
                         </div>
                       </q-card-section>
                     </q-card>
@@ -255,28 +249,6 @@
                         dense
                         />
                       </div>
-                      <!-- Campos de checkbox -->
-                          <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
-                            <q-checkbox
-                              v-model="mascota.pedigri"
-                              true-value="S"
-                              false-value="N"
-                              label="Pedigrí"
-                              color="primary"
-                              dense
-                            />
-                          </div>
-                          <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
-                            <q-checkbox
-                              v-model="mascota.esterilizado"
-                              true-value="S"
-                              false-value="N"
-                              label="Esterilizado"
-                              color="primary"
-                              dense
-                            />
-                          </div>
-                      
 
                     </div>
                   </q-card-section>
@@ -349,7 +321,7 @@ interface Mascota {
   id_propietario: number | null;
   nombre: string;
   historiaclinica: string;
-  edad: number | null;
+  edad: string;
   id_especie: number | null;
   id_raza: number | null;
   id_sexo: number | null;
@@ -362,8 +334,6 @@ interface Mascota {
   id_habitat?: number | null;
   id_caracter?: number | null;
   observaciones: string;
-  pedigri: string;
-  esterilizado: string;
   activo: string;
   id_sitio: number;
   id_sucursal: number;
@@ -381,7 +351,7 @@ const props = defineProps({
       id_propietario: null,
       nombre: "",
       historiaclinica: "",
-      edad: null,
+      edad: "",
       id_especie: null,
       id_raza: null,
       id_sexo: null,
@@ -394,11 +364,11 @@ const props = defineProps({
       id_habitat: null,
       id_caracter: null,
       observaciones: "",
-      pedigri: "N",
-      esterilizado: "N",
       activo: "S",
       id_sitio: 1,
       id_sucursal: 2,
+      pedigri: "N",
+      esterilizado: "N",
     }),
   },
 });
@@ -431,28 +401,8 @@ const formMascotaRef = ref<QForm | null>(null);
 
 // Datos de la mascota
 const mascota = ref<Mascota>({
-  id: props.mascotaData.id,
+  ...props.mascotaData,
   id_propietario: props.propietario?.id,
-  nombre: props.mascotaData.nombre,
-  historiaclinica: props.mascotaData.historiaclinica,
-  edad: props.mascotaData.edad,
-  id_especie: props.mascotaData.id_especie,
-  id_raza: props.mascotaData.id_raza,
-  id_sexo: props.mascotaData.id_sexo,
-  fechanacimiento: props.mascotaData.fechanacimiento,
-  chip: props.mascotaData.chip,
-  fechachip: props.mascotaData.fechachip,
-  id_color: props.mascotaData.id_color,
-  id_tamanio: props.mascotaData.id_tamanio,
-  id_dieta: props.mascotaData.id_dieta,
-  id_habitat: props.mascotaData.id_habitat,
-  id_caracter: props.mascotaData.id_caracter,
-  observaciones: props.mascotaData.observaciones,
-  pedigri: props.mascotaData.pedigri,
-  esterilizado: props.mascotaData.esterilizado,
-  activo: props.mascotaData.activo,
-  id_sitio: props.mascotaData.id_sitio,
-  id_sucursal: props.mascotaData.id_sucursal,
 });
 
 
@@ -491,7 +441,7 @@ const guardarMascota = async () => {
 
     // Remove id if it's null for creation
     if (datosMascotaPayload.id === null || datosMascotaPayload.id === undefined) {
-      delete (datosMascotaPayload as any).id;
+      delete datosMascotaPayload.id;
     }
 
     datosMascotaPayload.id_sexo = obtenerIDValue(datosMascotaPayload.id_sexo);
@@ -530,7 +480,7 @@ const guardarMascota = async () => {
      alertas.mostrarMensaje(
       "error",
       "Guardar Mascota",
-      (error as Error)?.message || "No fue posible guardar la mascota."
+      error.message || "No fue posible guardar la mascota."
     );
   } finally {
     isLoading.value = false;
@@ -546,6 +496,11 @@ defineExpose({
 
 
 
+// Calculate age on mount if fechanacimiento is present
+if (mascota.value.fechanacimiento) {
+  calcularEdadMascota();
+}
+
 const calcularEdadMascota = () => {
   if (mascota.value.fechanacimiento) {
     const fechaNac = new Date(mascota.value.fechanacimiento);
@@ -555,29 +510,11 @@ const calcularEdadMascota = () => {
     if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
       edad--;
     }
-    mascota.value.edad = edad >= 0 ? edad : 0;
+    mascota.value.edad = edad >= 0 ? edad.toString() : '0';
   } else {
-    mascota.value.edad = null;
+    mascota.value.edad = '';
   }
 };
-
-const onEdadChange = (nuevaEdad: string | number | null) => {
-  // Si se ingresa una edad manualmente, limpiar la fecha de nacimiento
-  if (nuevaEdad && !mascota.value.fechanacimiento) {
-    // Convertir a número si es string
-    if (typeof nuevaEdad === 'string') {
-      const edadNum = parseInt(nuevaEdad, 10);
-      mascota.value.edad = isNaN(edadNum) ? null : edadNum;
-    } else {
-      mascota.value.edad = nuevaEdad;
-    }
-  }
-};
-
-// Calculate age on mount if fechanacimiento is present
-if (mascota.value.fechanacimiento) {
-  calcularEdadMascota();
-}
 
 
 
@@ -597,20 +534,6 @@ watch(
   () => props.propietario?.id,
   (newValue) => {
     mascota.value.id_propietario = newValue;
-  }
-);
-
-// Watcher para la fecha de nacimiento
-watch(
-  () => mascota.value.fechanacimiento,
-  (nuevaFecha) => {
-    if (nuevaFecha) {
-      // Si se ingresa una fecha, calcular la edad automáticamente
-      calcularEdadMascota();
-    } else {
-      // Si se borra la fecha, limpiar la edad para permitir entrada manual
-      mascota.value.edad = null;
-    }
   }
 );
 
