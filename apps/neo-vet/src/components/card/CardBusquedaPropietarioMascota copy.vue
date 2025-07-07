@@ -10,14 +10,14 @@
             </div>
             <q-btn
               unelevated
-              color="positive"
+              color="deep-purple-14"
               text-color="white"
               size="sm"
               label="Nuevo Propietario"
               class="action-btn"
               @click="abrirDialogoPropietario"
             >
-              <q-badge color="white" text-color="positive" floating>+</q-badge>
+              <q-badge color="white" text-color="purple" floating>+</q-badge>
               <q-tooltip>Agregar nuevo propietario</q-tooltip>
             </q-btn>
           </div>
@@ -30,6 +30,8 @@
           flat
           bordered
           translate="no"
+          :pagination="{ rowsPerPage: 10 }"
+          :rows-per-page-options="[5, 10, 15, 20]"
         >
           <template v-slot:body="props">
             <q-tr
@@ -107,7 +109,7 @@
             <div>
               <q-btn
                 unelevated
-                color="purple"
+                color="deep-purple-14"
                 text-color="white"
                 size="sm"
                 label="Nueva Mascota"
@@ -144,6 +146,8 @@
           flat
           bordered
           translate="no"
+          :pagination="{ rowsPerPage: 10 }"
+          :rows-per-page-options="[5, 10, 15, 20]"
         >
           <!-- Mensaje informativo para propietario recién agregado -->
           <template v-slot:top v-if="propietarioRecienAgregado">
@@ -226,6 +230,7 @@
 
   <DialogAgregarMascota
     v-if="mostrarDialogoMascota"
+    :propietario="propietarioSeleccionado"
     @mascota-guardada="mascotaAgregada"
     @cerrar="cerrarDialogoMascota"
   />
@@ -240,6 +245,8 @@ import DialogAgregarMascota from "../dialog/DialogAgregarMascota.vue";
 import NdAlertasControl from "src/controles/alertas.control";
 import PeticionService from "src/services/peticion.service";
 import { usePropietarioStore } from 'src/stores/propietarioStore';
+import NdPeticionControl from "src/controles/rest.control";
+import { DtoParametros } from "src/controles/dto.parametros";
 
 const mostrarDialogoPropietario = ref(false);
 const mostrarDialogoMascota = ref(false);
@@ -279,7 +286,7 @@ watch(() => props.rows, (nuevosDatos, datosAnteriores) => {
       nuevosDatos.length !== datosAnteriores.length ||
       !nuevosDatos.some((item, index) => 
         datosAnteriores[index] && 
-        item.propietario?.id === datosAnteriores[index].propietario?.id
+        item.id === datosAnteriores[index].id
       );
     
     if (esNuevaBusqueda) {
@@ -287,7 +294,13 @@ watch(() => props.rows, (nuevosDatos, datosAnteriores) => {
       propietarioStore.limpiarPropietariosTemporales();
     }
     
-    propietarioStore.setDatosOriginales(nuevosDatos);
+    // Solo actualizar si no hay un propietario seleccionado o si es una nueva búsqueda
+    if (!propietarioStore.propietarioSeleccionadoId || esNuevaBusqueda) {
+      propietarioStore.setDatosOriginales(nuevosDatos);
+    } else {
+      // Si hay un propietario seleccionado, solo actualizar los datos sin cambiar la selección
+      propietarioStore.datosOriginales = nuevosDatos;
+    }
   }
 }, { immediate: true });
 
@@ -457,9 +470,38 @@ const cerrarDialogoPropietario = () => {
   mostrarDialogoPropietario.value = false;
 };
 
-const mascotaAgregada = () => {
+const mascotaAgregada = (mascotaGuardada) => {
   mostrarDialogoMascota.value = false;
-  emit('refresh-data');
+  
+  // En lugar de hacer refresh-data, agregar la mascota directamente a la lista
+  if (propietarioStore.propietarioSeleccionadoId && mascotaGuardada) {
+    // Agregar la mascota al propietario seleccionado en los datos originales
+    const propietarioEncontrado = propietarioStore.datosOriginales.find(
+      item => item.id === propietarioStore.propietarioSeleccionadoId
+    );
+    
+    if (propietarioEncontrado) {
+      // Asegurar que el array de mascotas existe
+      if (!propietarioEncontrado.mascotas) {
+        propietarioEncontrado.mascotas = [];
+      }
+      
+      // Crear una copia de la mascota con el nombre en mayúsculas
+      const mascotaConNombreMayusculas = {
+        ...mascotaGuardada,
+        nombre: mascotaGuardada.nombre ? mascotaGuardada.nombre.toUpperCase() : ''
+      };
+      
+      // Agregar la nueva mascota
+      propietarioEncontrado.mascotas.push(mascotaConNombreMayusculas);
+      
+      // Forzar la actualización del store creando una nueva referencia del array
+      propietarioStore.datosOriginales = [...propietarioStore.datosOriginales];
+      
+      console.log('Mascota agregada exitosamente:', mascotaConNombreMayusculas);
+      console.log('Mascotas del propietario:', propietarioEncontrado.mascotas);
+    }
+  }
 };
 
 const cerrarDialogoMascota = () => {
@@ -533,12 +575,12 @@ const mascotasRows = computed(() => {
 .action-btn {
   font-weight: 600;
   border-radius: 8px;
-  padding: 6px 12px;
-  transition: all 0.3s ease;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  padding: 6px 15px;
+  transition: all 0.03s ease;
+  box-shadow: 0 3px 6px rgba(245, 243, 247, 0.15);
   text-transform: none;
   letter-spacing: 0.5px;
-  font-size: 13px;
+  font-size: 10px;
 }
 
 .action-btn:hover {
@@ -561,7 +603,7 @@ const mascotasRows = computed(() => {
 /* Estilos para los badges en los botones */
 .action-btn .q-badge {
   font-weight: bold;
-  font-size: 12px;
+  font-size: 14px;
   min-width: 18px;
   height: 18px;
   border-radius: 9px;
@@ -571,7 +613,7 @@ const mascotasRows = computed(() => {
 
 /* Animación para el badge de advertencia */
 .action-btn .q-badge[color="warning"] {
-  animation: pulse 2s infinite;
+  animation: pulse 1s infinite;
 }
 
 @keyframes pulse {

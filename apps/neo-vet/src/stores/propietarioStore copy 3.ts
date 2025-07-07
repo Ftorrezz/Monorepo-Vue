@@ -176,18 +176,15 @@ export const usePropietarioStore = defineStore('propietarioStore', {
             // El propietario seleccionado sigue existiendo, mantenerlo
             const propietarioEncontrado = datos.find(item => item.id === propietarioSeleccionadoActual);
             if (propietarioEncontrado && propietarioEncontrado.propietario) {
-              // Usar setTimeout para asegurar que la selección se mantenga
-              setTimeout(() => {
-                this.seleccionarPropietario({
-                  id: propietarioEncontrado.id,
-                  primerapellido: propietarioEncontrado.propietario.primerapellido || '',
-                  segundoapellido: propietarioEncontrado.propietario.segundoapellido || '',
-                  nombre: propietarioEncontrado.propietario.nombre || '',
-                  email: propietarioEncontrado.propietario.contacto?.email || '',
-                  telefono1: propietarioEncontrado.propietario.contacto?.telefono1 || '',
-                  activo: propietarioEncontrado.activo
-                });
-              }, 50);
+              this.seleccionarPropietario({
+                id: propietarioEncontrado.id,
+                primerapellido: propietarioEncontrado.propietario.primerapellido || '',
+                segundoapellido: propietarioEncontrado.propietario.segundoapellido || '',
+                nombre: propietarioEncontrado.propietario.nombre || '',
+                email: propietarioEncontrado.propietario.contacto?.email || '',
+                telefono1: propietarioEncontrado.propietario.contacto?.telefono1 || '',
+                activo: propietarioEncontrado.activo
+              });
             }
           } else {
             // El propietario seleccionado ya no existe, seleccionar el primero

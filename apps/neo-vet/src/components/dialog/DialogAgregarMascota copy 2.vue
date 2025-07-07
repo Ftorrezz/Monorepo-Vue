@@ -1,9 +1,8 @@
 <template>
   <div>
     <q-dialog v-model="mostrarDialogo" persistent>
-      <q-card class="modern-dialog">
-        <!-- Encabezado moderno -->
-        <q-bar class="bg-primary text-white modern-header">
+    <q-card class="modern-dialog">
+      <q-bar class="bg-primary text-white modern-header">
           <div class="row items-center full-width">
             <div class="col-auto">
               <q-avatar size="28px" class="q-mr-sm">
@@ -19,11 +18,20 @@
           </div>
         </q-bar>
 
-        <!-- Contenido principal -->
+      <!-- Mostrar el nombre del propietario -->
+      <q-card-section class="q-pa-sm bg-grey-2 text-primary">
+        <q-icon name="person" size="sm" class="q-mr-sm" />
+        <span class="propietario-destacado">
+          Mascota de: <b>{{ propietario?.nombre }} {{ propietario?.primerapellido }} {{ propietario?.segundoapellido }}</b>
+        </span>
+      </q-card-section>
+
+      <!-- Contenido principal -->
         <q-card-section class="q-pa-md scrollable-form-content">
           <q-form ref="formMascotaRef">
+
             <div class="row q-col-gutter-md">
-              <!-- Sección de foto e Información Principal -->
+              <!-- Sección de foto y Información Personal -->
               <div class="col-12">
                 <div class="row q-col-gutter-md">
                   <!-- Sección de la foto -->
@@ -32,7 +40,9 @@
                       <q-card-section class="column items-center">
                         <div
                           class="modern-photo-container"
-                          @click="!camaraActiva && !imagenCapturada && activarCamara()"
+                          @click="
+                            !camaraActiva && !imagenCapturada && activarCamara()
+                          "
                         >
                           <video
                             v-show="!imagenCapturada && camaraActiva"
@@ -51,18 +61,23 @@
                             v-if="imagenCapturada"
                             :src="imagenCapturada"
                             class="captured-image"
-                            alt="Foto de la mascota"
+                            alt="Foto del propietario"
                           />
                           <div
                             v-if="!camaraActiva && !imagenCapturada"
                             class="photo-placeholder"
                           >
-                            <q-icon name="photo_camera" size="32px" color="grey-7" />
+                            <q-icon
+                              name="photo_camera"
+                              size="32px"
+                              color="grey-7"
+                            />
                             <div class="text-grey-7 text-caption q-mt-sm">
                               Click para foto
                             </div>
                           </div>
                         </div>
+                        <!-- Modificar los controles de la cámara -->
                         <div class="modern-camera-controls q-mt-sm">
                           <q-btn
                             v-if="!camaraActiva && !imagenCapturada"
@@ -111,7 +126,7 @@
                     </q-card>
                   </div>
 
-                  <!-- Información principal de la mascota -->
+                  <!-- Información personal -->
                   <div class="col-lg-10 col-md-9 col-sm-6 col-xs-12">
                     <q-card flat bordered class="modern-info-card">
                       <q-card-section>
@@ -125,6 +140,7 @@
                               label="Nombre *"
                               :rules="[(val) => !!val || 'El nombre es requerido']"
                               dense
+                              class="uppercase"
                             />
                           </div>
                           <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
@@ -137,19 +153,21 @@
                             />
                           </div>
                           <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12">
-                            <q-input v-model="mascota.edad" label="Edad" readonly dense />
+                            <q-input 
+                              v-model="mascota.edad" 
+                              label="Edad" 
+                              :readonly="!!mascota.fechanacimiento"
+                              dense 
+                              @update:model-value="onEdadChange"
+                            />
                           </div>
                           <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
-                            <q-select
+                            <ListaSexo
                               v-model="mascota.id_sexo"
-                              :options="opcionesSexo"
-                              label="Sexo *"
-                              :rules="[(val) => !!val || 'El sexo es requerido']"
-                              emit-value
-                              map-options
                               dense
                             />
                           </div>
+
                            <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                             <q-input
                               v-model="mascota.historiaclinica"
@@ -157,64 +175,7 @@
                               dense
                             />
                           </div>
-                        </div>
-                      </q-card-section>
-                    </q-card>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Detalles Adicionales -->
-              <div class="col-12">
-                <q-card flat bordered class="modern-details-card">
-                  <q-card-section>
-                    <div class="row items-center q-mb-md">
-                      <q-icon name="list_alt" color="primary" size="sm" class="q-mr-sm" />
-                      <div class="text-subtitle1 text-primary">Detalles Adicionales</div>
-                    </div>
-                    <div class="row q-col-gutter-md">
-                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                        <q-select
-                          v-model="mascota.id_especie"
-                          :options="opcionesEspecie"
-                          label="Especie *"
-                          :rules="[(val) => !!val || 'La especie es requerida']"
-                          emit-value
-                          map-options
-                          dense
-                        />
-                      </div>
-                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                        <q-select
-                          v-model="mascota.id_raza"
-                          :options="opcionesRaza"
-                          label="Raza"
-                          emit-value
-                          map-options
-                          dense
-                        />
-                      </div>
-                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                        <q-select
-                          v-model="mascota.id_color"
-                          :options="opcionesColor"
-                          label="Color"
-                          emit-value
-                          map-options
-                          dense
-                        />
-                      </div>
-                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                        <q-select
-                          v-model="mascota.id_tamano"
-                          :options="opcionesTamano"
-                          label="Tamaño"
-                          emit-value
-                          map-options
-                          dense
-                        />
-                      </div>
-                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                          <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                         <q-input
                           v-model="mascota.chip"
                           label="Número de Chip"
@@ -229,6 +190,94 @@
                           dense
                         />
                       </div>
+                      <div class="col-lg-2 col-md-3 col-sm-12 col-xs-12">
+                        <q-select
+                          v-model="mascota.id_tamanio"
+                          :options="OPCIONES_TAMANO_MASCOTA"
+                          label="Tamaño"
+                          emit-value
+                          map-options
+                          dense
+                        />
+                      </div>
+
+                      
+                        </div>
+                      </q-card-section>
+                    </q-card>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Detalles Adicionales -->
+              <div class="col-12">
+                <q-card flat bordered class="modern-details-card">
+                  <q-card-section>
+                    <div class="row items-center q-mb-md">
+                      <q-icon name="list_alt" color="primary" size="sm" class="q-mr-sm" />
+                      <div class="text-subtitle1 text-primary">Datos Adicionales</div>
+                    </div>
+                    <div class="row q-col-gutter-md">
+                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                        <ListaEspecie
+                          v-model="mascota.id_especie"
+                          dense
+                        />
+                      </div>
+                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                            <ListaRazaMascota
+                              v-model="mascota.id_raza"
+                              dense
+                            />
+                      </div>
+                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                        <ListaColor
+                          v-model="mascota.id_color"
+                          dense
+                        />
+                      </div>
+
+                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                        <ListaDieta
+                          v-model="mascota.id_dieta"
+                          dense
+                        />
+                      </div>
+                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                        <ListaHabitat
+                          v-model="mascota.id_habitat"
+                          dense
+                        />
+                      </div>
+                      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                        <ListaCaracter
+                        v-model="mascota.id_caracter"
+                        dense
+                        />
+                      </div>
+                      <!-- Campos de checkbox -->
+                          <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                            <q-checkbox
+                              v-model="mascota.pedigri"
+                              true-value="S"
+                              false-value="N"
+                              label="Pedigrí"
+                              color="primary"
+                              dense
+                            />
+                          </div>
+                          <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                            <q-checkbox
+                              v-model="mascota.esterilizado"
+                              true-value="S"
+                              false-value="N"
+                              label="Esterilizado"
+                              color="primary"
+                              dense
+                            />
+                          </div>
+                      
+
                     </div>
                   </q-card-section>
                 </q-card>
@@ -239,14 +288,22 @@
                 <q-card flat bordered class="modern-notes-card">
                   <q-card-section>
                     <div class="row items-center q-mb-md">
-                      <q-icon name="notes" color="primary" size="sm" class="q-mr-sm" />
-                      <div class="text-subtitle1 text-primary">Observaciones</div>
+                      <q-icon
+                        name="notes"
+                        color="primary"
+                        size="sm"
+                        class="q-mr-sm"
+                      />
+                      <div class="text-subtitle1 text-primary">
+                        Observaciones
+                      </div>
                     </div>
                     <q-input
-                      v-model="mascota.observacion"
+                      v-model="mascota.observaciones"
                       type="textarea"
                       label="Observaciones"
                       rows="3"
+                      class="full-width"
                       dense
                     />
                   </q-card-section>
@@ -261,24 +318,60 @@
           <OpcionCancelarGuardar
             @accionCerrar="closeDialog"
             @accionValidar="guardarMascota"
-            :loading="isLoading"
           />
         </q-card-actions>
-      </q-card>
+
+    </q-card>
     </q-dialog>
+
   </div>
 </template>
 
-<script setup>
-import { ref, watch, onBeforeUnmount, computed } from "vue";
+<script setup lang="ts">
+import { ref, computed, onMounted, defineEmits, watch } from "vue";
 import { QForm, useQuasar } from "quasar";
 import OpcionCancelarGuardar from "../OpcionCancelarGuardar.vue";
 import PeticionService from "src/services/peticion.service";
 import NdAlertasControl from "src/controles/alertas.control";
+import ListaRazaMascota from "../../../../../libs/shared/src/components/listas/ListaRazaMascota.vue";
+import ListaSexo from "../../../../../libs/shared/src/components/listas/ListaSexo.vue";
+import ListaHabitat from "../../../../../libs/shared/src/components/listas/ListaHabitat.vue";
+import ListaColor from "../../../../../libs/shared/src/components/listas/ListaColor.vue";
+import ListaDieta from "../../../../../libs/shared/src/components/listas/ListaDieta.vue";
+import ListaEspecie from "../../../../../libs/shared/src/components/listas/ListaEspecie.vue";
+import ListaCaracter from "../../../../../libs/shared/src/components/listas/ListaCaracter.vue";
+import { OPCIONES_TAMANO_MASCOTA } from "../../../../../libs/shared/src/constant/mascota"
+import { obtenerIDValue } from "../../../../../libs/shared/src/helper/FuncionesGenericas"
+
+// Definir la interfaz Mascota para tipar correctamente la variable
+interface Mascota {
+  id: number | null;
+  id_propietario: number | null;
+  nombre: string;
+  historiaclinica: string;
+  edad: number | null;
+  id_especie: number | null;
+  id_raza: number | null;
+  id_sexo: number | null;
+  fechanacimiento: string | null;
+  chip: string;
+  fechachip: string | null;
+  id_color: number | null;
+  id_tamanio: number | null;
+  id_dieta?: number | null;
+  id_habitat?: number | null;
+  id_caracter?: number | null;
+  observaciones: string;
+  pedigri: string;
+  esterilizado: string;
+  activo: string;
+  id_sitio: number;
+  id_sucursal: number;
+}
 
 const props = defineProps({
-  propietarioId: {
-    type: Number,
+  propietario: {
+    type: Object,
     required: true,
   },
   mascotaData: {
@@ -288,7 +381,7 @@ const props = defineProps({
       id_propietario: null,
       nombre: "",
       historiaclinica: "",
-      edad: "",
+      edad: null,
       id_especie: null,
       id_raza: null,
       id_sexo: null,
@@ -296,14 +389,21 @@ const props = defineProps({
       chip: "",
       fechachip: null,
       id_color: null,
-      id_tamano: null,
-      observacion: "",
+      id_tamanio: null,
+      id_dieta: null,
+      id_habitat: null,
+      id_caracter: null,
+      observaciones: "",
+      pedigri: "N",
+      esterilizado: "N",
       activo: "S",
-      id_sitio: 1, // Default site ID
-      foto: null, // For captured image data
+      id_sitio: 1,
+      id_sucursal: 2,
     }),
   },
 });
+
+//TODO: SUCUERSAL FIJA
 
 const emit = defineEmits(["update:mascota", "mascota-guardada", "cerrar"]);
 
@@ -313,143 +413,55 @@ const isLoading = ref(false);
 const peticionService = new PeticionService();
 const alertas = new NdAlertasControl();
 
-const formMascotaRef = ref<QForm | null>(null);
-
-const mascota = ref({
-  ...props.mascotaData,
-  id_propietario: props.propietarioId,
-});
-
-watch(
-  () => props.propietarioId,
-  (newValue) => {
-    mascota.value.id_propietario = newValue;
-  }
-);
-
-watch(
-  mascota,
-  (newValue) => {
-    emit("update:mascota", newValue);
-  },
-  { deep: true }
-);
-
-const closeDialog = () => {
+const close = () => {
   mostrarDialogo.value = false;
-  emit("cerrar");
 };
+
+// Tabs
+const tabMascota = ref("general");
 
 // Cámara
-const video = ref<HTMLVideoElement | null>(null);
-const canvas = ref<HTMLCanvasElement | null>(null);
+const video = ref(null);
+const canvas = ref(null);
 const camaraActiva = ref(false);
-const imagenCapturada = ref<string | null>(props.mascotaData.foto || null);
-const stream = ref<MediaStream | null>(null);
+const imagenCapturada = ref(null);
+const stream = ref(null);
 
-const activarCamara = async () => {
-  try {
-    stream.value = await navigator.mediaDevices.getUserMedia({ video: true });
-    if (video.value) {
-      video.value.srcObject = stream.value;
-      camaraActiva.value = true;
-    } else {
-      console.error("Elemento de video no encontrado.");
-      detenerCamara();
-    }
-  } catch (error) {
-    console.error("Error al acceder a la cámara:", error);
-    $q.notify({
-      type: "negative",
-      message: "No se pudo acceder a la cámara. Verifica los permisos.",
-    });
-  }
-};
+const formMascotaRef = ref<QForm | null>(null);
 
-const capturarFoto = () => {
-  if (canvas.value && video.value) {
-    const context = canvas.value.getContext("2d");
-    if (context) {
-      context.drawImage(video.value, 0, 0, canvas.value.width, canvas.value.height);
-      imagenCapturada.value = canvas.value.toDataURL("image/png");
-      mascota.value.foto = imagenCapturada.value; // Store base64 image data
-      detenerCamara();
-    }
-  }
-};
-
-const detenerCamara = () => {
-  if (stream.value) {
-    stream.value.getTracks().forEach((track) => track.stop());
-    stream.value = null;
-  }
-  camaraActiva.value = false;
-};
-
-const reiniciarCamara = () => {
-  imagenCapturada.value = null;
-  mascota.value.foto = null;
-  activarCamara();
-};
-
-onBeforeUnmount(() => {
-  detenerCamara();
+// Datos de la mascota
+const mascota = ref<Mascota>({
+  id: props.mascotaData.id,
+  id_propietario: props.propietario?.id,
+  nombre: props.mascotaData.nombre,
+  historiaclinica: props.mascotaData.historiaclinica,
+  edad: props.mascotaData.edad,
+  id_especie: props.mascotaData.id_especie,
+  id_raza: props.mascotaData.id_raza,
+  id_sexo: props.mascotaData.id_sexo,
+  fechanacimiento: props.mascotaData.fechanacimiento,
+  chip: props.mascotaData.chip,
+  fechachip: props.mascotaData.fechachip,
+  id_color: props.mascotaData.id_color,
+  id_tamanio: props.mascotaData.id_tamanio,
+  id_dieta: props.mascotaData.id_dieta,
+  id_habitat: props.mascotaData.id_habitat,
+  id_caracter: props.mascotaData.id_caracter,
+  observaciones: props.mascotaData.observaciones,
+  pedigri: props.mascotaData.pedigri,
+  esterilizado: props.mascotaData.esterilizado,
+  activo: props.mascotaData.activo,
+  id_sitio: props.mascotaData.id_sitio,
+  id_sucursal: props.mascotaData.id_sucursal,
 });
 
-// Opciones para los selects (podrían venir de un servicio/store en una app real)
-const opcionesEspecie = ref([
-  { label: "Perro", value: 1 },
-  { label: "Gato", value: 2 },
-  { label: "Ave", value: 3 },
-  { label: "Reptil", value: 4 },
-  { label: "Otro", value: 5 },
-]);
 
-const opcionesRaza = ref([
-  { label: "Labrador", value: 1 },
-  { label: "Pastor Alemán", value: 2 },
-  { label: "Siamés", value: 3 },
-  { label: "Persa", value: 4 },
-  { label: "Criollo", value: 5 },
-  { label: "Otra", value: 6 },
-]);
 
-const opcionesSexo = ref([
-  { label: "Macho", value: 1 },
-  { label: "Hembra", value: 2 },
-]);
+// ... (otras refs y funciones)
+// (deja aquí el resto del código igual)
 
-const opcionesColor = ref([
-  { label: "Negro", value: 1 },
-  { label: "Blanco", value: 2 },
-  { label: "Marrón", value: 3 },
-  { label: "Gris", value: 4 },
-  { label: "Atigrado", value: 5 },
-  { label: "Otro", value: 6 },
-]);
-
-const opcionesTamano = ref([
-  { label: "Pequeño", value: 1 },
-  { label: "Mediano", value: 2 },
-  { label: "Grande", value: 3 },
-]);
-
-const calcularEdadMascota = () => {
-  if (mascota.value.fechanacimiento) {
-    const fechaNac = new Date(mascota.value.fechanacimiento);
-    const hoy = new Date();
-    let edad = hoy.getFullYear() - fechaNac.getFullYear();
-    const mes = hoy.getMonth() - fechaNac.getMonth();
-    if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
-      edad--;
-    }
-    mascota.value.edad = edad >= 0 ? edad.toString() : '0';
-  } else {
-    mascota.value.edad = '';
-  }
-};
-
-const validarFormulario = async () => {
+// ---
+const validar = async () => {
   if (formMascotaRef.value) {
     return await formMascotaRef.value.validate();
   }
@@ -457,7 +469,7 @@ const validarFormulario = async () => {
 };
 
 const guardarMascota = async () => {
-  const esValido = await validarFormulario();
+  const esValido = await validar();
   if (!esValido) {
     alertas.mostrarMensaje(
       "error",
@@ -473,20 +485,34 @@ const guardarMascota = async () => {
     const datosMascotaPayload = { ...mascota.value };
 
     // Ensure id_propietario is set
-    if (!datosMascotaPayload.id_propietario && props.propietarioId) {
-        datosMascotaPayload.id_propietario = props.propietarioId;
+    if (!datosMascotaPayload.id_propietario && props.propietario?.id) {
+        datosMascotaPayload.id_propietario = props.propietario.id;
     }
 
     // Remove id if it's null for creation
     if (datosMascotaPayload.id === null || datosMascotaPayload.id === undefined) {
-      delete datosMascotaPayload.id;
+      delete (datosMascotaPayload as any).id;
     }
 
+    datosMascotaPayload.id_sexo = obtenerIDValue(datosMascotaPayload.id_sexo);
+    datosMascotaPayload.id_tamanio = obtenerIDValue(datosMascotaPayload.id_tamanio);
+    datosMascotaPayload.id_especie = obtenerIDValue(datosMascotaPayload.id_especie);
+    datosMascotaPayload.id_raza = obtenerIDValue(datosMascotaPayload.id_raza);
+    datosMascotaPayload.id_color = obtenerIDValue(datosMascotaPayload.id_color);
+    datosMascotaPayload.id_dieta = obtenerIDValue(datosMascotaPayload.id_dieta);
+    datosMascotaPayload.id_habitat = obtenerIDValue(datosMascotaPayload.id_habitat);
+    datosMascotaPayload.id_caracter = obtenerIDValue(datosMascotaPayload.id_caracter);
+
+
     if (datosMascotaPayload.id) {
-      resultadoOperacion = await peticionService.actualizar('mascota', datosMascotaPayload);
+      resultadoOperacion = await peticionService.actualizar('paciente', datosMascotaPayload);
     } else {
-      resultadoOperacion = await peticionService.crear('mascota', datosMascotaPayload);
+      resultadoOperacion = await peticionService.crear('paciente', datosMascotaPayload);
     }
+
+
+
+
 
     const mascotaGuardada = {
       ...datosMascotaPayload,
@@ -504,64 +530,182 @@ const guardarMascota = async () => {
      alertas.mostrarMensaje(
       "error",
       "Guardar Mascota",
-      error.message || "No fue posible guardar la mascota."
+      (error as Error)?.message || "No fue posible guardar la mascota."
     );
   } finally {
     isLoading.value = false;
   }
 };
 
+// Asegúrate que esto esté al final del bloque, después de declarar todas las funciones:
 defineExpose({
   mascota,
-  validarFormulario,
+  validar,
   guardarMascota,
 });
+
+
+
+const calcularEdadMascota = () => {
+  if (mascota.value.fechanacimiento) {
+    const fechaNac = new Date(mascota.value.fechanacimiento);
+    const hoy = new Date();
+    let edad = hoy.getFullYear() - fechaNac.getFullYear();
+    const mes = hoy.getMonth() - fechaNac.getMonth();
+    if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
+      edad--;
+    }
+    mascota.value.edad = edad >= 0 ? edad : 0;
+  } else {
+    mascota.value.edad = null;
+  }
+};
+
+const onEdadChange = (nuevaEdad: string | number | null) => {
+  // Si se ingresa una edad manualmente, limpiar la fecha de nacimiento
+  if (nuevaEdad && !mascota.value.fechanacimiento) {
+    // Convertir a número si es string
+    if (typeof nuevaEdad === 'string') {
+      const edadNum = parseInt(nuevaEdad, 10);
+      mascota.value.edad = isNaN(edadNum) ? null : edadNum;
+    } else {
+      mascota.value.edad = nuevaEdad;
+    }
+  }
+};
 
 // Calculate age on mount if fechanacimiento is present
 if (mascota.value.fechanacimiento) {
   calcularEdadMascota();
 }
 
+
+
+/*defineExpose({
+  mascota,
+  validarFormulario,
+  guardarMascota,
+});*/
+
+const closeDialog = () => {
+  mostrarDialogo.value = false;
+  emit("cerrar");
+};
+
+// Actualizar el ID del propietario cuando cambie
+watch(
+  () => props.propietario?.id,
+  (newValue) => {
+    mascota.value.id_propietario = newValue;
+  }
+);
+
+// Watcher para la fecha de nacimiento
+watch(
+  () => mascota.value.fechanacimiento,
+  (nuevaFecha) => {
+    if (nuevaFecha) {
+      // Si se ingresa una fecha, calcular la edad automáticamente
+      calcularEdadMascota();
+    } else {
+      // Si se borra la fecha, limpiar la edad para permitir entrada manual
+      mascota.value.edad = null;
+    }
+  }
+);
+
+
+/*const opcionesTamano = ref([
+  { label: "PEQUEÑO", value: 1 },
+  { label: "MEDIANO", value: 2 },
+  { label: "GRANDE", value: 3 },
+]);*/
+
+// Funciones para la cámara
+const activarCamara = async () => {
+  try {
+    stream.value = await navigator.mediaDevices.getUserMedia({ video: true });
+    video.value.srcObject = stream.value;
+    camaraActiva.value = true;
+  } catch (error) {
+    console.error("Error al acceder a la cámara:", error);
+  }
+};
+
+const capturarFoto = () => {
+  const context = canvas.value.getContext("2d");
+  context.drawImage(video.value, 0, 0, canvas.value.width, canvas.value.height);
+  imagenCapturada.value = canvas.value.toDataURL("image/png");
+  detenerCamara();
+};
+
+const detenerCamara = () => {
+  if (stream.value) {
+    stream.value.getTracks().forEach((track) => track.stop());
+    stream.value = null;
+  }
+  camaraActiva.value = false;
+};
+
+const reiniciarCamara = () => {
+  imagenCapturada.value = null;
+  activarCamara();
+};
+
+
+
+// Actualizar la mascota cuando cambie
+watch(
+  mascota,
+  (newValue) => {
+    emit("update:mascota", newValue);
+  },
+  { deep: true }
+);
 </script>
 
 <style scoped>
 .modern-dialog {
-  display: flex;
-  flex-direction: column;
+  display: flex; /* Usar flexbox para controlar el layout interno */
+  flex-direction: column; /* Apilar header, content, actions verticalmente */
   width: 90vw;
-  max-width: 1000px; /* Adjusted max-width for pet form */
+  max-width: 1200px;
   min-width: 320px;
-  max-height: 90vh;
+  max-height: 90vh; /* Limitar la altura máxima del diálogo */
   border-radius: 12px;
+  /* overflow: hidden; Quasar maneja esto, o si se necesita para border-radius.
+                     El scroll interno se manejará en .scrollable-form-content */
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
-.modern-header {
-  flex-shrink: 0;
+.modern-header { /* Para el q-bar */
+  flex-shrink: 0; /* Evitar que el header se encoja */
   padding: 12px 16px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
+/* Clase específica para la sección de contenido principal del formulario */
 .scrollable-form-content {
-  flex-grow: 1;
-  overflow-y: auto;
-  min-height: 0;
+  flex-grow: 1; /* Permitir que esta sección crezca para llenar el espacio disponible */
+  overflow-y: auto; /* Habilitar scroll vertical si el contenido desborda */
+  /* El padding (q-pa-md) se aplica directamente en el template */
+  min-height: 0; /* Necesario en algunos casos para que flex-grow funcione correctamente con overflow */
 }
 
 .modern-photo-card,
 .modern-info-card,
-.modern-details-card, /* Added for pet details */
+.modern-address-card,
 .modern-notes-card {
   border-radius: 8px;
   transition: all 0.3s ease;
   border: 1px solid rgba(0, 0, 0, 0.1);
-  background-color: #ffffff;
-  margin-bottom: 16px; /* Add some space between cards */
+  background-color: #ffffff; /* Fondo blanco para las tarjetas */
+  margin-bottom: 16px;
 }
 
 .modern-photo-card:hover,
 .modern-info-card:hover,
-.modern-details-card:hover,
+.modern-address-card:hover,
 .modern-notes-card:hover {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
@@ -577,7 +721,7 @@ if (mascota.value.fechanacimiento) {
   align-items: center;
   background-color: rgba(0, 0, 0, 0.02);
   cursor: pointer;
-  position: relative;
+  position: relative; /* Necesario para posicionar el placeholder */
   transition: all 0.3s ease;
 }
 
@@ -601,7 +745,7 @@ if (mascota.value.fechanacimiento) {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 8px; /* Match container */
+  border-radius: 8px;
 }
 
 .photo-placeholder {
@@ -611,46 +755,72 @@ if (mascota.value.fechanacimiento) {
   justify-content: center;
   width: 100%;
   height: 100%;
-  position: absolute;
+  position: absolute; /* Posicionar sobre el contenedor */
   top: 0;
   left: 0;
 }
 
 .modern-actions {
-  flex-shrink: 0;
+  flex-shrink: 0; /* Evitar que las acciones se encojan */
   border-top: 1px solid rgba(0, 0, 0, 0.1);
   background-color: rgba(0, 0, 0, 0.02);
 }
 
-:deep(.q-field--dense .q-field__control) {
+:deep(.q-field--outlined .q-field__control) {
   border-radius: 8px;
 }
-:deep(.q-field--dense .q-field__label) {
-  font-size: 14px;
+
+:deep(.q-field--filled .q-field__control) {
+  border-radius: 8px;
 }
 
-/* Card content padding */
-.modern-photo-card .q-card-section,
-.modern-info-card .q-card-section,
-.modern-details-card .q-card-section,
-.modern-notes-card .q-card-section {
-  padding: 16px;
-}
-
+/* Ajustes responsive */
 @media (max-width: 600px) {
   .modern-photo-container {
     width: 120px;
     height: 120px;
   }
+
   .modern-dialog {
     width: 95vw;
-    max-height: 85vh;
+    max-height: 85vh; /* Reducir un poco la altura máxima en móviles */
   }
+
   .modern-actions {
-    padding: 8px !important;
-    justify-content: center !important;
+    padding: 8px !important; /* Reduce el padding y asegura que se aplique sobre q-pa-md */
+    /* Centra los botones y permite que se envuelvan */
+    justify-content: center !important; /* !important para sobreescribir el 'align' de q-card-actions */
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 8px; /* Espacio entre botones, incluso si se envuelven */
   }
+}
+
+/* Animaciones suaves */
+.q-dialog-plugin-enter-active,
+.q-dialog-plugin-leave-active {
+  transition: all 0.3s ease-in-out;
+}
+
+.q-dialog-plugin-enter-from,
+.q-dialog-plugin-leave-to {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+/* Estilo para convertir el texto a mayúsculas dentro de q-input */
+.uppercase :deep(.q-field__native) {
+  text-transform: uppercase;
+}
+
+.propietario-destacado {
+  font-size: 1.25rem;
+  font-weight: none;
+  color: rgb(172, 5, 158);
+  background: #ede7f6;
+  padding: 8px 18px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(81, 45, 168, 0.07);
+  display: inline-block;
+  margin-left: 8px;
 }
 </style>

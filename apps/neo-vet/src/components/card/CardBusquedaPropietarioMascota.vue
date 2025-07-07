@@ -30,6 +30,8 @@
           flat
           bordered
           translate="no"
+          :pagination="{ rowsPerPage: 10 }"
+          :rows-per-page-options="[5, 10, 15, 20]"
         >
           <template v-slot:body="props">
             <q-tr
@@ -144,6 +146,8 @@
           flat
           bordered
           translate="no"
+          :pagination="{ rowsPerPage: 10 }"
+          :rows-per-page-options="[5, 10, 15, 20]"
         >
           <!-- Mensaje informativo para propietario recién agregado -->
           <template v-slot:top v-if="propietarioRecienAgregado">
@@ -235,13 +239,17 @@
 
 <script setup>
 import { ref, computed, nextTick, watch } from "vue";
+import { useQuasar } from "quasar";
 import DialogAgregarMascotaPropietario from "../dialog/DialogAgregarMascotaPropietario.vue";
 import DialogAgregarPropietario from "../dialog/DialogAgregarPropietario.vue";
 import DialogAgregarMascota from "../dialog/DialogAgregarMascota.vue";
 import NdAlertasControl from "src/controles/alertas.control";
 import PeticionService from "src/services/peticion.service";
 import { usePropietarioStore } from 'src/stores/propietarioStore';
+import NdPeticionControl from "src/controles/rest.control";
+import { DtoParametros } from "src/controles/dto.parametros";
 
+const $q = useQuasar();
 const mostrarDialogoPropietario = ref(false);
 const mostrarDialogoMascota = ref(false);
 let alertas = new NdAlertasControl()
@@ -280,7 +288,7 @@ watch(() => props.rows, (nuevosDatos, datosAnteriores) => {
       nuevosDatos.length !== datosAnteriores.length ||
       !nuevosDatos.some((item, index) => 
         datosAnteriores[index] && 
-        item.propietario?.id === datosAnteriores[index].propietario?.id
+        item.id === datosAnteriores[index].id
       );
     
     if (esNuevaBusqueda) {
@@ -288,7 +296,13 @@ watch(() => props.rows, (nuevosDatos, datosAnteriores) => {
       propietarioStore.limpiarPropietariosTemporales();
     }
     
-    propietarioStore.setDatosOriginales(nuevosDatos);
+    // Solo actualizar si no hay un propietario seleccionado o si es una nueva búsqueda
+    if (!propietarioStore.propietarioSeleccionadoId || esNuevaBusqueda) {
+      propietarioStore.setDatosOriginales(nuevosDatos);
+    } else {
+      // Si hay un propietario seleccionado, solo actualizar los datos sin cambiar la selección
+      propietarioStore.datosOriginales = nuevosDatos;
+    }
   }
 }, { immediate: true });
 
@@ -452,15 +466,66 @@ const propietarioAgregado = async (propietarioGuardado) => {
   
   // Llenar el filtro con los datos del propietario recién agregado y buscar
   emit('llenar-filtro-y-buscar', propietarioGuardado);
+  
+  // Mostrar diálogo de confirmación para agregar mascota
+ /* $q.dialog({
+    title: 'Propietario agregado exitosamente',
+    message: `¿Desea agregar una mascota para ${propietarioGuardado.nombre} ${propietarioGuardado.primerapellido}?`,
+    cancel: true,
+    persistent: true,
+    ok: {
+      label: 'Sí, agregar mascota',
+      color: 'primary'
+    },
+    cancel: {
+      label: 'No, más tarde',
+      color: 'grey'
+    }
+  }).onOk(() => {
+    // Si el usuario confirma, abrir el diálogo de nueva mascota
+    abrirDialogoMascota();
+  }).onCancel(() => {
+    // Si el usuario cancela, no hacer nada
+    console.log('Usuario decidió no agregar mascota por ahora');
+  });*/
 };
 
 const cerrarDialogoPropietario = () => {
   mostrarDialogoPropietario.value = false;
 };
 
-const mascotaAgregada = () => {
+const mascotaAgregada = (mascotaGuardada) => {
   mostrarDialogoMascota.value = false;
-  emit('refresh-data');
+  
+  // En lugar de hacer refresh-data, agregar la mascota directamente a la lista
+  if (propietarioStore.propietarioSeleccionadoId && mascotaGuardada) {
+    // Agregar la mascota al propietario seleccionado en los datos originales
+    const propietarioEncontrado = propietarioStore.datosOriginales.find(
+      item => item.id === propietarioStore.propietarioSeleccionadoId
+    );
+    
+    if (propietarioEncontrado) {
+      // Asegurar que el array de mascotas existe
+      if (!propietarioEncontrado.mascotas) {
+        propietarioEncontrado.mascotas = [];
+      }
+      
+      // Crear una copia de la mascota con el nombre en mayúsculas
+      const mascotaConNombreMayusculas = {
+        ...mascotaGuardada,
+        nombre: mascotaGuardada.nombre ? mascotaGuardada.nombre.toUpperCase() : ''
+      };
+      
+      // Agregar la nueva mascota
+      propietarioEncontrado.mascotas.push(mascotaConNombreMayusculas);
+      
+      // Forzar la actualización del store creando una nueva referencia del array
+      propietarioStore.datosOriginales = [...propietarioStore.datosOriginales];
+      
+      console.log('Mascota agregada exitosamente:', mascotaConNombreMayusculas);
+      console.log('Mascotas del propietario:', propietarioEncontrado.mascotas);
+    }
+  }
 };
 
 const cerrarDialogoMascota = () => {
