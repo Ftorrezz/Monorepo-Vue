@@ -342,7 +342,6 @@ import ListaEspecie from "../../../../../libs/shared/src/components/listas/Lista
 import ListaCaracter from "../../../../../libs/shared/src/components/listas/ListaCaracter.vue";
 import { OPCIONES_TAMANO_MASCOTA } from "../../../../../libs/shared/src/constant/mascota"
 import { obtenerIDValue } from "../../../../../libs/shared/src/helper/FuncionesGenericas"
-import { useLoading } from "../../../../../libs/shared/src/composables/useLoading";
 
 // Definir la interfaz Mascota para tipar correctamente la variable
 interface Mascota {
@@ -410,7 +409,7 @@ const emit = defineEmits(["update:mascota", "mascota-guardada", "cerrar"]);
 
 const $q = useQuasar();
 const mostrarDialogo = ref(true);
-const { showLoading, hideLoading } = useLoading();
+const isLoading = ref(false);
 const peticionService = new PeticionService();
 const alertas = new NdAlertasControl();
 
@@ -480,8 +479,7 @@ const guardarMascota = async () => {
     return;
   }
 
-  showLoading();
-  
+  isLoading.value = true;
   try {
     let resultadoOperacion;
     const datosMascotaPayload = { ...mascota.value };
@@ -535,7 +533,7 @@ const guardarMascota = async () => {
       (error as Error)?.message || "No fue posible guardar la mascota."
     );
   } finally {
-    hideLoading();
+    isLoading.value = false;
   }
 };
 

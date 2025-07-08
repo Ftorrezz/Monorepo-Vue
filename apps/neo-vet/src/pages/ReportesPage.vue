@@ -138,15 +138,16 @@
 import { ref, computed } from 'vue';
 import { useQuasar } from 'quasar';
 import { reportesConfig } from 'src/config/reportesConfig'; // Importamos nuestra config
+import { useLoading } from "libs/shared/src/composables/useLoading";
 // import PeticionService from 'src/services/peticion.service'; // Descomentar para uso real
 
 const $q = useQuasar();
+const { showLoading, hideLoading } = useLoading();
 // const peticionService = new PeticionService(); // Descomentar para uso real
 
 const splitterModel = ref(30); // Porcentaje inicial del splitter
 const selectedReport = ref(null);
 const reporteBase64 = ref(null); // Aquí guardaremos el base64 del backend
-const isLoading = ref(false);
 const iframeReporte = ref(null);
 
 // Agrupamos los reportes por su categoría para mostrarlos en el menú
@@ -175,7 +176,7 @@ function seleccionarReporte(reporte) {
 async function generarReporte() {
   if (!selectedReport.value) return;
 
-  isLoading.value = true;
+  showLoading();
   reporteBase64.value = null;
 
   // Preparamos los filtros para enviar al backend
@@ -206,7 +207,7 @@ async function generarReporte() {
     console.error("Error al generar el reporte:", error);
     $q.notify({ type: 'negative', message: 'No se pudo generar el reporte.' });
   } finally {
-    isLoading.value = false;
+    hideLoading();
   }
 }
 

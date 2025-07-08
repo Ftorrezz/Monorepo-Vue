@@ -150,7 +150,7 @@ import { useQuasar } from "quasar";
 import CardBusquedaPropietarioMascota from "../../components/card/CardBusquedaPropietarioMascota.vue";
 import NdPeticionControl from "src/controles/rest.control";
 import { DtoParametros } from "src/controles/dto.parametros";
-import { useLoading } from "../../../../../libs/shared/src/composables/useLoading";
+import { useLoading } from "libs/shared/src/composables/useLoading";
 
 const $q = useQuasar();
 const listaPropietarios = ref([]);
@@ -190,7 +190,6 @@ const buscar = async () => {
       id_sitio: 1,
       nombre: formData.value.propietario.nombre,
       segundoapellido: formData.value.propietario.segundoapellido,
-      primerapellido: formData.value.propietario.primerapellido,
       email: formData.value.propietario.email,
       telefono1: formData.value.propietario.telefono1,
       nombre_mascota: formData.value.mascota.nombre,
