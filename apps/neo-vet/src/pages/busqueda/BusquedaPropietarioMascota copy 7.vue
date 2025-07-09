@@ -8,9 +8,6 @@
               <q-icon name="person" size="sm" class="q-mr-sm" />
               Búsqueda de Propietario
             </div>
-            <q-btn flat round dense icon="refresh" @click="limpiarFiltros" color="white">
-              <q-tooltip>Limpiar Filtros</q-tooltip>
-            </q-btn>
           </div>
         </q-card-section>
 
@@ -243,23 +240,6 @@ const tieneAlgunCampoLleno = computed(() => {
          mascota.nombre.trim() !== '' ||
          mascota.historia_clinica.trim() !== '';
 });
-
-const limpiarFiltros = () => {
-  formData.value = {
-    propietario: {
-      primerapellido: '',
-      segundoapellido: '',
-      nombre: '',
-      email: '',
-      telefono1: ''
-    },
-    mascota: {
-      nombre: '',
-      historia_clinica: ''
-    }
-  };
-  listaPropietarios.value = []; // También limpiar la lista de resultados
-};
 </script>
 
 <style scoped>
