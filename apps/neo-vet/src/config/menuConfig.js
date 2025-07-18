@@ -15,6 +15,11 @@ export const menuConfig = [
         to: "/propietariomascota",
       },
       {
+        label: "Atención Mascota",
+        icon: "pets",
+        to: "/atencionpaciente",
+      },
+      {
         label: "Agenda",
         icon: "calendar_month",
         to: "/agenda",

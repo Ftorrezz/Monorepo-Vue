@@ -185,7 +185,7 @@
                     >
                       <q-tooltip>Editar mascota</q-tooltip>
                     </q-btn>
-                    <q-btn
+                    <!--<q-btn
                       round
                       color="negative"
                       icon="delete"
@@ -195,10 +195,21 @@
                       dense
                     >
                       <q-tooltip>Eliminar mascota</q-tooltip>
+                    </q-btn>-->
+                    <q-btn
+                      round
+                      color="positive"
+                      icon="check"
+                      @click="seleccionarMascota(props)"
+                      size="sm"
+                      dense
+                    >
+                      <q-tooltip>Selección de Paciente</q-tooltip>
                     </q-btn>
 
                   </div>
                 </template>
+                
                 <template v-else>
                   {{ col.value }}
                 </template>
@@ -240,6 +251,7 @@
 <script setup>
 import { ref, computed, nextTick, watch } from "vue";
 import { useQuasar } from "quasar";
+import { useRouter } from "vue-router";
 import DialogAgregarMascotaPropietario from "../dialog/DialogAgregarMascotaPropietario.vue";
 import DialogAgregarPropietario from "../dialog/DialogAgregarPropietario.vue";
 import DialogAgregarMascota from "../dialog/DialogAgregarMascota.vue";
@@ -254,6 +266,7 @@ const mostrarDialogoPropietario = ref(false);
 const mostrarDialogoMascota = ref(false);
 let alertas = new NdAlertasControl()
 const propietarioStore = usePropietarioStore();
+const router = useRouter();
 
 const emit = defineEmits(['update:rows', 'refresh-data', 'limpiar-filtro', 'llenar-filtro-y-buscar']);
 
@@ -452,6 +465,18 @@ const eliminarMascota = async (props) => {
       "Eliminar",
       "No fue posible eliminar la mascota"
     );
+  }
+};
+
+const seleccionarMascota = async (props) => {
+  try {
+
+    router.push({ name: "atencionpaciente" });
+   
+
+  } catch (error) {
+    
+
   }
 };
 

@@ -130,6 +130,12 @@ const routes: RouteRecordRaw[] = [
         meta: { requireAuth: false },
 
       },
+      { path: '/atencionpaciente',
+        component: () => import('layouts/Layout.vue'),
+        children: [{ path: '', name: 'atencionpaciente', component: () => import('pages/AtencionPaciente.vue') }],
+        meta: { requireAuth: false },
+
+      },
 
 
 
