@@ -1,6 +1,6 @@
 <template>
   <q-page class="q-pa-md full-width">
-    <!-- Header principal unificado: Contiene toda la información y acciones -->
+    <!-- Header principal unificado: Contiene info de mascota, propietario, botones y historial de atenciones -->
     <q-card class="q-mb-md rounded-borders shadow-2">
       <q-card-section class="header-gradient q-py-md q-px-lg text-white">
         <div class="row items-center q-col-gutter-md no-wrap">
@@ -8,10 +8,6 @@
             <q-avatar size="64px" icon="pets" color="white" text-color="primary" />
           </div>
           <div class="col">
-            <div class="text-h6 q-mb-sm">
-              <q-icon name="event" class="q-mr-sm" />
-              Historial de Atenciones
-            </div>
             <div class="text-h5 text-weight-bold">{{ paciente.nombre }}</div>
             <div class="text-subtitle2 q-mt-xs">
               {{ paciente.especie }} - {{ paciente.raza }} <span v-if="paciente.edad"> - {{ paciente.edad }} años</span>
@@ -22,27 +18,15 @@
               <span v-if="paciente.propietario?.telefono1"> | <q-icon name="phone" class="q-mr-xs" size="xs" /> Tel: {{ paciente.propietario?.telefono1 }}</span>
             </div>
           </div>
-          <div class="col-auto q-gutter-sm">
-            <q-btn
-              outline
-              label="Nueva Atención"
-              icon="add"
-              color="white"
-              class="q-px-md"
-              @click="nuevaAtencion"
-            />
-            <q-btn
-              outline
-              label="Atenciones Anteriores"
-              icon="history"
-              color="white"
-              class="q-px-md"
-              @click="mostrarAtenciones"
-            />
-          </div>
         </div>
 
         <q-separator class="q-my-md" color="white" inset/>
+
+        <!-- Sección de atenciones con mini-cards -->
+        <div class="text-h6 q-mb-md">
+          <q-icon name="event" class="q-mr-sm" />
+          Historial de Atenciones
+        </div>
 
         <div style="display: flex; overflow-x: auto; gap: 16px; padding-bottom: 8px;">
           <div
@@ -97,6 +81,26 @@
               </div>
             </transition>
           </div>
+        </div>
+
+        <!-- Botones de acción al final de las mini-cards -->
+        <div class="row justify-end q-mt-md q-gutter-sm">
+          <q-btn
+            outline
+            label="Nueva Atención"
+            icon="add"
+            color="white"
+            class="q-px-md"
+            @click="nuevaAtencion"
+          />
+          <q-btn
+            outline
+            label="Atenciones Anteriores"
+            icon="history"
+            color="white"
+            class="q-px-md"
+            @click="mostrarAtenciones"
+          />
         </div>
       </q-card-section>
     </q-card>
@@ -181,62 +185,27 @@
             </div>
 
             <div v-else class="scroll" style="height: 500px;">
-              <!-- Aquí es donde cambia la implementación: carga dinámica de componentes -->
-              <div v-for="servicio in serviciosAplicados" :key="servicio.id" class="q-mb-md">
-                <!-- Componente de Vacunación -->
-                <ServicioVacunacion
-                  v-if="servicio.tipo === 'vacunacion'"
-                  :servicio-id="servicio.id"
-                  :atencion-id="atenciones[atencionActual].id"
-                  :datos-iniciales="servicio.datos"
-                  :modo-lectura="servicio.completado || atenciones[atencionActual].estado === 'Finalizada'"
-                  @servicio-actualizado="actualizarServicio"
-                  @servicio-completado="completarServicio"
-                  @servicio-eliminado="eliminarServicio"
-                />
-                
-                <!-- Componente de Desparacitación -->
-                <ServicioDesparacitacion
-                  v-else-if="servicio.tipo === 'desparacitacion'"
-                  :servicio-id="servicio.id"
-                  :atencion-id="atenciones[atencionActual].id"
-                  :datos-iniciales="servicio.datos"
-                  :modo-lectura="servicio.completado || atenciones[atencionActual].estado === 'Finalizada'"
-                  @servicio-actualizado="actualizarServicio"
-                  @servicio-completado="completarServicio"
-                  @servicio-eliminado="eliminarServicio"
-                />
-                
-                
-                <!-- Componente genérico para servicios no implementados -->
-                <q-expansion-item
-                  v-else
-                  :icon="servicio.icono"
-                  :label="servicio.nombre"
-                  :caption="servicio.timestamp"
-                  :header-class="`text-${servicio.color}`"
-                  class="q-mb-sm"
-                >
-                  <q-card>
-                    <q-card-section>
-                      <div class="text-center q-py-md">
-                        <q-icon :name="servicio.icono" size="4rem" :color="servicio.color" class="q-mb-md"/>
-                        <div class="text-h6">{{ servicio.nombre }}</div>
-                        <div class="text-body2 text-grey-5 q-mb-md">
-                          Componente en desarrollo...
-                        </div>
-                        <q-btn 
-                          flat 
-                          color="negative" 
-                          icon="delete" 
-                          label="Eliminar"
-                          @click="eliminarServicio(servicio.id)"
-                        />
-                      </div>
-                    </q-card-section>
-                  </q-card>
-                </q-expansion-item>
-              </div>
+              <q-expansion-item
+                v-for="servicio in serviciosAplicados"
+                :key="servicio.id"
+                :icon="servicio.icono"
+                :label="servicio.nombre"
+                :caption="servicio.timestamp"
+                :header-class="`text-${servicio.color}`"
+                class="q-mb-sm"
+              >
+                <q-card>
+                  <q-card-section>
+                    <!-- Formulario dinámico según el tipo de servicio -->
+                    <component 
+                      :is="getComponenteServicio(servicio.tipo)"
+                      :servicio="servicio"
+                      @actualizar="actualizarServicio"
+                      @eliminar="eliminarServicio"
+                    />
+                  </q-card-section>
+                </q-card>
+              </q-expansion-item>
             </div>
           </q-card-section>
         </q-card>
@@ -268,21 +237,381 @@ import { ref, computed, onBeforeUnmount } from 'vue'
 import { useQuasar } from 'quasar'
 import { useMascotaSeleccionadaStore } from 'src/stores/mascotaSeleccionadaStore';
 
-// Importación de los componentes de servicios
-import ServicioVacunacion from '../components/servicios/ServicioVacunacion.vue'
-import ServicioDesparacitacion from '../components/servicios/ServicioDesparacitacion.vue'
+// Componentes para cada tipo de servicio
+const ServicioVacunacion = {
+  props: ['servicio'],
+  emits: ['actualizar', 'eliminar'],
+  setup(props, { emit }) {
+    const vacuna = ref(props.servicio.datos?.vacuna || '')
+    const laboratorio = ref(props.servicio.datos?.laboratorio || '')
+    const lote = ref(props.servicio.datos?.lote || '')
+    const fechaVencimiento = ref(props.servicio.datos?.fechaVencimiento || '')
+    const observaciones = ref(props.servicio.datos?.observaciones || '')
+
+    const actualizar = () => {
+      emit('actualizar', props.servicio.id, {
+        vacuna: vacuna.value,
+        laboratorio: laboratorio.value,
+        lote: lote.value,
+        fechaVencimiento: fechaVencimiento.value,
+        observaciones: observaciones.value
+      })
+    }
+
+    return {
+      vacuna, laboratorio, lote, fechaVencimiento, observaciones,
+      actualizar,
+      eliminar: () => emit('eliminar', props.servicio.id)
+    }
+  },
+  template: `
+    <div class="q-gutter-md">
+      <div class="row q-gutter-md">
+        <div class="col">
+          <q-select
+            v-model="vacuna"
+            :options="['Triple Felina', 'Rabia', 'Parvovirus', 'Hepatitis', 'Moquillo']"
+            label="Tipo de Vacuna"
+            outlined
+            @update:model-value="actualizar"
+          />
+        </div>
+        <div class="col">
+          <q-input
+            v-model="laboratorio"
+            label="Laboratorio"
+            outlined
+            @update:model-value="actualizar"
+          />
+        </div>
+      </div>
+      
+      <div class="row q-gutter-md">
+        <div class="col">
+          <q-input
+            v-model="lote"
+            label="Número de Lote"
+            outlined
+            @update:model-value="actualizar"
+          />
+        </div>
+        <div class="col">
+          <q-input
+            v-model="fechaVencimiento"
+            label="Fecha de Vencimiento"
+            outlined
+            type="date"
+            @update:model-value="actualizar"
+          />
+        </div>
+      </div>
+      
+      <q-input
+        v-model="observaciones"
+        label="Observaciones"
+        outlined
+        type="textarea"
+        rows="2"
+        @update:model-value="actualizar"
+      />
+      
+      <div class="row justify-end">
+        <q-btn 
+          flat 
+          color="negative" 
+          icon="delete" 
+          label="Eliminar"
+          @click="eliminar"
+        />
+      </div>
+    </div>
+  `
+}
+
+const ServicioDesparacitacion = {
+  props: ['servicio'],
+  emits: ['actualizar', 'eliminar'],
+  setup(props, { emit }) {
+    const producto = ref(props.servicio.datos?.producto || '')
+    const dosis = ref(props.servicio.datos?.dosis || '')
+    const peso = ref(props.servicio.datos?.peso || '')
+    const proximaDosis = ref(props.servicio.datos?.proximaDosis || '')
+    const observaciones = ref(props.servicio.datos?.observaciones || '')
+
+    const actualizar = () => {
+      emit('actualizar', props.servicio.id, {
+        producto: producto.value,
+        dosis: dosis.value,
+        peso: peso.value,
+        proximaDosis: proximaDosis.value,
+        observaciones: observaciones.value
+      })
+    }
+
+    return {
+      producto, dosis, peso, proximaDosis, observaciones,
+      actualizar,
+      eliminar: () => emit('eliminar', props.servicio.id)
+    }
+  },
+  template: `
+    <div class="q-gutter-md">
+      <div class="row q-gutter-md">
+        <div class="col">
+          <q-select
+            v-model="producto"
+            :options="['Drontal', 'Canex', 'Bravecto', 'Milbemax', 'Otro']"
+            label="Producto"
+            outlined
+            @update:model-value="actualizar"
+          />
+        </div>
+        <div class="col">
+          <q-input
+            v-model="dosis"
+            label="Dosis (ml/mg)"
+            outlined
+            @update:model-value="actualizar"
+          />
+        </div>
+      </div>
+      
+      <div class="row q-gutter-md">
+        <div class="col">
+          <q-input
+            v-model="peso"
+            label="Peso del Animal (kg)"
+            outlined
+            type="number"
+            step="0.1"
+            @update:model-value="actualizar"
+          />
+        </div>
+        <div class="col">
+          <q-input
+            v-model="proximaDosis"
+            label="Próxima Dosis"
+            outlined
+            type="date"
+            @update:model-value="actualizar"
+          />
+        </div>
+      </div>
+      
+      <q-input
+        v-model="observaciones"
+        label="Observaciones"
+        outlined
+        type="textarea"
+        rows="2"
+        @update:model-value="actualizar"
+      />
+      
+      <div class="row justify-end">
+        <q-btn 
+          flat 
+          color="negative" 
+          icon="delete" 
+          label="Eliminar"
+          @click="eliminar"
+        />
+      </div>
+    </div>
+  `
+}
+
+const ServicioExploracion = {
+  props: ['servicio'],
+  emits: ['actualizar', 'eliminar'],
+  setup(props, { emit }) {
+    const temperatura = ref(props.servicio.datos?.temperatura || '')
+    const peso = ref(props.servicio.datos?.peso || '')
+    const frecuenciaCardiaca = ref(props.servicio.datos?.frecuenciaCardiaca || '')
+    const frecuenciaRespiratoria = ref(props.servicio.datos?.frecuenciaRespiratoria || '')
+    const estadoGeneral = ref(props.servicio.datos?.estadoGeneral || '')
+    const hallazgos = ref(props.servicio.datos?.hallazgos || '')
+
+    const actualizar = () => {
+      emit('actualizar', props.servicio.id, {
+        temperatura: temperatura.value,
+        peso: peso.value,
+        frecuenciaCardiaca: frecuenciaCardiaca.value,
+        frecuenciaRespiratoria: frecuenciaRespiratoria.value,
+        estadoGeneral: estadoGeneral.value,
+        hallazgos: hallazgos.value
+      })
+    }
+
+    return {
+      temperatura, peso, frecuenciaCardiaca, frecuenciaRespiratoria, estadoGeneral, hallazgos,
+      actualizar,
+      eliminar: () => emit('eliminar', props.servicio.id)
+    }
+  },
+  template: `
+    <div class="q-gutter-md">
+      <div class="row q-gutter-md">
+        <div class="col">
+          <q-input
+            v-model="temperatura"
+            label="Temperatura (°C)"
+            outlined
+            type="number"
+            step="0.1"
+            @update:model-value="actualizar"
+          />
+        </div>
+        <div class="col">
+          <q-input
+            v-model="peso"
+            label="Peso (kg)"
+            outlined
+            type="number"
+            step="0.1"
+            @update:model-value="actualizar"
+          />
+        </div>
+      </div>
+      
+      <div class="row q-gutter-md">
+        <div class="col">
+          <q-input
+            v-model="frecuenciaCardiaca"
+            label="Frecuencia Cardíaca (bpm)"
+            outlined
+            type="number"
+            @update:model-value="actualizar"
+          />
+        </div>
+        <div class="col">
+          <q-input
+            v-model="frecuenciaRespiratoria"
+            label="Frecuencia Respiratoria (rpm)"
+            outlined
+            type="number"
+            @update:model-value="actualizar"
+          />
+        </div>
+      </div>
+      
+      <q-select
+        v-model="estadoGeneral"
+        :options="['Excelente', 'Bueno', 'Regular', 'Malo', 'Crítico']"
+        label="Estado General"
+        outlined
+        @update:model-value="actualizar"
+      />
+      
+      <q-input
+        v-model="hallazgos"
+        label="Hallazgos de la Exploración"
+        outlined
+        type="textarea"
+        rows="3"
+        @update:model-value="actualizar"
+      />
+      
+      <div class="row justify-end">
+        <q-btn 
+          flat 
+          color="negative" 
+          icon="delete" 
+          label="Eliminar"
+          @click="eliminar"
+        />
+      </div>
+    </div>
+  `
+}
+
+const ServicioCertificado = {
+  props: ['servicio'],
+  emits: ['actualizar', 'eliminar'],
+  setup(props, { emit }) {
+    const tipoCertificado = ref(props.servicio.datos?.tipoCertificado || '')
+    const proposito = ref(props.servicio.datos?.proposito || '')
+    const observaciones = ref(props.servicio.datos?.observaciones || '')
+    const impreso = ref(props.servicio.datos?.impreso || false)
+
+    const actualizar = () => {
+      emit('actualizar', props.servicio.id, {
+        tipoCertificado: tipoCertificado.value,
+        proposito: proposito.value,
+        observaciones: observaciones.value,
+        impreso: impreso.value
+      })
+    }
+
+    return {
+      tipoCertificado, proposito, observaciones, impreso,
+      actualizar,
+      eliminar: () => emit('eliminar', props.servicio.id)
+    }
+  },
+  template: `
+    <div class="q-gutter-md">
+      <q-select
+        v-model="tipoCertificado"
+        :options="['Certificado de Salud', 'Certificado de Vacunación', 'Certificado de Defunción', 'Certificado Zoosanitario']"
+        label="Tipo de Certificado"
+        outlined
+        @update:model-value="actualizar"
+      />
+      
+      <q-input
+        v-model="proposito"
+        label="Propósito del Certificado"
+        outlined
+        placeholder="Ej: Viaje, Adopción, Trámite legal..."
+        @update:model-value="actualizar"
+      />
+      
+      <q-input
+        v-model="observaciones"
+        label="Observaciones"
+        outlined
+        type="textarea"
+        rows="2"
+        @update:model-value="actualizar"
+      />
+      
+      <q-checkbox
+        v-model="impreso"
+        label="Certificado impreso"
+        @update:model-value="actualizar"
+      />
+      
+      <div class="row justify-between">
+        <q-btn 
+          flat 
+          color="primary" 
+          icon="print" 
+          label="Imprimir Certificado"
+          :disable="!tipoCertificado"
+        />
+        <q-btn 
+          flat 
+          color="negative" 
+          icon="delete" 
+          label="Eliminar"
+          @click="eliminar"
+        />
+      </div>
+    </div>
+  `
+}
 
 export default {
   name: 'AtencionPaciente',
   components: {
     ServicioVacunacion,
     ServicioDesparacitacion,
-    
+    ServicioExploracion,
+    ServicioCertificado
   },
   setup() {
     const $q = useQuasar()
     const mascotaSeleccionadaStore = useMascotaSeleccionadaStore()
-    
     // Datos del paciente (ahora vienen del store)
     const paciente = computed(() => mascotaSeleccionadaStore.mascota || {
       id: '', nombre: '', especie: '', raza: '', edad: '', propietario: '', telefono: ''
@@ -311,26 +640,8 @@ export default {
         veterinario: 'Dr. Ana Ruiz',
         estado: 'Finalizada',
         servicios: [
-          { 
-            id: 'vac_001',
-            tipo: 'vacunacion', 
-            nombre: 'Vacunación', 
-            icono: 'vaccines',
-            color: 'green',
-            completado: true,
-            timestamp: '2024-01-10 09:30',
-            datos: { vacuna: 'Rabia', laboratorio: 'MSD', lote: 'L123' } 
-          },
-          { 
-            id: 'exp_001',
-            tipo: 'exploracion', 
-            nombre: 'Exploración Física',
-            icono: 'health_and_safety',
-            color: 'blue',
-            completado: true,
-            timestamp: '2024-01-10 09:20',
-            datos: { temperatura: '38.5', peso: '25.3' } 
-          }
+          { tipo: 'vacunacion', nombre: 'Vacunación', datos: { vacuna: 'Rabia' } },
+          { tipo: 'exploracion', nombre: 'Exploración Física', datos: { temperatura: '38.5' } }
         ]
       },
       {
@@ -343,16 +654,7 @@ export default {
         veterinario: 'Dr. Carlos Mendoza',
         estado: 'Finalizada',
         servicios: [
-          { 
-            id: 'des_001',
-            tipo: 'desparacitacion', 
-            nombre: 'Desparacitación',
-            icono: 'medication',
-            color: 'orange',
-            completado: true,
-            timestamp: '2024-01-05 12:00',
-            datos: { producto: 'Drontal', dosis: '2 ml' } 
-          }
+          { tipo: 'desparacitacion', nombre: 'Desparacitación', datos: { producto: 'Drontal' } }
         ]
       }
     ])
@@ -406,7 +708,7 @@ export default {
       {
         id: 'laboratorio',
         nombre: 'Laboratorio',
-        descripción: 'Análisis de laboratorio',
+        descripcion: 'Análisis de laboratorio',
         icono: 'biotech',
         color: 'teal',
         tipo: 'laboratorio'
@@ -418,7 +720,12 @@ export default {
       return atenciones.value[atencionActual.value]?.servicios || []
     })
 
-    // Métodos
+    // Cambiar atención seleccionada
+    const cambiarAtencion = (index) => {
+      atencionActual.value = index
+    }
+
+    // Ver detalles de la atención
     const verDetallesAtencion = () => {
       const atencion = atenciones.value[atencionActual.value]
       $q.dialog({
@@ -436,6 +743,7 @@ export default {
       })
     }
 
+    // Nueva atención
     const nuevaAtencion = () => {
       $q.dialog({
         title: 'Nueva Atención',
@@ -443,9 +751,11 @@ export default {
         cancel: true,
         persistent: true
       }).onOk(() => {
+        // Generar nuevo número de atención
         const fecha = new Date()
         const numeroAtencion = `A-${fecha.getFullYear()}-${String(atenciones.value.length + 1).padStart(3, '0')}`
         
+        // Crear nueva atención
         const nuevaAtencionData = {
           id: atenciones.value.length + 1,
           numero: numeroAtencion,
@@ -456,7 +766,10 @@ export default {
           servicios: []
         }
         
+        // Agregar la nueva atención
         atenciones.value.unshift(nuevaAtencionData)
+        
+        // Seleccionar la nueva atención
         atencionActual.value = 0
         
         $q.notify({
@@ -479,7 +792,6 @@ export default {
       // Verificar si ya existe un servicio del mismo tipo en la atención actual
       const serviciosActuales = atenciones.value[atencionActual.value].servicios
       const yaExiste = serviciosActuales.some(s => s.tipo === servicio.tipo)
-      
       if (yaExiste) {
         $q.notify({
           type: 'negative',
@@ -488,20 +800,14 @@ export default {
         })
         return
       }
-
       const nuevoServicio = {
+        ...servicio,
         id: `${servicio.tipo}_${Date.now()}`,
-        tipo: servicio.tipo,
-        nombre: servicio.nombre,
-        icono: servicio.icono,
-        color: servicio.color,
-        completado: false,
         timestamp: new Date().toLocaleString(),
         datos: {}
       }
-      
+      // Agregar el servicio solo a la atención actual
       serviciosActuales.push(nuevoServicio)
-      
       $q.notify({
         type: 'positive',
         message: `${servicio.nombre} agregado a la atención`,
@@ -509,50 +815,40 @@ export default {
       })
     }
 
-    // Nuevos métodos para manejar los eventos de los componentes
-    const actualizarServicio = (servicioId, nuevosDatos) => {
+    // Actualizar datos de un servicio
+    const actualizarServicio = (servicioId, datos) => {
       const servicio = serviciosAplicados.value.find(s => s.id === servicioId)
       if (servicio) {
-        servicio.datos = { ...servicio.datos, ...nuevosDatos }
+        servicio.datos = { ...servicio.datos, ...datos }
       }
     }
 
-    const completarServicio = (servicioId, datosFinales = {}) => {
-      const servicio = serviciosAplicados.value.find(s => s.id === servicioId)
-      if (servicio) {
-        servicio.completado = true
-        servicio.datos = { ...servicio.datos, ...datosFinales }
-        
+    // Eliminar un servicio
+    const eliminarServicio = (servicioId) => {
+      const servicios = atenciones.value[atencionActual.value].servicios
+      const index = servicios.findIndex(s => s.id === servicioId)
+      if (index > -1) {
+        servicios.splice(index, 1)
         $q.notify({
-          type: 'positive',
-          message: 'Servicio completado exitosamente',
-          position: 'top-right',
-          timeout: 2000
+          type: 'negative',
+          message: 'Servicio eliminado',
+          position: 'top-right'
         })
       }
     }
 
-    const eliminarServicio = (servicioId) => {
-      $q.dialog({
-        title: 'Confirmar eliminación',
-        message: '¿Estás seguro de que deseas eliminar este servicio?',
-        cancel: true,
-        persistent: true
-      }).onOk(() => {
-        const servicios = atenciones.value[atencionActual.value].servicios
-        const index = servicios.findIndex(s => s.id === servicioId)
-        if (index > -1) {
-          servicios.splice(index, 1)
-          $q.notify({
-            type: 'info',
-            message: 'Servicio eliminado',
-            position: 'top-right',
-            timeout: 2000
-          })
-        }
-      })
+    // Obtener componente según tipo de servicio
+    const getComponenteServicio = (tipo) => {
+      const componentes = {
+        vacunacion: 'ServicioVacunacion',
+        desparacitacion: 'ServicioDesparacitacion',
+        exploracion: 'ServicioExploracion',
+        certificado: 'ServicioCertificado'
+      }
+      return componentes[tipo] || 'div'
     }
 
+    // Guardar atención
     const guardarAtencion = () => {
       $q.notify({
         type: 'positive',
@@ -560,9 +856,11 @@ export default {
         position: 'top-right'
       })
 
+      // Aquí iría la lógica para guardar en la base de datos
       console.log('Guardando atención:', atenciones.value[atencionActual.value])
     }
 
+    // Finalizar atención
     const finalizarAtencion = () => {
       $q.dialog({
         title: 'Finalizar Atención',
@@ -570,6 +868,7 @@ export default {
         cancel: true,
         persistent: true
       }).onOk(() => {
+        // Cambiar estado a finalizada
         atenciones.value[atencionActual.value].estado = 'Finalizada'
         
         $q.notify({
@@ -577,6 +876,9 @@ export default {
           message: 'Atención finalizada correctamente',
           position: 'top-right'
         })
+
+        // Redireccionar o limpiar
+        // this.$router.push('/pacientes')
       })
     }
 
@@ -592,13 +894,14 @@ export default {
       atencionExpandida,
       serviciosDisponibles,
       serviciosAplicados,
+      cambiarAtencion,
       verDetallesAtencion,
       nuevaAtencion,
       mostrarAtenciones,
       agregarServicio,
       actualizarServicio,
-      completarServicio,
       eliminarServicio,
+      getComponenteServicio,
       guardarAtencion,
       finalizarAtencion
     }
@@ -607,11 +910,12 @@ export default {
 </script>
 
 <style scoped>
-/* Mantener todos los estilos originales */
+/* Estilos para las tarjetas de atención */
 .min-width-250 {
   min-width: 250px;
 }
 
+/* Transiciones suaves para las tarjetas */
 .transition-all {
   transition: all 0.3s ease;
 }
@@ -620,11 +924,13 @@ export default {
   transition-duration: 300ms;
 }
 
+/* Hover effects */
 .cursor-pointer:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+/* Scroll horizontal para las tarjetas */
 .row[style*="overflow-x: auto"] {
   scrollbar-width: thin;
   scrollbar-color: #c0c0c0 #f0f0f0;
@@ -648,6 +954,7 @@ export default {
   background: #a0a0a0;
 }
 
+/* Estilos para el estado de la atención */
 .border-primary {
   border-color: #1976d2 !important;
 }
@@ -660,6 +967,7 @@ export default {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
+/* Estilos para los servicios */
 .q-expansion-item {
   border-radius: 8px;
   overflow: hidden;
@@ -671,6 +979,7 @@ export default {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* Estilos para el panel de servicios disponibles */
 .q-item {
   border-radius: 8px;
   margin-bottom: 4px;
@@ -682,6 +991,7 @@ export default {
   transform: translateX(4px);
 }
 
+/* Estilos para el área de servicios aplicados */
 .scroll {
   scrollbar-width: thin;
   scrollbar-color: #c0c0c0 #f0f0f0;
@@ -705,6 +1015,7 @@ export default {
   background: #a0a0a0;
 }
 
+/* Estilos para los botones flotantes */
 .q-page-sticky .q-btn-group {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }

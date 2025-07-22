@@ -207,6 +207,29 @@
                   @servicio-eliminado="eliminarServicio"
                 />
                 
+                <!-- Componente de Exploración -->
+                <ServicioExploracion
+                  v-else-if="servicio.tipo === 'exploracion'"
+                  :servicio-id="servicio.id"
+                  :atencion-id="atenciones[atencionActual].id"
+                  :datos-iniciales="servicio.datos"
+                  :modo-lectura="servicio.completado || atenciones[atencionActual].estado === 'Finalizada'"
+                  @servicio-actualizado="actualizarServicio"
+                  @servicio-completado="completarServicio"
+                  @servicio-eliminado="eliminarServicio"
+                />
+                
+                <!-- Componente de Certificado -->
+                <ServicioCertificado
+                  v-else-if="servicio.tipo === 'certificado'"
+                  :servicio-id="servicio.id"
+                  :atencion-id="atenciones[atencionActual].id"
+                  :datos-iniciales="servicio.datos"
+                  :modo-lectura="servicio.completado || atenciones[atencionActual].estado === 'Finalizada'"
+                  @servicio-actualizado="actualizarServicio"
+                  @servicio-completado="completarServicio"
+                  @servicio-eliminado="eliminarServicio"
+                />
                 
                 <!-- Componente genérico para servicios no implementados -->
                 <q-expansion-item
@@ -271,13 +294,16 @@ import { useMascotaSeleccionadaStore } from 'src/stores/mascotaSeleccionadaStore
 // Importación de los componentes de servicios
 import ServicioVacunacion from '../components/servicios/ServicioVacunacion.vue'
 import ServicioDesparacitacion from '../components/servicios/ServicioDesparacitacion.vue'
+import ServicioExploracion from '../components/servicios/ServicioExploracion.vue'
+import ServicioCertificado from '../components/servicios/ServicioCertificado.vue'
 
 export default {
   name: 'AtencionPaciente',
   components: {
     ServicioVacunacion,
     ServicioDesparacitacion,
-    
+    ServicioExploracion,
+    ServicioCertificado
   },
   setup() {
     const $q = useQuasar()

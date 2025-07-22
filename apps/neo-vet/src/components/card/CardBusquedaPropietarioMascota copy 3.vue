@@ -260,7 +260,6 @@ import PeticionService from "src/services/peticion.service";
 import { usePropietarioStore } from 'src/stores/propietarioStore';
 import NdPeticionControl from "src/controles/rest.control";
 import { DtoParametros } from "src/controles/dto.parametros";
-import { useMascotaSeleccionadaStore } from 'src/stores/mascotaSeleccionadaStore';
 
 const $q = useQuasar();
 const mostrarDialogoPropietario = ref(false);
@@ -268,7 +267,6 @@ const mostrarDialogoMascota = ref(false);
 let alertas = new NdAlertasControl()
 const propietarioStore = usePropietarioStore();
 const router = useRouter();
-const mascotaSeleccionadaStore = useMascotaSeleccionadaStore();
 
 const emit = defineEmits(['update:rows', 'refresh-data', 'limpiar-filtro', 'llenar-filtro-y-buscar']);
 
@@ -472,14 +470,13 @@ const eliminarMascota = async (props) => {
 
 const seleccionarMascota = async (props) => {
   try {
-    // Guardar la mascota y el propietario en el store
-    mascotaSeleccionadaStore.setMascota({
-      ...props.row,
-      propietario: propietarioSeleccionado.value
-    });
+
     router.push({ name: "atencionpaciente" });
+   
+
   } catch (error) {
-    // Manejo de error opcional
+    
+
   }
 };
 
