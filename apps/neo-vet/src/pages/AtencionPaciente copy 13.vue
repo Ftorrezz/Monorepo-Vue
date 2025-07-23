@@ -123,17 +123,18 @@
           </div>
         </div>
       </q-card-section>
+    </q-card>
 
-      <!-- Sección de Servicios Disponibles como un q-expansion-item -->
-      <q-expansion-item
-        expand-separator
-        icon="medical_services"
-        label="Servicios Disponibles"
-        caption="Haz clic para agregar servicios"
-        class="q-mt-sm"
-      >
-        <q-card>
+    <div class="row q-gutter-md no-wrap">
+      <!-- Panel de servicios disponibles -->
+      <div class="col-auto"> <!-- Cambiado de col-2 a col-auto -->
+        <q-card style="height: 600px;" class="services-panel"> <!-- Agregada la clase services-panel -->
           <q-card-section>
+            <div class="text-h6 q-mb-md no-wrap">
+              <q-icon name="medical_services" class="q-mr-sm" />
+              <span class="services-panel-title-text">Servicios Disponibles</span> <!-- Envuelto el texto en un span -->
+            </div>
+
             <q-list>
               <q-item
                 v-for="servicio in serviciosDisponibles"
@@ -145,11 +146,11 @@
                 <q-item-section avatar>
                   <q-icon :name="servicio.icono" :color="servicio.color" />
                 </q-item-section>
-                <q-item-section>
+                <q-item-section class="services-item-text"> <!-- Agregada la clase services-item-text -->
                   <q-item-label>{{ servicio.nombre }}</q-item-label>
                   <q-item-label caption>{{ servicio.descripcion }}</q-item-label>
                 </q-item-section>
-                <q-item-section side>
+                <q-item-section side class="services-item-add-button"> <!-- Agregada la clase services-item-add-button -->
                   <q-btn
                     round
                     flat
@@ -162,12 +163,10 @@
             </q-list>
           </q-card-section>
         </q-card>
-      </q-expansion-item>
-    </q-card>
+      </div>
 
-    <div class="row q-gutter-md no-wrap">
       <!-- Panel de servicios aplicados -->
-      <div class="col-12"> <!-- Cambiado a col-12 para ocupar todo el ancho -->
+      <div class="col-grow"> <!-- Cambiado de col-10 a col-grow para que ocupe el espacio restante -->
         <q-card style="height: 600px;">
           <q-card-section class="full-height">
             <div class="text-h6 q-mb-md">
@@ -872,7 +871,88 @@ export default {
 }
 
 /* Nuevos estilos para el panel de servicios expandible */
-/* Se eliminaron los estilos de services-panel ya que el componente se reubicó */
+.services-panel {
+  width: 70px; /* Ancho inicial reducido para solo mostrar iconos */
+  overflow: hidden; /* Oculta el contenido que se desborda */
+  transition: width 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.services-panel:hover {
+  width: 280px; /* Ancho expandido al pasar el ratón */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.services-panel .q-item {
+  min-height: 56px; /* Altura mínima de un item de Quasar */
+  padding: 8px 0; /* Ajusta el padding para la vista colapsada */
+  display: flex;
+  flex-wrap: nowrap; /* Evita que los items se envuelvan */
+  justify-content: center; /* Centra el contenido cuando está colapsado */
+  transition: padding 0.3s ease-in-out, justify-content 0.3s ease-in-out;
+}
+
+.services-panel:hover .q-item {
+  padding: 8px 16px; /* Padding estándar de Quasar */
+  justify-content: flex-start; /* Alinea los elementos al inicio cuando está expandido */
+}
+
+.services-panel .q-item-section--avatar {
+  min-width: 40px; /* Asegura el tamaño del icono */
+  margin-right: 0; /* Elimina margen para centrado inicial */
+  transition: margin-right 0.3s ease-in-out;
+}
+
+.services-panel:hover .q-item-section--avatar {
+  margin-right: 16px; /* Restaura el margen al expandirse */
+}
+
+/* Título del panel */
+.services-panel-title-text {
+  opacity: 0;
+  width: 0; /* Colapsa el texto */
+  overflow: hidden;
+  white-space: nowrap;
+  transition: opacity 0.3s ease-in-out, width 0.3s ease-in-out;
+}
+
+.services-panel:hover .services-panel-title-text {
+  opacity: 1;
+  width: auto; /* Muestra el texto */
+  margin-left: 8px;
+}
+
+/* Texto de la sección de los ítems de servicio */
+.services-item-text {
+  opacity: 0;
+  flex: 0 0 0; /* Colapsa completamente el espacio */
+  overflow: hidden;
+  white-space: nowrap;
+  transition: opacity 0.3s ease-in-out, flex 0.3s ease-in-out;
+}
+
+.services-panel:hover .services-item-text {
+  opacity: 1;
+  flex: 1 1 auto; /* Permite que ocupe el espacio disponible */
+}
+
+/* Botón de añadir servicio */
+.services-item-add-button {
+  opacity: 0;
+  flex: 0 0 0; /* Colapsa completamente el espacio */
+  overflow: hidden;
+  transition: opacity 0.3s ease-in-out, flex 0.3s ease-in-out;
+}
+
+.services-panel:hover .services-item-add-button {
+  opacity: 1;
+  flex: 0 0 auto; /* Permite que ocupe su tamaño natural */
+}
+
+/* Asegurar que la lista tiene scroll */
+.services-panel .q-list {
+  height: calc(100% - 70px); /* Aproximadamente el alto del encabezado */
+  overflow-y: auto;
+}
 
 /* Para el desbordamiento de componentes aplicados */
 .services-applied-content {
