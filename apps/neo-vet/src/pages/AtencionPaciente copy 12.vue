@@ -180,7 +180,7 @@
               <div class="text-subtitle2">Selecciona un servicio del panel izquierdo</div>
             </div>
 
-            <div v-else class="scroll services-applied-content" style="height: 500px;">
+            <div v-else class="scroll" style="height: 500px;">
               <!-- Aquí es donde cambia la implementación: carga dinámica de componentes -->
               <div v-for="servicio in serviciosAplicados" :key="servicio.id" class="q-mb-md">
                 <!-- Componente de Vacunación -->
@@ -873,7 +873,7 @@ export default {
 /* Nuevos estilos para el panel de servicios expandible */
 .services-panel {
   width: 70px; /* Ancho inicial reducido para solo mostrar iconos */
-  overflow: hidden; /* Oculta el contenido que se desborda */
+  overflow: hidden;
   transition: width 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
 }
 
@@ -882,34 +882,9 @@ export default {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.services-panel .q-item {
-  min-height: 56px; /* Altura mínima de un item de Quasar */
-  padding: 8px 0; /* Ajusta el padding para la vista colapsada */
-  display: flex;
-  flex-wrap: nowrap; /* Evita que los items se envuelvan */
-  justify-content: center; /* Centra el contenido cuando está colapsado */
-  transition: padding 0.3s ease-in-out, justify-content 0.3s ease-in-out;
-}
-
-.services-panel:hover .q-item {
-  padding: 8px 16px; /* Padding estándar de Quasar */
-  justify-content: flex-start; /* Alinea los elementos al inicio cuando está expandido */
-}
-
-.services-panel .q-item-section--avatar {
-  min-width: 40px; /* Asegura el tamaño del icono */
-  margin-right: 0; /* Elimina margen para centrado inicial */
-  transition: margin-right 0.3s ease-in-out;
-}
-
-.services-panel:hover .q-item-section--avatar {
-  margin-right: 16px; /* Restaura el margen al expandirse */
-}
-
-/* Título del panel */
-.services-panel-title-text {
+.services-panel .services-panel-title-text {
   opacity: 0;
-  width: 0; /* Colapsa el texto */
+  width: 0;
   overflow: hidden;
   white-space: nowrap;
   transition: opacity 0.3s ease-in-out, width 0.3s ease-in-out;
@@ -917,56 +892,49 @@ export default {
 
 .services-panel:hover .services-panel-title-text {
   opacity: 1;
-  width: auto; /* Muestra el texto */
-  margin-left: 8px;
+  width: auto;
+  margin-left: 8px; /* Espacio entre el icono y el texto */
 }
 
-/* Texto de la sección de los ítems de servicio */
-.services-item-text {
+.services-panel .q-item-section.services-item-text {
   opacity: 0;
-  flex: 0 0 0; /* Colapsa completamente el espacio */
+  width: 0; /* Oculta el texto por defecto */
   overflow: hidden;
   white-space: nowrap;
-  transition: opacity 0.3s ease-in-out, flex 0.3s ease-in-out;
+  transition: opacity 0.3s ease-in-out, width 0.3s ease-in-out;
 }
 
-.services-panel:hover .services-item-text {
+.services-panel:hover .q-item-section.services-item-text {
   opacity: 1;
-  flex: 1 1 auto; /* Permite que ocupe el espacio disponible */
+  width: auto; /* Muestra el texto al pasar el ratón */
 }
 
-/* Botón de añadir servicio */
-.services-item-add-button {
+/* Asegurar que el botón de agregar también se muestre u oculte */
+.services-panel .services-item-add-button {
   opacity: 0;
-  flex: 0 0 0; /* Colapsa completamente el espacio */
-  overflow: hidden;
-  transition: opacity 0.3s ease-in-out, flex 0.3s ease-in-out;
+  transition: opacity 0.3s ease-in-out;
 }
 
 .services-panel:hover .services-item-add-button {
   opacity: 1;
-  flex: 0 0 auto; /* Permite que ocupe su tamaño natural */
 }
 
-/* Asegurar que la lista tiene scroll */
+/* Ajustes para el item-section avatar para mantener el icono */
+.services-panel .q-item-section.q-item-section--avatar {
+  min-width: 40px; /* Asegura que el icono tenga espacio */
+}
+
+.services-panel .q-item {
+  justify-content: center; /* Centra el icono cuando el texto está oculto */
+}
+
+.services-panel:hover .q-item {
+  justify-content: flex-start; /* Alinea a la izquierda cuando el texto es visible */
+}
+
+/* Asegurar que el scrollbar no interfiera con el diseño colapsado */
 .services-panel .q-list {
-  height: calc(100% - 70px); /* Aproximadamente el alto del encabezado */
   overflow-y: auto;
-}
-
-/* Para el desbordamiento de componentes aplicados */
-.services-applied-content {
-  overflow-x: hidden;
-}
-
-.services-applied-content > div {
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.services-applied-content .q-card {
-  max-width: 100%;
-  overflow-x: hidden;
-  box-sizing: border-box;
+  height: calc(100% - 70px); /* Ajusta la altura de la lista */
 }
 </style>
