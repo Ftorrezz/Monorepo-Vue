@@ -104,6 +104,11 @@ const routes: RouteRecordRaw[] = [
         name: 'tipoprofesional',
         component: () => import('pages/configuration/general/tipoprofesional.vue'),
         meta: { requireAuth: false },
+      },
+      { path: '/templatemanager',
+        name: 'templatemanager',
+        component: () => import('pages/configuration/template/TemplateManager.vue'),
+        meta: { requireAuth: false },
       }
 
     ],

@@ -1,17 +1,14 @@
 <template>
   <q-page class="q-pa-md full-width">
     <!-- Header compacto unificado -->
-    
-    <q-card class="q-mb-md rounded-borders shadow-2">
-      <q-card-section class="header-gradient q-py-md q-px-lg text-white">
-        <div class="row items-center q-col-gutter-md no-wrap">
-    
-    <!--<q-card class="q-mb-md modern-header-card">
+    <q-card class="q-mb-md modern-header-card">
       <q-card-section class="modern-header q-py-md q-px-lg">
-        <div class="row items-center q-col-gutter-md no-wrap">-->
+        <div class="row items-center q-col-gutter-md no-wrap">
           <!-- Info del paciente -->
           <div class="col-auto">
-            <q-avatar size="64px" icon="pets" color="white" text-color="primary" />
+            <q-avatar size="56px" class="modern-avatar">
+              <q-icon name="pets" size="28px" class="avatar-icon" />
+            </q-avatar>
           </div>
           
           <div class="col">
@@ -25,7 +22,7 @@
                 </div>
                 <div class="owner-info">
                   <q-icon name="person" size="16px" class="q-mr-xs" />
-                  {{ paciente.propietario?.nombre }} {{ paciente.propietario?.primerapellido }} {{ paciente.propietario?.segundoapellido }}
+                  {{ paciente.propietario?.nombre }} {{ paciente.propietario?.primerapellido }}
                   <span v-if="paciente.propietario?.telefono1" class="phone-info">
                     • <q-icon name="phone" size="14px" /> {{ paciente.propietario?.telefono1 }}
                   </span>
@@ -34,7 +31,7 @@
 
               <!-- Columna 2: Info de atención actual -->
               <div class="attention-info">
-                <div class="attention-number"> Atención actual: {{ atenciones[atencionActual].numero }}</div>
+                <div class="attention-number">{{ atenciones[atencionActual].numero }}</div>
                 <div class="attention-details">
                   <q-icon name="event" size="16px" class="q-mr-xs" />
                   {{ atenciones[atencionActual].fecha }} • {{ atenciones[atencionActual].hora }}
@@ -237,11 +234,19 @@
     <q-card class="services-card">
       <q-card-section class="q-pa-none">
         <div v-if="serviciosAplicados.length === 0" class="empty-services">
-          <div v-if="serviciosAplicados.length === 0" class="text-center q-py-xl text-grey-6" style="height: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-          <q-icon name="info" size="xl" class="q-mb-md" />
-          <div class="text-h6">No se han aplicado servicios aún</div>
-          <div class="text-subtitle2">Usa el botón "Agregar Servicio" para añadir servicios</div>
-        </div>
+          <div class="empty-services-content">
+            <q-icon name="assignment_add" size="48px" class="empty-icon" />
+            <div class="empty-title">Sin servicios aplicados</div>
+            <div class="empty-subtitle">Agrega servicios para comenzar con la atención</div>
+            <q-btn
+              color="primary"
+              icon="add"
+              label="Agregar Primer Servicio"
+              @click="showAddServiceDialog = true"
+              :disable="atenciones[atencionActual].estado === 'Finalizada'"
+              class="q-mt-md modern-btn-filled"
+            />
+          </div>
         </div>
 
         <div v-else>
@@ -1815,24 +1820,6 @@ export default {
 .services-card {
   will-change: transform;
   transform: translateZ(0);
-}
-
-.header-gradient {
-  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
-  position: relative;
-  overflow: hidden;
-}
-
-.header-gradient::before {
-  content: '';
-  position: absolute;
-  top: -50px;
-  left: -50px;
-  width: 150%;
-  height: 150%;
-  background: radial-gradient(circle at top left, rgba(255,255,255,0.1) 0%, transparent 70%);
-  transform: rotate(-15deg);
-  pointer-events: none;
 }
 
 /* Fin de estilos */

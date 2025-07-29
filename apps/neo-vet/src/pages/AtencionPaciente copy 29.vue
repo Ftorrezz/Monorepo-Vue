@@ -1,17 +1,14 @@
 <template>
   <q-page class="q-pa-md full-width">
     <!-- Header compacto unificado -->
-    
-    <q-card class="q-mb-md rounded-borders shadow-2">
-      <q-card-section class="header-gradient q-py-md q-px-lg text-white">
-        <div class="row items-center q-col-gutter-md no-wrap">
-    
-    <!--<q-card class="q-mb-md modern-header-card">
+    <q-card class="q-mb-md modern-header-card">
       <q-card-section class="modern-header q-py-md q-px-lg">
-        <div class="row items-center q-col-gutter-md no-wrap">-->
+        <div class="row items-center q-col-gutter-md no-wrap">
           <!-- Info del paciente -->
           <div class="col-auto">
-            <q-avatar size="64px" icon="pets" color="white" text-color="primary" />
+            <q-avatar size="56px" class="modern-avatar">
+              <q-icon name="pets" size="28px" />
+            </q-avatar>
           </div>
           
           <div class="col">
@@ -25,7 +22,7 @@
                 </div>
                 <div class="owner-info">
                   <q-icon name="person" size="16px" class="q-mr-xs" />
-                  {{ paciente.propietario?.nombre }} {{ paciente.propietario?.primerapellido }} {{ paciente.propietario?.segundoapellido }}
+                  {{ paciente.propietario?.nombre }} {{ paciente.propietario?.primerapellido }}
                   <span v-if="paciente.propietario?.telefono1" class="phone-info">
                     • <q-icon name="phone" size="14px" /> {{ paciente.propietario?.telefono1 }}
                   </span>
@@ -34,7 +31,7 @@
 
               <!-- Columna 2: Info de atención actual -->
               <div class="attention-info">
-                <div class="attention-number"> Atención actual: {{ atenciones[atencionActual].numero }}</div>
+                <div class="attention-number">{{ atenciones[atencionActual].numero }}</div>
                 <div class="attention-details">
                   <q-icon name="event" size="16px" class="q-mr-xs" />
                   {{ atenciones[atencionActual].fecha }} • {{ atenciones[atencionActual].hora }}
@@ -120,8 +117,18 @@
           </div>
         </div>
 
-        <!-- Sistema de tarjetas compacto -->
+        <!-- Sistema de tarjetas mejorado -->
         <div class="attention-cards-section q-mt-lg">
+          <div class="cards-header q-mb-md">
+            <div class="cards-title">
+              <q-icon name="history" size="20px" class="q-mr-xs" />
+              Historial de Atenciones
+            </div>
+            <div class="cards-counter">
+              {{ atencionActual + 1 }} de {{ atenciones.length }}
+            </div>
+          </div>
+
           <div class="attention-cards-container">
             <div class="attention-cards-scroll">
               <div
@@ -129,9 +136,9 @@
                 :key="atencion.id"
                 @click="atencionActual = index"
                 :class="[
-                  'attention-card-compact',
-                  atencionActual === index ? 'attention-card-compact--active' : '',
-                  atencion.estado === 'En curso' ? 'attention-card-compact--in-progress' : 'attention-card-compact--completed'
+                  'attention-card-improved',
+                  atencionActual === index ? 'attention-card-improved--active' : '',
+                  atencion.estado === 'En curso' ? 'attention-card-improved--in-progress' : 'attention-card-improved--completed'
                 ]"
               >
                 <!-- Indicador de estado -->
@@ -144,39 +151,57 @@
                   ></div>
                 </div>
 
-                <!-- Contenido principal compacto -->
+                <!-- Contenido principal -->
                 <div class="card-content">
                   <div class="card-header">
                     <div class="card-number">{{ atencion.numero }}</div>
                     <q-icon 
                       v-if="atencionActual === index" 
                       name="radio_button_checked" 
-                      size="16px" 
+                      size="18px" 
                       class="active-indicator"
                     />
                   </div>
 
                   <div class="card-meta">
                     <div class="card-date">
-                      <q-icon name="event" size="12px" class="q-mr-xs" />
-                      {{ formatDate(atencion.fecha) }} • {{ atencion.hora }}
+                      <q-icon name="event" size="14px" class="q-mr-xs" />
+                      {{ formatDate(atencion.fecha) }}
+                    </div>
+                    <div class="card-time">{{ atencion.hora }}</div>
+                  </div>
+
+                  <div class="card-details">
+                    <div class="card-vet">
+                      <q-icon name="medical_services" size="14px" class="q-mr-xs" />
+                      {{ atencion.veterinario }}
+                    </div>
+                    <div class="card-services">
+                      {{ atencion.servicios.length }} servicios
                     </div>
                   </div>
 
-                  <div class="card-vet">
-                    <q-icon name="medical_services" size="12px" class="q-mr-xs" />
-                    {{ atencion.veterinario }}
-                  </div>
-
-                  <div class="card-footer">
+                  <!-- Estado -->
+                  <div class="card-status">
                     <q-chip
                       :color="atencion.estado === 'En curso' ? 'orange-6' : 'green-6'"
                       text-color="white"
                       :label="atencion.estado"
-                      size="xs"
+                      size="sm"
                       class="status-chip-small"
                     />
-                    <div class="card-services">{{ atencion.servicios.length }} serv.</div>
+                  </div>
+
+                  <!-- Información adicional para atención activa -->
+                  <div v-if="atencionActual === index" class="card-active-info">
+                    <div class="active-label">
+                      <q-icon name="play_circle" size="14px" class="q-mr-xs" />
+                      Atención Activa
+                    </div>
+                    <div v-if="atencion.fechaFinalizacion" class="finalization-info">
+                      <q-icon name="event_available" size="12px" class="q-mr-xs" />
+                      Finalizada: {{ formatDate(atencion.fechaFinalizacion) }} {{ atencion.horaFinalizacion }}
+                    </div>
                   </div>
                 </div>
 
@@ -186,7 +211,7 @@
             </div>
 
             <!-- Navegación -->
-            <div class="cards-navigation" v-if="atenciones.length > 3">
+            <div class="cards-navigation">
               <q-btn
                 dense
                 round
@@ -237,11 +262,19 @@
     <q-card class="services-card">
       <q-card-section class="q-pa-none">
         <div v-if="serviciosAplicados.length === 0" class="empty-services">
-          <div v-if="serviciosAplicados.length === 0" class="text-center q-py-xl text-grey-6" style="height: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-          <q-icon name="info" size="xl" class="q-mb-md" />
-          <div class="text-h6">No se han aplicado servicios aún</div>
-          <div class="text-subtitle2">Usa el botón "Agregar Servicio" para añadir servicios</div>
-        </div>
+          <div class="empty-services-content">
+            <q-icon name="assignment_add" size="48px" class="empty-icon" />
+            <div class="empty-title">Sin servicios aplicados</div>
+            <div class="empty-subtitle">Agrega servicios para comenzar con la atención</div>
+            <q-btn
+              color="primary"
+              icon="add"
+              label="Agregar Primer Servicio"
+              @click="showAddServiceDialog = true"
+              :disable="atenciones[atencionActual].estado === 'Finalizada'"
+              class="q-mt-md modern-btn-filled"
+            />
+          </div>
         </div>
 
         <div v-else>
@@ -491,7 +524,8 @@ export default {
       const date = new Date(dateString)
       return date.toLocaleDateString('es-ES', {
         day: '2-digit',
-        month: 'short'
+        month: 'short',
+        year: 'numeric'
       })
     }
 
@@ -730,9 +764,9 @@ export default {
 </script>
 
 <style scoped>
-/* Header moderno compacto */
+/* Header moderno compacto - mantiene estilos originales */
 .modern-header-card {
-  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+  background: #1976d2;
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(25, 118, 210, 0.3);
   border: none;
@@ -744,18 +778,12 @@ export default {
 }
 
 .modern-avatar {
-  background: rgba(255, 255, 255, 0.95);
+  background: white;
   color: #1976d2;
-  border: 2px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.6);
 }
 
-.avatar-icon {
-  color: #1976d2 !important;
-  font-weight: 600;
-}
-
-/* Información del paciente */
+/* Información del paciente - mantiene estilos originales */
 .patient-info {
   min-width: 250px;
 }
@@ -769,7 +797,7 @@ export default {
 
 .patient-details {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.95);
+  color: white;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -777,7 +805,7 @@ export default {
 }
 
 .age-badge {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.4);
   padding: 3px 10px;
   border-radius: 12px;
   font-size: 0.8rem;
@@ -787,7 +815,7 @@ export default {
 
 .owner-info {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: white;
   display: flex;
   align-items: center;
 }
@@ -796,7 +824,7 @@ export default {
   margin-left: 8px;
 }
 
-/* Información de la atención */
+/* Información de la atención - mantiene estilos originales */
 .attention-info {
   min-width: 220px;
   padding-left: 16px;
@@ -812,7 +840,7 @@ export default {
 
 .attention-details {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.95);
+  color: white;
   display: flex;
   align-items: center;
   margin-bottom: 6px;
@@ -820,12 +848,12 @@ export default {
 
 .vet-info {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: white;
   display: flex;
   align-items: center;
 }
 
-/* Estado y servicios */
+/* Estado y servicios - mantiene estilos originales */
 .status-info {
   min-width: 160px;
   padding-left: 16px;
@@ -840,28 +868,29 @@ export default {
   font-weight: 500;
   border-radius: 20px;
   font-size: 0.85rem;
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
 }
 
 .services-count {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: white;
   display: flex;
   align-items: center;
 }
 
-/* Botones modernos */
+/* Botones modernos - mantiene estilos originales */
 .modern-btn-large {
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.1);
   color: #1976d2;
   transition: all 0.3s ease;
   width: 44px;
   height: 44px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .modern-btn-large:hover {
-  background: white;
+  background: #f0f0f0;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
   color: #1976d2;
@@ -881,10 +910,34 @@ export default {
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
-/* SISTEMA DE TARJETAS COMPACTO */
+/* NUEVO SISTEMA DE TARJETAS MEJORADO */
 .attention-cards-section {
   border-top: 1px solid rgba(255, 255, 255, 0.2);
-  padding-top: 16px;
+  padding-top: 20px;
+}
+
+.cards-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.cards-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+}
+
+.cards-counter {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 6px 12px;
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
 }
 
 .attention-cards-container {
@@ -895,20 +948,21 @@ export default {
 
 .attention-cards-scroll {
   display: flex;
-  gap: 12px;
+  gap: 16px;
   overflow-x: auto;
-  padding: 4px 0;
+  padding: 8px 0;
   scroll-behavior: smooth;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
 }
 
 .attention-cards-scroll::-webkit-scrollbar {
-  height: 3px;
+  height: 4px;
 }
 
 .attention-cards-scroll::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
 }
 
 .attention-cards-scroll::-webkit-scrollbar-thumb {
@@ -916,69 +970,69 @@ export default {
   border-radius: 2px;
 }
 
-.attention-card-compact {
-  min-width: 220px;
-  max-width: 240px;
-  height: 100px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
+.attention-cards-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.attention-card-improved {
+  min-width: 280px;
+  max-width: 320px;
+  height: 160px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
   overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
-.attention-card-compact:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+.attention-card-improved:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
 }
 
-.attention-card-compact--active {
-  background: rgba(255, 255, 255, 0.98);
+.attention-card-improved--active {
+  background: rgba(255, 255, 255, 0.95);
   border: 2px solid #FFD700;
-  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3), 0 8px 25px rgba(0, 0, 0, 0.2);
-  transform: translateY(-4px) scale(1.05);
-  z-index: 10;
+  box-shadow: 0 8px 30px rgba(255, 215, 0, 0.4);
+  transform: translateY(-6px) scale(1.02);
 }
 
-.attention-card-compact--active * {
+.attention-card-improved--active * {
   color: #333 !important;
 }
 
-.attention-card-compact--active .active-indicator {
-  color: #FFD700 !important;
+.attention-card-improved--in-progress:not(.attention-card-improved--active) {
+  border-left: 4px solid #FF9800;
 }
 
-.attention-card-compact--in-progress:not(.attention-card-compact--active) {
-  border-left: 3px solid #FF9800;
-}
-
-.attention-card-compact--completed:not(.attention-card-compact--active) {
-  border-left: 3px solid #4CAF50;
+.attention-card-improved--completed:not(.attention-card-improved--active) {
+  border-left: 4px solid #4CAF50;
 }
 
 .card-status-indicator {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 12px;
+  right: 12px;
   z-index: 2;
 }
 
 .status-dot {
-  width: 8px;
-  height: 8px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
+  position: relative;
 }
 
 .status-dot--active {
   background: #FF9800;
-  box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.4);
+  box-shadow: 0 0 0 4px rgba(255, 152, 0, 0.3);
   animation: pulse-orange 2s infinite;
 }
 
@@ -987,13 +1041,19 @@ export default {
 }
 
 @keyframes pulse-orange {
-  0% { box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.4); }
-  50% { box-shadow: 0 0 0 4px rgba(255, 152, 0, 0.2); }
-  100% { box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.4); }
+  0% {
+    box-shadow: 0 0 0 4px rgba(255, 152, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(255, 152, 0, 0.1);
+  }
+  100% {
+    box-shadow: 0 0 0 4px rgba(255, 152, 0, 0.3);
+  }
 }
 
 .card-content {
-  padding: 10px;
+  padding: 16px;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -1003,63 +1063,102 @@ export default {
 .card-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
+  align-items: flex-start;
+  margin-bottom: 12px;
 }
 
 .card-number {
-  font-size: 1rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: rgba(255, 255, 255, 0.95);
-  line-height: 1;
+  line-height: 1.2;
 }
 
 .active-indicator {
   color: #FFD700;
-  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.8));
+  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.6));
 }
 
 .card-meta {
-  margin-bottom: 6px;
-}
-
-.card-date {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.8);
-  display: flex;
-  align-items: center;
-  line-height: 1;
-}
-
-.card-vet {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.75);
-  display: flex;
-  align-items: center;
-  margin-bottom: 6px;
-  line-height: 1;
-}
-
-.card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 12px;
 }
 
-.status-chip-small {
-  font-size: 0.65rem;
+.card-date {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+}
+
+.card-time {
+  font-size: 0.85rem;
   font-weight: 600;
-  height: 18px;
-  padding: 0 6px;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.card-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.card-vet {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  flex: 1;
+  margin-right: 8px;
 }
 
 .card-services {
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.8);
   background: rgba(255, 255, 255, 0.1);
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
   font-weight: 500;
+}
+
+.card-status {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.status-chip-small {
+  font-size: 0.75rem;
+  font-weight: 600;
+  height: 24px;
+  padding: 0 10px;
+}
+
+.card-active-info {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.active-label {
+  font-size: 0.8rem;
+  color: #FFD700;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.finalization-info {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
 }
 
 .active-overlay {
@@ -1070,39 +1169,41 @@ export default {
   bottom: 0;
   background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 193, 7, 0.05));
   pointer-events: none;
-  border-radius: 10px;
+  border-radius: 14px;
 }
 
 .cards-navigation {
   position: absolute;
-  right: 4px;
+  right: 8px;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  z-index: 5;
+  gap: 8px;
+  z-index: 10;
 }
 
 .nav-btn {
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(10px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  width: 28px;
-  height: 28px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 32px;
+  height: 32px;
 }
 
 .nav-btn:hover {
   background: white;
   transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
 .nav-btn:disabled {
   opacity: 0.4;
   transform: none;
+  cursor: not-allowed;
 }
 
-/* Resto de estilos */
+/* Resto de estilos originales */
 .services-card {
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -1144,6 +1245,7 @@ export default {
 
 .modern-tabs {
   background: #f8fafc;
+  border-radius: 0;
 }
 
 .modern-tab {
@@ -1168,6 +1270,10 @@ export default {
 
 .tab-completed.q-tab--active {
   background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+}
+
+.completion-badge {
+  animation: none;
 }
 
 .modern-tab-panels {
@@ -1226,94 +1332,11 @@ export default {
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
 }
 
-/* MODO OSCURO - MEJORAS */
-.body--dark .modern-header-card {
-  background: linear-gradient(135deg, #0d47a1 0%, #1565c0 100%);
+.action-btn:active {
+  transform: translateY(-2px);
 }
 
-.body--dark .modern-avatar {
-  background: rgba(255, 255, 255, 0.95);
-  color: #1976d2;
-  border: 2px solid rgba(255, 255, 255, 0.8);
-}
-
-.body--dark .avatar-icon {
-  color: #1976d2 !important;
-}
-
-.body--dark .modern-btn-large {
-  background: rgba(255, 255, 255, 0.95);
-  color: #1976d2;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.body--dark .modern-btn-large:hover {
-  background: white;
-  color: #1976d2;
-}
-
-.body--dark .attention-card-compact {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-}
-
-.body--dark .attention-card-compact:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.25);
-}
-
-.body--dark .attention-card-compact--active {
-  background: rgba(30, 30, 30, 0.95);
-  border-color: #FFD700;
-}
-
-.body--dark .attention-card-compact--active * {
-  color: white !important;
-}
-
-.body--dark .attention-card-compact--active .active-indicator {
-  color: #FFD700 !important;
-}
-
-.body--dark .services-card {
-  background: #1e1e1e;
-  color: white;
-}
-
-.body--dark .empty-services {
-  background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
-}
-
-.body--dark .empty-title {
-  color: white;
-}
-
-.body--dark .empty-subtitle {
-  color: #aaa;
-}
-
-.body--dark .empty-icon {
-  color: #666;
-}
-
-.body--dark .modern-tabs {
-  background: #2a2a2a;
-}
-
-.body--dark .modern-tab-panels {
-  background: #1e1e1e;
-}
-
-.body--dark .nav-btn {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-}
-
-.body--dark .nav-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-/* Responsive */
+/* Responsive Design */
 @media (max-width: 1024px) {
   .patient-info,
   .attention-info,
@@ -1322,10 +1345,28 @@ export default {
     padding-left: 12px;
   }
   
-  .attention-card-compact {
-    min-width: 200px;
-    max-width: 220px;
-    height: 90px;
+  .modern-header .row {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .modern-header .col {
+    width: 100%;
+  }
+  
+  .modern-header .row.q-gutter-md {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .attention-card-improved {
+    min-width: 240px;
+    max-width: 280px;
+    height: 140px;
+  }
+
+  .cards-navigation {
+    right: 4px;
   }
 }
 
@@ -1355,16 +1396,46 @@ export default {
     margin-top: 12px;
   }
   
-  .attention-card-compact {
-    min-width: 180px;
-    max-width: 200px;
-    height: 85px;
+  .modern-btn-large {
+    width: 40px;
+    height: 40px;
   }
   
+  .floating-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .empty-services-content {
+    padding: 1rem;
+  }
+  
+  .empty-title {
+    font-size: 1.25rem;
+  }
+  
+  .empty-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .attention-card-improved {
+    min-width: 220px;
+    max-width: 260px;
+    height: 130px;
+  }
+
   .card-content {
-    padding: 8px;
+    padding: 12px;
   }
-  
+
+  .card-number {
+    font-size: 1.1rem;
+  }
+
+  .cards-title {
+    font-size: 1rem;
+  }
+
   .cards-navigation {
     display: none;
   }
@@ -1381,45 +1452,50 @@ export default {
     margin: 0 -8px;
   }
   
-  .attention-card-compact {
-    min-width: 160px;
-    max-width: 180px;
-    height: 80px;
+  .modern-tab {
+    min-width: 80px;
+    font-size: 0.8rem;
   }
   
-  .card-number {
-    font-size: 0.9rem;
+  .modern-tab .q-tab__content {
+    padding: 8px 4px;
   }
   
-  .card-date,
-  .card-vet {
-    font-size: 0.7rem;
+  .modern-tab-panels .q-tab-panel {
+    padding: 1rem;
+  }
+  
+  .modern-btn-large {
+    width: 36px;
+    height: 36px;
+  }
+
+  .attention-card-improved {
+    min-width: 200px;
+    max-width: 240px;
+    height: 120px;
+  }
+
+  .card-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .card-details {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .cards-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
 }
 
-/* Transiciones suaves */
-* {
-  transition: all 0.2s ease-in-out;
-}
-
-/* Mejoras adicionales */
-.attention-card-compact::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.02) 100%);
-  pointer-events: none;
-  border-radius: inherit;
-}
-
-.attention-card-compact--active::before {
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 193, 7, 0.02) 100%);
-}
-
-/* Estados de hover mejorados */
+/* Efectos de hover mejorados */
 .modern-header-card {
   transform: translateY(0);
   transition: all 0.3s ease;
@@ -1442,11 +1518,11 @@ export default {
 
 /* Mejoras para accesibilidad */
 .modern-btn-large:focus {
-  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline: 2px solid rgba(0, 0, 0, 0.8);
   outline-offset: 2px;
 }
 
-.attention-card-compact:focus {
+.attention-card-improved:focus {
   outline: 2px solid #FFD700;
   outline-offset: 2px;
 }
@@ -1454,6 +1530,53 @@ export default {
 .modern-tab:focus {
   outline: 2px solid #1976d2;
   outline-offset: 2px;
+}
+
+/* Modo oscuro */
+.body--dark .modern-header-card {
+  background: #0d47a1;
+}
+
+.body--dark .modern-avatar {
+  background: #333;
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.body--dark .modern-btn-large {
+  background: #333;
+  color: white;
+  border: 1px solid #555;
+}
+
+.body--dark .modern-btn-large:hover {
+  background: #444;
+  color: white;
+}
+
+.body--dark .attention-card-improved {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.body--dark .attention-card-improved:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.body--dark .attention-card-improved--active {
+  background: rgba(30, 30, 30, 0.95);
+  border-color: #FFD700;
+  color: white;
+}
+
+.body--dark .attention-card-improved--active * {
+  color: white !important;
+}
+
+/* Transiciones globales suaves */
+* {
+  transition: all 0.2s ease-in-out;
 }
 
 /* Estados para impresión */
@@ -1485,355 +1608,20 @@ export default {
   }
 }
 
-/* Estilos para diálogos */
-.servicios-dialog .q-dialog__inner {
-  padding: 16px;
-}
-
-.servicios-dialog .q-dialog__inner > div {
-  width: 90vw;
-  max-width: 1000px;
-  min-width: 600px;
-  max-height: 85vh;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  background: white;
-}
-
-.dialog-content {
-  overflow-y: auto;
-  max-height: 80vh;
-}
-
-@media (max-width: 768px) {
-  .servicios-dialog .q-dialog__inner > div {
-    width: 95vw;
-    min-width: 300px;
-    max-height: 90vh;
-  }
-}
-
-@media (max-width: 480px) {
-  .servicios-dialog .q-dialog__inner > div {
-    width: 100vw;
-    height: 100vh;
-    max-height: none;
-    border-radius: 0;
-  }
-}
-
-/* Mejoras para notificaciones */
-.q-notification {
-  backdrop-filter: blur(8px);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.q-notification--positive {
-  background: rgba(76, 175, 80, 0.9);
-}
-
-.q-notification--negative {
-  background: rgba(244, 67, 54, 0.9);
-}
-
-.q-notification--info {
-  background: rgba(33, 150, 243, 0.9);
-}
-
-/* Mejoras para tooltips */
-.q-tooltip {
-  background: rgba(0, 0, 0, 0.9);
-  backdrop-filter: blur(10px);
-  border-radius: 8px;
-  font-size: 0.85rem;
-  padding: 10px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Mejoras para badges y chips */
-.q-chip {
-  font-weight: 500;
-  letter-spacing: 0.5px;
-}
-
-.q-badge {
-  font-weight: 600;
-  font-size: 0.75rem;
-}
-
-/* Botones flotantes más visibles */
-.action-btn[size="lg"] {
-  width: 60px;
-  height: 60px;
-}
-
-/* Estados de loading mejorados */
-.q-btn .q-spinner {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.loading-overlay {
+/* Mejoras adicionales para el sistema de tarjetas */
+.attention-card-improved::before {
+  content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  border-radius: 16px;
-}
-
-/* Mejoras para formularios */
-.q-field .q-field__control {
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.q-field--focused .q-field__control {
-  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.3);
-  border-color: #1976d2;
-}
-
-/* Mejoras para diálogos generales */
-.q-dialog .q-card {
-  backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.body--dark .q-dialog .q-card {
-  background: rgba(30, 30, 30, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-/* Estilos para elementos interactivos */
-.interactive-element {
-  cursor: pointer;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.interactive-element:active {
-  transform: scale(0.98);
-}
-
-/* Estados de error y éxito */
-.success-state {
-  border-left: 4px solid #4caf50;
-  background: linear-gradient(90deg, rgba(76, 175, 80, 0.1) 0%, transparent 100%);
-}
-
-.error-state {
-  border-left: 4px solid #f44336;
-  background: linear-gradient(90deg, rgba(244, 67, 54, 0.1) 0%, transparent 100%);
-}
-
-.warning-state {
-  border-left: 4px solid #ff9800;
-  background: linear-gradient(90deg, rgba(255, 152, 0, 0.1) 0%, transparent 100%);
-}
-
-/* Animaciones de entrada para elementos dinámicos */
-.fade-enter-active, .fade-leave-active {
-  transition: all 0.3s ease;
-}
-
-.fade-enter-from, .fade-leave-to {
-  opacity: 0;
-  transform: translateY(10px);
-}
-
-.slide-enter-active, .slide-leave-active {
-  transition: all 0.3s ease;
-}
-
-.slide-enter-from {
-  transform: translateX(-100%);
-}
-
-.slide-leave-to {
-  transform: translateX(100%);
-}
-
-/* Mejoras para la accesibilidad - reducción de movimiento */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-  
-  .status-dot--active {
-    animation: none !important;
-  }
-}
-
-/* Focus visible mejorado */
-.focus-visible:focus-visible {
-  outline: 2px solid #1976d2;
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-/* Mejoras para pantallas de alta densidad */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .modern-header-card {
-    box-shadow: 0 8px 32px rgba(25, 118, 210, 0.4);
-  }
-  
-  .services-card {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  }
-  
-  .attention-card-compact {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  }
-}
-
-/* Estilos para scrollbars personalizados */
-.modern-scrollbar::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.modern-scrollbar::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 4px;
-}
-
-.modern-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-
-.modern-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.3);
-}
-
-/* Mejoras para touch devices */
-@media (hover: none) {
-  .modern-btn-large:hover,
-  .attention-card-compact:hover,
-  .action-btn:hover {
-    transform: none;
-  }
-  
-  .modern-btn-large:active,
-  .attention-card-compact:active,
-  .action-btn:active {
-    transform: scale(0.95);
-  }
-  
-  .attention-card-compact--active:active {
-    transform: translateY(-4px) scale(1.05);
-  }
-}
-
-/* Mejoras finales para visibilidad */
-.q-card-section {
-  color: inherit;
-}
-
-.modern-header * {
-  color: white !important;
-}
-
-.attention-card-compact * {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.attention-card-compact--active .card-number,
-.attention-card-compact--active .card-date,
-.attention-card-compact--active .card-vet,
-.attention-card-compact--active .card-services {
-  color: #333 !important;
-}
-
-.attention-card-compact--active .active-indicator {
-  color: #FFD700 !important;
-}
-
-/* Asegurar que todos los elementos sean clickeables */
-.modern-btn-large,
-.attention-card-compact,
-.action-btn,
-.nav-btn {
-  pointer-events: all;
-  cursor: pointer;
-}
-
-/* Efectos de entrada suaves para las tarjetas */
-.attention-card-compact {
-  animation: slideInFromBottom 0.5s ease-out;
-}
-
-@keyframes slideInFromBottom {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Mejoras para la selección de texto */
-.attention-card-compact * {
-  user-select: none;
-}
-
-.card-number,
-.card-date,
-.card-vet {
-  user-select: text;
-}
-
-/* Estados finales para completar el diseño */
-.attention-cards-section {
-  position: relative;
-  z-index: 1;
-}
-
-.modern-header * {
-  z-index: auto;
-}
-
-/* Optimizaciones de rendimiento */
-.attention-card-compact,
-.modern-header-card,
-.services-card {
-  will-change: transform;
-  transform: translateZ(0);
-}
-
-.header-gradient {
-  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
-  position: relative;
-  overflow: hidden;
-}
-
-.header-gradient::before {
-  content: '';
-  position: absolute;
-  top: -50px;
-  left: -50px;
-  width: 150%;
-  height: 150%;
-  background: radial-gradient(circle at top left, rgba(255,255,255,0.1) 0%, transparent 70%);
-  transform: rotate(-15deg);
+  background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.03) 100%);
   pointer-events: none;
+  border-radius: inherit;
 }
 
-/* Fin de estilos */
+.attention-card-improved--active::before {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 193, 7, 0.02) 100%);
+}
 </style>

@@ -1,17 +1,14 @@
 <template>
   <q-page class="q-pa-md full-width">
     <!-- Header compacto unificado -->
-    
-    <q-card class="q-mb-md rounded-borders shadow-2">
-      <q-card-section class="header-gradient q-py-md q-px-lg text-white">
-        <div class="row items-center q-col-gutter-md no-wrap">
-    
-    <!--<q-card class="q-mb-md modern-header-card">
+    <q-card class="q-mb-md modern-header-card">
       <q-card-section class="modern-header q-py-md q-px-lg">
-        <div class="row items-center q-col-gutter-md no-wrap">-->
+        <div class="row items-center q-col-gutter-md no-wrap">
           <!-- Info del paciente -->
           <div class="col-auto">
-            <q-avatar size="64px" icon="pets" color="white" text-color="primary" />
+            <q-avatar size="56px" class="modern-avatar">
+              <q-icon name="pets" size="28px" />
+            </q-avatar>
           </div>
           
           <div class="col">
@@ -25,7 +22,7 @@
                 </div>
                 <div class="owner-info">
                   <q-icon name="person" size="16px" class="q-mr-xs" />
-                  {{ paciente.propietario?.nombre }} {{ paciente.propietario?.primerapellido }} {{ paciente.propietario?.segundoapellido }}
+                  {{ paciente.propietario?.nombre }} {{ paciente.propietario?.primerapellido }}
                   <span v-if="paciente.propietario?.telefono1" class="phone-info">
                     • <q-icon name="phone" size="14px" /> {{ paciente.propietario?.telefono1 }}
                   </span>
@@ -34,7 +31,7 @@
 
               <!-- Columna 2: Info de atención actual -->
               <div class="attention-info">
-                <div class="attention-number"> Atención actual: {{ atenciones[atencionActual].numero }}</div>
+                <div class="attention-number">{{ atenciones[atencionActual].numero }}</div>
                 <div class="attention-details">
                   <q-icon name="event" size="16px" class="q-mr-xs" />
                   {{ atenciones[atencionActual].fecha }} • {{ atenciones[atencionActual].hora }}
@@ -120,102 +117,63 @@
           </div>
         </div>
 
-        <!-- Sistema de tarjetas compacto -->
-        <div class="attention-cards-section q-mt-lg">
-          <div class="attention-cards-container">
-            <div class="attention-cards-scroll">
-              <div
-                v-for="(atencion, index) in atenciones"
-                :key="atencion.id"
-                @click="atencionActual = index"
-                :class="[
-                  'attention-card-compact',
-                  atencionActual === index ? 'attention-card-compact--active' : '',
-                  atencion.estado === 'En curso' ? 'attention-card-compact--in-progress' : 'attention-card-compact--completed'
-                ]"
-              >
-                <!-- Indicador de estado -->
-                <div class="card-status-indicator">
-                  <div 
-                    :class="[
-                      'status-dot',
-                      atencion.estado === 'En curso' ? 'status-dot--active' : 'status-dot--completed'
-                    ]"
-                  ></div>
+        <div style="display: flex; overflow-x: auto; gap: 16px; padding-bottom: 8px;">
+          <div
+            v-for="(atencion, index) in atenciones"
+            :key="atencion.id"
+            @click="atencionActual = index"
+            :class="[
+              'mini-card-atencion',
+              atencionActual === index ? 'mini-card-atencion--active' : '',
+              $q.dark.isActive ? 'bg-grey-10 text-white' : 'bg-grey-2 text-dark'
+            ]"
+            style="min-width: 260px; max-width: 340px; cursor: pointer; user-select: none;"
+          >
+            <div class="row items-center no-wrap q-mb-xs">
+              <q-icon :name="atencion.estado === 'En curso' ? 'play_circle' : 'check_circle'" :color="atencionActual === index ? 'primary' : 'grey-6'" size="sm" class="q-mr-xs" />
+              <span class="text-weight-medium" style="font-size: 1rem;">{{ atencion.numero }}</span>
+              <q-btn
+                v-if="atencionActual === index"
+                dense flat round size="sm"
+                icon="expand_more"
+                @click.stop="atencionExpandida = atencionExpandida === index ? null : index"
+                :aria-label="atencionExpandida === index ? 'Ocultar detalles' : 'Mostrar detalles'"
+                class="q-ml-xs"
+                :class="{'rotate-180': atencionExpandida === index}"
+              />
+            </div>
+            <div class="row items-center no-wrap text-caption text-grey-7 q-mb-xs" style="font-size: 0.92rem;">
+              <q-icon name="event" size="xs" class="q-mr-xs" />
+              <span>{{ atencion.fecha }} {{ atencion.hora }}</span>
+              <q-chip
+                :color="atencion.estado === 'En curso' ? 'orange' : 'green'"
+                text-color="white"
+                :label="atencion.estado"
+                size="sm"
+                class="q-ml-sm"
+                style="font-size: 0.85rem;"
+              />
+            </div>
+            <transition name="fade">
+              <div v-if="atencionExpandida === index && atencionActual === index" class="q-mt-xs" style="font-size: 0.92rem;">
+                <div class="text-caption text-grey-7">Veterinario: {{ atencion.veterinario }}</div>
+                <div class="text-caption">Servicios: {{ atencion.servicios.length }}</div>
+                <div
+                  v-if="atencion.fechaFinalizacion"
+                  class="row items-center no-wrap text-caption text-grey-7 q-mb-xs"
+                  style="font-size: 0.92rem;"
+                >
+                  <q-icon name="event_available" size="xs" class="q-mr-xs" />
+                  <span>Finalizada: {{ atencion.fechaFinalizacion }} {{ atencion.horaFinalizacion }}</span>
                 </div>
-
-                <!-- Contenido principal compacto -->
-                <div class="card-content">
-                  <div class="card-header">
-                    <div class="card-number">{{ atencion.numero }}</div>
-                    <q-icon 
-                      v-if="atencionActual === index" 
-                      name="radio_button_checked" 
-                      size="16px" 
-                      class="active-indicator"
-                    />
-                  </div>
-
-                  <div class="card-meta">
-                    <div class="card-date">
-                      <q-icon name="event" size="12px" class="q-mr-xs" />
-                      {{ formatDate(atencion.fecha) }} • {{ atencion.hora }}
-                    </div>
-                  </div>
-
-                  <div class="card-vet">
-                    <q-icon name="medical_services" size="12px" class="q-mr-xs" />
-                    {{ atencion.veterinario }}
-                  </div>
-
-                  <div class="card-footer">
-                    <q-chip
-                      :color="atencion.estado === 'En curso' ? 'orange-6' : 'green-6'"
-                      text-color="white"
-                      :label="atencion.estado"
-                      size="xs"
-                      class="status-chip-small"
-                    />
-                    <div class="card-services">{{ atencion.servicios.length }} serv.</div>
-                  </div>
-                </div>
-
-                <!-- Overlay para tarjeta activa -->
-                <div v-if="atencionActual === index" class="active-overlay"></div>
+                <div v-if="atencionActual === index" class="text-primary text-caption q-mt-xs"><q-icon name="check_circle" size="xs" /> Activa</div>
               </div>
-            </div>
-
-            <!-- Navegación -->
-            <div class="cards-navigation" v-if="atenciones.length > 3">
-              <q-btn
-                dense
-                round
-                icon="chevron_left"
-                color="white"
-                text-color="primary"
-                size="sm"
-                @click="navigateCards('prev')"
-                :disable="atencionActual === 0"
-                class="nav-btn"
-              />
-              <q-btn
-                dense
-                round
-                icon="chevron_right"
-                color="white"
-                text-color="primary"
-                size="sm"
-                @click="navigateCards('next')"
-                :disable="atencionActual === atenciones.length - 1"
-                class="nav-btn"
-              />
-            </div>
+            </transition>
           </div>
         </div>
       </q-card-section>
     </q-card>
 
-    <!-- Resto del contenido permanece igual -->
     <!-- Dialogo para agregar servicios -->
     <q-dialog 
       v-model="showAddServiceDialog" 
@@ -237,11 +195,19 @@
     <q-card class="services-card">
       <q-card-section class="q-pa-none">
         <div v-if="serviciosAplicados.length === 0" class="empty-services">
-          <div v-if="serviciosAplicados.length === 0" class="text-center q-py-xl text-grey-6" style="height: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-          <q-icon name="info" size="xl" class="q-mb-md" />
-          <div class="text-h6">No se han aplicado servicios aún</div>
-          <div class="text-subtitle2">Usa el botón "Agregar Servicio" para añadir servicios</div>
-        </div>
+          <div class="empty-services-content">
+            <q-icon name="assignment_add" size="48px" class="empty-icon" />
+            <div class="empty-title">Sin servicios aplicados</div>
+            <div class="empty-subtitle">Agrega servicios para comenzar con la atención</div>
+            <q-btn
+              color="primary"
+              icon="add"
+              label="Agregar Primer Servicio"
+              @click="showAddServiceDialog = true"
+              :disable="atenciones[atencionActual].estado === 'Finalizada'"
+              class="q-mt-md modern-btn-filled"
+            />
+          </div>
         </div>
 
         <div v-else>
@@ -487,22 +453,6 @@ export default {
     }, { immediate: true })
 
     // Métodos
-    const formatDate = (dateString) => {
-      const date = new Date(dateString)
-      return date.toLocaleDateString('es-ES', {
-        day: '2-digit',
-        month: 'short'
-      })
-    }
-
-    const navigateCards = (direction) => {
-      if (direction === 'prev' && atencionActual.value > 0) {
-        atencionActual.value--
-      } else if (direction === 'next' && atencionActual.value < atenciones.value.length - 1) {
-        atencionActual.value++
-      }
-    }
-
     const verDetallesAtencion = () => {
       const atencion = atenciones.value[atencionActual.value]
       $q.dialog({
@@ -712,8 +662,6 @@ export default {
       serviciosAplicados,
       servicioActivoTab,
       guardandoAtencion,
-      formatDate,
-      navigateCards,
       verDetallesAtencion,
       nuevaAtencion,
       mostrarAtenciones,
@@ -732,30 +680,31 @@ export default {
 <style scoped>
 /* Header moderno compacto */
 .modern-header-card {
-  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+  background: #1976d2; /* Cambiado a un color primario sólido */
   border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(25, 118, 210, 0.3);
+  box-shadow: 0 8px 32px rgba(25, 118, 210, 0.3); /* Ajustado a la sombra del nuevo color */
+  /* overflow: hidden;  Eliminado para simplicidad */
   border: none;
 }
 
 .modern-header {
-  color: white;
+  /* background: transparent; Eliminado */
+  color: white; /* Asegura que el texto sea blanco */
   position: relative;
 }
 
+.modern-header::before {
+  /* Regla eliminada */
+}
+
 .modern-avatar {
-  background: rgba(255, 255, 255, 0.95);
-  color: #1976d2;
-  border: 2px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: white; /* Fondo blanco para mayor contraste */
+  color: #1976d2; /* Color primario para el icono */
+  /* backdrop-filter: blur(8px); Eliminado o no necesario sin el ::before */
+  border: 2px solid rgba(255, 255, 255, 0.6); /* Borde más visible */
 }
 
-.avatar-icon {
-  color: #1976d2 !important;
-  font-weight: 600;
-}
-
-/* Información del paciente */
+/* Información del paciente - mejorada */
 .patient-info {
   min-width: 250px;
 }
@@ -763,13 +712,13 @@ export default {
 .patient-name {
   font-size: 1.3rem;
   font-weight: 600;
-  color: white;
+  color: white; /* Asegura color blanco */
   margin-bottom: 4px;
 }
 
 .patient-details {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.95);
+  color: white; /* Asegura color blanco */
   display: flex;
   align-items: center;
   gap: 8px;
@@ -777,17 +726,17 @@ export default {
 }
 
 .age-badge {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.4); /* Opacidad ajustada */
   padding: 3px 10px;
   border-radius: 12px;
   font-size: 0.8rem;
   font-weight: 500;
-  color: white;
+  color: white; /* Asegura color blanco */
 }
 
 .owner-info {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: white; /* Asegura color blanco */
   display: flex;
   align-items: center;
 }
@@ -796,23 +745,23 @@ export default {
   margin-left: 8px;
 }
 
-/* Información de la atención */
+/* Información de la atención - mejorada */
 .attention-info {
   min-width: 220px;
   padding-left: 16px;
-  border-left: 1px solid rgba(255, 255, 255, 0.3);
+  border-left: 1px solid rgba(255, 255, 255, 0.3); /* Borde ajustado */
 }
 
 .attention-number {
   font-size: 1.2rem;
   font-weight: 600;
-  color: white;
+  color: white; /* Asegura color blanco */
   margin-bottom: 4px;
 }
 
 .attention-details {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.95);
+  color: white; /* Asegura color blanco */
   display: flex;
   align-items: center;
   margin-bottom: 6px;
@@ -820,16 +769,16 @@ export default {
 
 .vet-info {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: white; /* Asegura color blanco */
   display: flex;
   align-items: center;
 }
 
-/* Estado y servicios */
+/* Estado y servicios - mejorado */
 .status-info {
   min-width: 160px;
   padding-left: 16px;
-  border-left: 1px solid rgba(255, 255, 255, 0.3);
+  border-left: 1px solid rgba(255, 255, 255, 0.3); /* Borde ajustado */
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -840,31 +789,33 @@ export default {
   font-weight: 500;
   border-radius: 20px;
   font-size: 0.85rem;
+  background: rgba(255, 255, 255, 0.3); /* Fondo más claro para chip */
+  color: white; /* Asegura texto blanco */
 }
 
 .services-count {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: white; /* Asegura color blanco */
   display: flex;
   align-items: center;
 }
 
-/* Botones modernos */
+/* Botones modernos más grandes */
 .modern-btn-large {
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #1976d2;
+  /* backdrop-filter: blur(8px); Eliminado */
+  background: white; /* Fondo blanco */
+  border: 1px solid rgba(0, 0, 0, 0.1); /* Borde sutil */
+  color: #1976d2; /* Color primario para los iconos */
   transition: all 0.3s ease;
   width: 44px;
   height: 44px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .modern-btn-large:hover {
-  background: white;
+  background: #f0f0f0; /* Ligeramente gris en hover */
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-  color: #1976d2;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15); /* Sombra más suave */
+  color: #1976d2; /* Asegura color primario */
 }
 
 .modern-btn-filled {
@@ -881,228 +832,80 @@ export default {
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
-/* SISTEMA DE TARJETAS COMPACTO */
-.attention-cards-section {
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-  padding-top: 16px;
-}
-
-.attention-cards-container {
-  position: relative;
-  overflow: hidden;
-  border-radius: 12px;
-}
-
-.attention-cards-scroll {
+/* Carrusel de atenciones más grande */
+.attention-carousel {
   display: flex;
   gap: 12px;
   overflow-x: auto;
-  padding: 4px 0;
-  scroll-behavior: smooth;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+  padding: 8px 0;
+  scrollbar-width: none;
 }
 
-.attention-cards-scroll::-webkit-scrollbar {
-  height: 3px;
+.attention-carousel::-webkit-scrollbar {
+  display: none;
 }
 
-.attention-cards-scroll::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.attention-cards-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 2px;
-}
-
-.attention-card-compact {
-  min-width: 220px;
-  max-width: 240px;
-  height: 100px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+.attention-card-mini {
+  min-width: 100px; /* Aumentado de 85px a 100px */
+  height: 85px; /* Aumentado de 70px a 85px */
+  background: rgba(255, 255, 255, 0.2); /* Fondo semitransparente para inactivas */
+  border: 1px solid rgba(255, 255, 255, 0.3); /* Borde más visible */
   border-radius: 12px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  backdrop-filter: blur(10px);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  transition: all 0.3s ease;
+  /* backdrop-filter: blur(10px); Eliminado */
 }
 
-.attention-card-compact:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
+.attention-card-mini:hover {
+  background: rgba(255, 255, 255, 0.3); /* Más opaco en hover */
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.attention-card-compact--active {
-  background: rgba(255, 255, 255, 0.98);
-  border: 2px solid #FFD700;
-  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3), 0 8px 25px rgba(0, 0, 0, 0.2);
-  transform: translateY(-4px) scale(1.05);
-  z-index: 10;
+.attention-card-mini--active {
+  background: white; /* Fondo blanco para la tarjeta activa */
+  border-color: #1976d2; /* Borde con color primario */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Sombra más pronunciada */
+  transform: translateY(-1px);
 }
 
-.attention-card-compact--active * {
-  color: #333 !important;
-}
-
-.attention-card-compact--active .active-indicator {
-  color: #FFD700 !important;
-}
-
-.attention-card-compact--in-progress:not(.attention-card-compact--active) {
-  border-left: 3px solid #FF9800;
-}
-
-.attention-card-compact--completed:not(.attention-card-compact--active) {
-  border-left: 3px solid #4CAF50;
-}
-
-.card-status-indicator {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 2;
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-.status-dot--active {
-  background: #FF9800;
-  box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.4);
-  animation: pulse-orange 2s infinite;
-}
-
-.status-dot--completed {
-  background: #4CAF50;
-}
-
-@keyframes pulse-orange {
-  0% { box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.4); }
-  50% { box-shadow: 0 0 0 4px rgba(255, 152, 0, 0.2); }
-  100% { box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.4); }
-}
-
-.card-content {
-  padding: 10px;
-  flex: 1;
+.attention-card-content {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
+  justify-content: center;
+  height: 100%;
+  padding: 8px;
 }
 
-.card-number {
-  font-size: 1rem;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.95);
-  line-height: 1;
-}
-
-.active-indicator {
-  color: #FFD700;
-  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.8));
-}
-
-.card-meta {
-  margin-bottom: 6px;
-}
-
-.card-date {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.8);
-  display: flex;
-  align-items: center;
-  line-height: 1;
-}
-
-.card-vet {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.75);
-  display: flex;
-  align-items: center;
-  margin-bottom: 6px;
-  line-height: 1;
-}
-
-.card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.status-chip-small {
-  font-size: 0.65rem;
+.attention-card-number {
+  font-size: 1rem; /* Aumentado de 0.85rem a 1rem */
   font-weight: 600;
-  height: 18px;
-  padding: 0 6px;
+  color: #333; /* Texto oscuro para la tarjeta activa */
+  line-height: 1;
 }
 
-.card-services {
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.8);
-  background: rgba(255, 255, 255, 0.1);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-weight: 500;
+.attention-card-date {
+  font-size: 0.85rem; /* Aumentado de 0.75rem a 0.85rem */
+  color: #555; /* Texto oscuro para la tarjeta activa */
+  line-height: 1;
+  margin: 4px 0;
 }
 
-.active-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 193, 7, 0.05));
-  pointer-events: none;
-  border-radius: 10px;
+.attention-card-status {
+  margin-top: 4px;
 }
 
-.cards-navigation {
-  position: absolute;
-  right: 4px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  z-index: 5;
+.more-card {
+  background: rgba(255, 255, 255, 0.2); /* Fondo semitransparente para 'más' */
+  border: 1px dashed rgba(255, 255, 255, 0.4); /* Borde ajustado */
 }
 
-.nav-btn {
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  width: 28px;
-  height: 28px;
+.more-card:hover {
+  background: rgba(255, 255, 255, 0.3); /* Más opaco en hover */
 }
 
-.nav-btn:hover {
-  background: white;
-  transform: scale(1.1);
-}
-
-.nav-btn:disabled {
-  opacity: 0.4;
-  transform: none;
-}
-
-/* Resto de estilos */
+/* Tarjeta de servicios moderna */
 .services-card {
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -1110,6 +913,7 @@ export default {
   overflow: hidden;
 }
 
+/* Estado vacío moderno */
 .empty-services {
   min-height: 400px;
   display: flex;
@@ -1142,8 +946,10 @@ export default {
   margin-bottom: 1.5rem;
 }
 
+/* Pestañas modernas */
 .modern-tabs {
   background: #f8fafc;
+  border-radius: 0;
 }
 
 .modern-tab {
@@ -1170,6 +976,11 @@ export default {
   background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
 }
 
+.completion-badge {
+  animation: none; /* Eliminar animación para simplicidad */
+}
+
+/* Paneles de pestañas */
 .modern-tab-panels {
   background: white;
   min-height: 400px;
@@ -1179,6 +990,7 @@ export default {
   padding: 1.5rem;
 }
 
+/* Servicio genérico */
 .generic-service {
   display: flex;
   align-items: center;
@@ -1210,6 +1022,7 @@ export default {
   margin-bottom: 1rem;
 }
 
+/* Botones de acción flotantes más grandes */
 .floating-actions {
   display: flex;
   gap: 12px;
@@ -1226,94 +1039,11 @@ export default {
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
 }
 
-/* MODO OSCURO - MEJORAS */
-.body--dark .modern-header-card {
-  background: linear-gradient(135deg, #0d47a1 0%, #1565c0 100%);
+.action-btn:active {
+  transform: translateY(-2px);
 }
 
-.body--dark .modern-avatar {
-  background: rgba(255, 255, 255, 0.95);
-  color: #1976d2;
-  border: 2px solid rgba(255, 255, 255, 0.8);
-}
-
-.body--dark .avatar-icon {
-  color: #1976d2 !important;
-}
-
-.body--dark .modern-btn-large {
-  background: rgba(255, 255, 255, 0.95);
-  color: #1976d2;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.body--dark .modern-btn-large:hover {
-  background: white;
-  color: #1976d2;
-}
-
-.body--dark .attention-card-compact {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-}
-
-.body--dark .attention-card-compact:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.25);
-}
-
-.body--dark .attention-card-compact--active {
-  background: rgba(30, 30, 30, 0.95);
-  border-color: #FFD700;
-}
-
-.body--dark .attention-card-compact--active * {
-  color: white !important;
-}
-
-.body--dark .attention-card-compact--active .active-indicator {
-  color: #FFD700 !important;
-}
-
-.body--dark .services-card {
-  background: #1e1e1e;
-  color: white;
-}
-
-.body--dark .empty-services {
-  background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
-}
-
-.body--dark .empty-title {
-  color: white;
-}
-
-.body--dark .empty-subtitle {
-  color: #aaa;
-}
-
-.body--dark .empty-icon {
-  color: #666;
-}
-
-.body--dark .modern-tabs {
-  background: #2a2a2a;
-}
-
-.body--dark .modern-tab-panels {
-  background: #1e1e1e;
-}
-
-.body--dark .nav-btn {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-}
-
-.body--dark .nav-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-/* Responsive */
+/* Responsive Design */
 @media (max-width: 1024px) {
   .patient-info,
   .attention-info,
@@ -1322,10 +1052,18 @@ export default {
     padding-left: 12px;
   }
   
-  .attention-card-compact {
-    min-width: 200px;
-    max-width: 220px;
-    height: 90px;
+  .modern-header .row {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .modern-header .col {
+    width: 100%;
+  }
+  
+  .modern-header .row.q-gutter-md {
+    flex-direction: row;
+    flex-wrap: wrap;
   }
 }
 
@@ -1350,23 +1088,40 @@ export default {
   
   .attention-info,
   .status-info {
-    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    border-top: 1px solid rgba(255, 255, 255, 0.3); /* Borde ajustado */
     padding-top: 16px;
     margin-top: 12px;
   }
   
-  .attention-card-compact {
-    min-width: 180px;
-    max-width: 200px;
-    height: 85px;
+  .modern-btn-large {
+    width: 40px;
+    height: 40px;
   }
   
-  .card-content {
-    padding: 8px;
+  .attention-carousel {
+    justify-content: flex-start;
   }
   
-  .cards-navigation {
-    display: none;
+  .attention-card-mini {
+    min-width: 85px; /* Aumentado de 75px a 85px para media query */
+    height: 70px; /* Aumentado de 60px a 70px para media query */
+  }
+  
+  .floating-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .empty-services-content {
+    padding: 1rem;
+  }
+  
+  .empty-title {
+    font-size: 1.25rem;
+  }
+  
+  .empty-subtitle {
+    font-size: 0.9rem;
   }
 }
 
@@ -1381,45 +1136,44 @@ export default {
     margin: 0 -8px;
   }
   
-  .attention-card-compact {
-    min-width: 160px;
-    max-width: 180px;
-    height: 80px;
+  .modern-tab {
+    min-width: 80px;
+    font-size: 0.8rem;
   }
   
-  .card-number {
-    font-size: 0.9rem;
+  .modern-tab .q-tab__content {
+    padding: 8px 4px;
   }
   
-  .card-date,
-  .card-vet {
-    font-size: 0.7rem;
+  .modern-tab-panels .q-tab-panel {
+    padding: 1rem;
+  }
+  
+  .modern-btn-large {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .attention-card-mini {
+    min-width: 80px; /* Aumentado de 70px a 80px para media query */
+    height: 65px; /* Aumentado de 55px a 65px para media query */
   }
 }
 
-/* Transiciones suaves */
-* {
-  transition: all 0.2s ease-in-out;
+/* Animaciones de entrada */
+.modern-header-card {
+  animation: none; /* Desactivar animación de entrada para evitar conflictos visuales */
 }
 
-/* Mejoras adicionales */
-.attention-card-compact::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.02) 100%);
-  pointer-events: none;
-  border-radius: inherit;
+.services-card {
+  animation: none; /* Desactivar animación de entrada */
 }
 
-.attention-card-compact--active::before {
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 193, 7, 0.02) 100%);
+.floating-actions {
+  animation: none; /* Desactivar animación de entrada */
 }
 
-/* Estados de hover mejorados */
+/* Efectos de hover mejorados - ahora siempre visibles */
 .modern-header-card {
   transform: translateY(0);
   transition: all 0.3s ease;
@@ -1427,7 +1181,7 @@ export default {
 
 .modern-header-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(25, 118, 210, 0.4);
+  box-shadow: 0 12px 40px rgba(25, 118, 210, 0.4); /* Ajustado a la sombra del nuevo color */
 }
 
 .services-card {
@@ -1442,12 +1196,12 @@ export default {
 
 /* Mejoras para accesibilidad */
 .modern-btn-large:focus {
-  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline: 2px solid rgba(0, 0, 0, 0.8); /* Ajustado a color oscuro para contraste */
   outline-offset: 2px;
 }
 
-.attention-card-compact:focus {
-  outline: 2px solid #FFD700;
+.attention-card-mini:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.8); /* Mantener blanco para contraste en fondo azul */
   outline-offset: 2px;
 }
 
@@ -1456,11 +1210,65 @@ export default {
   outline-offset: 2px;
 }
 
-/* Estados para impresión */
+/* Modo oscuro */
+.body--dark .modern-header-card {
+  background: #0d47a1; /* Azul oscuro para modo oscuro */
+}
+
+.body--dark .modern-avatar {
+  background: #333; /* Color oscuro para avatar */
+  color: white; /* Color blanco para icono */
+  border: 2px solid rgba(255, 255, 255, 0.2); /* Borde más sutil */
+}
+
+.body--dark .modern-btn-large {
+  background: #333; /* Fondo oscuro para botones */
+  color: white; /* Color blanco para iconos */
+  border: 1px solid #555; /* Borde más visible */
+}
+
+.body--dark .modern-btn-large:hover {
+  background: #444; /* Oscurecer en hover */
+  color: white; /* Mantener blanco */
+}
+
+.body--dark .attention-card-mini {
+  background: rgba(0, 0, 0, 0.3); /* Fondo oscuro semitransparente para inactivas */
+  border: 1px solid rgba(0, 0, 0, 0.4); /* Borde más visible */
+}
+
+.body--dark .attention-card-mini:hover {
+  background: rgba(0, 0, 0, 0.4); /* Más opaco en hover */
+}
+
+.body--dark .attention-card-mini--active {
+  background: #333; /* Fondo más oscuro para la tarjeta activa */
+  border-color: #1976d2; /* Borde con color primario */
+}
+
+.body--dark .attention-card-number,
+.body--dark .attention-card-date,
+.body--dark .attention-card-status {
+  color: white; /* Texto blanco en modo oscuro */
+}
+
+/* Transiciones globales suaves */
+* {
+  transition: all 0.2s ease-in-out; /* Transición más general para suavidad */
+}
+
+/* Elementos que no necesitan transform en hover para ser visibles */
+.patient-info,
+.attention-info,
+.status-info {
+  opacity: 1;
+  transform: none;
+}
+
+/* Estilos para impresión */
 @media print {
   .floating-actions,
-  .modern-btn-large,
-  .cards-navigation {
+  .modern-btn-large {
     display: none !important;
   }
   
@@ -1471,21 +1279,21 @@ export default {
   }
   
   .modern-header {
-    background: #e0e0e0 !important;
+    background: #e0e0e0 !important; /* Fondo claro para impresión */
     color: black !important;
   }
   
   .modern-header-card {
-    background: #e0e0e0 !important;
+    background: #e0e0e0 !important; /* Fondo claro para impresión */
     box-shadow: none !important;
   }
   
-  .attention-cards-scroll {
+  .attention-carousel {
     display: none;
   }
 }
 
-/* Estilos para diálogos */
+/* Estilos para el diálogo de servicios */
 .servicios-dialog .q-dialog__inner {
   padding: 16px;
 }
@@ -1525,9 +1333,9 @@ export default {
 
 /* Mejoras para notificaciones */
 .q-notification {
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px); /* Blur ligeramente reducido */
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Borde más sutil */
 }
 
 .q-notification--positive {
@@ -1552,6 +1360,15 @@ export default {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Estados hover específicos - siempre visibles */
+.patient-name,
+.attention-number,
+.status-chip,
+.services-count {
+  opacity: 1;
+  visibility: visible;
+}
+
 /* Mejoras para badges y chips */
 .q-chip {
   font-weight: 500;
@@ -1569,9 +1386,39 @@ export default {
   height: 60px;
 }
 
+/* Scroll personalizado para carrusel */
+.attention-carousel {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.4) transparent; /* Ajustado el color del scrollbar */
+}
+
+.attention-carousel::-webkit-scrollbar {
+  height: 4px;
+}
+
+.attention-carousel::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.attention-carousel::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.4); /* Ajustado el color del thumb */
+  border-radius: 2px;
+}
+
+.attention-carousel::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.6); /* Ajustado el hover del thumb */
+}
+
+/* Mejoras adicionales para mejor visibilidad */
+.modern-header .q-icon {
+  opacity: 1;
+  visibility: visible;
+}
+
 /* Estados de loading mejorados */
 .q-btn .q-spinner {
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.9); /* Color más claro para el spinner */
 }
 
 .loading-overlay {
@@ -1589,12 +1436,12 @@ export default {
   border-radius: 16px;
 }
 
-/* Mejoras para formularios */
+/* Mejoras para formularios (si los hay) */
 .q-field .q-field__control {
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.9); /* Fondo más opaco */
+  backdrop-filter: blur(8px); /* Blur ligeramente reducido */
+  border: 1px solid rgba(0, 0, 0, 0.05); /* Borde más sutil */
 }
 
 .q-field--focused .q-field__control {
@@ -1602,16 +1449,16 @@ export default {
   border-color: #1976d2;
 }
 
-/* Mejoras para diálogos generales */
+/* Mejoras para diálogos */
 .q-dialog .q-card {
-  backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px); /* Blur reducido */
+  background: rgba(255, 255, 255, 0.98); /* Más opaco */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Borde más sutil */
 }
 
 .body--dark .q-dialog .q-card {
-  background: rgba(30, 30, 30, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(30, 30, 30, 0.98); /* Más opaco en modo oscuro */
+  border: 1px solid rgba(255, 255, 255, 0.05); /* Borde más sutil */
 }
 
 /* Estilos para elementos interactivos */
@@ -1623,6 +1470,12 @@ export default {
 
 .interactive-element:active {
   transform: scale(0.98);
+}
+
+/* Mejoras para el rendimiento */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 /* Estados de error y éxito */
@@ -1663,17 +1516,13 @@ export default {
   transform: translateX(100%);
 }
 
-/* Mejoras para la accesibilidad - reducción de movimiento */
+/* Mejoras para la accesibilidad */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
-  }
-  
-  .status-dot--active {
-    animation: none !important;
   }
 }
 
@@ -1693,10 +1542,19 @@ export default {
   .services-card {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   }
-  
-  .attention-card-compact {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  }
+}
+
+/* Efectos de profundidad mejorados */
+.depth-1,
+.depth-2,
+.depth-3 {
+  box-shadow: none; /* Eliminar para simplicidad */
+}
+
+/* Animaciones de estado */
+.pulse,
+.bounce-in {
+  animation: none; /* Eliminar animaciones para simplicidad y evitar conflictos */
 }
 
 /* Estilos para scrollbars personalizados */
@@ -1720,120 +1578,51 @@ export default {
   background: rgba(0, 0, 0, 0.3);
 }
 
-/* Mejoras para touch devices */
-@media (hover: none) {
-  .modern-btn-large:hover,
-  .attention-card-compact:hover,
-  .action-btn:hover {
-    transform: none;
-  }
-  
-  .modern-btn-large:active,
-  .attention-card-compact:active,
-  .action-btn:active {
-    transform: scale(0.95);
-  }
-  
-  .attention-card-compact--active:active {
-    transform: translateY(-4px) scale(1.05);
-  }
-}
-
 /* Mejoras finales para visibilidad */
 .q-card-section {
   color: inherit;
 }
 
 .modern-header * {
-  color: white !important;
+  color: white !important; /* Asegura que todo el texto e iconos sean blancos */
 }
 
-.attention-card-compact * {
-  color: rgba(255, 255, 255, 0.9);
+.attention-card-mini * {
+  color: white; /* Por defecto, texto blanco para tarjetas inactivas */
 }
 
-.attention-card-compact--active .card-number,
-.attention-card-compact--active .card-date,
-.attention-card-compact--active .card-vet,
-.attention-card-compact--active .card-services {
-  color: #333 !important;
-}
-
-.attention-card-compact--active .active-indicator {
-  color: #FFD700 !important;
+.attention-card-mini--active .attention-card-number,
+.attention-card-mini--active .attention-card-date,
+.attention-card-mini--active .attention-card-status {
+  color: #333 !important; /* Texto oscuro para la tarjeta activa */
 }
 
 /* Asegurar que todos los elementos sean clickeables */
 .modern-btn-large,
-.attention-card-compact,
-.action-btn,
-.nav-btn {
+.attention-card-mini,
+.action-btn {
   pointer-events: all;
   cursor: pointer;
 }
 
-/* Efectos de entrada suaves para las tarjetas */
-.attention-card-compact {
-  animation: slideInFromBottom 0.5s ease-out;
+/* Hover states más suaves */
+.modern-btn-large,
+.attention-card-mini {
+  transition: all 0.2s ease-in-out;
 }
 
-@keyframes slideInFromBottom {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
+/* Mejoras para touch devices */
+@media (hover: none) {
+  .modern-btn-large:hover,
+  .attention-card-mini:hover,
+  .action-btn:hover {
+    transform: none;
   }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
+  
+  .modern-btn-large:active,
+  .attention-card-mini:active,
+  .action-btn:active {
+    transform: scale(0.95);
   }
 }
-
-/* Mejoras para la selección de texto */
-.attention-card-compact * {
-  user-select: none;
-}
-
-.card-number,
-.card-date,
-.card-vet {
-  user-select: text;
-}
-
-/* Estados finales para completar el diseño */
-.attention-cards-section {
-  position: relative;
-  z-index: 1;
-}
-
-.modern-header * {
-  z-index: auto;
-}
-
-/* Optimizaciones de rendimiento */
-.attention-card-compact,
-.modern-header-card,
-.services-card {
-  will-change: transform;
-  transform: translateZ(0);
-}
-
-.header-gradient {
-  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
-  position: relative;
-  overflow: hidden;
-}
-
-.header-gradient::before {
-  content: '';
-  position: absolute;
-  top: -50px;
-  left: -50px;
-  width: 150%;
-  height: 150%;
-  background: radial-gradient(circle at top left, rgba(255,255,255,0.1) 0%, transparent 70%);
-  transform: rotate(-15deg);
-  pointer-events: none;
-}
-
-/* Fin de estilos */
 </style>

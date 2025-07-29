@@ -33,6 +33,7 @@ export const menuConfig = [
     to: "/reportes",
     
   },
+  
   {
     label: "Configuración",
     icon: "settings",
@@ -81,6 +82,12 @@ export const menuConfig = [
           { label: "Religión", icon: "send", to: "/religion" },
           { label: "Género", icon: "send", to: "/genero" },
         ],
+      },
+      {
+        label: "Plantilla",
+        icon: "edit",
+        to: "/templatemanager"
+        
       },
     ],
   },
