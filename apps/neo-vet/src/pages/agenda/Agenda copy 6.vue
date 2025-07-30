@@ -22,14 +22,14 @@
               @click="selectService(service)"
             >
               <div class="service-icon">
-                <q-icon :name="service.icon" size="24px" /> 
+                <q-icon :name="service.icon" size="24px" />
               </div>
               <div class="service-info">
                 <h4>{{ service.name }}</h4>
-                <!--<div class="service-meta">
+                <div class="service-meta">
                   <span><q-icon name="schedule" size="xs"/> {{ service.duration }}min</span>
                   <span><q-icon name="attach_money" size="xs"/>${{ service.price }}</span>
-                </div>-->
+                </div>
               </div>
             </div>
           </div>
@@ -1442,7 +1442,7 @@ onMounted(() => {
 .service-card {
   background: white;
   border-radius: 16px;
-  padding: 10px;
+  padding: 20px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 2px solid transparent;
@@ -1483,8 +1483,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 48px;
+  height: 48px;
   background: linear-gradient(135deg, #667eea, #764ba2);
   border-radius: 12px;
   color: white;
@@ -1493,7 +1493,7 @@ onMounted(() => {
 
 .service-info h4 {
   margin: 0 0 8px 0;
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 600;
   color: #2d3748;
 }

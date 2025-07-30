@@ -1,60 +1,54 @@
 <template>
   <div class="fullscreen-calendar">
     <div class="app-layout">
-      <!-- Sección de servicios arriba -->
-      <div class="services-header">
-        <div class="services-container">
-          <div class="services-title-section">
-            <q-icon name="medical_services" size="32px" color="primary" />
-            <div class="title-content">
-              <h3>Agendas por Servicio</h3>
-              <p>Selecciona un servicio para ver su agenda</p>
-            </div>
-          </div>
+      <!-- Sidebar de servicios -->
+      <div class="services-sidebar">
+        <div class="sidebar-header">
+          <q-icon name="medical_services" size="42px" color="white" />
+          <h3>Agendas por Servicio</h3>
+          <p>Selecciona un servicio para ver su agenda</p>
+        </div>
 
-          <!-- Lista horizontal de servicios -->
-          <div class="services-grid">
-            <div
-              v-for="service in services"
-              :key="service.id"
-              class="service-card"
-              :class="{ 'active': selectedService?.id === service.id }"
-              @click="selectService(service)"
-            >
-              <div class="service-icon">
-                <q-icon :name="service.icon" size="24px" /> 
-              </div>
-              <div class="service-info">
-                <h4>{{ service.name }}</h4>
-                <!--<div class="service-meta">
-                  <span><q-icon name="schedule" size="xs"/> {{ service.duration }}min</span>
-                  <span><q-icon name="attach_money" size="xs"/>${{ service.price }}</span>
-                </div>-->
+        <div class="services-list">
+          <div class="services-title">Servicios Disponibles</div>
+          <div
+            v-for="service in services"
+            :key="service.id"
+            class="service-item"
+            :class="{ 'active': selectedService?.id === service.id }"
+            @click="selectService(service)"
+          >
+            <div class="service-icon">
+              <q-icon :name="service.icon" size="24px" />
+            </div>
+            <div class="service-info">
+              <h4>{{ service.name }}</h4>
+              <div class="service-meta">
+                <span><q-icon name="schedule" size="xs"/> {{ service.duration }}min</span>
+                <span><q-icon name="attach_money" size="xs"/>${{ service.price }}</span>
               </div>
             </div>
           </div>
 
           <!-- Estadísticas del servicio seleccionado -->
-          <div v-if="selectedService" class="service-stats-horizontal">
-            <div class="stats-section">
-              <h5>Estadísticas de {{ viewMode === 'month' ? 'Hoy' : selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }) }}</h5>
-              <div class="stats-grid-horizontal">
-                <div class="stat-card">
-                  <div class="stat-number">{{ currentStats.available }}</div>
-                  <div class="stat-label">Disponibles</div>
-                </div>
-                <div class="stat-card">
-                  <div class="stat-number">{{ currentStats.booked }}</div>
-                  <div class="stat-label">Ocupados</div>
-                </div>
-                <div class="stat-card">
-                  <div class="stat-number">${{ currentStats.revenue }}</div>
-                  <div class="stat-label">Ingresos Est.</div>
-                </div>
-                <div class="stat-card">
-                  <div class="stat-number">{{ currentStats.efficiency }}%</div>
-                  <div class="stat-label">Ocupación</div>
-                </div>
+          <div v-if="selectedService" class="service-stats">
+            <h5>Estadísticas de Hoy</h5>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-number">{{ todayStats.available }}</div>
+                <div class="stat-label">Disponibles</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-number">{{ todayStats.booked }}</div>
+                <div class="stat-label">Ocupados</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-number">{{ todayStats.revenue }}</div>
+                <div class="stat-label">Ingresos Est.</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-number">{{ todayStats.efficiency }}%</div>
+                <div class="stat-label">Ocupación</div>
               </div>
             </div>
           </div>
@@ -66,7 +60,7 @@
         <div class="calendar-header">
           <div class="header-left">
             <h2 v-if="selectedService">
-              {{ viewMode === 'month' ? 'Agenda:' : 'Horarios del día:' }} {{ selectedService.name }}
+              Agenda: {{ selectedService.name }}
             </h2>
             <h2 v-else>Selecciona un Servicio</h2>
             <div v-if="selectedService" class="service-badge">
@@ -76,21 +70,7 @@
           </div>
           
           <div class="header-controls">
-            <!-- Toggle de vista -->
-            <div class="view-toggle">
-              <q-btn-toggle
-                v-model="viewMode"
-                :options="[
-                  { label: 'Mes Completo', value: 'month', icon: 'calendar_view_month' },
-                  { label: 'Vista Diaria', value: 'day', icon: 'calendar_view_day' }
-                ]"
-                color="primary"
-                outline
-              />
-            </div>
-
-            <!-- Navegación por mes (para vista completa) -->
-            <div v-if="viewMode === 'month'" class="month-navigation">
+            <div class="month-navigation">
               <q-btn
                 flat
                 round
@@ -111,42 +91,18 @@
                 size="lg"
               />
             </div>
-
-            <!-- Navegación por día (para vista diaria) -->
-            <div v-if="viewMode === 'day'" class="day-navigation">
-              <q-btn
-                flat
-                round
-                icon="chevron_left"
-                @click="previousDay"
-                color="primary"
-                size="lg"
-              />
-              <div class="day-display">
-                <h4>{{ selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) }}</h4>
-              </div>
-              <q-btn
-                flat
-                round
-                icon="chevron_right"
-                @click="nextDay"
-                color="primary"
-                size="lg"
-              />
-            </div>
-
             <q-btn
               outline
               color="primary"
-              :label="viewMode === 'month' ? 'Hoy' : 'Hoy'"
+              label="Hoy"
               @click="goToToday"
               icon="today"
             />
           </div>
         </div>
 
-        <!-- Vista del calendario por mes -->
-        <div v-if="selectedService && viewMode === 'month'" class="calendar-container">
+        <!-- Calendario principal -->
+        <div v-if="selectedService" class="calendar-container">
           <!-- Días de la semana -->
           <div class="weekdays-header">
             <div
@@ -170,7 +126,6 @@
                 'weekend': day.isWeekend,
                 'past': day.isPast
               }"
-              @click="selectDayForDayView(day)"
             >
               <div class="day-header">
                 <span class="day-number">{{ day.date }}</span>
@@ -180,21 +135,28 @@
                 </div>
               </div>
 
-              <!-- Horarios del día (resumido) -->
-              <div class="day-slots-summary" v-if="day.isCurrentMonth && !day.isPast">
+              <!-- Horarios del día -->
+              <div class="day-slots" v-if="day.isCurrentMonth && !day.isPast">
                 <div
-                  v-for="(slot, index) in day.slots.slice(0, 4)"
+                  v-for="slot in day.slots"
                   :key="slot.time"
-                  class="time-slot-mini"
+                  class="time-slot"
                   :class="{
                     'available': slot.status === 'available',
-                    'booked': slot.status === 'booked'
+                    'booked': slot.status === 'booked',
+                    'selected': slot.status === 'selected'
                   }"
+                  @click="selectTimeSlot(day, slot)"
                 >
-                  <div class="slot-time-mini">{{ slot.time }}</div>
-                </div>
-                <div v-if="day.slots.length > 4" class="more-slots">
-                  +{{ day.slots.length - 4 }} más
+                  <div class="slot-time">{{ slot.time }}</div>
+                  <div v-if="slot.status === 'booked' && slot.appointment" class="slot-info">
+                    <div class="owner-name">{{ slot.appointment.ownerName }}</div>
+                    <div class="pet-name">{{ slot.appointment.petName }}</div>
+                  </div>
+                  <div v-if="slot.status === 'available'" class="slot-available">
+                    <q-icon name="add" size="xs" />
+                    Disponible
+                  </div>
                 </div>
               </div>
 
@@ -211,70 +173,14 @@
           </div>
         </div>
 
-        <!-- Vista diaria detallada -->
-        <div v-if="selectedService && viewMode === 'day'" class="day-view-container">
-          <div class="day-view-header">
-            <div class="day-info">
-              <h3>{{ selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }) }}</h3>
-              <div class="day-meta">
-                <span class="available-count">{{ daySlots.filter(s => s.status === 'available').length }} disponibles</span>
-                <span class="booked-count">{{ daySlots.filter(s => s.status === 'booked').length }} ocupados</span>
-              </div>
-            </div>
-            
-            <!-- Selector rápido de fecha -->
-            <q-btn
-              outline
-              color="primary"
-              icon="calendar_month"
-              label="Seleccionar Fecha"
-              @click="showDatePicker = true"
-            />
-          </div>
-
-          <div class="day-slots-grid">
-            <div
-              v-for="slot in daySlots"
-              :key="slot.time"
-              class="time-slot-detailed"
-              :class="{
-                'available': slot.status === 'available',
-                'booked': slot.status === 'booked',
-                'selected': slot.status === 'selected'
-              }"
-              @click="selectTimeSlot({ fullDate: selectedDate, slots: daySlots }, slot)"
-            >
-              <div class="slot-time-detailed">{{ slot.time }}</div>
-              <div v-if="slot.status === 'booked' && slot.appointment" class="slot-info-detailed">
-                <div class="owner-name">{{ slot.appointment.ownerName }}</div>
-                <div class="pet-name">{{ slot.appointment.petName }}</div>
-              </div>
-              <div v-if="slot.status === 'available'" class="slot-available-detailed">
-                <q-icon name="add" size="sm" />
-                <span>Disponible</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <!-- Placeholder cuando no hay servicio seleccionado -->
-        <div v-else-if="!selectedService" class="no-service-selected">
+        <div v-else class="no-service-selected">
           <q-icon name="calendar_month" size="120px" color="grey-4" />
           <h3>Selecciona un Servicio</h3>
-          <p>Elige un servicio de la sección superior para ver su agenda de citas</p>
+          <p>Elige un servicio del panel lateral para ver su agenda de citas</p>
         </div>
       </div>
     </div>
-
-    <!-- Dialog selector de fecha -->
-    <q-dialog v-model="showDatePicker">
-      <q-date
-        v-model="selectedDateString"
-        @update:model-value="updateSelectedDate"
-        color="primary"
-        :options="dateOptions"
-      />
-    </q-dialog>
 
     <!-- Dialog para asignar cita -->
     <q-dialog
@@ -603,9 +509,6 @@ const currentYear = ref(new Date().getFullYear())
 const currentMonth = ref(new Date().getMonth())
 const selectedService = ref(null)
 const selectedSlot = ref(null)
-const viewMode = ref('month') // 'month' o 'day'
-const selectedDate = ref(new Date())
-const showDatePicker = ref(false)
 
 // Dialogs
 const showAppointmentDialog = ref(false)
@@ -748,41 +651,6 @@ const currentMonthName = computed(() => {
   return new Date(currentYear.value, currentMonth.value).toLocaleDateString('es-ES', { month: 'long' })
 })
 
-const selectedDateString = computed({
-  get: () => {
-    return selectedDate.value.toISOString().split('T')[0]
-  },
-  set: (value) => {
-    selectedDate.value = new Date(value)
-  }
-})
-
-// Slots del día seleccionado para vista diaria
-const daySlots = computed(() => {
-  if (!selectedService.value) return []
-  
-  const date = selectedDate.value
-  const today = new Date()
-  const isPast = date < today && !isSameDay(date, today)
-  const isWeekend = date.getDay() === 0 || date.getDay() === 6
-  
-  if (isPast || (selectedService.value.id !== 8 && isWeekend)) {
-    return []
-  }
-  
-  const workingHours = getWorkingHours(selectedService.value.id)
-  return workingHours.map(time => {
-    const isBooked = Math.random() < 0.4
-    const mockAppointment = isBooked ? generateMockAppointment() : null
-    
-    return {
-      time,
-      status: isBooked ? 'booked' : 'available',
-      appointment: mockAppointment
-    }
-  })
-})
-
 const calendarDays = computed(() => {
   if (!selectedService.value) return []
   
@@ -890,27 +758,15 @@ const generateMockAppointment = () => {
   }
 }
 
-// Estadísticas actuales (hoy para vista mes, día seleccionado para vista día)
-const currentStats = computed(() => {
+// Estadísticas de hoy
+const todayStats = computed(() => {
   if (!selectedService.value) return { available: 0, booked: 0, revenue: 0, efficiency: 0 }
   
-  let targetDay
-  if (viewMode.value === 'month') {
-    targetDay = calendarDays.value.find(day => day.isToday)
-  } else {
-    const available = daySlots.value.filter(s => s.status === 'available').length
-    const booked = daySlots.value.filter(s => s.status === 'booked').length
-    const total = available + booked
-    const revenue = booked * selectedService.value.price
-    const efficiency = total > 0 ? Math.round((booked / total) * 100) : 0
-    
-    return { available, booked, revenue, efficiency }
-  }
+  const today = calendarDays.value.find(day => day.isToday)
+  if (!today) return { available: 0, booked: 0, revenue: 0, efficiency: 0 }
   
-  if (!targetDay) return { available: 0, booked: 0, revenue: 0, efficiency: 0 }
-  
-  const available = targetDay.availableSlots
-  const booked = targetDay.bookedSlots
+  const available = today.availableSlots
+  const booked = today.bookedSlots
   const total = available + booked
   const revenue = booked * selectedService.value.price
   const efficiency = total > 0 ? Math.round((booked / total) * 100) : 0
@@ -921,24 +777,6 @@ const currentStats = computed(() => {
 const canConfirmAppointment = computed(() => {
   return selectedOwner.value && selectedPet.value
 })
-
-// Función auxiliar para comparar fechas
-const isSameDay = (date1, date2) => {
-  return date1.getDate() === date2.getDate() &&
-         date1.getMonth() === date2.getMonth() &&
-         date1.getFullYear() === date2.getFullYear()
-}
-
-// Opciones para el selector de fecha
-const dateOptions = (date) => {
-  const targetDate = new Date(date)
-  const today = new Date()
-  const isWeekend = targetDate.getDay() === 0 || targetDate.getDay() === 6
-  const isPast = targetDate < today && !isSameDay(targetDate, today)
-  
-  // Permitir solo días futuros y presente, y fines de semana solo para emergencias
-  return !isPast && (selectedService.value?.id === 8 || !isWeekend)
-}
 
 // Métodos
 const selectService = (service) => {
@@ -967,40 +805,10 @@ const nextMonth = () => {
   }
 }
 
-const previousDay = () => {
-  const newDate = new Date(selectedDate.value)
-  newDate.setDate(newDate.getDate() - 1)
-  selectedDate.value = newDate
-}
-
-const nextDay = () => {
-  const newDate = new Date(selectedDate.value)
-  newDate.setDate(newDate.getDate() + 1)
-  selectedDate.value = newDate
-}
-
 const goToToday = () => {
   const today = new Date()
-  if (viewMode.value === 'month') {
-    currentYear.value = today.getFullYear()
-    currentMonth.value = today.getMonth()
-  } else {
-    selectedDate.value = new Date(today)
-  }
-}
-
-const selectDayForDayView = (day) => {
-  if (!day.isCurrentMonth || day.isPast || (!selectedService.value || selectedService.value.id !== 8) && day.isWeekend) {
-    return
-  }
-  
-  viewMode.value = 'day'
-  selectedDate.value = new Date(day.fullDate)
-}
-
-const updateSelectedDate = (newDate) => {
-  selectedDate.value = new Date(newDate)
-  showDatePicker.value = false
+  currentYear.value = today.getFullYear()
+  currentMonth.value = today.getMonth()
 }
 
 const selectTimeSlot = (day, slot) => {
@@ -1013,21 +821,13 @@ const selectTimeSlot = (day, slot) => {
   }
   
   // Limpiar selección anterior
-  if (viewMode.value === 'month') {
-    calendarDays.value.forEach(d => {
-      d.slots.forEach(s => {
-        if (s.status === 'selected') {
-          s.status = 'available'
-        }
-      })
-    })
-  } else {
-    daySlots.value.forEach(s => {
+  calendarDays.value.forEach(d => {
+    d.slots.forEach(s => {
       if (s.status === 'selected') {
         s.status = 'available'
       }
     })
-  }
+  })
   
   // Marcar como seleccionado
   slot.status = 'selected'
@@ -1173,21 +973,13 @@ const closeAppointmentDialog = () => {
   showAppointmentDialog.value = false
   
   if (selectedSlot.value) {
-    if (viewMode.value === 'month') {
-      calendarDays.value.forEach(d => {
-        d.slots.forEach(s => {
-          if (s.status === 'selected') {
-            s.status = 'available'
-          }
-        })
-      })
-    } else {
-      daySlots.value.forEach(s => {
+    calendarDays.value.forEach(d => {
+      d.slots.forEach(s => {
         if (s.status === 'selected') {
           s.status = 'available'
         }
       })
-    }
+    })
   }
   
   selectedSlot.value = null
@@ -1314,21 +1106,8 @@ const confirmAppointment = async () => {
     }
     
     // Marcar el horario como ocupado
-    if (viewMode.value === 'month') {
-      calendarDays.value.forEach(d => {
-        d.slots.forEach(s => {
-          if (s.status === 'selected') {
-            s.status = 'booked'
-            s.appointment = {
-              petName: selectedPet.value.nombre,
-              ownerName: `${selectedOwner.value.nombre} ${selectedOwner.value.primerapellido}`,
-              service: selectedService.value.name
-            }
-          }
-        })
-      })
-    } else {
-      daySlots.value.forEach(s => {
+    calendarDays.value.forEach(d => {
+      d.slots.forEach(s => {
         if (s.status === 'selected') {
           s.status = 'booked'
           s.appointment = {
@@ -1338,7 +1117,7 @@ const confirmAppointment = async () => {
           }
         }
       })
-    }
+    })
     
     console.log('Cita guardada:', appointmentData)
     
@@ -1381,565 +1160,441 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Estilos principales del layout */
 .fullscreen-calendar {
-  min-height: 100vh;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  font-family: 'Inter', sans-serif;
 }
 
 .app-layout {
   display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
 }
 
-/* Header de servicios */
-.services-header {
+/* Sidebar de servicios */
+.services-sidebar {
+  width: 320px;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 24px;
-  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
 }
 
-.services-container {
-  max-width: 1400px;
-  margin: 0 auto;
+.sidebar-header {
+  padding: 30px 25px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-align: center;
 }
 
-.services-title-section {
+.sidebar-header h3 {
+  font-size: 1.4rem;
+  margin: 12px 0 8px 0;
+  font-weight: 700;
+}
+
+.sidebar-header p {
+  opacity: 0.9;
+  font-size: 0.9rem;
+}
+
+.services-list {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.services-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 15px;
+  padding-left: 5px;
+}
+
+.service-item {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.title-content h3 {
-  margin: 0;
-  font-size: 28px;
-  font-weight: 700;
-  color: #2d3748;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.title-content p {
-  margin: 4px 0 0 0;
-  color: #718096;
-  font-size: 16px;
-}
-
-/* Grid de servicios */
-.services-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.service-card {
-  background: white;
-  border-radius: 16px;
-  padding: 10px;
+  padding: 15px;
+  margin-bottom: 8px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
   border: 2px solid transparent;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  position: relative;
-  overflow: hidden;
+  background: white;
 }
 
-.service-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #667eea, #764ba2);
-  transform: scaleX(0);
-  transition: transform 0.3s ease;
+.service-item:hover {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  transform: translateX(5px);
 }
 
-.service-card:hover::before,
-.service-card.active::before {
-  transform: scaleX(1);
-}
-
-.service-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-}
-
-.service-card.active {
+.service-item.active {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
   border-color: #667eea;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.3);
+  transform: translateX(8px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .service-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  border-radius: 12px;
+  margin-right: 12px;
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+}
+
+.service-item.active .service-icon {
+  background: rgba(255, 255, 255, 0.2);
   color: white;
-  margin-bottom: 16px;
 }
 
 .service-info h4 {
-  margin: 0 0 8px 0;
-  font-size: 14px;
+  font-size: 1rem;
   font-weight: 600;
-  color: #2d3748;
-}
-
-.service-meta {
-  display: flex;
-  gap: 16px;
-  font-size: 14px;
-  color: #718096;
-}
-
-.service-meta span {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-/* Estadísticas horizontales */
-.service-stats-horizontal {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 16px;
-  padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.stats-section h5 {
-  margin: 0 0 16px 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #2d3748;
-}
-
-.stats-grid-horizontal {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 16px;
-}
-
-.stat-card {
-  text-align: center;
-  padding: 16px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-}
-
-.stat-number {
-  font-size: 24px;
-  font-weight: 700;
-  color: #667eea;
   margin-bottom: 4px;
 }
 
-.stat-label {
-  font-size: 12px;
-  color: #718096;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.service-meta {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  display: flex;
+  gap: 15px;
 }
 
-/* Calendario principal */
+.service-stats {
+  margin-top: 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+  border-radius: 12px;
+}
+
+.service-stats h5 {
+  margin: 0 0 15px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.stat-card {
+  background: white;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.stat-number {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #2d3748;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* Contenido principal */
 .main-calendar {
   flex: 1;
-  background: white;
-  margin: 0;
-  border-radius: 24px 24px 0 0;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
 }
 
 .calendar-header {
+  padding: 25px 30px;
   background: white;
-  padding: 24px 32px;
   border-bottom: 1px solid #e2e8f0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .header-left h2 {
-  margin: 0 0 8px 0;
-  font-size: 24px;
+  font-size: 1.8rem;
   font-weight: 700;
   color: #2d3748;
+  margin: 0 0 8px 0;
 }
 
 .service-badge {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #f7fafc;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
   padding: 8px 16px;
   border-radius: 20px;
-  font-size: 14px;
-  color: #4a5568;
-  border: 1px solid #e2e8f0;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .header-controls {
   display: flex;
   align-items: center;
-  gap: 24px;
-  flex-wrap: wrap;
+  gap: 20px;
 }
 
-.month-navigation,
-.day-navigation {
+.month-navigation {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
 }
 
-.month-display h4,
-.day-display h4 {
+.month-display h4 {
   margin: 0;
-  font-size: 18px;
+  font-size: 1.4rem;
   font-weight: 600;
   color: #2d3748;
+  text-transform: capitalize;
   min-width: 200px;
   text-align: center;
-  text-transform: capitalize;
 }
 
-/* Calendario mensual */
+/* Calendario */
 .calendar-container {
   flex: 1;
-  padding: 24px 32px;
+  padding: 20px;
   overflow: auto;
 }
 
 .weekdays-header {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 1px;
-  margin-bottom: 1px;
-  background: #e2e8f0;
-  border-radius: 8px 8px 0 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px 12px 0 0;
 }
 
 .weekday-cell {
-  background: #f7fafc;
-  padding: 16px 8px;
+  padding: 16px;
   text-align: center;
   font-weight: 600;
-  font-size: 14px;
-  color: #4a5568;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-size: 0.9rem;
 }
 
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 1px;
-  background: #e2e8f0;
-  border-radius: 0 0 8px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 0 0 12px 12px;
+  overflow: hidden;
 }
 
 .day-cell {
+  min-height: 160px;
+  border: 1px solid #e2e8f0;
   background: white;
-  min-height: 120px;
-  padding: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
   display: flex;
   flex-direction: column;
-}
-
-.day-cell:hover {
-  background: #f8faff;
-}
-
-.day-cell.today {
-  background: linear-gradient(135deg, #667eea10, #764ba210);
+  transition: all 0.3s ease;
 }
 
 .day-cell.other-month {
-  background: #f8f9fa;
-  color: #adb5bd;
+  background: #f8fafc;
+  color: #cbd5e0;
+}
+
+.day-cell.today {
+  background: linear-gradient(135deg, #e0f2fe, #b3e5fc);
+  border-color: #0277bd;
+}
+
+.day-cell.weekend {
+  background: #fef7f0;
 }
 
 .day-cell.past {
-  background: #f8f9fa;
-  color: #adb5bd;
-}
-
-.day-cell.weekend.other-month {
-  background: #f1f3f4;
+  background: #f1f5f9;
+  color: #94a3b8;
 }
 
 .day-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  padding: 10px;
+  border-bottom: 1px solid #e2e8f0;
+  background: rgba(0, 0, 0, 0.02);
+  min-height: 40px;
 }
 
 .day-number {
   font-weight: 600;
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 .day-cell.today .day-number {
-  color: #667eea;
+  color: #0277bd;
   font-weight: 700;
 }
 
 .day-stats {
   display: flex;
   gap: 6px;
-}
-
-.available-badge,
-.booked-badge {
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 10px;
-  font-weight: 600;
+  font-size: 0.7rem;
 }
 
 .available-badge {
-  background: #c6f6d5;
-  color: #22543d;
+  background: #dcfce7;
+  color: #166534;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: 600;
 }
 
 .booked-badge {
-  background: #fed7d7;
-  color: #742a2a;
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: 600;
 }
 
-.day-slots-summary {
+.day-slots {
   flex: 1;
+  padding: 6px;
   display: flex;
   flex-direction: column;
+  gap: 3px;
+  overflow-y: auto;
+}
+
+.time-slot {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.75rem;
+  border: 1px solid transparent;
+}
+
+.time-slot.available {
+  background: #dcfce7;
+  border-color: #bbf7d0;
+}
+
+.time-slot.available:hover {
+  background: #bbf7d0;
+  transform: scale(1.02);
+}
+
+.time-slot.booked {
+  background: #fee2e2;
+  border-color: #fecaca;
+  cursor: not-allowed;
+}
+
+.time-slot.selected {
+  background: #dbeafe;
+  border-color: #3b82f6;
+  border-width: 2px;
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.slot-time {
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.slot-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.owner-name {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.7rem;
+}
+
+.pet-name {
+  color: #6b7280;
+  font-size: 0.65rem;
+}
+
+.slot-available {
+  display: flex;
+  align-items: center;
   gap: 4px;
-}
-
-.time-slot-mini {
-  font-size: 11px;
-  padding: 4px 6px;
-  border-radius: 4px;
-  text-align: center;
+  color: #059669;
+  font-size: 0.65rem;
   font-weight: 500;
-}
-
-.time-slot-mini.available {
-  background: #f0fff4;
-  color: #22543d;
-  border: 1px solid #c6f6d5;
-}
-
-.time-slot-mini.booked {
-  background: #fef5e7;
-  color: #744210;
-  border: 1px solid #f6e05e;
-}
-
-.more-slots {
-  font-size: 10px;
-  color: #718096;
-  text-align: center;
-  margin-top: 4px;
-  font-style: italic;
 }
 
 .inactive-day {
   flex: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  font-size: 12px;
-  color: #a0aec0;
-}
-
-/* Vista diaria */
-.day-view-container {
-  flex: 1;
-  padding: 24px 32px;
-  overflow: auto;
-}
-
-.day-view-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.day-info h3 {
-  margin: 0 0 8px 0;
-  font-size: 24px;
-  font-weight: 700;
-  color: #2d3748;
-  text-transform: capitalize;
-}
-
-.day-meta {
-  display: flex;
-  gap: 16px;
-  font-size: 14px;
-}
-
-.available-count {
-  color: #38a169;
-  font-weight: 600;
-}
-
-.booked-count {
-  color: #e53e3e;
-  font-weight: 600;
-}
-
-.day-slots-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
-  max-height: 60vh;
-  overflow-y: auto;
-}
-
-.time-slot-detailed {
-  background: white;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  min-height: 80px;
-  display: flex;
   flex-direction: column;
-  justify-content: center;
-}
-
-.time-slot-detailed:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-}
-
-.time-slot-detailed.available {
-  border-color: #68d391;
-  background: linear-gradient(135deg, #f0fff4, #c6f6d5);
-}
-
-.time-slot-detailed.available:hover {
-  border-color: #38a169;
-  box-shadow: 0 8px 25px rgba(56, 161, 105, 0.2);
-}
-
-.time-slot-detailed.booked {
-  border-color: #fc8181;
-  background: linear-gradient(135deg, #fef5e7, #fed7d7);
-  cursor: not-allowed;
-}
-
-.time-slot-detailed.selected {
-  border-color: #667eea;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-}
-
-.slot-time-detailed {
-  font-size: 18px;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.slot-info-detailed {
-  font-size: 14px;
-}
-
-.owner-name {
-  font-weight: 600;
-  margin-bottom: 2px;
-}
-
-.pet-name {
-  color: #718096;
-  font-style: italic;
-}
-
-.slot-available-detailed {
-  display: flex;
-  align-items: center;
   gap: 8px;
-  color: #38a169;
-  font-weight: 600;
-  font-size: 14px;
+  font-size: 0.8rem;
+  color: #9ca3af;
 }
 
-.time-slot-detailed.selected .slot-available-detailed {
-  color: white;
-}
-
-/* Estado sin servicio seleccionado */
+/* No service selected */
 .no-service-selected {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  color: #a0aec0;
   text-align: center;
-  padding: 48px;
+  padding: 60px;
+  color: #6b7280;
 }
 
 .no-service-selected h3 {
-  margin: 0;
-  font-size: 28px;
-  font-weight: 600;
+  margin: 20px 0 10px 0;
+  font-size: 1.8rem;
+  color: #374151;
 }
 
 .no-service-selected p {
-  margin: 0;
-  font-size: 16px;
+  font-size: 1.1rem;
   max-width: 400px;
 }
 
-/* Dialogs */
+/* Dialog styles */
 .appointment-dialog {
-  width: 100%;
-  max-width: none;
+  border-radius: 16px;
+  overflow: hidden;
 }
 
 .dialog-header {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  padding: 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
 }
 
 .header-info {
@@ -1949,36 +1604,32 @@ onMounted(() => {
 }
 
 .header-info h4 {
-  margin: 0 0 4px 0;
-  font-size: 20px;
+  margin: 0;
+  font-size: 1.4rem;
   font-weight: 600;
 }
 
 .header-info p {
-  margin: 0;
+  margin: 4px 0 0 0;
   opacity: 0.9;
-  font-size: 14px;
-  text-transform: capitalize;
+  font-size: 1rem;
 }
 
 .dialog-content {
   padding: 32px;
-  max-height: calc(100vh - 200px);
+  max-height: 70vh;
   overflow-y: auto;
 }
 
 .appointment-form {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.form-section {
-  margin-bottom: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
 }
 
 .form-section h5 {
-  margin: 0 0 16px 0;
-  font-size: 18px;
+  margin: 0 0 20px 0;
+  font-size: 1.2rem;
   font-weight: 600;
   color: #2d3748;
   display: flex;
@@ -1992,63 +1643,53 @@ onMounted(() => {
   gap: 16px;
 }
 
-.search-input {
-  width: 100%;
-}
-
 .search-results {
   max-height: 300px;
   overflow-y: auto;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: #f8f9fa;
 }
 
 .results-list {
-  padding: 8px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
 .result-item {
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
 }
 
 .result-item:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #e0e7ff;
+  background: #f8fafc;
 }
 
 .result-item.selected {
-  border-color: #667eea;
-  background: #f0f4ff;
+  border-color: #3b82f6;
+  background: #eff6ff;
 }
 
 .result-content {
-  padding: 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.result-main {
-  flex: 1;
+  padding: 16px;
 }
 
 .result-name {
+  font-size: 1.1rem;
   font-weight: 600;
-  font-size: 16px;
-  color: #2d3748;
+  color: #1f2937;
   margin-bottom: 4px;
 }
 
 .result-details {
   display: flex;
   gap: 16px;
-  font-size: 14px;
-  color: #718096;
+  font-size: 0.9rem;
+  color: #6b7280;
 }
 
 .result-details span {
@@ -2061,7 +1702,10 @@ onMounted(() => {
 .new-pet-btn {
   display: flex;
   justify-content: center;
-  margin-top: 16px;
+  padding: 16px;
+  border: 2px dashed #cbd5e0;
+  border-radius: 12px;
+  background: #f8fafc;
 }
 
 .pets-container {
@@ -2077,29 +1721,27 @@ onMounted(() => {
 }
 
 .pet-item {
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
 }
 
 .pet-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #e0e7ff;
+  background: #f8fafc;
 }
 
 .pet-item.selected {
-  border-color: #667eea;
-  background: #f0f4ff;
+  border-color: #3b82f6;
+  background: #eff6ff;
 }
 
 .pet-content {
-  padding: 16px;
   display: flex;
   align-items: center;
-  gap: 16px;
-}
-
-.pet-avatar {
-  flex-shrink: 0;
+  gap: 12px;
+  padding: 16px;
 }
 
 .pet-info {
@@ -2107,20 +1749,21 @@ onMounted(() => {
 }
 
 .pet-name {
+  font-size: 1rem;
   font-weight: 600;
-  font-size: 16px;
-  color: #2d3748;
+  color: #1f2937;
   margin-bottom: 4px;
 }
 
 .pet-details {
-  font-size: 14px;
-  color: #718096;
+  color: #6b7280;
+  font-size: 0.9rem;
 }
 
 .dialog-actions {
-  padding: 24px 32px;
-  background: #f8f9fa;
+  padding: 20px 32px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
 }
 
 .dialog-title {
@@ -2131,7 +1774,7 @@ onMounted(() => {
 
 .dialog-title h5 {
   margin: 0;
-  font-size: 20px;
+  font-size: 1.2rem;
   font-weight: 600;
   color: #2d3748;
 }
@@ -2147,35 +1790,32 @@ onMounted(() => {
 }
 
 .success-dialog {
+  border-radius: 16px;
+  overflow: hidden;
   max-width: 500px;
-  text-align: center;
 }
 
 .success-dialog h4 {
   margin: 16px 0 8px 0;
-  font-size: 24px;
-  font-weight: 600;
-  color: #2d3748;
+  color: #059669;
 }
 
 .success-dialog p {
-  margin: 0 0 24px 0;
-  color: #718096;
-  font-size: 16px;
+  margin: 0 0 16px 0;
+  color: #6b7280;
 }
 
 .success-details {
-  background: #f8f9fa;
-  border-radius: 12px;
-  padding: 20px;
-  margin: 24px 0;
+  background: #f0fdf4;
+  padding: 16px;
+  border-radius: 8px;
+  margin: 16px 0;
   text-align: left;
 }
 
 .success-details div {
-  margin-bottom: 8px;
-  font-size: 14px;
-  color: #4a5568;
+  margin-bottom: 6px;
+  color: #166534;
 }
 
 .success-details div:last-child {
@@ -2183,94 +1823,112 @@ onMounted(() => {
 }
 
 /* Responsive */
+@media (max-width: 1400px) {
+  .services-sidebar {
+    width: 280px;
+  }
+  
+  .day-cell {
+    min-height: 140px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .services-sidebar {
+    width: 260px;
+  }
+  
+  .calendar-grid {
+    font-size: 0.9rem;
+  }
+  
+  .day-cell {
+    min-height: 120px;
+  }
+  
+  .time-slot {
+    font-size: 0.7rem;
+    padding: 6px;
+  }
+}
+
 @media (max-width: 768px) {
-  .services-header {
-    padding: 16px;
+  .app-layout {
+    flex-direction: column;
   }
   
-  .services-grid {
-    grid-template-columns: 1fr;
+  .services-sidebar {
+    width: 100%;
+    height: 200px;
   }
   
-  .stats-grid-horizontal {
-    grid-template-columns: repeat(2, 1fr);
+  .services-list {
+    padding: 15px;
+  }
+  
+  .service-item {
+    padding: 10px;
+  }
+  
+  .service-stats {
+    display: none;
   }
   
   .calendar-header {
-    padding: 16px;
+    padding: 15px 20px;
     flex-direction: column;
-    align-items: stretch;
+    gap: 15px;
   }
   
   .header-controls {
-    justify-content: center;
-    gap: 16px;
+    width: 100%;
+    justify-content: space-between;
   }
   
   .calendar-container {
-    padding: 16px;
+    padding: 15px;
   }
   
   .day-cell {
-    min-height: 80px;
-    padding: 8px;
+    min-height: 100px;
   }
   
-  .day-slots-grid {
-    grid-template-columns: 1fr;
+  .time-slot {
+    font-size: 0.65rem;
+    padding: 4px;
   }
   
-  .dialog-content {
-    padding: 16px;
+  .slot-time {
+    font-size: 0.7rem;
   }
   
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .col-span-2 {
-    grid-column: span 1;
-  }
-  
-  .pets-grid {
-    grid-template-columns: 1fr;
+  .owner-name,
+  .pet-name {
+    font-size: 0.6rem;
   }
 }
 
-@media (max-width: 480px) {
-  .title-content h3 {
-    font-size: 24px;
-  }
-  
-  .service-card {
-    padding: 16px;
-  }
-  
-  .service-icon {
-    width: 40px;
-    height: 40px;
-  }
-  
-  .day-cell {
-    min-height: 60px;
-    padding: 6px;
-  }
-  
-  .day-number {
-    font-size: 14px;
-  }
-  
-  .time-slot-mini {
-    font-size: 10px;
-    padding: 2px 4px;
-  }
+/* Scrollbar personalizado */
+.services-list::-webkit-scrollbar-thumb,
+.dialog-content::-webkit-scrollbar-thumb,
+.search-results::-webkit-scrollbar-thumb,
+.day-slots::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+}
+
+.services-list::-webkit-scrollbar-thumb:hover,
+.dialog-content::-webkit-scrollbar-thumb:hover,
+.search-results::-webkit-scrollbar-thumb:hover,
+.day-slots::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 /* Animaciones */
-@keyframes fadeIn {
+@keyframes slideInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(30px);
   }
   to {
     opacity: 1;
@@ -2278,69 +1936,254 @@ onMounted(() => {
   }
 }
 
-.service-card,
-.stat-card,
-.time-slot-detailed,
-.result-item,
-.pet-item {
-  animation: fadeIn 0.3s ease-out backwards;
+.appointment-form {
+  animation: slideInUp 0.3s ease-out;
 }
 
-.service-card:nth-child(1) { animation-delay: 0.1s; }
-.service-card:nth-child(2) { animation-delay: 0.2s; }
-.service-card:nth-child(3) { animation-delay: 0.3s; }
-.service-card:nth-child(4) { animation-delay: 0.4s; }
-.service-card:nth-child(5) { animation-delay: 0.5s; }
-.service-card:nth-child(6) { animation-delay: 0.6s; }
-.service-card:nth-child(7) { animation-delay: 0.7s; }
-.service-card:nth-child(8) { animation-delay: 0.8s; }
-
-/* Scrollbars personalizados */
-.calendar-container::-webkit-scrollbar,
-.day-slots-grid::-webkit-scrollbar,
-.search-results::-webkit-scrollbar,
-.dialog-content::-webkit-scrollbar {
-  width: 8px;
+.service-item {
+  animation: slideInUp 0.3s ease-out;
 }
 
-.calendar-container::-webkit-scrollbar-track,
-.day-slots-grid::-webkit-scrollbar-track,
-.search-results::-webkit-scrollbar-track,
-.dialog-content::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
+.time-slot {
+  animation: slideInUp 0.2s ease-out;
 }
 
-.calendar-container::-webkit-scrollbar-thumb,
-.day-slots-grid::-webkit-scrollbar-thumb,
-.search-results::-webkit-scrollbar-thumb,
-.dialog-content::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
+/* Efectos hover mejorados */
+.month-navigation .q-btn:hover {
+  transform: scale(1.1);
 }
 
-.calendar-container::-webkit-scrollbar-thumb:hover,
-.day-slots-grid::-webkit-scrollbar-thumb:hover,
-.search-results::-webkit-scrollbar-thumb:hover,
-.dialog-content::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+.service-item:hover .service-icon {
+  transform: scale(1.1);
 }
 
-/* Estados de carga */
-.q-spinner {
-  color: #667eea !important;
+.time-slot.available:hover .slot-time {
+  color: #059669;
+}
+
+/* Estados especiales */
+.time-slot.booked .owner-name {
+  font-weight: 700;
+}
+
+.time-slot.booked .pet-name {
+  font-style: italic;
+}
+
+/* Mejoras visuales */
+.day-cell.today .day-header {
+  background: linear-gradient(135deg, rgba(2, 119, 189, 0.1), rgba(179, 229, 252, 0.1));
+}
+
+.service-item.active {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  }
+  50% {
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+  }
+  100% {
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  }
+}
+
+/* Estilos para citas ocupadas más destacados */
+.time-slot.booked {
+  position: relative;
+  overflow: hidden;
+}
+
+.time-slot.booked::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+/* Responsive adicional para pantallas muy pequeñas */
+@media (max-width: 480px) {
+  .services-sidebar {
+    height: 150px;
+  }
+  
+  .sidebar-header {
+    padding: 20px 15px;
+  }
+  
+  .sidebar-header h3 {
+    font-size: 1.2rem;
+  }
+  
+  .service-item {
+    padding: 8px;
+    margin-bottom: 4px;
+  }
+  
+  .service-icon {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .service-info h4 {
+    font-size: 0.9rem;
+  }
+  
+  .service-meta {
+    font-size: 0.7rem;
+  }
+  
+  .calendar-header h2 {
+    font-size: 1.4rem;
+  }
+  
+  .month-display h4 {
+    font-size: 1.2rem;
+  }
+  
+  .weekday-cell {
+    padding: 8px 4px;
+    font-size: 0.8rem;
+  }
+  
+  .day-cell {
+    min-height: 80px;
+  }
+  
+  .day-header {
+    padding: 6px;
+    min-height: 32px;
+  }
+  
+  .day-number {
+    font-size: 0.9rem;
+  }
+  
+  .time-slot {
+    font-size: 0.6rem;
+    padding: 3px;
+    gap: 2px;
+  }
+  
+  .slot-time {
+    font-size: 0.65rem;
+  }
+  
+  .owner-name {
+    font-size: 0.55rem;
+  }
+  
+  .pet-name {
+    font-size: 0.5rem;
+  }
+  
+  .day-slots {
+    padding: 4px;
+    gap: 2px;
+  }
+  
+  .available-badge,
+  .booked-badge {
+    padding: 2px 6px;
+    font-size: 0.6rem;
+  }
+}
+
+/* Estilos para impresión */
+@media print {
+  .services-sidebar,
+  .header-controls,
+  .dialog-actions {
+    display: none;
+  }
+  
+  .main-calendar {
+    width: 100%;
+  }
+  
+  .calendar-container {
+    padding: 0;
+  }
+  
+  .time-slot {
+    border: 1px solid #000;
+    margin-bottom: 2px;
+  }
+  
+  .time-slot.booked {
+    background: #f0f0f0;
+  }
 }
 
 /* Mejoras de accesibilidad */
-.service-card:focus,
-.day-cell:focus,
-.time-slot-detailed:focus {
-  outline: 2px solid #667eea;
+.service-item:focus,
+.time-slot:focus,
+.result-item:focus,
+.pet-item:focus {
+  outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
 
-/* Transiciones suaves para el cambio de tema */
-* {
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+.time-slot.available:focus {
+  background: #86efac;
 }
-</style>
+
+/* Indicadores de estado mejorados */
+.day-stats {
+  position: relative;
+}
+
+.available-badge::before {
+  content: '●';
+  color: #16a34a;
+  margin-right: 4px;
+}
+
+.booked-badge::before {
+  content: '●';
+  color: #dc2626;
+  margin-right: 4px;
+}
+
+/* Tooltips personalizados */
+.time-slot[title] {
+  position: relative;
+}
+
+/* Estados de carga */
+.loading-skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+</style>,
+.dialog-content::-webkit-scrollbar,
+.search-results::-webkit-scrollbar,
+.day-slots::-webkit-scrollbar {
+  width: 6px;
+}
+
+.services-list::-webkit-scrollbar-track,
+.dialog-content::-webkit-scrollbar-track,
+.search-results::-webkit-scrollbar-track,
+.day-slots::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.services-list::-webkit-scrollbar
