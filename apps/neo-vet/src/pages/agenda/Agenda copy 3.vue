@@ -1,5 +1,5 @@
 <template>
-  <div class="appointment-module-fullscreen">
+  <div class="appointment-module">
     <!-- Header con gradiente moderno -->
     <div class="modern-header">
       <div class="header-content">
@@ -14,414 +14,390 @@
       <div class="header-decoration"></div>
     </div>
 
-    <!-- Stepper Horizontal -->
+    <!-- Stepper Moderno -->
     <q-stepper
       v-model="step"
-      horizontal
+      vertical
       color="primary"
       animated
-      class="horizontal-stepper"
+      class="modern-stepper"
       header-nav
-      alternative-labels
     >
-      <!-- Header personalizado del stepper -->
-      <template v-slot:header>
-        <div class="stepper-header">
-          <div class="step-item"
-               :class="{ 'active': step === 1, 'completed': step > 1 }"
-               @click="step = 1">
-            <div class="step-circle">
-              <q-icon :name="step > 1 ? 'check' : 'person_search'" />
-            </div>
-            <div class="step-info">
-              <div class="step-title">Propietario</div>
-              <div class="step-subtitle">Buscar o registrar</div>
-            </div>
-          </div>
-
-          <div class="step-connector" :class="{ 'completed': step > 1 }"></div>
-
-          <div class="step-item"
-               :class="{ 'active': step === 2, 'completed': step > 2 }"
-               @click="step = 2">
-            <div class="step-circle">
-              <q-icon :name="step > 2 ? 'check' : 'pets'" />
-            </div>
-            <div class="step-info">
-              <div class="step-title">Mascota</div>
-              <div class="step-subtitle">Seleccionar o registrar</div>
-            </div>
-          </div>
-
-          <div class="step-connector" :class="{ 'completed': step > 2 }"></div>
-
-          <div class="step-item"
-               :class="{ 'active': step === 3, 'completed': step > 3 }"
-               @click="step = 3">
-            <div class="step-circle">
-              <q-icon :name="step > 3 ? 'check' : 'event'" />
-            </div>
-            <div class="step-info">
-              <div class="step-title">Fecha y Servicio</div>
-              <div class="step-subtitle">Agendar cita</div>
-            </div>
-          </div>
-
-          <div class="step-connector" :class="{ 'completed': step > 3 }"></div>
-
-          <div class="step-item"
-               :class="{ 'active': step === 4, 'completed': step > 4 }"
-               @click="step = 4">
-            <div class="step-circle">
-              <q-icon name="check_circle" />
-            </div>
-            <div class="step-info">
-              <div class="step-title">Confirmación</div>
-              <div class="step-subtitle">Revisar y confirmar</div>
-            </div>
-          </div>
-        </div>
-      </template>
-
       <!-- Paso 1: Búsqueda/Registro de Propietario -->
-      <q-step :name="1" class="fullscreen-step">
-        <div class="step-content-horizontal">
-          <div class="content-grid">
-            <!-- Búsqueda de propietario existente -->
-            <q-card flat bordered class="search-card">
-              <q-card-section>
-                <div class="section-header">
-                  <q-icon name="search" color="primary" size="lg" />
-                  <h5>Buscar Propietario Existente</h5>
-                </div>
+      <q-step
+        :name="1"
+        title="Propietario"
+        icon="person_search"
+        :done="step > 1"
+        class="step-propietario"
+      >
+        <div class="step-content">
+          <!-- Búsqueda de propietario existente -->
+          <q-card flat bordered class="search-card">
+            <q-card-section>
+              <div class="search-header">
+                <q-icon name="search" color="primary" size="md" />
+                <h6>Buscar Propietario Existente</h6>
+              </div>
 
-                <div class="search-controls">
-                  <q-input
-                    v-model="searchQuery"
-                    placeholder="Buscar por nombre, teléfono o email..."
-                    outlined
-                    clearable
-                    class="search-input"
-                    @keyup.enter="buscarPropietario"
-                    size="lg"
-                  >
-                    <template v-slot:prepend>
-                      <q-icon name="search" />
-                    </template>
-                    <template v-slot:append>
-                      <q-btn
-                        color="primary"
-                        icon="search"
-                        flat
-                        round
-                        @click="buscarPropietario"
-                        :loading="searchLoading"
-                        size="lg"
-                      />
-                    </template>
-                  </q-input>
-                </div>
-
-                <!-- Resultados de búsqueda -->
-                <div v-if="searchResults.length > 0" class="search-results">
-                  <div class="results-header">
-                    <q-icon name="people" color="positive" />
-                    <span>{{ searchResults.length }} propietario(s) encontrado(s)</span>
-                  </div>
-                  <div class="results-grid">
-                    <q-card
-                      v-for="propietario in searchResults"
-                      :key="propietario.id"
+              <div class="search-controls">
+                <q-input
+                  v-model="searchQuery"
+                  placeholder="Buscar por nombre, teléfono o email..."
+                  outlined
+                  clearable
+                  class="search-input"
+                  @keyup.enter="buscarPropietario"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="search" />
+                  </template>
+                  <template v-slot:append>
+                    <q-btn
+                      color="primary"
+                      icon="search"
                       flat
-                      bordered
-                      class="result-item"
-                      :class="{ 'selected': selectedOwner?.id === propietario.id }"
-                      @click="selectOwner(propietario)"
-                    >
-                      <q-card-section class="result-content">
-                        <div class="result-main">
-                          <div class="result-name">
-                            {{ propietario.nombre }} {{ propietario.primerapellido }} {{ propietario.segundoapellido }}
-                          </div>
-                          <div class="result-details">
-                            <span><q-icon name="phone" size="xs" /> {{ propietario.telefono1 }}</span>
-                            <span v-if="propietario.email"><q-icon name="email" size="xs" /> {{ propietario.email }}</span>
-                          </div>
-                        </div>
-                        <q-icon
-                          v-if="selectedOwner?.id === propietario.id"
-                          name="check_circle"
-                          color="positive"
-                          size="lg"
-                        />
-                      </q-card-section>
-                    </q-card>
-                  </div>
-                </div>
+                      round
+                      @click="buscarPropietario"
+                      :loading="searchLoading"
+                    />
+                  </template>
+                </q-input>
+              </div>
 
-                <!-- No se encontraron resultados -->
-                <div v-else-if="searchQuery && searchPerformed && !searchLoading" class="no-results">
-                  <q-icon name="person_off" size="64px" color="grey-5" />
-                  <p>No se encontraron propietarios con esos datos</p>
+              <!-- Resultados de búsqueda -->
+              <div v-if="searchResults.length > 0" class="search-results">
+                <div class="results-header">
+                  <q-icon name="people" color="positive" />
+                  <span>{{ searchResults.length }} propietario(s) encontrado(s)</span>
                 </div>
-              </q-card-section>
-            </q-card>
-
-            <!-- Registro rápido de nuevo propietario -->
-            <q-card flat bordered class="register-card">
-              <q-card-section>
-                <div class="section-header">
-                  <q-icon name="person_add" color="secondary" size="lg" />
-                  <h5>Registrar Nuevo Propietario</h5>
-                </div>
-
-                <div class="register-options">
-                  <q-btn
-                    color="secondary"
-                    icon="flash_on"
-                    label="Registro Rápido"
-                    size="lg"
-                    class="register-btn"
-                    @click="showQuickRegister = true"
-                  />
-                  <q-btn
-                    color="primary"
-                    icon="assignment"
-                    label="Registro Completo"
-                    outline
-                    size="lg"
-                    class="register-btn"
-                    @click="openCompleteOwnerDialog"
-                  />
-                </div>
-
-                <!-- Formulario rápido -->
-                <div v-if="showQuickRegister" class="quick-form">
-                  <q-form ref="quickOwnerForm">
-                    <div class="form-grid">
-                      <q-input
-                        v-model="quickOwner.nombre"
-                        label="Nombre *"
-                        outlined
-                        size="lg"
-                        :rules="[val => !!val || 'Nombre requerido']"
-                      />
-                      <q-input
-                        v-model="quickOwner.primerapellido"
-                        label="Apellido *"
-                        outlined
-                        size="lg"
-                        :rules="[val => !!val || 'Apellido requerido']"
-                      />
-                      <q-input
-                        v-model="quickOwner.telefono1"
-                        label="Teléfono *"
-                        outlined
-                        size="lg"
-                        mask="(###) ###-####"
-                        :rules="[val => !!val || 'Teléfono requerido']"
-                      />
-                      <q-input
-                        v-model="quickOwner.email"
-                        label="Email"
-                        type="email"
-                        outlined
-                        size="lg"
-                      />
-                    </div>
-                    <div class="form-actions">
-                      <q-btn
-                        color="negative"
-                        flat
-                        label="Cancelar"
-                        size="lg"
-                        @click="cancelQuickRegister"
-                      />
-                      <q-btn
-                        color="secondary"
-                        label="Guardar y Continuar"
-                        size="lg"
-                        @click="saveQuickOwner"
-                        :loading="savingQuickOwner"
-                      />
-                    </div>
-                  </q-form>
-                </div>
-              </q-card-section>
-            </q-card>
-          </div>
-        </div>
-      </q-step>
-
-      <!-- Paso 2: Selección/Registro de Mascota -->
-      <q-step :name="2" class="fullscreen-step">
-        <div class="step-content-horizontal">
-          <div class="content-grid">
-            <!-- Mascotas existentes del propietario -->
-            <q-card flat bordered class="pets-card" v-if="ownerPets.length > 0">
-              <q-card-section>
-                <div class="section-header">
-                  <q-icon name="pets" color="primary" size="lg" />
-                  <h5>Mascotas de {{ selectedOwner?.nombre }}</h5>
-                </div>
-
-                <div class="pets-grid">
+                <div class="results-list">
                   <q-card
-                    v-for="pet in ownerPets"
-                    :key="pet.id"
+                    v-for="propietario in searchResults"
+                    :key="propietario.id"
                     flat
                     bordered
-                    class="pet-item"
-                    :class="{ 'selected': selectedPet?.id === pet.id }"
-                    @click="selectPet(pet)"
+                    class="result-item"
+                    :class="{ 'selected': selectedOwner?.id === propietario.id }"
+                    @click="selectOwner(propietario)"
                   >
-                    <q-card-section class="pet-content">
-                      <div class="pet-avatar">
-                        <q-avatar size="64px" color="primary" text-color="white">
-                          <q-icon name="pets" size="lg" />
-                        </q-avatar>
-                      </div>
-                      <div class="pet-info">
-                        <div class="pet-name">{{ pet.nombre }}</div>
-                        <div class="pet-details">
-                          {{ pet.especie }} • {{ pet.raza || 'Sin raza' }}
+                    <q-card-section class="result-content">
+                      <div class="result-main">
+                        <div class="result-name">
+                          {{ propietario.nombre }} {{ propietario.primerapellido }} {{ propietario.segundoapellido }}
                         </div>
-                        <div class="pet-age" v-if="pet.edad">
-                          {{ pet.edad }} años
+                        <div class="result-details">
+                          <span><q-icon name="phone" size="xs" /> {{ propietario.telefono1 }}</span>
+                          <span v-if="propietario.email"><q-icon name="email" size="xs" /> {{ propietario.email }}</span>
                         </div>
                       </div>
                       <q-icon
-                        v-if="selectedPet?.id === pet.id"
+                        v-if="selectedOwner?.id === propietario.id"
                         name="check_circle"
                         color="positive"
-                        size="lg"
+                        size="md"
                       />
                     </q-card-section>
                   </q-card>
                 </div>
-              </q-card-section>
-            </q-card>
+              </div>
 
-            <!-- Registro de nueva mascota -->
-            <q-card flat bordered class="register-card">
-              <q-card-section>
-                <div class="section-header">
-                  <q-icon name="add_circle" color="secondary" size="lg" />
-                  <h5>Registrar Nueva Mascota</h5>
-                </div>
+              <!-- No se encontraron resultados -->
+              <div v-else-if="searchQuery && searchPerformed && !searchLoading" class="no-results">
+                <q-icon name="person_off" size="48px" color="grey-5" />
+                <p>No se encontraron propietarios con esos datos</p>
+              </div>
+            </q-card-section>
+          </q-card>
 
-                <div class="register-options">
-                  <q-btn
-                    color="secondary"
-                    icon="flash_on"
-                    label="Registro Rápido"
-                    size="lg"
-                    class="register-btn"
-                    @click="showQuickPetRegister = true"
-                  />
-                  <q-btn
-                    color="primary"
-                    icon="assignment"
-                    label="Registro Completo"
-                    outline
-                    size="lg"
-                    class="register-btn"
-                    @click="openCompletePetDialog"
-                  />
-                </div>
-
-                <!-- Formulario rápido de mascota -->
-                <div v-if="showQuickPetRegister" class="quick-form">
-                  <q-form ref="quickPetForm">
-                    <div class="form-grid">
-                      <q-input
-                        v-model="quickPet.nombre"
-                        label="Nombre de la mascota *"
-                        outlined
-                        size="lg"
-                        :rules="[val => !!val || 'Nombre requerido']"
-                      />
-                      <q-select
-                        v-model="quickPet.especie"
-                        :options="especiesOptions"
-                        label="Especie *"
-                        outlined
-                        size="lg"
-                        :rules="[val => !!val || 'Especie requerida']"
-                      />
-                      <q-input
-                        v-model="quickPet.raza"
-                        label="Raza"
-                        outlined
-                        size="lg"
-                      />
-                      <q-input
-                        v-model="quickPet.edad"
-                        label="Edad (años)"
-                        type="number"
-                        outlined
-                        size="lg"
-                        min="0"
-                        max="50"
-                      />
-                    </div>
-                    <div class="form-actions">
-                      <q-btn
-                        color="negative"
-                        flat
-                        label="Cancelar"
-                        size="lg"
-                        @click="cancelQuickPetRegister"
-                      />
-                      <q-btn
-                        color="secondary"
-                        label="Guardar y Continuar"
-                        size="lg"
-                        @click="saveQuickPet"
-                        :loading="savingQuickPet"
-                      />
-                    </div>
-                  </q-form>
-                </div>
-              </q-card-section>
-            </q-card>
+          <!-- Divider -->
+          <div class="divider-section">
+            <q-separator />
+            <div class="divider-text">O</div>
+            <q-separator />
           </div>
+
+          <!-- Registro rápido de nuevo propietario -->
+          <q-card flat bordered class="register-card">
+            <q-card-section>
+              <div class="register-header">
+                <q-icon name="person_add" color="secondary" size="md" />
+                <h6>Registrar Nuevo Propietario</h6>
+              </div>
+
+              <div class="register-options">
+                <q-btn
+                  color="secondary"
+                  icon="flash_on"
+                  label="Registro Rápido"
+                  class="register-btn"
+                  @click="showQuickRegister = true"
+                />
+                <q-btn
+                  color="primary"
+                  icon="assignment"
+                  label="Registro Completo"
+                  outline
+                  class="register-btn"
+                  @click="openCompleteOwnerDialog"
+                />
+              </div>
+
+              <!-- Formulario rápido -->
+              <div v-if="showQuickRegister" class="quick-form">
+                <q-form ref="quickOwnerForm">
+                  <div class="form-grid">
+                    <q-input
+                      v-model="quickOwner.nombre"
+                      label="Nombre *"
+                      outlined
+                      :rules="[val => !!val || 'Nombre requerido']"
+                    />
+                    <q-input
+                      v-model="quickOwner.primerapellido"
+                      label="Apellido *"
+                      outlined
+                      :rules="[val => !!val || 'Apellido requerido']"
+                    />
+                    <q-input
+                      v-model="quickOwner.telefono1"
+                      label="Teléfono *"
+                      outlined
+                      mask="(###) ###-####"
+                      :rules="[val => !!val || 'Teléfono requerido']"
+                    />
+                    <q-input
+                      v-model="quickOwner.email"
+                      label="Email"
+                      type="email"
+                      outlined
+                    />
+                  </div>
+                  <div class="form-actions">
+                    <q-btn
+                      color="negative"
+                      flat
+                      label="Cancelar"
+                      @click="cancelQuickRegister"
+                    />
+                    <q-btn
+                      color="secondary"
+                      label="Guardar y Continuar"
+                      @click="saveQuickOwner"
+                      :loading="savingQuickOwner"
+                    />
+                  </div>
+                </q-form>
+              </div>
+            </q-card-section>
+          </q-card>
         </div>
+
+        <q-stepper-navigation class="step-navigation">
+          <q-btn
+            @click="nextStep"
+            color="primary"
+            label="Continuar"
+            :disable="!selectedOwner"
+            icon-right="arrow_forward"
+          />
+        </q-stepper-navigation>
+      </q-step>
+
+      <!-- Paso 2: Selección/Registro de Mascota -->
+      <q-step
+        :name="2"
+        title="Mascota"
+        icon="pets"
+        :done="step > 2"
+        class="step-mascota"
+      >
+        <div class="step-content">
+          <!-- Mascotas existentes del propietario -->
+          <q-card flat bordered class="pets-card" v-if="ownerPets.length > 0">
+            <q-card-section>
+              <div class="pets-header">
+                <q-icon name="pets" color="primary" size="md" />
+                <h6>Mascotas de {{ selectedOwner?.nombre }}</h6>
+              </div>
+
+              <div class="pets-grid">
+                <q-card
+                  v-for="pet in ownerPets"
+                  :key="pet.id"
+                  flat
+                  bordered
+                  class="pet-item"
+                  :class="{ 'selected': selectedPet?.id === pet.id }"
+                  @click="selectPet(pet)"
+                >
+                  <q-card-section class="pet-content">
+                    <div class="pet-avatar">
+                      <q-avatar size="48px" color="primary" text-color="white">
+                        <q-icon name="pets" />
+                      </q-avatar>
+                    </div>
+                    <div class="pet-info">
+                      <div class="pet-name">{{ pet.nombre }}</div>
+                      <div class="pet-details">
+                        {{ pet.especie }} • {{ pet.raza || 'Sin raza' }}
+                      </div>
+                      <div class="pet-age" v-if="pet.edad">
+                        {{ pet.edad }} años
+                      </div>
+                    </div>
+                    <q-icon
+                      v-if="selectedPet?.id === pet.id"
+                      name="check_circle"
+                      color="positive"
+                      size="md"
+                    />
+                  </q-card-section>
+                </q-card>
+              </div>
+            </q-card-section>
+          </q-card>
+
+          <!-- Divider si hay mascotas -->
+          <div v-if="ownerPets.length > 0" class="divider-section">
+            <q-separator />
+            <div class="divider-text">O</div>
+            <q-separator />
+          </div>
+
+          <!-- Registro de nueva mascota -->
+          <q-card flat bordered class="register-card">
+            <q-card-section>
+              <div class="register-header">
+                <q-icon name="add_circle" color="secondary" size="md" />
+                <h6>Registrar Nueva Mascota</h6>
+              </div>
+
+              <div class="register-options">
+                <q-btn
+                  color="secondary"
+                  icon="flash_on"
+                  label="Registro Rápido"
+                  class="register-btn"
+                  @click="showQuickPetRegister = true"
+                />
+                <q-btn
+                  color="primary"
+                  icon="assignment"
+                  label="Registro Completo"
+                  outline
+                  class="register-btn"
+                  @click="openCompletePetDialog"
+                />
+              </div>
+
+              <!-- Formulario rápido de mascota -->
+              <div v-if="showQuickPetRegister" class="quick-form">
+                <q-form ref="quickPetForm">
+                  <div class="form-grid">
+                    <q-input
+                      v-model="quickPet.nombre"
+                      label="Nombre de la mascota *"
+                      outlined
+                      :rules="[val => !!val || 'Nombre requerido']"
+                    />
+                    <q-select
+                      v-model="quickPet.especie"
+                      :options="especiesOptions"
+                      label="Especie *"
+                      outlined
+                      :rules="[val => !!val || 'Especie requerida']"
+                    />
+                    <q-input
+                      v-model="quickPet.raza"
+                      label="Raza"
+                      outlined
+                    />
+                    <q-input
+                      v-model="quickPet.edad"
+                      label="Edad (años)"
+                      type="number"
+                      outlined
+                      min="0"
+                      max="50"
+                    />
+                  </div>
+                  <div class="form-actions">
+                    <q-btn
+                      color="negative"
+                      flat
+                      label="Cancelar"
+                      @click="cancelQuickPetRegister"
+                    />
+                    <q-btn
+                      color="secondary"
+                      label="Guardar y Continuar"
+                      @click="saveQuickPet"
+                      :loading="savingQuickPet"
+                    />
+                  </div>
+                </q-form>
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
+
+        <q-stepper-navigation class="step-navigation">
+          <q-btn
+            flat
+            color="primary"
+            @click="step = 1"
+            label="Atrás"
+            icon="arrow_back"
+          />
+          <q-btn
+            @click="nextStep"
+            color="primary"
+            label="Continuar"
+            :disable="!selectedPet"
+            icon-right="arrow_forward"
+          />
+        </q-stepper-navigation>
       </q-step>
 
       <!-- Paso 3: Selección de Fecha, Hora y Servicio -->
-      <q-step :name="3" class="fullscreen-step">
-        <div class="step-content-horizontal">
-          <div class="appointment-content">
+      <q-step
+        :name="3"
+        title="Fecha y Servicio"
+        icon="event"
+        :done="step > 3"
+      >
+        <div class="step-content">
+          <div class="appointment-grid">
             <!-- Calendario -->
             <q-card flat bordered class="calendar-card">
               <q-card-section>
-                <div class="section-header">
-                  <q-icon name="calendar_today" color="primary" size="lg" />
-                  <h5>Seleccionar Fecha</h5>
+                <div class="calendar-header">
+                  <q-icon name="calendar_today" color="primary" size="md" />
+                  <h6>Seleccionar Fecha</h6>
                 </div>
                 <q-date
                   v-model="appointment.date"
                   :options="availableDates"
                   color="primary"
-                  class="large-calendar"
+                  class="modern-calendar"
                   @update:model-value="onDateChange"
                 />
               </q-card-section>
             </q-card>
 
             <!-- Horarios y Servicios -->
-            <div class="schedule-services">
+            <div class="schedule-section">
               <!-- Horarios -->
               <q-card flat bordered class="schedule-card">
                 <q-card-section>
-                  <div class="section-header">
-                    <q-icon name="access_time" color="primary" size="lg" />
-                    <h5>Horarios Disponibles</h5>
+                  <div class="schedule-header">
+                    <q-icon name="access_time" color="primary" size="md" />
+                    <h6>Horarios Disponibles</h6>
                   </div>
 
                   <div v-if="!appointment.date" class="no-date-message">
-                    <q-icon name="info" color="grey-5" size="48px" />
+                    <q-icon name="info" color="grey-5" size="24px" />
                     <p>Selecciona una fecha para ver los horarios</p>
                   </div>
 
@@ -435,7 +411,6 @@
                       :outline="appointment.time !== time"
                       @click="appointment.time = time"
                       :label="time"
-                      size="lg"
                       class="time-slot"
                     />
                   </div>
@@ -445,12 +420,12 @@
               <!-- Servicios -->
               <q-card flat bordered class="services-card">
                 <q-card-section>
-                  <div class="section-header">
-                    <q-icon name="medical_services" color="primary" size="lg" />
-                    <h5>Seleccionar Servicio</h5>
+                  <div class="services-header">
+                    <q-icon name="medical_services" color="primary" size="md" />
+                    <h6>Seleccionar Servicio</h6>
                   </div>
 
-                  <div class="services-list">
+                  <div class="services-grid">
                     <q-card
                       v-for="service in availableServices"
                       :key="service.id"
@@ -472,7 +447,7 @@
                           v-if="appointment.service?.id === service.id"
                           name="check_circle"
                           color="positive"
-                          size="lg"
+                          size="md"
                         />
                       </q-card-section>
                     </q-card>
@@ -482,16 +457,37 @@
             </div>
           </div>
         </div>
+
+        <q-stepper-navigation class="step-navigation">
+          <q-btn
+            flat
+            color="primary"
+            @click="step = 2"
+            label="Atrás"
+            icon="arrow_back"
+          />
+          <q-btn
+            @click="nextStep"
+            color="primary"
+            label="Continuar"
+            :disable="!isAppointmentValid"
+            icon-right="arrow_forward"
+          />
+        </q-stepper-navigation>
       </q-step>
 
       <!-- Paso 4: Confirmación -->
-      <q-step :name="4" class="fullscreen-step">
-        <div class="step-content-horizontal">
+      <q-step
+        :name="4"
+        title="Confirmación"
+        icon="check_circle"
+      >
+        <div class="step-content">
           <q-card flat bordered class="confirmation-card">
             <q-card-section>
               <div class="confirmation-header">
-                <q-icon name="check_circle" color="positive" size="72px" />
-                <h3>Confirmar Cita</h3>
+                <q-icon name="check_circle" color="positive" size="48px" />
+                <h4>Confirmar Cita</h4>
                 <p>Revisa los datos antes de confirmar</p>
               </div>
 
@@ -500,19 +496,19 @@
                 <q-card flat class="info-card owner-card">
                   <q-card-section>
                     <div class="card-header">
-                      <q-icon name="person" size="lg" />
-                      <h5>Propietario</h5>
+                      <q-icon name="person" color="primary" />
+                      <h6>Propietario</h6>
                     </div>
                     <div class="info-content">
                       <div class="info-item">
                         <strong>{{ selectedOwner?.nombre }} {{ selectedOwner?.primerapellido }}</strong>
                       </div>
                       <div class="info-item">
-                        <q-icon name="phone" size="sm" />
+                        <q-icon name="phone" size="xs" />
                         {{ selectedOwner?.telefono1 }}
                       </div>
                       <div class="info-item" v-if="selectedOwner?.email">
-                        <q-icon name="email" size="sm" />
+                        <q-icon name="email" size="xs" />
                         {{ selectedOwner?.email }}
                       </div>
                     </div>
@@ -523,8 +519,8 @@
                 <q-card flat class="info-card pet-card">
                   <q-card-section>
                     <div class="card-header">
-                      <q-icon name="pets" size="lg" />
-                      <h5>Mascota</h5>
+                      <q-icon name="pets" color="secondary" />
+                      <h6>Mascota</h6>
                     </div>
                     <div class="info-content">
                       <div class="info-item">
@@ -547,19 +543,19 @@
                 <q-card flat class="info-card appointment-card">
                   <q-card-section>
                     <div class="card-header">
-                      <q-icon name="event" size="lg" />
-                      <h5>Cita</h5>
+                      <q-icon name="event" color="positive" />
+                      <h6>Cita</h6>
                     </div>
                     <div class="info-content">
                       <div class="info-item">
                         <strong>{{ formatDate(appointment.date) }}</strong>
                       </div>
                       <div class="info-item">
-                        <q-icon name="access_time" size="sm" />
+                        <q-icon name="access_time" size="xs" />
                         {{ appointment.time }}
                       </div>
                       <div class="info-item">
-                        <q-icon name="medical_services" size="sm" />
+                        <q-icon name="medical_services" size="xs" />
                         {{ appointment.service?.name }}
                       </div>
                       <div class="info-item price-highlight">
@@ -572,47 +568,26 @@
             </q-card-section>
           </q-card>
         </div>
+
+        <q-stepper-navigation class="step-navigation">
+          <q-btn
+            flat
+            color="primary"
+            @click="step = 3"
+            label="Atrás"
+            icon="arrow_back"
+          />
+          <q-btn
+            @click="confirmAppointment"
+            color="positive"
+            label="Confirmar Cita"
+            icon="check"
+            :loading="loading"
+            size="lg"
+          />
+        </q-stepper-navigation>
       </q-step>
     </q-stepper>
-
-    <!-- Botones de navegación fijos -->
-    <div class="navigation-bar">
-      <div class="nav-content">
-        <q-btn
-          v-if="step > 1"
-          flat
-          color="primary"
-          @click="step--"
-          label="Atrás"
-          icon="arrow_back"
-          size="lg"
-        />
-
-        <div class="nav-spacer"></div>
-
-        <q-btn
-          v-if="step < 4"
-          @click="nextStep"
-          color="primary"
-          :label="step === 3 ? 'Revisar' : 'Continuar'"
-          :disable="!canProceed"
-          icon-right="arrow_forward"
-          size="lg"
-          unelevated
-        />
-
-        <q-btn
-          v-if="step === 4"
-          @click="confirmAppointment"
-          color="positive"
-          label="Confirmar Cita"
-          icon="check"
-          :loading="loading"
-          size="xl"
-          unelevated
-        />
-      </div>
-    </div>
 
     <!-- Dialogs para módulos completos -->
     <DialogAgregarPropietario
@@ -632,8 +607,8 @@
     <q-dialog v-model="showSuccess" persistent>
       <q-card class="success-dialog">
         <q-card-section class="text-center">
-          <q-icon name="check_circle" size="96px" color="positive" />
-          <h4>¡Cita Registrada!</h4>
+          <q-icon name="check_circle" size="72px" color="positive" />
+          <h5>¡Cita Registrada!</h5>
           <p>La cita ha sido programada exitosamente para:</p>
           <div class="success-details">
             <div><strong>{{ selectedPet?.nombre }}</strong></div>
@@ -647,7 +622,6 @@
             label="Nueva Cita"
             @click="resetForm"
             icon="add"
-            size="lg"
           />
           <q-btn
             flat
@@ -655,7 +629,6 @@
             label="Ver Agenda"
             @click="goToAgenda"
             icon="calendar_today"
-            size="lg"
           />
         </q-card-actions>
       </q-card>
@@ -766,14 +739,8 @@ const availableDates = computed(() => {
 })
 
 // Validaciones
-const canProceed = computed(() => {
-  switch (step.value) {
-    case 1: return selectedOwner.value
-    case 2: return selectedPet.value
-    case 3: return appointment.value.date && appointment.value.time && appointment.value.service
-    case 4: return true
-    default: return false
-  }
+const isAppointmentValid = computed(() => {
+  return appointment.value.date && appointment.value.time && appointment.value.service
 })
 
 // Métodos de búsqueda
@@ -1011,7 +978,7 @@ const onPetSaved = (pet) => {
 
 // Cita
 const nextStep = () => {
-  if (step.value < 4 && canProceed.value) {
+  if (step.value < 4) {
     step.value++
   }
 }
@@ -1113,19 +1080,21 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.appointment-module-fullscreen {
-  width: 100vw;
-  min-height: 100vh;
+.appointment-module {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  padding: 0;
-  margin: 0;
+  min-height: 100vh;
 }
 
 /* Header moderno */
 .modern-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 40px 60px;
+  border-radius: 20px;
+  padding: 32px;
   color: white;
+  margin-bottom: 32px;
   position: relative;
   overflow: hidden;
   box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
@@ -1136,21 +1105,19 @@ onMounted(() => {
   align-items: center;
   position: relative;
   z-index: 2;
-  max-width: 1400px;
-  margin: 0 auto;
 }
 
 .header-icon {
-  margin-right: 24px;
-  padding: 20px;
+  margin-right: 20px;
+  padding: 16px;
   background: rgba(255, 255, 255, 0.2);
-  border-radius: 20px;
+  border-radius: 16px;
   backdrop-filter: blur(10px);
 }
 
 .header-title {
   margin: 0;
-  font-size: 3rem;
+  font-size: 2.5rem;
   font-weight: 700;
   background: linear-gradient(45deg, #fff, #e0e7ff);
   -webkit-background-clip: text;
@@ -1158,8 +1125,8 @@ onMounted(() => {
 }
 
 .header-subtitle {
-  margin: 12px 0 0 0;
-  font-size: 1.3rem;
+  margin: 8px 0 0 0;
+  font-size: 1.1rem;
   opacity: 0.9;
 }
 
@@ -1167,147 +1134,37 @@ onMounted(() => {
   position: absolute;
   top: -50%;
   right: -10%;
-  width: 300px;
-  height: 300px;
+  width: 200px;
+  height: 200px;
   background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
   border-radius: 50%;
 }
 
-/* Stepper horizontal */
-.horizontal-stepper {
+/* Stepper moderno */
+.modern-stepper {
   background: white;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  height: calc(100vh - 200px);
-  overflow: hidden;
-}
-
-.horizontal-stepper :deep(.q-stepper__header) {
-  display: none;
-}
-
-.stepper-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 32px 60px;
-  background: white;
-  border-bottom: 2px solid #f1f5f9;
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
-}
-
-.step-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  padding: 16px;
   border-radius: 16px;
-}
-
-.step-item:hover {
-  background: #f8fafc;
-  transform: translateY(-2px);
-}
-
-.step-item.active {
-  background: #eff6ff;
-}
-
-.step-circle {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 12px;
-  transition: all 0.3s ease;
-  font-size: 24px;
-}
-
-.step-item .step-circle {
-  background: #e2e8f0;
-  color: #64748b;
-}
-
-.step-item.active .step-circle {
-  background: #3b82f6;
-  color: white;
-  transform: scale(1.1);
-}
-
-.step-item.completed .step-circle {
-  background: #10b981;
-  color: white;
-}
-
-.step-info {
-  text-align: center;
-}
-
-.step-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 4px;
-}
-
-.step-subtitle {
-  font-size: 0.9rem;
-  color: #6b7280;
-}
-
-.step-connector {
-  flex: 1;
-  height: 4px;
-  background: #e2e8f0;
-  margin: 0 24px;
-  border-radius: 2px;
-  transition: all 0.3s ease;
-  align-self: center;
-  margin-top: -60px;
-}
-
-.step-connector.completed {
-  background: #10b981;
-}
-
-/* Contenido de pasos */
-.fullscreen-step {
-  height: calc(100vh - 380px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 
-.step-content-horizontal {
-  height: 100%;
-  overflow-y: auto;
-  padding: 40px 60px;
+.modern-stepper :deep(.q-stepper__step-inner) {
+  padding: 0;
+}
+
+.modern-stepper :deep(.q-stepper__step-content) {
+  padding: 0;
+  margin-left: 0;
+}
+
+.modern-stepper :deep(.q-stepper__tab) {
+  padding: 24px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.step-content {
+  padding: 32px;
   background: #fafbfc;
-}
-
-.content-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
-  max-width: 1400px;
-  margin: 0 auto;
-  height: 100%;
-}
-
-.appointment-content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
-  max-width: 1400px;
-  margin: 0 auto;
-  height: 100%;
-}
-
-.schedule-services {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
 }
 
 /* Cards modernas */
@@ -1318,12 +1175,11 @@ onMounted(() => {
 .schedule-card,
 .services-card,
 .confirmation-card {
-  border-radius: 20px;
+  border-radius: 16px;
   border: none;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
   overflow: hidden;
-  height: fit-content;
 }
 
 .search-card:hover,
@@ -1332,193 +1188,201 @@ onMounted(() => {
 .calendar-card:hover,
 .schedule-card:hover,
 .services-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.12);
-}
-
-.confirmation-card {
-  max-width: 1000px;
-  margin: 0 auto;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
 }
 
 /* Headers de secciones */
-.section-header {
+.search-header,
+.register-header,
+.pets-header,
+.calendar-header,
+.schedule-header,
+.services-header {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 32px;
-  padding-bottom: 16px;
-  border-bottom: 2px solid #f1f5f9;
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
-.section-header h5 {
+.search-header h6,
+.register-header h6,
+.pets-header h6,
+.calendar-header h6,
+.schedule-header h6,
+.services-header h6 {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 600;
   color: #2d3748;
 }
 
 /* Búsqueda */
 .search-input {
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 
 .search-input :deep(.q-field__control) {
-  border-radius: 16px;
-  height: 64px;
-  font-size: 1.1rem;
+  border-radius: 12px;
+  height: 56px;
 }
 
 .search-results {
-  margin-top: 32px;
+  margin-top: 24px;
 }
 
 .results-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: 8px;
+  margin-bottom: 16px;
   font-weight: 600;
-  font-size: 1.1rem;
   color: #059669;
 }
 
-.results-grid {
+.results-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .result-item {
-  border-radius: 16px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 3px solid transparent;
+  border: 2px solid transparent;
 }
 
 .result-item:hover {
   border-color: #e0e7ff;
   background: #f8fafc;
-  transform: translateY(-2px);
 }
 
 .result-item.selected {
   border-color: #3b82f6;
   background: #eff6ff;
-  transform: translateY(-2px);
 }
 
 .result-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px;
+  padding: 16px;
 }
 
 .result-name {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #1f2937;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .result-details {
   display: flex;
-  gap: 20px;
-  font-size: 1rem;
+  gap: 16px;
+  font-size: 0.9rem;
   color: #6b7280;
 }
 
 .result-details span {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 /* Sin resultados */
 .no-results {
   text-align: center;
-  padding: 60px;
+  padding: 40px;
   color: #6b7280;
 }
 
 .no-results p {
-  margin: 20px 0 0 0;
-  font-size: 1.2rem;
+  margin: 16px 0 0 0;
+  font-size: 1.1rem;
+}
+
+/* Divider */
+.divider-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 32px 0;
+}
+
+.divider-text {
+  background: #f1f5f9;
+  color: #64748b;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 500;
+  font-size: 0.9rem;
 }
 
 /* Registro */
 .register-options {
   display: flex;
-  gap: 20px;
-  margin-bottom: 32px;
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
 .register-btn {
   flex: 1;
-  height: 64px;
-  border-radius: 16px;
+  height: 56px;
+  border-radius: 12px;
   font-weight: 600;
-  font-size: 1.1rem;
 }
 
 .quick-form {
-  margin-top: 32px;
-  padding: 32px;
+  margin-top: 24px;
+  padding: 24px;
   background: #f8fafc;
-  border-radius: 16px;
-  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
 }
 
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 24px;
-  margin-bottom: 32px;
-}
-
-.form-grid :deep(.q-field__control) {
-  height: 56px;
-  border-radius: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
 .form-actions {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   justify-content: flex-end;
 }
 
 /* Mascotas */
 .pets-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
 }
 
 .pet-item {
-  border-radius: 16px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 3px solid transparent;
+  border: 2px solid transparent;
 }
 
 .pet-item:hover {
   border-color: #e0e7ff;
   background: #f8fafc;
-  transform: translateY(-2px);
 }
 
 .pet-item.selected {
   border-color: #3b82f6;
   background: #eff6ff;
-  transform: translateY(-2px);
 }
 
 .pet-content {
   display: flex;
   align-items: center;
-  gap: 20px;
-  padding: 24px;
+  gap: 16px;
+  padding: 20px;
 }
 
 .pet-info {
@@ -1526,107 +1390,108 @@ onMounted(() => {
 }
 
 .pet-name {
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #1f2937;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .pet-details {
   color: #6b7280;
-  font-size: 1rem;
-  margin-bottom: 6px;
+  font-size: 0.9rem;
+  margin-bottom: 4px;
 }
 
 .pet-age {
   color: #059669;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 500;
 }
 
-/* Calendario */
-.large-calendar {
+/* Cita */
+.appointment-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+
+.schedule-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.modern-calendar {
   width: 100%;
 }
 
-.large-calendar :deep(.q-date__calendar) {
-  border-radius: 16px;
-  font-size: 1.1rem;
-}
-
-.large-calendar :deep(.q-date__calendar-item) {
-  height: 48px;
+.modern-calendar :deep(.q-date__calendar) {
+  border-radius: 12px;
 }
 
 .no-date-message {
   text-align: center;
-  padding: 60px;
+  padding: 40px;
   color: #6b7280;
 }
 
 .no-date-message p {
-  margin: 16px 0 0 0;
-  font-size: 1.1rem;
+  margin: 12px 0 0 0;
 }
 
 .time-slots {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 12px;
 }
 
 .time-slot {
-  border-radius: 12px;
-  height: 56px;
-  font-weight: 600;
-  font-size: 1rem;
+  border-radius: 8px;
+  height: 44px;
+  font-weight: 500;
 }
 
-.services-list {
+.services-grid {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  max-height: 400px;
-  overflow-y: auto;
+  gap: 12px;
 }
 
 .service-item {
-  border-radius: 16px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 3px solid transparent;
+  border: 2px solid transparent;
 }
 
 .service-item:hover {
   border-color: #e0e7ff;
   background: #f8fafc;
-  transform: translateY(-2px);
 }
 
 .service-item.selected {
   border-color: #3b82f6;
   background: #eff6ff;
-  transform: translateY(-2px);
 }
 
 .service-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
+  padding: 16px;
 }
 
 .service-name {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #1f2937;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .service-details {
   display: flex;
-  gap: 20px;
-  font-size: 1rem;
+  gap: 16px;
+  font-size: 0.9rem;
 }
 
 .duration {
@@ -1635,39 +1500,35 @@ onMounted(() => {
 
 .price {
   color: #059669;
-  font-weight: 700;
-  font-size: 1.1rem;
+  font-weight: 600;
 }
 
 /* Confirmación */
 .confirmation-header {
   text-align: center;
-  margin-bottom: 48px;
+  margin-bottom: 32px;
 }
 
-.confirmation-header h3 {
-  margin: 20px 0 12px 0;
+.confirmation-header h4 {
+  margin: 16px 0 8px 0;
   color: #1f2937;
-  font-size: 2.5rem;
 }
 
 .confirmation-header p {
   margin: 0;
   color: #6b7280;
-  font-size: 1.2rem;
 }
 
 .confirmation-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 32px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
 }
 
 .info-card {
-  border-radius: 20px;
-  border: none;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
   transition: all 0.3s ease;
-  overflow: hidden;
 }
 
 .owner-card {
@@ -1688,88 +1549,70 @@ onMounted(() => {
 .card-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
-.card-header h5 {
+.card-header h6 {
   margin: 0;
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   font-weight: 600;
 }
 
 .info-content {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .info-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 1.1rem;
+  gap: 8px;
+  font-size: 0.95rem;
 }
 
 .price-highlight {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-weight: 700;
 }
 
-/* Barra de navegación fija */
-.navigation-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+/* Navegación */
+.step-navigation {
+  padding: 24px 32px;
   background: white;
-  border-top: 2px solid #e2e8f0;
-  box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-}
-
-.nav-content {
+  border-top: 1px solid #e2e8f0;
   display: flex;
-  align-items: center;
-  padding: 24px 60px;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.nav-spacer {
-  flex: 1;
+  justify-content: space-between;
 }
 
 /* Dialog de éxito */
 .success-dialog {
-  border-radius: 24px;
+  border-radius: 16px;
   overflow: hidden;
-  max-width: 500px;
+  max-width: 400px;
 }
 
-.success-dialog h4 {
-  margin: 20px 0 12px 0;
+.success-dialog h5 {
+  margin: 16px 0 8px 0;
   color: #059669;
-  font-size: 2rem;
 }
 
 .success-dialog p {
-  margin: 0 0 20px 0;
+  margin: 0 0 16px 0;
   color: #6b7280;
-  font-size: 1.1rem;
 }
 
 .success-details {
   background: #f0fdf4;
-  padding: 24px;
-  border-radius: 12px;
-  margin: 20px 0;
+  padding: 16px;
+  border-radius: 8px;
+  margin: 16px 0;
 }
 
 .success-details div {
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   color: #166534;
-  font-size: 1.1rem;
 }
 
 .success-details div:last-child {
@@ -1777,57 +1620,31 @@ onMounted(() => {
 }
 
 /* Responsive */
-@media (max-width: 1200px) {
-  .content-grid,
-  .appointment-content {
+@media (max-width: 1024px) {
+  .appointment-grid {
     grid-template-columns: 1fr;
-    gap: 32px;
   }
 
   .confirmation-grid {
     grid-template-columns: 1fr;
   }
-
-  .step-content-horizontal {
-    padding: 32px 40px;
-  }
-
-  .nav-content {
-    padding: 20px 40px;
-  }
 }
 
 @media (max-width: 768px) {
+  .appointment-module {
+    padding: 16px;
+  }
+
   .modern-header {
-    padding: 24px 20px;
+    padding: 24px;
   }
 
   .header-title {
     font-size: 2rem;
   }
 
-  .step-content-horizontal {
+  .step-content {
     padding: 20px;
-  }
-
-  .nav-content {
-    padding: 16px 20px;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .nav-spacer {
-    display: none;
-  }
-
-  .stepper-header {
-    padding: 20px;
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .step-connector {
-    display: none;
   }
 
   .register-options {
@@ -1843,7 +1660,13 @@ onMounted(() => {
   }
 
   .time-slots {
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  }
+
+  .step-navigation {
+    padding: 16px 20px;
+    flex-direction: column;
+    gap: 12px;
   }
 }
 
@@ -1851,7 +1674,7 @@ onMounted(() => {
 @keyframes slideInUp {
   from {
     opacity: 0;
-    transform: translateY(40px);
+    transform: translateY(30px);
   }
   to {
     opacity: 1;
@@ -1859,27 +1682,18 @@ onMounted(() => {
   }
 }
 
-.step-content-horizontal {
-  animation: slideInUp 0.4s ease-out;
-}
-
-.stepper-header {
+.step-content {
   animation: slideInUp 0.3s ease-out;
 }
 
 /* Efectos hover mejorados */
 .register-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
 .time-slot:hover {
-  transform: translateY(-2px);
-}
-
-.info-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
 }
 
 /* Estados de carga */
