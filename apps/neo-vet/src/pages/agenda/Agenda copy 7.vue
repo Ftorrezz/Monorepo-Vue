@@ -1,115 +1,60 @@
 <template>
   <div class="fullscreen-calendar">
     <div class="app-layout">
-      <!-- Menú lateral de servicios -->
-      <div
-        class="services-sidebar"
-        :class="{ 'expanded': sidebarExpanded, 'hover-expanded': sidebarHover }"
-        @mouseenter="sidebarHover = true"
-        @mouseleave="sidebarHover = false"
-      >
-        <!-- Header del sidebar -->
-        <div class="sidebar-header">
-          <div class="sidebar-toggle">
-            <q-btn
-              flat
-              round
-              :icon="sidebarExpanded ? 'menu_open' : 'menu'"
-              color="white"
-              size="md"
-              @click="toggleSidebar"
-            />
-          </div>
-          <div class="sidebar-title" v-show="sidebarExpanded || sidebarHover">
-            <q-icon name="medical_services" size="24px" color="white" />
-            <span>Servicios</span>
-          </div>
-        </div>
-
-        <!-- Lista de servicios -->
-        <div class="services-list">
-          <div
-            v-for="service in services"
-            :key="service.id"
-            class="service-item-sidebar"
-            :class="{ 'active': selectedService?.id === service.id }"
-            @click="selectService(service)"
-          >
-            <div class="service-icon">
-              <q-avatar :color="service.color" text-color="white" size="40px">
-                <q-icon :name="service.icon" size="20px" />
-              </q-avatar>
+      <!-- Sección de servicios arriba -->
+      <div class="services-header">
+        <div class="services-container">
+          <div class="services-title-section">
+            <q-icon name="medical_services" size="32px" color="primary" />
+            <div class="title-content">
+              <h3>Agendas por Servicio</h3>
+              <p>Selecciona un servicio para ver su agenda</p>
             </div>
+          </div>
 
-            <div class="service-content" v-show="sidebarExpanded || sidebarHover">
-              <div class="service-name">{{ service.name }}</div>
-              <div class="service-details">
-                <span class="service-duration">
-                  <q-icon name="schedule" size="xs" /> {{ service.duration }}min
-                </span>
-                <span class="service-price">
-                  <q-icon name="attach_money" size="xs" /> ${{ service.price }}
-                </span>
-              </div>
-            </div>
-
-            <!-- Tooltip cuando está colapsado -->
-            <q-tooltip
-              v-if="!sidebarExpanded && !sidebarHover"
-              anchor="center right"
-              self="center left"
-              :offset="[10, 0]"
-              class="bg-grey-9 text-white"
+          <!-- Lista horizontal de servicios -->
+          <div class="services-grid">
+            <div
+              v-for="service in services"
+              :key="service.id"
+              class="service-card"
+              :class="{ 'active': selectedService?.id === service.id }"
+              @click="selectService(service)"
             >
-              <div class="tooltip-content">
-                <div class="tooltip-name">{{ service.name }}</div>
-                <div class="tooltip-details">{{ service.duration }}min • ${{ service.price }}</div>
+              <div class="service-icon">
+                <q-icon :name="service.icon" size="24px" /> 
               </div>
-            </q-tooltip>
+              <div class="service-info">
+                <h4>{{ service.name }}</h4>
+                <!--<div class="service-meta">
+                  <span><q-icon name="schedule" size="xs"/> {{ service.duration }}min</span>
+                  <span><q-icon name="attach_money" size="xs"/>${{ service.price }}</span>
+                </div>-->
+              </div>
+            </div>
           </div>
-        </div>
 
-        <!-- Estadísticas en el sidebar -->
-        <div v-if="selectedService && (sidebarExpanded || sidebarHover)" class="sidebar-stats">
-          <div class="stats-header">
-            <q-icon name="analytics" size="sm" color="white" />
-            <span>{{ viewMode === 'month' ? 'Hoy' : 'Día Seleccionado' }}</span>
-          </div>
-          <div class="stats-grid-sidebar">
-            <div class="stat-item-sidebar available">
-              <div class="stat-icon">
-                <q-icon name="check_circle" size="sm" />
-              </div>
-              <div class="stat-info">
-                <div class="stat-value">{{ currentStats.available }}</div>
-                <div class="stat-label">Disponibles</div>
-              </div>
-            </div>
-            <div class="stat-item-sidebar booked">
-              <div class="stat-icon">
-                <q-icon name="event_busy" size="sm" />
-              </div>
-              <div class="stat-info">
-                <div class="stat-value">{{ currentStats.booked }}</div>
-                <div class="stat-label">Ocupados</div>
-              </div>
-            </div>
-            <div class="stat-item-sidebar revenue">
-              <div class="stat-icon">
-                <q-icon name="monetization_on" size="sm" />
-              </div>
-              <div class="stat-info">
-                <div class="stat-value">${{ currentStats.revenue }}</div>
-                <div class="stat-label">Ingresos</div>
-              </div>
-            </div>
-            <div class="stat-item-sidebar efficiency">
-              <div class="stat-icon">
-                <q-icon name="trending_up" size="sm" />
-              </div>
-              <div class="stat-info">
-                <div class="stat-value">{{ currentStats.efficiency }}%</div>
-                <div class="stat-label">Ocupación</div>
+          <!-- Estadísticas del servicio seleccionado -->
+          <div v-if="selectedService" class="service-stats-horizontal">
+            <div class="stats-section">
+              <h5>Estadísticas de {{ viewMode === 'month' ? 'Hoy' : selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }) }}</h5>
+              <div class="stats-grid-horizontal">
+                <div class="stat-card">
+                  <div class="stat-number">{{ currentStats.available }}</div>
+                  <div class="stat-label">Disponibles</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-number">{{ currentStats.booked }}</div>
+                  <div class="stat-label">Ocupados</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-number">${{ currentStats.revenue }}</div>
+                  <div class="stat-label">Ingresos Est.</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-number">{{ currentStats.efficiency }}%</div>
+                  <div class="stat-label">Ocupación</div>
+                </div>
               </div>
             </div>
           </div>
@@ -117,7 +62,7 @@
       </div>
 
       <!-- Contenido principal del calendario -->
-      <div class="main-calendar" :class="{ 'sidebar-expanded': sidebarExpanded || sidebarHover }">
+      <div class="main-calendar">
         <div class="calendar-header">
           <div class="header-left">
             <h2 v-if="selectedService">
@@ -129,7 +74,7 @@
               {{ selectedService.duration }}min • ${{ selectedService.price }}
             </div>
           </div>
-
+          
           <div class="header-controls">
             <!-- Toggle de vista -->
             <div class="view-toggle">
@@ -255,10 +200,10 @@
 
               <!-- Mensaje para días pasados o fines de semana -->
               <div v-if="(day.isPast || day.isWeekend) && day.isCurrentMonth" class="inactive-day">
-                <q-icon
-                  :name="day.isWeekend ? 'weekend' : 'event_busy'"
-                  size="md"
-                  color="grey-4"
+                <q-icon 
+                  :name="day.isWeekend ? 'weekend' : 'event_busy'" 
+                  size="md" 
+                  color="grey-4" 
                 />
                 <span>{{ day.isWeekend ? 'Fin de semana' : 'Día pasado' }}</span>
               </div>
@@ -266,21 +211,17 @@
           </div>
         </div>
 
-        <!-- Vista diaria detallada en tabla -->
+        <!-- Vista diaria detallada -->
         <div v-if="selectedService && viewMode === 'day'" class="day-view-container">
           <div class="day-view-header">
             <div class="day-info">
               <h3>{{ selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }) }}</h3>
               <div class="day-meta">
-                <q-chip color="positive" text-color="white" icon="check_circle">
-                  {{ daySlots.filter(s => s.status === 'available').length }} disponibles
-                </q-chip>
-                <q-chip color="negative" text-color="white" icon="event_busy">
-                  {{ daySlots.filter(s => s.status === 'booked').length }} ocupados
-                </q-chip>
+                <span class="available-count">{{ daySlots.filter(s => s.status === 'available').length }} disponibles</span>
+                <span class="booked-count">{{ daySlots.filter(s => s.status === 'booked').length }} ocupados</span>
               </div>
             </div>
-
+            
             <!-- Selector rápido de fecha -->
             <q-btn
               outline
@@ -291,110 +232,28 @@
             />
           </div>
 
-          <!-- Tabla de horarios -->
-          <div class="day-table-container">
-            <q-table
-              :rows="daySlots"
-              :columns="dayColumns"
-              row-key="time"
-              flat
-              bordered
-              :rows-per-page-options="[0]"
-              hide-pagination
-              class="appointments-table"
+          <div class="day-slots-grid">
+            <div
+              v-for="slot in daySlots"
+              :key="slot.time"
+              class="time-slot-detailed"
+              :class="{
+                'available': slot.status === 'available',
+                'booked': slot.status === 'booked',
+                'selected': slot.status === 'selected'
+              }"
+              @click="selectTimeSlot({ fullDate: selectedDate, slots: daySlots }, slot)"
             >
-              <template v-slot:body="props">
-                <q-tr :props="props"
-                     :class="{
-                       'available-row': props.row.status === 'available',
-                       'booked-row': props.row.status === 'booked',
-                       'selected-row': props.row.status === 'selected'
-                     }"
-                     @click="selectTimeSlot({ fullDate: selectedDate, slots: daySlots }, props.row)"
-                     style="cursor: pointer;">
-
-                  <q-td key="time" :props="props" class="time-column">
-                    <div class="time-display">
-                      <q-icon :name="getTimeIcon(props.row.status)" size="sm"
-                             :color="getTimeIconColor(props.row.status)" class="time-icon"/>
-                      <span class="time-text">{{ props.row.time }}</span>
-                    </div>
-                  </q-td>
-
-                  <q-td key="status" :props="props">
-                    <q-badge
-                      :color="props.row.status === 'available' ? 'positive' : props.row.status === 'booked' ? 'negative' : 'primary'"
-                      :label="getStatusLabel(props.row.status)"
-                      class="status-badge"
-                    />
-                  </q-td>
-
-                  <q-td key="owner" :props="props">
-                    <div v-if="props.row.appointment" class="owner-info">
-                      <div class="owner-name">{{ props.row.appointment.ownerName }}</div>
-                    </div>
-                    <div v-else class="available-slot">
-                      <q-icon name="person_add" size="sm" color="positive" />
-                      <span>Disponible para agendar</span>
-                    </div>
-                  </q-td>
-
-                  <q-td key="pet" :props="props">
-                    <div v-if="props.row.appointment" class="pet-info">
-                      <q-avatar size="32px" color="secondary" text-color="white" class="pet-avatar">
-                        <q-icon name="pets" />
-                      </q-avatar>
-                      <div class="pet-details">
-                        <div class="pet-name">{{ props.row.appointment.petName }}</div>
-                        <div class="pet-type">{{ props.row.appointment.petType || 'Mascota' }}</div>
-                      </div>
-                    </div>
-                    <div v-else class="no-pet">
-                      <q-icon name="pets" size="sm" color="grey-5" />
-                      <span class="text-grey-5">Sin asignar</span>
-                    </div>
-                  </q-td>
-
-                  <q-td key="actions" :props="props">
-                    <div class="action-buttons">
-                      <q-btn
-                        v-if="props.row.status === 'available'"
-                        size="sm"
-                        color="positive"
-                        icon="add"
-                        round
-                        flat
-                        @click.stop="selectTimeSlot({ fullDate: selectedDate, slots: daySlots }, props.row)"
-                      >
-                        <q-tooltip>Agendar cita</q-tooltip>
-                      </q-btn>
-                      <q-btn
-                        v-if="props.row.status === 'booked'"
-                        size="sm"
-                        color="info"
-                        icon="visibility"
-                        round
-                        flat
-                        @click.stop="viewAppointment(props.row)"
-                      >
-                        <q-tooltip>Ver detalles</q-tooltip>
-                      </q-btn>
-                      <q-btn
-                        v-if="props.row.status === 'selected'"
-                        size="sm"
-                        color="primary"
-                        icon="edit"
-                        round
-                        flat
-                        @click.stop="selectTimeSlot({ fullDate: selectedDate, slots: daySlots }, props.row)"
-                      >
-                        <q-tooltip>Confirmar cita</q-tooltip>
-                      </q-btn>
-                    </div>
-                  </q-td>
-                </q-tr>
-              </template>
-            </q-table>
+              <div class="slot-time-detailed">{{ slot.time }}</div>
+              <div v-if="slot.status === 'booked' && slot.appointment" class="slot-info-detailed">
+                <div class="owner-name">{{ slot.appointment.ownerName }}</div>
+                <div class="pet-name">{{ slot.appointment.petName }}</div>
+              </div>
+              <div v-if="slot.status === 'available'" class="slot-available-detailed">
+                <q-icon name="add" size="sm" />
+                <span>Disponible</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -402,7 +261,7 @@
         <div v-else-if="!selectedService" class="no-service-selected">
           <q-icon name="calendar_month" size="120px" color="grey-4" />
           <h3>Selecciona un Servicio</h3>
-          <p>Elige un servicio del menú lateral para ver su agenda de citas</p>
+          <p>Elige un servicio de la sección superior para ver su agenda de citas</p>
         </div>
       </div>
     </div>
@@ -748,10 +607,6 @@ const viewMode = ref('month') // 'month' o 'day'
 const selectedDate = ref(new Date())
 const showDatePicker = ref(false)
 
-// Estados del sidebar
-const sidebarExpanded = ref(false)
-const sidebarHover = ref(false)
-
 // Dialogs
 const showAppointmentDialog = ref(false)
 const showNewOwnerDialog = ref(false)
@@ -794,67 +649,67 @@ const newPet = ref({
 
 // Servicios disponibles
 const services = ref([
-  {
-    id: 1,
-    name: 'Consulta General',
-    duration: 30,
-    price: 150,
+  { 
+    id: 1, 
+    name: 'Consulta General', 
+    duration: 30, 
+    price: 150, 
     icon: 'medical_services',
     color: '#667eea'
   },
-  {
-    id: 2,
-    name: 'Consulta Especialidad',
-    duration: 45,
-    price: 300,
+  { 
+    id: 2, 
+    name: 'Consulta Especialidad', 
+    duration: 45, 
+    price: 300, 
     icon: 'psychology',
     color: '#764ba2'
   },
-  {
-    id: 3,
-    name: 'Vacunación',
-    duration: 20,
-    price: 200,
+  { 
+    id: 3, 
+    name: 'Vacunación', 
+    duration: 20, 
+    price: 200, 
     icon: 'vaccines',
     color: '#f093fb'
   },
-  {
-    id: 4,
-    name: 'Cirugía Menor',
-    duration: 60,
-    price: 800,
+  { 
+    id: 4, 
+    name: 'Cirugía Menor', 
+    duration: 60, 
+    price: 800, 
     icon: 'healing',
     color: '#f5576c'
   },
-  {
-    id: 5,
-    name: 'Baño y Corte',
-    duration: 90,
-    price: 300,
+  { 
+    id: 5, 
+    name: 'Baño y Corte', 
+    duration: 90, 
+    price: 300, 
     icon: 'pets',
     color: '#4facfe'
   },
-  {
-    id: 6,
-    name: 'Rayos X',
-    duration: 45,
-    price: 400,
+  { 
+    id: 6, 
+    name: 'Rayos X', 
+    duration: 45, 
+    price: 400, 
     icon: 'medical_information',
     color: '#43e97b'
   },
-  {
-    id: 7,
-    name: 'Laboratorio',
-    duration: 15,
-    price: 250,
+  { 
+    id: 7, 
+    name: 'Laboratorio', 
+    duration: 15, 
+    price: 250, 
     icon: 'science',
     color: '#fa709a'
   },
-  {
-    id: 8,
-    name: 'Emergencias',
-    duration: 60,
-    price: 500,
+  { 
+    id: 8, 
+    name: 'Emergencias', 
+    duration: 60, 
+    price: 500, 
     icon: 'emergency',
     color: '#ff6b6b'
   }
@@ -865,47 +720,6 @@ const speciesOptions = ref([
   'Perro', 'Gato', 'Ave', 'Conejo', 'Hamster', 'Reptil', 'Otro'
 ])
 
-// Columnas para la tabla de horarios diarios
-const dayColumns = ref([
-  {
-    name: 'time',
-    required: true,
-    label: 'Hora',
-    align: 'left',
-    field: 'time',
-    sortable: true,
-    style: 'width: 120px'
-  },
-  {
-    name: 'status',
-    label: 'Estado',
-    align: 'center',
-    field: 'status',
-    style: 'width: 130px'
-  },
-  {
-    name: 'owner',
-    label: 'Propietario',
-    align: 'left',
-    field: row => row.appointment?.ownerName || '',
-    style: 'width: 200px'
-  },
-  {
-    name: 'pet',
-    label: 'Mascota',
-    align: 'left',
-    field: row => row.appointment?.petName || '',
-    style: 'width: 180px'
-  },
-  {
-    name: 'actions',
-    label: 'Acciones',
-    align: 'center',
-    field: 'actions',
-    style: 'width: 120px'
-  }
-])
-
 // Horarios de trabajo por servicio
 const getWorkingHours = (serviceId) => {
   const baseHours = [
@@ -913,7 +727,7 @@ const getWorkingHours = (serviceId) => {
     '11:00', '11:30', '14:00', '14:30', '15:00', '15:30',
     '16:00', '16:30', '17:00', '17:30'
   ]
-
+  
   // Emergencias 24/7
   if (serviceId === 8) {
     return [
@@ -922,7 +736,7 @@ const getWorkingHours = (serviceId) => {
       '16:00','17:00','18:00','19:00','20:00','21:00','22:00','23:00'
     ]
   }
-
+  
   return baseHours
 }
 
@@ -946,21 +760,21 @@ const selectedDateString = computed({
 // Slots del día seleccionado para vista diaria
 const daySlots = computed(() => {
   if (!selectedService.value) return []
-
+  
   const date = selectedDate.value
   const today = new Date()
   const isPast = date < today && !isSameDay(date, today)
   const isWeekend = date.getDay() === 0 || date.getDay() === 6
-
+  
   if (isPast || (selectedService.value.id !== 8 && isWeekend)) {
     return []
   }
-
+  
   const workingHours = getWorkingHours(selectedService.value.id)
   return workingHours.map(time => {
     const isBooked = Math.random() < 0.4
     const mockAppointment = isBooked ? generateMockAppointment() : null
-
+    
     return {
       time,
       status: isBooked ? 'booked' : 'available',
@@ -971,14 +785,14 @@ const daySlots = computed(() => {
 
 const calendarDays = computed(() => {
   if (!selectedService.value) return []
-
+  
   const firstDay = new Date(currentYear.value, currentMonth.value, 1)
   const lastDay = new Date(currentYear.value, currentMonth.value + 1, 0)
   const firstDayWeek = firstDay.getDay()
   const today = new Date()
-
+  
   const days = []
-
+  
   // Días del mes anterior
   for (let i = firstDayWeek - 1; i >= 0; i--) {
     const date = new Date(firstDay)
@@ -995,14 +809,14 @@ const calendarDays = computed(() => {
       slots: []
     })
   }
-
+  
   // Días del mes actual
   for (let day = 1; day <= lastDay.getDate(); day++) {
     const date = new Date(currentYear.value, currentMonth.value, day)
     const isToday = date.toDateString() === today.toDateString()
     const isPast = date < today && !isToday
     const isWeekend = date.getDay() === 0 || date.getDay() === 6
-
+    
     // Generar slots para días válidos
     const slots = []
     if (!isPast && (selectedService.value.id === 8 || !isWeekend)) { // Emergencias trabaja fines de semana
@@ -1011,7 +825,7 @@ const calendarDays = computed(() => {
         // Simulación de ocupación con datos más realistas
         const isBooked = Math.random() < 0.4 // 40% de probabilidad de estar ocupado
         const mockAppointment = isBooked ? generateMockAppointment() : null
-
+        
         slots.push({
           time,
           status: isBooked ? 'booked' : 'available',
@@ -1019,10 +833,10 @@ const calendarDays = computed(() => {
         })
       })
     }
-
+    
     const availableSlots = slots.filter(s => s.status === 'available').length
     const bookedSlots = slots.filter(s => s.status === 'booked').length
-
+    
     days.push({
       date: day,
       fullDate: new Date(date),
@@ -1035,11 +849,11 @@ const calendarDays = computed(() => {
       slots
     })
   }
-
+  
   // Días del mes siguiente para completar la grilla
   const totalCells = 42
   const remainingCells = totalCells - days.length
-
+  
   for (let day = 1; day <= remainingCells; day++) {
     const date = new Date(currentYear.value, currentMonth.value + 1, day)
     days.push({
@@ -1054,14 +868,14 @@ const calendarDays = computed(() => {
       slots: []
     })
   }
-
+  
   return days
 })
 
 // Generar datos mock de cita
 const generateMockAppointment = () => {
   const owners = [
-    'García López', 'Rodríguez M.', 'Hernández S.', 'López García',
+    'García López', 'Rodríguez M.', 'Hernández S.', 'López García', 
     'Martínez R.', 'González P.', 'Pérez Luna', 'Sánchez V.',
     'Ramírez C.', 'Torres M.', 'Flores D.', 'Rivera A.'
   ]
@@ -1069,19 +883,17 @@ const generateMockAppointment = () => {
     'Max', 'Luna', 'Rocky', 'Bella', 'Charlie', 'Lucy', 'Cooper', 'Daisy',
     'Buddy', 'Molly', 'Duke', 'Sadie', 'Zeus', 'Chloe', 'Bear', 'Sophie'
   ]
-  const petTypes = ['Perro', 'Gato', 'Ave', 'Conejo']
-
+  
   return {
     ownerName: owners[Math.floor(Math.random() * owners.length)],
-    petName: pets[Math.floor(Math.random() * pets.length)],
-    petType: petTypes[Math.floor(Math.random() * petTypes.length)]
+    petName: pets[Math.floor(Math.random() * pets.length)]
   }
 }
 
 // Estadísticas actuales (hoy para vista mes, día seleccionado para vista día)
 const currentStats = computed(() => {
   if (!selectedService.value) return { available: 0, booked: 0, revenue: 0, efficiency: 0 }
-
+  
   let targetDay
   if (viewMode.value === 'month') {
     targetDay = calendarDays.value.find(day => day.isToday)
@@ -1091,18 +903,18 @@ const currentStats = computed(() => {
     const total = available + booked
     const revenue = booked * selectedService.value.price
     const efficiency = total > 0 ? Math.round((booked / total) * 100) : 0
-
+    
     return { available, booked, revenue, efficiency }
   }
-
+  
   if (!targetDay) return { available: 0, booked: 0, revenue: 0, efficiency: 0 }
-
+  
   const available = targetDay.availableSlots
   const booked = targetDay.bookedSlots
   const total = available + booked
   const revenue = booked * selectedService.value.price
   const efficiency = total > 0 ? Math.round((booked / total) * 100) : 0
-
+  
   return { available, booked, revenue, efficiency }
 })
 
@@ -1123,52 +935,12 @@ const dateOptions = (date) => {
   const today = new Date()
   const isWeekend = targetDate.getDay() === 0 || targetDate.getDay() === 6
   const isPast = targetDate < today && !isSameDay(targetDate, today)
-
+  
   // Permitir solo días futuros y presente, y fines de semana solo para emergencias
   return !isPast && (selectedService.value?.id === 8 || !isWeekend)
 }
 
-// Métodos para la tabla
-const getTimeIcon = (status) => {
-  switch (status) {
-    case 'available': return 'check_circle'
-    case 'booked': return 'event_busy'
-    case 'selected': return 'radio_button_checked'
-    default: return 'schedule'
-  }
-}
-
-const getTimeIconColor = (status) => {
-  switch (status) {
-    case 'available': return 'positive'
-    case 'booked': return 'negative'
-    case 'selected': return 'primary'
-    default: return 'grey'
-  }
-}
-
-const getStatusLabel = (status) => {
-  switch (status) {
-    case 'available': return 'Disponible'
-    case 'booked': return 'Ocupado'
-    case 'selected': return 'Seleccionado'
-    default: return 'Desconocido'
-  }
-}
-
-const viewAppointment = (slot) => {
-  $q.notify({
-    type: 'info',
-    message: `Cita de ${slot.appointment.petName} con ${slot.appointment.ownerName}`,
-    caption: `Hora: ${slot.time}`
-  })
-}
-
 // Métodos
-const toggleSidebar = () => {
-  sidebarExpanded.value = !sidebarExpanded.value
-}
-
 const selectService = (service) => {
   selectedService.value = service
   // Limpiar selecciones anteriores
@@ -1221,7 +993,7 @@ const selectDayForDayView = (day) => {
   if (!day.isCurrentMonth || day.isPast || (!selectedService.value || selectedService.value.id !== 8) && day.isWeekend) {
     return
   }
-
+  
   viewMode.value = 'day'
   selectedDate.value = new Date(day.fullDate)
 }
@@ -1239,7 +1011,7 @@ const selectTimeSlot = (day, slot) => {
     })
     return
   }
-
+  
   // Limpiar selección anterior
   if (viewMode.value === 'month') {
     calendarDays.value.forEach(d => {
@@ -1256,29 +1028,29 @@ const selectTimeSlot = (day, slot) => {
       }
     })
   }
-
+  
   // Marcar como seleccionado
   slot.status = 'selected'
-
+  
   selectedSlot.value = {
     date: day.fullDate.toLocaleDateString('es-ES'),
     dayName: day.fullDate.toLocaleDateString('es-ES', { weekday: 'long' }),
     time: slot.time,
     fullDate: day.fullDate
   }
-
+  
   showAppointmentDialog.value = true
 }
 
 // Búsqueda de propietarios
 const searchOwners = async () => {
   if (!ownerSearch.value.trim()) return
-
+  
   searchingOwners.value = true
-
+  
   try {
     await new Promise(resolve => setTimeout(resolve, 800))
-
+    
     // Datos de ejemplo más extensos
     const mockOwners = [
       {
@@ -1322,15 +1094,15 @@ const searchOwners = async () => {
         email: 'roberto.martinez@email.com'
       }
     ]
-
-    ownerResults.value = mockOwners.filter(owner =>
+    
+    ownerResults.value = mockOwners.filter(owner => 
       owner.nombre.toLowerCase().includes(ownerSearch.value.toLowerCase()) ||
       owner.primerapellido.toLowerCase().includes(ownerSearch.value.toLowerCase()) ||
       owner.segundoapellido.toLowerCase().includes(ownerSearch.value.toLowerCase()) ||
       owner.telefono1.includes(ownerSearch.value) ||
       (owner.email && owner.email.toLowerCase().includes(ownerSearch.value.toLowerCase()))
     )
-
+    
   } catch (error) {
     $q.notify({
       type: 'negative',
@@ -1358,7 +1130,7 @@ const selectOwner = async (owner) => {
 const loadOwnerPets = async (ownerId) => {
   try {
     await new Promise(resolve => setTimeout(resolve, 500))
-
+    
     // Datos mock de mascotas por propietario
     const mockPetsData = {
       1: [
@@ -1381,9 +1153,9 @@ const loadOwnerPets = async (ownerId) => {
         { id: 9, nombre: 'Molly', especie: 'Gato', raza: 'Maine Coon', edad: 4 }
       ]
     }
-
+    
     ownerPets.value = mockPetsData[ownerId] || []
-
+    
   } catch (error) {
     $q.notify({
       type: 'negative',
@@ -1399,7 +1171,7 @@ const selectPet = (pet) => {
 // Dialogs
 const closeAppointmentDialog = () => {
   showAppointmentDialog.value = false
-
+  
   if (selectedSlot.value) {
     if (viewMode.value === 'month') {
       calendarDays.value.forEach(d => {
@@ -1417,7 +1189,7 @@ const closeAppointmentDialog = () => {
       })
     }
   }
-
+  
   selectedSlot.value = null
   selectedOwner.value = null
   selectedPet.value = null
@@ -1444,28 +1216,28 @@ const closeNewOwnerDialog = () => {
 const saveNewOwner = async () => {
   const valid = await newOwnerForm.value.validate()
   if (!valid) return
-
+  
   savingNewOwner.value = true
-
+  
   try {
     await new Promise(resolve => setTimeout(resolve, 1500))
-
+    
     const owner = {
       ...newOwner.value,
       id: Date.now()
     }
-
+    
     selectedOwner.value = owner
     ownerPets.value = []
-
+    
     showNewOwnerDialog.value = false
     closeNewOwnerDialog()
-
+    
     $q.notify({
       type: 'positive',
       message: 'Propietario registrado exitosamente'
     })
-
+    
   } catch (error) {
     $q.notify({
       type: 'negative',
@@ -1492,29 +1264,29 @@ const closeNewPetDialog = () => {
 const saveNewPet = async () => {
   const valid = await newPetForm.value.validate()
   if (!valid) return
-
+  
   savingNewPet.value = true
-
+  
   try {
     await new Promise(resolve => setTimeout(resolve, 1500))
-
+    
     const pet = {
       ...newPet.value,
       id: Date.now(),
       id_propietario: selectedOwner.value.id
     }
-
+    
     selectedPet.value = pet
     ownerPets.value.push(pet)
-
+    
     showNewPetDialog.value = false
     closeNewPetDialog()
-
+    
     $q.notify({
       type: 'positive',
       message: 'Mascota registrada exitosamente'
     })
-
+    
   } catch (error) {
     $q.notify({
       type: 'negative',
@@ -1527,10 +1299,10 @@ const saveNewPet = async () => {
 
 const confirmAppointment = async () => {
   savingAppointment.value = true
-
+  
   try {
     await new Promise(resolve => setTimeout(resolve, 2000))
-
+    
     const appointmentData = {
       propietario: selectedOwner.value,
       mascota: selectedPet.value,
@@ -1540,7 +1312,7 @@ const confirmAppointment = async () => {
       notas: appointmentNotes.value,
       estado: 'programada'
     }
-
+    
     // Marcar el horario como ocupado
     if (viewMode.value === 'month') {
       calendarDays.value.forEach(d => {
@@ -1550,7 +1322,6 @@ const confirmAppointment = async () => {
             s.appointment = {
               petName: selectedPet.value.nombre,
               ownerName: `${selectedOwner.value.nombre} ${selectedOwner.value.primerapellido}`,
-              petType: selectedPet.value.especie,
               service: selectedService.value.name
             }
           }
@@ -1563,23 +1334,22 @@ const confirmAppointment = async () => {
           s.appointment = {
             petName: selectedPet.value.nombre,
             ownerName: `${selectedOwner.value.nombre} ${selectedOwner.value.primerapellido}`,
-            petType: selectedPet.value.especie,
             service: selectedService.value.name
           }
         }
       })
     }
-
+    
     console.log('Cita guardada:', appointmentData)
-
+    
     showAppointmentDialog.value = false
     showSuccessDialog.value = true
-
+    
     $q.notify({
       type: 'positive',
       message: 'Cita programada exitosamente'
     })
-
+    
   } catch (error) {
     $q.notify({
       type: 'negative',
@@ -1592,7 +1362,7 @@ const confirmAppointment = async () => {
 
 const closeSuccessDialog = () => {
   showSuccessDialog.value = false
-
+  
   selectedSlot.value = null
   selectedOwner.value = null
   selectedPet.value = null
@@ -1620,228 +1390,184 @@ onMounted(() => {
 
 .app-layout {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
 }
 
-/* Sidebar de servicios */
-.services-sidebar {
-  position: fixed;
-  left: 0;
-  top: 0;
-  height: 100vh;
-  background: linear-gradient(180deg, #2d3748 0%, #1a202c 100%);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 1000;
-  box-shadow: 2px 0 20px rgba(0, 0, 0, 0.15);
-  width: 80px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+/* Header de servicios */
+.services-header {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
 }
 
-.services-sidebar.expanded,
-.services-sidebar.hover-expanded {
-  width: 300px;
+.services-container {
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-.sidebar-header {
-  padding: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+.services-title-section {
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-height: 80px;
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
-.sidebar-toggle {
-  flex-shrink: 0;
+.title-content h3 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #2d3748;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.sidebar-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: white;
-  font-size: 18px;
-  font-weight: 600;
-  white-space: nowrap;
+.title-content p {
+  margin: 4px 0 0 0;
+  color: #718096;
+  font-size: 16px;
 }
 
-.services-list {
-  flex: 1;
-  padding: 16px 0;
-  overflow-y: auto;
+/* Grid de servicios */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
-.service-item-sidebar {
-  display: flex;
-  align-items: center;
-  padding: 16px 20px;
-  margin: 4px 0;
+.service-card {
+  background: white;
+  border-radius: 16px;
+  padding: 10px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid transparent;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   position: relative;
-  border-radius: 0 25px 25px 0;
-  margin-right: 20px;
+  overflow: hidden;
 }
 
-.service-item-sidebar:hover {
-  background: rgba(255, 255, 255, 0.1);
-  transform: translateX(8px);
-}
-
-.service-item-sidebar.active {
-  background: rgba(255, 255, 255, 0.15);
-  border-right: 4px solid #4fd1c7;
-}
-
-.service-item-sidebar.active::before {
+.service-card::before {
   content: '';
   position: absolute;
-  left: 0;
   top: 0;
-  bottom: 0;
-  width: 4px;
-  background: linear-gradient(180deg, #4fd1c7, #06b6d4);
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.service-card:hover::before,
+.service-card.active::before {
+  transform: scaleX(1);
+}
+
+.service-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.service-card.active {
+  border-color: #667eea;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.3);
 }
 
 .service-icon {
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.service-content {
-  margin-left: 16px;
-  flex: 1;
-  min-width: 0;
-}
-
-.service-name {
+  width: 38px;
+  height: 38px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 12px;
   color: white;
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.service-details {
-  display: flex;
-  gap: 12px;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-/* Tooltip personalizado */
-.tooltip-content {
-  text-align: center;
-}
-
-.tooltip-name {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.tooltip-details {
-  font-size: 12px;
-  opacity: 0.9;
-}
-
-/* Estadísticas en sidebar */
-.sidebar-stats {
-  padding: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.2);
-}
-
-.stats-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: white;
-  font-size: 14px;
-  font-weight: 600;
   margin-bottom: 16px;
 }
 
-.stats-grid-sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.service-info h4 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2d3748;
 }
 
-.stat-item-sidebar {
+.service-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 14px;
+  color: #718096;
+}
+
+.service-meta span {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  gap: 4px;
 }
 
-.stat-item-sidebar:hover {
-  background: rgba(255, 255, 255, 0.15);
+/* Estadísticas horizontales */
+.service-stats-horizontal {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-.stat-icon {
-  flex-shrink: 0;
-  color: rgba(255, 255, 255, 0.8);
+.stats-section h5 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #2d3748;
 }
 
-.stat-item-sidebar.available .stat-icon {
-  color: #68d391;
+.stats-grid-horizontal {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 16px;
 }
 
-.stat-item-sidebar.booked .stat-icon {
-  color: #fc8181;
+.stat-card {
+  text-align: center;
+  padding: 16px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease;
 }
 
-.stat-item-sidebar.revenue .stat-icon {
-  color: #63b3ed;
+.stat-card:hover {
+  transform: translateY(-2px);
 }
 
-.stat-item-sidebar.efficiency .stat-icon {
-  color: #f6ad55;
-}
-
-.stat-info {
-  flex: 1;
-}
-
-.stat-value {
-  color: white;
-  font-size: 16px;
+.stat-number {
+  font-size: 24px;
   font-weight: 700;
-  line-height: 1;
+  color: #667eea;
+  margin-bottom: 4px;
 }
 
 .stat-label {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 11px;
+  font-size: 12px;
+  color: #718096;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-top: 2px;
 }
 
-/* Calendario principal ajustado */
+/* Calendario principal */
 .main-calendar {
   flex: 1;
   background: white;
-  margin-left: 80px;
-  border-radius: 24px 0 0 0;
+  margin: 0;
+  border-radius: 24px 24px 0 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.main-calendar.sidebar-expanded {
-  margin-left: 300px;
 }
 
 .calendar-header {
@@ -2053,7 +1779,7 @@ onMounted(() => {
   color: #a0aec0;
 }
 
-/* Vista diaria con tabla */
+/* Vista diaria */
 .day-view-container {
   flex: 1;
   padding: 24px 32px;
@@ -2070,7 +1796,7 @@ onMounted(() => {
 }
 
 .day-info h3 {
-  margin: 0 0 12px 0;
+  margin: 0 0 8px 0;
   font-size: 24px;
   font-weight: 700;
   color: #2d3748;
@@ -2079,161 +1805,101 @@ onMounted(() => {
 
 .day-meta {
   display: flex;
+  gap: 16px;
+  font-size: 14px;
+}
+
+.available-count {
+  color: #38a169;
+  font-weight: 600;
+}
+
+.booked-count {
+  color: #e53e3e;
+  font-weight: 600;
+}
+
+.day-slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 12px;
-  flex-wrap: wrap;
+  max-height: 60vh;
+  overflow-y: auto;
 }
 
-/* Tabla de horarios */
-.day-table-container {
+.time-slot-detailed {
   background: white;
+  border: 2px solid #e2e8f0;
   border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-}
-
-.appointments-table {
-  font-family: inherit;
-}
-
-.appointments-table .q-table__top,
-.appointments-table .q-table__bottom {
   padding: 16px;
-}
-
-.appointments-table th {
-  background: #f8fafc;
-  color: #4a5568;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-size: 12px;
-  padding: 16px 12px;
-}
-
-.appointments-table td {
-  padding: 16px 12px;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.appointments-table tr {
-  transition: all 0.2s ease;
-}
-
-.appointments-table tr:hover {
-  background: #f8faff;
-}
-
-.available-row {
-  background: rgba(72, 187, 120, 0.05);
-}
-
-.available-row:hover {
-  background: rgba(72, 187, 120, 0.1);
-}
-
-.booked-row {
-  background: rgba(245, 101, 101, 0.05);
-}
-
-.booked-row:hover {
-  background: rgba(245, 101, 101, 0.1);
-}
-
-.selected-row {
-  background: rgba(102, 126, 234, 0.1);
-  border-left: 4px solid #667eea;
-}
-
-.selected-row:hover {
-  background: rgba(102, 126, 234, 0.15);
-}
-
-/* Columnas de la tabla */
-.time-column {
-  font-weight: 600;
-}
-
-.time-display {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.time-icon {
-  flex-shrink: 0;
-}
-
-.time-text {
-  font-size: 16px;
-}
-
-.status-badge {
-  font-size: 11px;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.owner-info {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 80px;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+}
+
+.time-slot-detailed:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.time-slot-detailed.available {
+  border-color: #68d391;
+  background: linear-gradient(135deg, #f0fff4, #c6f6d5);
+}
+
+.time-slot-detailed.available:hover {
+  border-color: #38a169;
+  box-shadow: 0 8px 25px rgba(56, 161, 105, 0.2);
+}
+
+.time-slot-detailed.booked {
+  border-color: #fc8181;
+  background: linear-gradient(135deg, #fef5e7, #fed7d7);
+  cursor: not-allowed;
+}
+
+.time-slot-detailed.selected {
+  border-color: #667eea;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.slot-time-detailed {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.slot-info-detailed {
+  font-size: 14px;
 }
 
 .owner-name {
   font-weight: 600;
-  color: #2d3748;
-  font-size: 14px;
-}
-
-.available-slot {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #48bb78;
-  font-size: 14px;
-  font-style: italic;
-}
-
-.pet-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.pet-avatar {
-  flex-shrink: 0;
-}
-
-.pet-details {
-  flex: 1;
-}
-
-.pet-name {
-  font-weight: 600;
-  color: #2d3748;
-  font-size: 14px;
   margin-bottom: 2px;
 }
 
-.pet-type {
+.pet-name {
   color: #718096;
-  font-size: 12px;
-}
-
-.no-pet {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
   font-style: italic;
 }
 
-.action-buttons {
+.slot-available-detailed {
   display: flex;
-  justify-content: center;
-  gap: 4px;
+  align-items: center;
+  gap: 8px;
+  color: #38a169;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.time-slot-detailed.selected .slot-available-detailed {
+  color: white;
 }
 
 /* Estado sin servicio seleccionado */
@@ -2436,6 +2102,22 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
+.pet-info {
+  flex: 1;
+}
+
+.pet-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: #2d3748;
+  margin-bottom: 4px;
+}
+
+.pet-details {
+  font-size: 14px;
+  color: #718096;
+}
+
 .dialog-actions {
   padding: 24px 32px;
   background: #f8f9fa;
@@ -2502,118 +2184,85 @@ onMounted(() => {
 
 /* Responsive */
 @media (max-width: 768px) {
-  .services-sidebar {
-    width: 70px;
+  .services-header {
+    padding: 16px;
   }
-
-  .services-sidebar.expanded,
-  .services-sidebar.hover-expanded {
-    width: 280px;
+  
+  .services-grid {
+    grid-template-columns: 1fr;
   }
-
-  .main-calendar {
-    margin-left: 70px;
+  
+  .stats-grid-horizontal {
+    grid-template-columns: repeat(2, 1fr);
   }
-
-  .main-calendar.sidebar-expanded {
-    margin-left: 280px;
-  }
-
+  
   .calendar-header {
     padding: 16px;
     flex-direction: column;
     align-items: stretch;
   }
-
+  
   .header-controls {
     justify-content: center;
     gap: 16px;
   }
-
+  
   .calendar-container {
     padding: 16px;
   }
-
+  
   .day-cell {
     min-height: 80px;
     padding: 8px;
   }
-
-  .day-view-container {
-    padding: 16px;
+  
+  .day-slots-grid {
+    grid-template-columns: 1fr;
   }
-
-  .day-table-container {
-    overflow-x: auto;
-  }
-
-  .appointments-table th,
-  .appointments-table td {
-    padding: 12px 8px;
-    font-size: 14px;
-  }
-
+  
   .dialog-content {
     padding: 16px;
   }
-
+  
   .form-grid {
     grid-template-columns: 1fr;
   }
-
+  
   .col-span-2 {
     grid-column: span 1;
   }
-
+  
   .pets-grid {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 480px) {
-  .services-sidebar {
-    width: 60px;
+  .title-content h3 {
+    font-size: 24px;
   }
-
-  .services-sidebar.expanded,
-  .services-sidebar.hover-expanded {
-    width: 100vw;
-  }
-
-  .main-calendar {
-    margin-left: 60px;
-  }
-
-  .main-calendar.sidebar-expanded {
-    margin-left: 100vw;
-  }
-
-  .sidebar-header {
+  
+  .service-card {
     padding: 16px;
   }
-
-  .service-item-sidebar {
-    padding: 14px 16px;
-    margin-right: 16px;
+  
+  .service-icon {
+    width: 40px;
+    height: 40px;
   }
-
+  
   .day-cell {
     min-height: 60px;
     padding: 6px;
   }
-
+  
   .day-number {
     font-size: 14px;
   }
-
+  
   .time-slot-mini {
     font-size: 10px;
     padding: 2px 4px;
-  }
-
-  .day-meta {
-    flex-direction: column;
-    gap: 8px;
   }
 }
 
@@ -2629,45 +2278,51 @@ onMounted(() => {
   }
 }
 
-.service-item-sidebar,
-.stat-item-sidebar,
+.service-card,
+.stat-card,
+.time-slot-detailed,
 .result-item,
 .pet-item {
   animation: fadeIn 0.3s ease-out backwards;
 }
 
+.service-card:nth-child(1) { animation-delay: 0.1s; }
+.service-card:nth-child(2) { animation-delay: 0.2s; }
+.service-card:nth-child(3) { animation-delay: 0.3s; }
+.service-card:nth-child(4) { animation-delay: 0.4s; }
+.service-card:nth-child(5) { animation-delay: 0.5s; }
+.service-card:nth-child(6) { animation-delay: 0.6s; }
+.service-card:nth-child(7) { animation-delay: 0.7s; }
+.service-card:nth-child(8) { animation-delay: 0.8s; }
+
 /* Scrollbars personalizados */
 .calendar-container::-webkit-scrollbar,
-.day-view-container::-webkit-scrollbar,
+.day-slots-grid::-webkit-scrollbar,
 .search-results::-webkit-scrollbar,
-.dialog-content::-webkit-scrollbar,
-.services-list::-webkit-scrollbar {
+.dialog-content::-webkit-scrollbar {
   width: 8px;
 }
 
 .calendar-container::-webkit-scrollbar-track,
-.day-view-container::-webkit-scrollbar-track,
+.day-slots-grid::-webkit-scrollbar-track,
 .search-results::-webkit-scrollbar-track,
-.dialog-content::-webkit-scrollbar-track,
-.services-list::-webkit-scrollbar-track {
+.dialog-content::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 4px;
 }
 
 .calendar-container::-webkit-scrollbar-thumb,
-.day-view-container::-webkit-scrollbar-thumb,
+.day-slots-grid::-webkit-scrollbar-thumb,
 .search-results::-webkit-scrollbar-thumb,
-.dialog-content::-webkit-scrollbar-thumb,
-.services-list::-webkit-scrollbar-thumb {
+.dialog-content::-webkit-scrollbar-thumb {
   background: #c1c1c1;
   border-radius: 4px;
 }
 
 .calendar-container::-webkit-scrollbar-thumb:hover,
-.day-view-container::-webkit-scrollbar-thumb:hover,
+.day-slots-grid::-webkit-scrollbar-thumb:hover,
 .search-results::-webkit-scrollbar-thumb:hover,
-.dialog-content::-webkit-scrollbar-thumb:hover,
-.services-list::-webkit-scrollbar-thumb:hover {
+.dialog-content::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
 
@@ -2677,14 +2332,14 @@ onMounted(() => {
 }
 
 /* Mejoras de accesibilidad */
-.service-item-sidebar:focus,
+.service-card:focus,
 .day-cell:focus,
-.appointments-table tr:focus {
+.time-slot-detailed:focus {
   outline: 2px solid #667eea;
   outline-offset: 2px;
 }
 
-/* Transiciones suaves */
+/* Transiciones suaves para el cambio de tema */
 * {
   transition: background-color 0.3s ease, border-color 0.3s ease;
 }

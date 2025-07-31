@@ -1,113 +1,72 @@
 <template>
   <div class="fullscreen-calendar">
     <div class="app-layout">
-      <!-- Menú lateral de servicios -->
-      <div
-        class="services-sidebar"
-        :class="{ 'expanded': sidebarExpanded, 'hover-expanded': sidebarHover }"
-        @mouseenter="sidebarHover = true"
-        @mouseleave="sidebarHover = false"
-      >
-        <!-- Header del sidebar -->
-        <div class="sidebar-header">
-          <div class="sidebar-toggle">
-            <q-btn
-              flat
-              round
-              :icon="sidebarExpanded ? 'menu_open' : 'menu'"
-              color="white"
-              size="md"
-              @click="toggleSidebar"
-            />
-          </div>
-          <div class="sidebar-title" v-show="sidebarExpanded || sidebarHover">
-            <q-icon name="medical_services" size="24px" color="white" />
-            <span>Servicios</span>
-          </div>
-        </div>
-
-        <!-- Lista de servicios -->
-        <div class="services-list">
-          <div
-            v-for="service in services"
-            :key="service.id"
-            class="service-item-sidebar"
-            :class="{ 'active': selectedService?.id === service.id }"
-            @click="selectService(service)"
-          >
-            <div class="service-icon">
-              <q-avatar :color="service.color" text-color="white" size="40px">
-                <q-icon :name="service.icon" size="20px" />
-              </q-avatar>
+      <!-- Sección de servicios compacta -->
+      <div class="services-header">
+        <div class="services-container">
+          <div class="services-title-section">
+            <q-icon name="medical_services" size="28px" color="primary" />
+            <div class="title-content">
+              <h3>Agendas por Servicio</h3>
+              <p>Selecciona un servicio para ver su agenda</p>
             </div>
+          </div>
 
-            <div class="service-content" v-show="sidebarExpanded || sidebarHover">
-              <div class="service-name">{{ service.name }}</div>
-              <div class="service-details">
-                <span class="service-duration">
-                  <q-icon name="schedule" size="xs" /> {{ service.duration }}min
-                </span>
-                <span class="service-price">
-                  <q-icon name="attach_money" size="xs" /> ${{ service.price }}
-                </span>
-              </div>
+          <!-- Lista compacta de servicios -->
+          <div class="services-list-container">
+            <q-list bordered separator class="services-list">
+              <q-item
+                v-for="service in services"
+                :key="service.id"
+                clickable
+                v-ripple
+                class="service-item"
+                :class="{ 'selected-service': selectedService?.id === service.id }"
+                @click="selectService(service)"
+              >
+                <q-item-section avatar>
+                  <q-avatar :color="selectedService?.id === service.id ? 'primary' : 'grey-3'"
+                           :text-color="selectedService?.id === service.id ? 'white' : 'grey-6'"
+                           size="40px">
+                    <q-icon :name="service.icon" />
+                  </q-avatar>
+                </q-item-section>
+
+                <q-item-section>
+                  <q-item-label class="service-name">{{ service.name }}</q-item-label>
+                  <q-item-label caption class="service-details">
+                    <q-icon name="schedule" size="xs" class="detail-icon"/> {{ service.duration }}min
+                    <q-icon name="attach_money" size="xs" class="detail-icon ml-3"/>${{ service.price }}
+                  </q-item-label>
+                </q-item-section>
+
+                <q-item-section side v-if="selectedService?.id === service.id">
+                  <q-icon name="check_circle" color="primary" size="sm" />
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </div>
+
+          <!-- Estadísticas compactas -->
+          <div v-if="selectedService" class="service-stats-compact">
+            <div class="stats-title">
+              <q-icon name="analytics" size="sm" />
+              <span>{{ viewMode === 'month' ? 'Hoy' : selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }) }}</span>
             </div>
-
-            <!-- Tooltip cuando está colapsado -->
-            <q-tooltip
-              v-if="!sidebarExpanded && !sidebarHover"
-              anchor="center right"
-              self="center left"
-              :offset="[10, 0]"
-              class="bg-grey-9 text-white"
-            >
-              <div class="tooltip-content">
-                <div class="tooltip-name">{{ service.name }}</div>
-                <div class="tooltip-details">{{ service.duration }}min • ${{ service.price }}</div>
-              </div>
-            </q-tooltip>
-          </div>
-        </div>
-
-        <!-- Estadísticas en el sidebar -->
-        <div v-if="selectedService && (sidebarExpanded || sidebarHover)" class="sidebar-stats">
-          <div class="stats-header">
-            <q-icon name="analytics" size="sm" color="white" />
-            <span>{{ viewMode === 'month' ? 'Hoy' : 'Día Seleccionado' }}</span>
-          </div>
-          <div class="stats-grid-sidebar">
-            <div class="stat-item-sidebar available">
-              <div class="stat-icon">
-                <q-icon name="check_circle" size="sm" />
-              </div>
-              <div class="stat-info">
+            <div class="stats-grid-compact">
+              <div class="stat-item-compact available">
                 <div class="stat-value">{{ currentStats.available }}</div>
                 <div class="stat-label">Disponibles</div>
               </div>
-            </div>
-            <div class="stat-item-sidebar booked">
-              <div class="stat-icon">
-                <q-icon name="event_busy" size="sm" />
-              </div>
-              <div class="stat-info">
+              <div class="stat-item-compact booked">
                 <div class="stat-value">{{ currentStats.booked }}</div>
                 <div class="stat-label">Ocupados</div>
               </div>
-            </div>
-            <div class="stat-item-sidebar revenue">
-              <div class="stat-icon">
-                <q-icon name="monetization_on" size="sm" />
-              </div>
-              <div class="stat-info">
+              <div class="stat-item-compact revenue">
                 <div class="stat-value">${{ currentStats.revenue }}</div>
                 <div class="stat-label">Ingresos</div>
               </div>
-            </div>
-            <div class="stat-item-sidebar efficiency">
-              <div class="stat-icon">
-                <q-icon name="trending_up" size="sm" />
-              </div>
-              <div class="stat-info">
+              <div class="stat-item-compact efficiency">
                 <div class="stat-value">{{ currentStats.efficiency }}%</div>
                 <div class="stat-label">Ocupación</div>
               </div>
@@ -117,7 +76,7 @@
       </div>
 
       <!-- Contenido principal del calendario -->
-      <div class="main-calendar" :class="{ 'sidebar-expanded': sidebarExpanded || sidebarHover }">
+      <div class="main-calendar">
         <div class="calendar-header">
           <div class="header-left">
             <h2 v-if="selectedService">
@@ -402,7 +361,7 @@
         <div v-else-if="!selectedService" class="no-service-selected">
           <q-icon name="calendar_month" size="120px" color="grey-4" />
           <h3>Selecciona un Servicio</h3>
-          <p>Elige un servicio del menú lateral para ver su agenda de citas</p>
+          <p>Elige un servicio de la lista superior para ver su agenda de citas</p>
         </div>
       </div>
     </div>
@@ -747,10 +706,6 @@ const selectedSlot = ref(null)
 const viewMode = ref('month') // 'month' o 'day'
 const selectedDate = ref(new Date())
 const showDatePicker = ref(false)
-
-// Estados del sidebar
-const sidebarExpanded = ref(false)
-const sidebarHover = ref(false)
 
 // Dialogs
 const showAppointmentDialog = ref(false)
@@ -1165,10 +1120,6 @@ const viewAppointment = (slot) => {
 }
 
 // Métodos
-const toggleSidebar = () => {
-  sidebarExpanded.value = !sidebarExpanded.value
-}
-
 const selectService = (service) => {
   selectedService.value = service
   // Limpiar selecciones anteriores
@@ -1620,228 +1571,171 @@ onMounted(() => {
 
 .app-layout {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
 }
 
-/* Sidebar de servicios */
-.services-sidebar {
-  position: fixed;
-  left: 0;
-  top: 0;
-  height: 100vh;
-  background: linear-gradient(180deg, #2d3748 0%, #1a202c 100%);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 1000;
-  box-shadow: 2px 0 20px rgba(0, 0, 0, 0.15);
-  width: 80px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+/* Header de servicios compacto */
+.services-header {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 20px 24px;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
 }
 
-.services-sidebar.expanded,
-.services-sidebar.hover-expanded {
-  width: 300px;
+.services-container {
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-.sidebar-header {
-  padding: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+.services-title-section {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 80px;
+  margin-bottom: 20px;
 }
 
-.sidebar-toggle {
-  flex-shrink: 0;
+.title-content h3 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #2d3748;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.sidebar-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: white;
-  font-size: 18px;
-  font-weight: 600;
-  white-space: nowrap;
+.title-content p {
+  margin: 4px 0 0 0;
+  color: #718096;
+  font-size: 14px;
+}
+
+/* Lista compacta de servicios */
+.services-list-container {
+  margin-bottom: 20px;
 }
 
 .services-list {
-  flex: 1;
-  padding: 16px 0;
-  overflow-y: auto;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
-.service-item-sidebar {
-  display: flex;
-  align-items: center;
-  padding: 16px 20px;
-  margin: 4px 0;
-  cursor: pointer;
+.service-item {
   transition: all 0.3s ease;
-  position: relative;
-  border-radius: 0 25px 25px 0;
-  margin-right: 20px;
+  padding: 12px 16px;
 }
 
-.service-item-sidebar:hover {
-  background: rgba(255, 255, 255, 0.1);
-  transform: translateX(8px);
+.service-item:hover {
+  background: #f8faff;
 }
 
-.service-item-sidebar.active {
-  background: rgba(255, 255, 255, 0.15);
-  border-right: 4px solid #4fd1c7;
-}
-
-.service-item-sidebar.active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: linear-gradient(180deg, #4fd1c7, #06b6d4);
-}
-
-.service-icon {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.service-content {
-  margin-left: 16px;
-  flex: 1;
-  min-width: 0;
+.service-item.selected-service {
+  background: linear-gradient(135deg, #667eea10, #764ba210);
+  border-left: 4px solid #667eea;
 }
 
 .service-name {
-  color: white;
-  font-size: 16px;
   font-weight: 600;
-  margin-bottom: 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 16px;
+  color: #2d3748;
 }
 
 .service-details {
-  display: flex;
-  gap: 12px;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-/* Tooltip personalizado */
-.tooltip-content {
-  text-align: center;
-}
-
-.tooltip-name {
+  color: #718096;
   font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.tooltip-details {
-  font-size: 12px;
-  opacity: 0.9;
+.detail-icon {
+  margin-right: 2px;
 }
 
-/* Estadísticas en sidebar */
-.sidebar-stats {
-  padding: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.2);
+.ml-3 {
+  margin-left: 12px;
 }
 
-.stats-header {
+/* Estadísticas compactas */
+.service-stats-compact {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.stats-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: white;
   font-size: 14px;
   font-weight: 600;
-  margin-bottom: 16px;
+  color: #2d3748;
+  margin-bottom: 12px;
 }
 
-.stats-grid-sidebar {
-  display: flex;
-  flex-direction: column;
+.stats-grid-compact {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
 }
 
-.stat-item-sidebar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.1);
+.stat-item-compact {
+  text-align: center;
+  padding: 12px 8px;
+  background: white;
   border-radius: 8px;
-  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease;
+  border-left: 3px solid transparent;
 }
 
-.stat-item-sidebar:hover {
-  background: rgba(255, 255, 255, 0.15);
+.stat-item-compact:hover {
+  transform: translateY(-1px);
 }
 
-.stat-icon {
-  flex-shrink: 0;
-  color: rgba(255, 255, 255, 0.8);
+.stat-item-compact.available {
+  border-left-color: #48bb78;
 }
 
-.stat-item-sidebar.available .stat-icon {
-  color: #68d391;
+.stat-item-compact.booked {
+  border-left-color: #f56565;
 }
 
-.stat-item-sidebar.booked .stat-icon {
-  color: #fc8181;
+.stat-item-compact.revenue {
+  border-left-color: #667eea;
 }
 
-.stat-item-sidebar.revenue .stat-icon {
-  color: #63b3ed;
-}
-
-.stat-item-sidebar.efficiency .stat-icon {
-  color: #f6ad55;
-}
-
-.stat-info {
-  flex: 1;
+.stat-item-compact.efficiency {
+  border-left-color: #ed8936;
 }
 
 .stat-value {
-  color: white;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
-  line-height: 1;
+  color: #2d3748;
+  margin-bottom: 2px;
 }
 
 .stat-label {
-  color: rgba(255, 255, 255, 0.7);
   font-size: 11px;
+  color: #718096;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-top: 2px;
 }
 
-/* Calendario principal ajustado */
+/* Calendario principal */
 .main-calendar {
   flex: 1;
   background: white;
-  margin-left: 80px;
-  border-radius: 24px 0 0 0;
+  margin: 0;
+  border-radius: 24px 24px 0 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.main-calendar.sidebar-expanded {
-  margin-left: 300px;
 }
 
 .calendar-header {
@@ -2436,6 +2330,22 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
+.pet-info {
+  flex: 1;
+}
+
+.pet-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: #2d3748;
+  margin-bottom: 4px;
+}
+
+.pet-details {
+  font-size: 14px;
+  color: #718096;
+}
+
 .dialog-actions {
   padding: 24px 32px;
   background: #f8f9fa;
@@ -2502,21 +2412,12 @@ onMounted(() => {
 
 /* Responsive */
 @media (max-width: 768px) {
-  .services-sidebar {
-    width: 70px;
+  .services-header {
+    padding: 16px;
   }
 
-  .services-sidebar.expanded,
-  .services-sidebar.hover-expanded {
-    width: 280px;
-  }
-
-  .main-calendar {
-    margin-left: 70px;
-  }
-
-  .main-calendar.sidebar-expanded {
-    margin-left: 280px;
+  .stats-grid-compact {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .calendar-header {
@@ -2571,30 +2472,13 @@ onMounted(() => {
 }
 
 @media (max-width: 480px) {
-  .services-sidebar {
-    width: 60px;
+  .title-content h3 {
+    font-size: 20px;
   }
 
-  .services-sidebar.expanded,
-  .services-sidebar.hover-expanded {
-    width: 100vw;
-  }
-
-  .main-calendar {
-    margin-left: 60px;
-  }
-
-  .main-calendar.sidebar-expanded {
-    margin-left: 100vw;
-  }
-
-  .sidebar-header {
-    padding: 16px;
-  }
-
-  .service-item-sidebar {
-    padding: 14px 16px;
-    margin-right: 16px;
+  .stats-grid-compact {
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
 
   .day-cell {
@@ -2629,8 +2513,8 @@ onMounted(() => {
   }
 }
 
-.service-item-sidebar,
-.stat-item-sidebar,
+.service-item,
+.stat-item-compact,
 .result-item,
 .pet-item {
   animation: fadeIn 0.3s ease-out backwards;
@@ -2640,16 +2524,14 @@ onMounted(() => {
 .calendar-container::-webkit-scrollbar,
 .day-view-container::-webkit-scrollbar,
 .search-results::-webkit-scrollbar,
-.dialog-content::-webkit-scrollbar,
-.services-list::-webkit-scrollbar {
+.dialog-content::-webkit-scrollbar {
   width: 8px;
 }
 
 .calendar-container::-webkit-scrollbar-track,
 .day-view-container::-webkit-scrollbar-track,
 .search-results::-webkit-scrollbar-track,
-.dialog-content::-webkit-scrollbar-track,
-.services-list::-webkit-scrollbar-track {
+.dialog-content::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 4px;
 }
@@ -2657,8 +2539,7 @@ onMounted(() => {
 .calendar-container::-webkit-scrollbar-thumb,
 .day-view-container::-webkit-scrollbar-thumb,
 .search-results::-webkit-scrollbar-thumb,
-.dialog-content::-webkit-scrollbar-thumb,
-.services-list::-webkit-scrollbar-thumb {
+.dialog-content::-webkit-scrollbar-thumb {
   background: #c1c1c1;
   border-radius: 4px;
 }
@@ -2666,8 +2547,7 @@ onMounted(() => {
 .calendar-container::-webkit-scrollbar-thumb:hover,
 .day-view-container::-webkit-scrollbar-thumb:hover,
 .search-results::-webkit-scrollbar-thumb:hover,
-.dialog-content::-webkit-scrollbar-thumb:hover,
-.services-list::-webkit-scrollbar-thumb:hover {
+.dialog-content::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
 
@@ -2677,7 +2557,7 @@ onMounted(() => {
 }
 
 /* Mejoras de accesibilidad */
-.service-item-sidebar:focus,
+.service-item:focus,
 .day-cell:focus,
 .appointments-table tr:focus {
   outline: 2px solid #667eea;
