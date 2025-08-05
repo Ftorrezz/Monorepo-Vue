@@ -314,6 +314,38 @@
                 @servicio-completado="completarServicio"
                 @servicio-eliminado="eliminarServicio"
               />
+              <!-- Componente de Laboratorio -->
+              <OrdenLaboratorio
+                v-else-if="servicio.tipo === 'laboratorio'"
+                :servicio-id="servicio.id"
+                :atencion-id="atenciones[atencionActual].id"
+                :datos-iniciales="servicio.datos"
+                :modo-lectura="servicio.completado || atenciones[atencionActual].estado === 'Finalizada'"
+                @servicio-actualizado="actualizarServicio"
+                @servicio-completado="completarServicio"
+                @servicio-eliminado="eliminarServicio"  
+              />
+              <!-- Componente de Rayos X -->
+              <ServicioRayosX
+                v-else-if="servicio.tipo === 'rayosx'"
+                :servicio-id="servicio.id"
+                :atencion-id="atenciones[atencionActual].id"
+                :datos-iniciales="servicio.datos"
+                :modo-lectura="servicio.completado || atenciones[atencionActual].estado === 'Finalizada'"
+                @servicio-actualizado="actualizarServicio"
+                @servicio-completado="completarServicio"
+                @servicio-eliminado="eliminarServicio"  
+              />
+              <ServicioUltrasonido
+                v-else-if="servicio.tipo === 'ultrasonido'"
+                :servicio-id="servicio.id"
+                :atencion-id="atenciones[atencionActual].id"
+                :datos-iniciales="servicio.datos"
+                :modo-lectura="servicio.completado || atenciones[atencionActual].estado === 'Finalizada'"
+                @servicio-actualizado="actualizarServicio"
+                @servicio-completado="completarServicio"
+                @servicio-eliminado="eliminarServicio"  
+              />
 
               <!-- Componente genérico para servicios no implementados -->
               <div v-else class="generic-service">
@@ -378,13 +410,18 @@ import { useMascotaSeleccionadaStore } from 'src/stores/mascotaSeleccionadaStore
 import ServicioVacunacion from '../components/servicios/ServicioVacunacion.vue'
 import ServicioDesparacitacion from '../components/servicios/ServicioDesparacitacion.vue'
 import ServiciosDisponibles from '../components/servicios/ServiciosDisponibles.vue'
-
+import OrdenLaboratorio from '../components/laboratorio/OrdenLaboratorio.vue';
+import ServicioRayosX from '../components/servicios/ServicioRayosX.vue';
+import ServicioUltrasonido from 'src/components/servicios/ServicioUltrasonido.vue';
 export default {
   name: 'AtencionPaciente',
   components: {
     ServicioVacunacion,
     ServicioDesparacitacion,
-    ServiciosDisponibles
+    ServiciosDisponibles,
+    OrdenLaboratorio,
+    ServicioRayosX,
+    ServicioUltrasonido
   },
   setup() {
     const $q = useQuasar()

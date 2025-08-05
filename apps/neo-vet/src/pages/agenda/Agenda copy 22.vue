@@ -142,7 +142,7 @@
             </div>
 
             <!-- Toggle de vista diaria (solo visible en modo día) -->
-            <div v-if="viewMode === 'day'" class="view-toggle">
+            <div v-if="viewMode === 'day'" class="day-view-toggle">
               <q-btn-toggle
                 v-model="dayViewMode"
                 :options="[

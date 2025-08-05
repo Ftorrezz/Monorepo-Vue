@@ -7,7 +7,7 @@
         <div class="sidebar-header">
           <div class="sidebar-logo" v-show="!sidebarCollapsed">
             <q-icon name="local_hospital" size="28px" color="white" />
-            <span class="logo-text">Agenda de Citas</span>
+            <span class="logo-text">VetCalendar</span>
           </div>
           
           <q-btn
@@ -19,6 +19,23 @@
             @click="toggleSidebar"
             class="toggle-btn"
           />
+        </div>
+
+        <!-- Buscador de servicios -->
+        <div class="sidebar-search" v-show="!sidebarCollapsed">
+          <q-input
+            v-model="serviceSearch"
+            placeholder="Buscar servicio..."
+            outlined
+            dense
+            dark
+            color="white"
+            class="search-input"
+          >
+            <template v-slot:prepend>
+              <q-icon name="search" color="white" />
+            </template>
+          </q-input>
         </div>
 
         <!-- Lista de servicios -->
@@ -59,6 +76,16 @@
 
               <div class="service-content" v-show="!sidebarCollapsed">
                 <div class="service-name">{{ service.name }}</div>
+                <div class="service-details">
+                  <div class="service-meta">
+                    <q-icon name="schedule" size="14px" />
+                    <span>{{ service.duration }}min</span>
+                  </div>
+                  <div class="service-meta">
+                    <q-icon name="attach_money" size="14px" />
+                    <span>${{ service.price }}</span>
+                  </div>
+                </div>
                 
                 <!-- Estadísticas del servicio -->
                 <div class="service-stats" v-if="selectedService?.id === service.id">
@@ -92,39 +119,72 @@
             </div>
           </div>
         </div>
+
+        <!-- Footer del sidebar -->
+        <div class="sidebar-footer" v-show="!sidebarCollapsed">
+          <div class="current-stats" v-if="selectedService">
+            <div class="stats-title">
+              <q-icon name="analytics" size="16px" />
+              <span>Estadísticas de Hoy</span>
+            </div>
+            <div class="stats-grid">
+              <div class="mini-stat available">
+                <div class="mini-stat-value">{{ currentStats.available }}</div>
+                <div class="mini-stat-label">Libres</div>
+              </div>
+              <div class="mini-stat booked">
+                <div class="mini-stat-value">{{ currentStats.booked }}</div>
+                <div class="mini-stat-label">Ocupados</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Contenido principal -->
       <div class="main-content" :class="{ 'expanded': sidebarCollapsed }">
         <!-- Header principal -->
+        
+        
         <div class="main-header">
+          
+          
           <div class="header-left">
             <div class="breadcrumb" v-if="selectedService">
-              <q-icon :name="selectedService.icon" size="30px" :color="selectedService.color"/>
-              <span class="service-name-encabezado">{{ selectedService.name }}</span>
+              <q-icon :name="selectedService.icon" size="20px" :color="selectedService.color" />
+              <span class="service-name">{{ selectedService.name }}</span>
               <q-icon name="keyboard_arrow_right" size="16px" color="grey-5" />
               <span class="view-name">{{ viewMode === 'month' ? 'Vista Mensual' : 'Vista Diaria' }}</span>
-              <q-separator/>
-              <span>Estadísticas de Hoy</span>
-
-              <div class="current-stats" v-if="selectedService">
-                <div class="stats-grid">
-                  <div class="mini-stat available">
-                    <div class="mini-stat-value">{{ currentStats.available }} </div>
-                    <div class="mini-stat-label">Libres</div>
-                  </div>
-                  <div class="mini-stat booked">
-                    <div class="mini-stat-value">{{ currentStats.booked }}</div>
-                    <div class="mini-stat-label">Ocupados</div>
-                  </div>
-                </div>
-              </div>
             </div>
             <h1 v-else class="welcome-title">Selecciona un Servicio</h1>
           </div>
-          
+          sdsdsdsdsd
+          <div class="current-stats" v-if="selectedService">
+            <div class="stats-title">
+              <q-icon name="analytics" size="16px" />
+              <span>Estadísticas de Hoy</span>
+            </div>
+            <div class="stats-grid">
+              <div class="mini-stat available">
+                <div class="mini-stat-value">{{ currentStats.available }}</div>
+                <div class="mini-stat-label">Libres</div>
+              </div>
+              <div class="mini-stat booked">
+                <div class="mini-stat-value">{{ currentStats.booked }}</div>
+                <div class="mini-stat-label">Ocupados</div>
+              </div>
+            </div>
+          </div>
+
+
+
+
+
           <div class="header-actions" v-if="selectedService">
-            <!-- Toggle de vista principal -->
+            <!-- Toggle de vista -->
+
+
+            
             <div class="view-toggle">
               <q-btn-toggle
                 v-model="viewMode"
@@ -135,26 +195,6 @@
                 color="primary"
                 outline
                 no-caps
-                rounded
-                unelevated
-                toggle-text-color="black"
-              />
-            </div>
-
-            <!-- Toggle de vista diaria (solo visible en modo día) -->
-            <div v-if="viewMode === 'day'" class="view-toggle">
-              <q-btn-toggle
-                v-model="dayViewMode"
-                :options="[
-                  { label: 'Tarjetas', value: 'cards', icon: 'view_module' },
-                  { label: 'Tabla', value: 'table', icon: 'table_rows' }
-                ]"
-                color="secondary"
-                outline
-                no-caps
-                rounded
-                unelevated
-                toggle-text-color="black"
               />
             </div>
 
@@ -180,6 +220,7 @@
                 size="md"
               />
             </div>
+            
 
             <!-- Navegación por día -->
             <div v-if="viewMode === 'day'" class="navigation-controls">
@@ -215,6 +256,7 @@
               @click="goToToday"
               no-caps
             />
+            
           </div>
         </div>
 
@@ -286,8 +328,8 @@
             </div>
           </div>
 
-          <!-- Vista diaria - Modo Tarjetas -->
-          <div v-if="selectedService && viewMode === 'day' && dayViewMode === 'cards'" class="day-view-container">
+          <!-- Vista diaria -->
+          <div v-if="selectedService && viewMode === 'day'" class="day-view-container">
             <div class="day-view-header">
               <div class="day-info">
                 <div class="day-meta">
@@ -330,7 +372,7 @@
                       <q-icon 
                         :name="getTimeIcon(slot.status)" 
                         :color="getTimeIconColor(slot.status)"
-                        size="18px"
+                        size="20px"
                         class="time-icon"
                       />
                       <span class="time-text">{{ slot.time }}</span>
@@ -373,7 +415,7 @@
                   <div v-if="slot.appointment" class="appointment-details">
                     <div class="client-info">
                       <div class="client-avatar">
-                        <q-avatar color="primary" text-color="white" size="32px">
+                        <q-avatar color="primary" text-color="white" size="40px">
                           <q-icon name="person" />
                         </q-avatar>
                       </div>
@@ -387,7 +429,7 @@
                     
                     <div class="pet-info">
                       <div class="pet-avatar">
-                        <q-avatar color="secondary" text-color="white" size="32px">
+                        <q-avatar color="secondary" text-color="white" size="40px">
                           <q-icon name="pets" />
                         </q-avatar>
                       </div>
@@ -400,7 +442,7 @@
 
                   <div v-else class="empty-slot">
                     <div class="empty-slot-content">
-                      <q-icon name="event_available" size="28px" color="positive" />
+                      <q-icon name="event_available" size="32px" color="positive" />
                       <div class="empty-slot-text">
                         <div class="empty-slot-title">Horario Disponible</div>
                         <div class="empty-slot-subtitle">Haz clic para agendar</div>
@@ -412,198 +454,15 @@
                 <!-- Footer con información del servicio -->
                 <div v-if="slot.appointment" class="appointment-footer">
                   <div class="service-info">
-                    <q-icon :name="selectedService.icon" size="14px" />
+                    <q-icon :name="selectedService.icon" size="16px" />
                     <span>{{ selectedService.name }}</span>
                   </div>
                   <div class="duration-info">
-                    <q-icon name="schedule" size="14px" />
+                    <q-icon name="schedule" size="16px" />
                     <span>{{ selectedService.duration }}min</span>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <!-- Vista diaria - Modo Tabla -->
-          <div v-if="selectedService && viewMode === 'day' && dayViewMode === 'table'" class="day-table-view">
-            <div class="day-view-header">
-              <div class="day-info">
-                <div class="day-meta">
-                  <q-chip color="positive" text-color="white" icon="check_circle">
-                    {{ daySlots.filter(s => s.status === 'available').length }} disponibles
-                  </q-chip>
-                  <q-chip color="negative" text-color="white" icon="event_busy">
-                    {{ daySlots.filter(s => s.status === 'booked').length }} ocupados
-                  </q-chip>
-                </div>
-              </div>
-
-              <q-btn
-                outline
-                color="primary"
-                icon="calendar_month"
-                label="Cambiar Fecha"
-                @click="showDatePicker = true"
-                no-caps
-              />
-            </div>
-
-            <!-- Tabla de horarios -->
-            <div class="table-container">
-              <q-table
-                :rows="daySlots"
-                :columns="dayColumns"
-                row-key="time"
-                flat
-                bordered
-                :rows-per-page-options="[0]"
-                hide-pagination
-                class="appointments-table"
-                :table-style="{ backgroundColor: 'white' }"
-              >
-                <template v-slot:body="props">
-                  <q-tr 
-                    :props="props"
-                    :class="{
-                      'available-row': props.row.status === 'available',
-                      'booked-row': props.row.status === 'booked',
-                      'selected-row': props.row.status === 'selected'
-                    }"
-                    @click="selectTimeSlot({ fullDate: selectedDate, slots: daySlots }, props.row)"
-                    class="table-row"
-                  >
-
-                    <q-td key="time" :props="props" class="time-column">
-                      <div class="time-display-table">
-                        <q-icon 
-                          :name="getTimeIcon(props.row.status)" 
-                          size="sm"
-                          :color="getTimeIconColor(props.row.status)" 
-                          class="time-icon"
-                        />
-                        <span class="time-text-table">{{ props.row.time }}</span>
-                      </div>
-                    </q-td>
-
-                    <q-td key="status" :props="props" class="status-column">
-                      <q-badge
-                        :color="props.row.status === 'available' ? 'positive' : props.row.status === 'booked' ? 'negative' : 'primary'"
-                        :label="getStatusLabel(props.row.status)"
-                        class="status-badge-table"
-                      />
-                    </q-td>
-
-                    <q-td key="owner" :props="props" class="owner-column">
-                      <div v-if="props.row.appointment" class="owner-info-table">
-                        <q-avatar size="32px" color="primary" text-color="white" class="owner-avatar">
-                          <q-icon name="person" />
-                        </q-avatar>
-                        <div class="owner-details-table">
-                          <div class="owner-name-table">{{ props.row.appointment.ownerName }}</div>
-                          <div class="owner-meta-table">Cliente</div>
-                        </div>
-                      </div>
-                      <div v-else class="available-slot-table">
-                        <q-icon name="person_add" size="sm" color="positive" />
-                        <span class="available-text">Disponible para agendar</span>
-                      </div>
-                    </q-td>
-
-                    <q-td key="pet" :props="props" class="pet-column">
-                      <div v-if="props.row.appointment" class="pet-info-table">
-                        <q-avatar size="32px" color="secondary" text-color="white" class="pet-avatar-table">
-                          <q-icon name="pets" />
-                        </q-avatar>
-                        <div class="pet-details-table">
-                          <div class="pet-name-table">{{ props.row.appointment.petName }}</div>
-                          <div class="pet-type-table">{{ props.row.appointment.petType || 'Mascota' }}</div>
-                        </div>
-                      </div>
-                      <div v-else class="no-pet-table">
-                        <q-icon name="pets" size="sm" color="grey-5" />
-                        <span class="text-grey-5">Sin asignar</span>
-                      </div>
-                    </q-td>
-
-                    <q-td key="service" :props="props" class="service-column">
-                      <div v-if="props.row.appointment" class="service-info-table">
-                        <q-icon :name="selectedService.icon" size="sm" :color="selectedService.color" />
-                        <div class="service-details-table">
-                          <div class="service-name-table">{{ selectedService.name }}</div>
-                          <div class="service-duration-table">{{ selectedService.duration }} min</div>
-                        </div>
-                      </div>
-                      <div v-else class="no-service-table">
-                        <q-icon :name="selectedService.icon" size="sm" color="grey-5" />
-                        <span class="text-grey-5">{{ selectedService.name }}</span>
-                      </div>
-                    </q-td>
-
-                    <q-td key="actions" :props="props" class="actions-column">
-                      <div class="action-buttons-table">
-                        <q-btn
-                          v-if="props.row.status === 'available'"
-                          size="sm"
-                          color="positive"
-                          icon="add"
-                          round
-                          flat
-                          @click.stop="selectTimeSlot({ fullDate: selectedDate, slots: daySlots }, props.row)"
-                          class="action-btn"
-                        >
-                          <q-tooltip>Agendar cita</q-tooltip>
-                        </q-btn>
-                        <q-btn
-                          v-if="props.row.status === 'booked'"
-                          size="sm"
-                          color="info"
-                          icon="visibility"
-                          round
-                          flat
-                          @click.stop="viewAppointment(props.row)"
-                          class="action-btn"
-                        >
-                          <q-tooltip>Ver detalles</q-tooltip>
-                        </q-btn>
-                        <q-btn
-                          v-if="props.row.status === 'booked'"
-                          size="sm"
-                          color="negative"
-                          icon="cancel"
-                          round
-                          flat
-                          @click.stop="cancelAppointment(props.row)"
-                          class="action-btn"
-                        >
-                          <q-tooltip>Cancelar cita</q-tooltip>
-                        </q-btn>
-                        <q-btn
-                          v-if="props.row.status === 'selected'"
-                          size="sm"
-                          color="primary"
-                          icon="edit"
-                          round
-                          flat
-                          @click.stop="selectTimeSlot({ fullDate: selectedDate, slots: daySlots }, props.row)"
-                          class="action-btn"
-                        >
-                          <q-tooltip>Confirmar cita</q-tooltip>
-                        </q-btn>
-                      </div>
-                    </q-td>
-                  </q-tr>
-                </template>
-
-                <template v-slot:no-data>
-                  <div class="no-appointments">
-                    <q-icon name="event_busy" size="48px" color="grey-5" />
-                    <div class="no-appointments-text">
-                      <h5>No hay horarios disponibles</h5>
-                      <p>Este día no tiene horarios configurados o está fuera del horario laboral.</p>
-                    </div>
-                  </div>
-                </template>
-              </q-table>
             </div>
           </div>
 
@@ -647,8 +506,322 @@
       />
     </q-dialog>
 
-    <!-- Aquí irían los demás dialogs (appointment, new owner, new pet, success) -->
-    <!-- Los mantengo igual que en tu código original -->
+    <!-- Dialog para asignar cita -->
+    <q-dialog
+      v-model="showAppointmentDialog"
+      persistent
+      maximized
+      transition-show="slide-up"
+      transition-hide="slide-down"
+    >
+      <q-card class="appointment-dialog">
+        <q-card-section class="dialog-header">
+          <div class="header-info">
+            <q-icon :name="selectedService?.icon" size="32px" color="white" />
+            <div>
+              <h4>Nueva Cita - {{ selectedService?.name }}</h4>
+              <p>{{ selectedSlot?.dayName }}, {{ selectedSlot?.date }} - {{ selectedSlot?.time }}</p>
+            </div>
+          </div>
+          <q-btn
+            flat
+            round
+            icon="close"
+            @click="closeAppointmentDialog"
+            color="white"
+          />
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-section class="dialog-content">
+          <div class="appointment-form">
+            <!-- Búsqueda de propietario -->
+            <div class="form-section">
+              <h5><q-icon name="person_search" /> 1. Seleccionar Propietario</h5>
+              <div class="search-container">
+                <q-input
+                  v-model="ownerSearch"
+                  placeholder="Buscar propietario por nombre, teléfono o email..."
+                  outlined
+                  clearable
+                  class="search-input"
+                  @keyup.enter="searchOwners"
+                  @input="onOwnerSearchInput"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="search" />
+                  </template>
+                  <template v-slot:append>
+                    <q-btn
+                      color="primary"
+                      icon="search"
+                      flat
+                      round
+                      @click="searchOwners"
+                      :loading="searchingOwners"
+                    />
+                  </template>
+                </q-input>
+
+                <!-- Resultados de búsqueda -->
+                <div v-if="ownerResults.length > 0" class="search-results">
+                  <div class="results-list">
+                    <q-card
+                      v-for="owner in ownerResults"
+                      :key="owner.id"
+                      flat
+                      bordered
+                      class="result-item"
+                      :class="{ 'selected': selectedOwner?.id === owner.id }"
+                      @click="selectOwner(owner)"
+                    >
+                      <q-card-section class="result-content">
+                        <div class="result-main">
+                          <div class="result-name">
+                            {{ owner.nombre }} {{ owner.primerapellido }} {{ owner.segundoapellido }}
+                          </div>
+                          <div class="result-details">
+                            <span><q-icon name="phone" size="xs" /> {{ owner.telefono1 }}</span>
+                            <span v-if="owner.email"><q-icon name="email" size="xs" /> {{ owner.email }}</span>
+                          </div>
+                        </div>
+                        <q-icon
+                          v-if="selectedOwner?.id === owner.id"
+                          name="check_circle"
+                          color="positive"
+                          size="md"
+                        />
+                      </q-card-section>
+                    </q-card>
+                  </div>
+                </div>
+
+                <div class="new-owner-btn">
+                  <q-btn
+                    color="secondary"
+                    icon="person_add"
+                    label="Registrar Nuevo Propietario"
+                    outline
+                    @click="showNewOwnerDialog = true"
+                    no-caps
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Selección de mascota -->
+            <div class="form-section" v-if="selectedOwner">
+              <h5><q-icon name="pets" /> 2. Seleccionar Mascota</h5>
+              <div class="pets-container">
+                <!-- Mascotas existentes -->
+                <div v-if="ownerPets.length > 0" class="pets-grid">
+                  <q-card
+                    v-for="pet in ownerPets"
+                    :key="pet.id"
+                    flat
+                    bordered
+                    class="pet-item"
+                    :class="{ 'selected': selectedPet?.id === pet.id }"
+                    @click="selectPet(pet)"
+                  >
+                    <q-card-section class="pet-content">
+                      <div class="pet-avatar">
+                        <q-avatar size="40px" color="secondary" text-color="white">
+                          <q-icon name="pets" />
+                        </q-avatar>
+                      </div>
+                      <div class="pet-info">
+                        <div class="pet-name">{{ pet.nombre }}</div>
+                        <div class="pet-details">
+                          {{ pet.especie }} • {{ pet.raza || 'Sin raza' }}
+                        </div>
+                      </div>
+                      <q-icon
+                        v-if="selectedPet?.id === pet.id"
+                        name="check_circle"
+                        color="positive"
+                        size="md"
+                      />
+                    </q-card-section>
+                  </q-card>
+                </div>
+
+                <div class="new-pet-btn">
+                  <q-btn
+                    color="secondary"
+                    icon="pets"
+                    label="Registrar Nueva Mascota"
+                    outline
+                    @click="showNewPetDialog = true"
+                    no-caps
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Notas adicionales -->
+            <div class="form-section" v-if="selectedPet">
+              <h5><q-icon name="notes" /> 3. Notas Adicionales (Opcional)</h5>
+              <q-input
+                v-model="appointmentNotes"
+                type="textarea"
+                outlined
+                placeholder="Escribe cualquier nota o comentario sobre la cita..."
+                rows="3"
+              />
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-actions class="dialog-actions">
+          <q-btn
+            flat
+            label="Cancelar"
+            @click="closeAppointmentDialog"
+            no-caps
+          />
+          <q-spacer />
+          <q-btn
+            color="positive"
+            label="Confirmar Cita"
+            icon="check"
+            @click="confirmAppointment"
+            :disable="!canConfirmAppointment"
+            :loading="savingAppointment"
+            no-caps
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <!-- Dialog para nuevo propietario -->
+    <q-dialog v-model="showNewOwnerDialog" persistent>
+      <q-card style="min-width: 500px">
+        <q-card-section>
+          <div class="dialog-title">
+            <q-icon name="person_add" color="primary" size="md" />
+            <h5>Nuevo Propietario</h5>
+          </div>
+        </q-card-section>
+
+        <q-card-section>
+          <q-form ref="newOwnerForm">
+            <div class="form-grid">
+              <q-input
+                v-model="newOwner.nombre"
+                label="Nombre *"
+                outlined
+                :rules="[val => !!val || 'Nombre requerido']"
+              />
+              <q-input
+                v-model="newOwner.primerapellido"
+                label="Primer Apellido *"
+                outlined
+                :rules="[val => !!val || 'Apellido requerido']"
+              />
+              <q-input
+                v-model="newOwner.segundoapellido"
+                label="Segundo Apellido"
+                outlined
+              />
+              <q-input
+                v-model="newOwner.telefono1"
+                label="Teléfono *"
+                outlined
+                mask="(###) ###-####"
+                :rules="[val => !!val || 'Teléfono requerido']"
+              />
+              <q-input
+                v-model="newOwner.email"
+                label="Email"
+                type="email"
+                outlined
+                class="col-span-2"
+              />
+            </div>
+          </q-form>
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Cancelar" @click="closeNewOwnerDialog" no-caps />
+          <q-btn color="primary" label="Guardar" @click="saveNewOwner" :loading="savingNewOwner" no-caps />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <!-- Dialog para nueva mascota -->
+    <q-dialog v-model="showNewPetDialog" persistent>
+      <q-card style="min-width: 500px">
+        <q-card-section>
+          <div class="dialog-title">
+            <q-icon name="pets" color="secondary" size="md" />
+            <h5>Nueva Mascota</h5>
+          </div>
+        </q-card-section>
+
+        <q-card-section>
+          <q-form ref="newPetForm">
+            <div class="form-grid">
+              <q-input
+                v-model="newPet.nombre"
+                label="Nombre *"
+                outlined
+                :rules="[val => !!val || 'Nombre requerido']"
+              />
+              <q-select
+                v-model="newPet.especie"
+                :options="speciesOptions"
+                label="Especie *"
+                outlined
+                :rules="[val => !!val || 'Especie requerida']"
+              />
+              <q-input
+                v-model="newPet.raza"
+                label="Raza"
+                outlined
+              />
+              <q-input
+                v-model="newPet.edad"
+                label="Edad (años)"
+                type="number"
+                outlined
+                min="0"
+                max="50"
+              />
+            </div>
+          </q-form>
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Cancelar" @click="closeNewPetDialog" no-caps />
+          <q-btn color="secondary" label="Guardar" @click="saveNewPet" :loading="savingNewPet" no-caps />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <!-- Dialog de confirmación -->
+    <q-dialog v-model="showSuccessDialog" persistent>
+      <q-card class="success-dialog">
+        <q-card-section class="text-center">
+          <q-icon name="check_circle" size="72px" color="positive" />
+          <h4>¡Cita Confirmada!</h4>
+          <p>La cita ha sido programada exitosamente</p>
+          <div class="success-details">
+            <div><strong>Servicio:</strong> {{ selectedService?.name }}</div>
+            <div><strong>Mascota:</strong> {{ selectedPet?.nombre }}</div>
+            <div><strong>Propietario:</strong> {{ selectedOwner?.nombre }} {{ selectedOwner?.primerapellido }}</div>
+            <div><strong>Fecha:</strong> {{ selectedSlot?.dayName }}, {{ selectedSlot?.date }}</div>
+            <div><strong>Hora:</strong> {{ selectedSlot?.time }}</div>
+          </div>
+        </q-card-section>
+        <q-card-actions align="center">
+          <q-btn color="positive" label="Aceptar" @click="closeSuccessDialog" no-caps />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
@@ -665,13 +838,52 @@ const currentMonth = ref(new Date().getMonth())
 const selectedService = ref(null)
 const selectedSlot = ref(null)
 const viewMode = ref('month')
-const dayViewMode = ref('cards') // Nuevo estado para el modo de vista diaria
 const selectedDate = ref(new Date())
 const showDatePicker = ref(false)
 
 // Estados del sidebar
 const sidebarCollapsed = ref(false)
 const serviceSearch = ref('')
+
+// Dialogs
+const showAppointmentDialog = ref(false)
+const showNewOwnerDialog = ref(false)
+const showNewPetDialog = ref(false)
+const showSuccessDialog = ref(false)
+
+// Búsqueda y selección
+const ownerSearch = ref('')
+const ownerResults = ref([])
+const searchingOwners = ref(false)
+const selectedOwner = ref(null)
+const ownerPets = ref([])
+const selectedPet = ref(null)
+const appointmentNotes = ref('')
+
+// Estados de carga
+const savingAppointment = ref(false)
+const savingNewOwner = ref(false)
+const savingNewPet = ref(false)
+
+// Formularios
+const newOwnerForm = ref(null)
+const newPetForm = ref(null)
+
+// Datos de formularios
+const newOwner = ref({
+  nombre: '',
+  primerapellido: '',
+  segundoapellido: '',
+  telefono1: '',
+  email: ''
+})
+
+const newPet = ref({
+  nombre: '',
+  especie: '',
+  raza: '',
+  edad: null
+})
 
 // Servicios disponibles
 const services = ref([
@@ -741,61 +953,13 @@ const services = ref([
   }
 ])
 
+// Opciones
+const speciesOptions = ref([
+  'Perro', 'Gato', 'Ave', 'Conejo', 'Hamster', 'Reptil', 'Otro'
+])
+
 // Días de la semana
 const weekdays = ref(['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'])
-
-// Columnas para la tabla del modo día
-const dayColumns = ref([
-  {
-    name: 'time',
-    required: true,
-    label: 'Hora',
-    align: 'left',
-    field: 'time',
-    sortable: false,
-    style: 'width: 120px'
-  },
-  {
-    name: 'status',
-    label: 'Estado',
-    align: 'center',
-    field: 'status',
-    sortable: false,
-    style: 'width: 140px'
-  },
-  {
-    name: 'owner',
-    label: 'Propietario',
-    align: 'left',
-    field: row => row.appointment?.ownerName || '',
-    sortable: false,
-    style: 'width: 200px'
-  },
-  {
-    name: 'pet',
-    label: 'Mascota',
-    align: 'left',
-    field: row => row.appointment?.petName || '',
-    sortable: false,
-    style: 'width: 180px'
-  },
-  {
-    name: 'service',
-    label: 'Servicio',
-    align: 'left',
-    field: 'service',
-    sortable: false,
-    style: 'width: 180px'
-  },
-  {
-    name: 'actions',
-    label: 'Acciones',
-    align: 'center',
-    field: 'actions',
-    sortable: false,
-    style: 'width: 150px'
-  }
-])
 
 // Horarios de trabajo por servicio
 const getWorkingHours = (serviceId) => {
@@ -991,6 +1155,10 @@ const currentStats = computed(() => {
   return { available, booked, revenue, efficiency }
 })
 
+const canConfirmAppointment = computed(() => {
+  return selectedOwner.value && selectedPet.value
+})
+
 // Generar datos mock de cita
 const generateMockAppointment = () => {
   const owners = [
@@ -1036,6 +1204,8 @@ const toggleSidebar = () => {
 const selectService = (service) => {
   selectedService.value = service
   selectedSlot.value = null
+  selectedOwner.value = null
+  selectedPet.value = null
 }
 
 const getServiceStats = (serviceId) => {
@@ -1079,22 +1249,6 @@ const viewAppointment = (slot) => {
     type: 'info',
     message: `Cita de ${slot.appointment.petName} con ${slot.appointment.ownerName}`,
     caption: `Hora: ${slot.time}`
-  })
-}
-
-const cancelAppointment = (slot) => {
-  $q.dialog({
-    title: 'Cancelar Cita',
-    message: `¿Estás seguro de que deseas cancelar la cita de ${slot.appointment.petName}?`,
-    cancel: true,
-    persistent: true
-  }).onOk(() => {
-    slot.status = 'available'
-    slot.appointment = null
-    $q.notify({
-      type: 'positive',
-      message: 'Cita cancelada exitosamente'
-    })
   })
 }
 
@@ -1188,12 +1342,337 @@ const selectTimeSlot = (day, slot) => {
     fullDate: day.fullDate
   }
 
-  // Aquí abriría el dialog de cita
-  $q.notify({
-    type: 'info',
-    message: `Horario seleccionado: ${slot.time}`,
-    caption: 'Implementar dialog de nueva cita'
-  })
+  showAppointmentDialog.value = true
+}
+
+// Búsqueda de propietarios
+const searchOwners = async () => {
+  if (!ownerSearch.value.trim()) return
+
+  searchingOwners.value = true
+
+  try {
+    await new Promise(resolve => setTimeout(resolve, 800))
+
+    const mockOwners = [
+      {
+        id: 1,
+        nombre: 'Juan Carlos',
+        primerapellido: 'García',
+        segundoapellido: 'López',
+        telefono1: '(555) 123-4567',
+        email: 'juan.garcia@email.com'
+      },
+      {
+        id: 2,
+        nombre: 'María Elena',
+        primerapellido: 'Rodríguez',
+        segundoapellido: 'Martínez',
+        telefono1: '(555) 987-6543',
+        email: 'maria.rodriguez@email.com'
+      },
+      {
+        id: 3,
+        nombre: 'Carlos Alberto',
+        primerapellido: 'Hernández',
+        segundoapellido: 'Silva',
+        telefono1: '(555) 456-7890',
+        email: 'carlos.hernandez@email.com'
+      },
+      {
+        id: 4,
+        nombre: 'Ana Sofía',
+        primerapellido: 'López',
+        segundoapellido: 'García',
+        telefono1: '(555) 321-9876',
+        email: 'ana.lopez@email.com'
+      },
+      {
+        id: 5,
+        nombre: 'Roberto',
+        primerapellido: 'Martínez',
+        segundoapellido: 'Pérez',
+        telefono1: '(555) 654-3210',
+        email: 'roberto.martinez@email.com'
+      }
+    ]
+
+    ownerResults.value = mockOwners.filter(owner =>
+      owner.nombre.toLowerCase().includes(ownerSearch.value.toLowerCase()) ||
+      owner.primerapellido.toLowerCase().includes(ownerSearch.value.toLowerCase()) ||
+      owner.segundoapellido.toLowerCase().includes(ownerSearch.value.toLowerCase()) ||
+      owner.telefono1.includes(ownerSearch.value) ||
+      (owner.email && owner.email.toLowerCase().includes(ownerSearch.value.toLowerCase()))
+    )
+
+  } catch (error) {
+    $q.notify({
+      type: 'negative',
+      message: 'Error al buscar propietarios'
+    })
+  } finally {
+    searchingOwners.value = false
+  }
+}
+
+const onOwnerSearchInput = () => {
+  if (ownerSearch.value.length >= 3) {
+    searchOwners()
+  } else if (ownerSearch.value.length === 0) {
+    ownerResults.value = []
+  }
+}
+
+const selectOwner = async (owner) => {
+  selectedOwner.value = owner
+  selectedPet.value = null
+  await loadOwnerPets(owner.id)
+}
+
+const loadOwnerPets = async (ownerId) => {
+  try {
+    await new Promise(resolve => setTimeout(resolve, 500))
+
+    const mockPetsData = {
+      1: [
+        { id: 1, nombre: 'Max', especie: 'Perro', raza: 'Golden Retriever', edad: 3 },
+        { id: 2, nombre: 'Luna', especie: 'Gato', raza: 'Persa', edad: 5 }
+      ],
+      2: [
+        { id: 3, nombre: 'Rocky', especie: 'Perro', raza: 'Pastor Alemán', edad: 4 }
+      ],
+      3: [
+        { id: 4, nombre: 'Bella', especie: 'Perro', raza: 'Labrador', edad: 2 },
+        { id: 5, nombre: 'Charlie', especie: 'Gato', raza: 'Siamés', edad: 1 },
+        { id: 6, nombre: 'Coco', especie: 'Ave', raza: 'Canario', edad: 2 }
+      ],
+      4: [
+        { id: 7, nombre: 'Daisy', especie: 'Perro', raza: 'Beagle', edad: 6 }
+      ],
+      5: [
+        { id: 8, nombre: 'Buddy', especie: 'Perro', raza: 'Bulldog', edad: 3 },
+        { id: 9, nombre: 'Molly', especie: 'Gato', raza: 'Maine Coon', edad: 4 }
+      ]
+    }
+
+    ownerPets.value = mockPetsData[ownerId] || []
+
+  } catch (error) {
+    $q.notify({
+      type: 'negative',
+      message: 'Error al cargar las mascotas'
+    })
+  }
+}
+
+const selectPet = (pet) => {
+  selectedPet.value = pet
+}
+
+// Dialogs
+const closeAppointmentDialog = () => {
+  showAppointmentDialog.value = false
+
+  if (selectedSlot.value) {
+    if (viewMode.value === 'month') {
+      calendarDays.value.forEach(d => {
+        d.slots.forEach(s => {
+          if (s.status === 'selected') {
+            s.status = 'available'
+          }
+        })
+      })
+    } else {
+      daySlots.value.forEach(s => {
+        if (s.status === 'selected') {
+          s.status = 'available'
+        }
+      })
+    }
+  }
+
+  selectedSlot.value = null
+  selectedOwner.value = null
+  selectedPet.value = null
+  ownerSearch.value = ''
+  ownerResults.value = []
+  ownerPets.value = []
+  appointmentNotes.value = ''
+}
+
+const closeNewOwnerDialog = () => {
+  showNewOwnerDialog.value = false
+  newOwner.value = {
+    nombre: '',
+    primerapellido: '',
+    segundoapellido: '',
+    telefono1: '',
+    email: ''
+  }
+  if (newOwnerForm.value) {
+    newOwnerForm.value.resetValidation()
+  }
+}
+
+const saveNewOwner = async () => {
+  const valid = await newOwnerForm.value.validate()
+  if (!valid) return
+
+  savingNewOwner.value = true
+
+  try {
+    await new Promise(resolve => setTimeout(resolve, 1500))
+
+    const owner = {
+      ...newOwner.value,
+      id: Date.now()
+    }
+
+    selectedOwner.value = owner
+    ownerPets.value = []
+
+    showNewOwnerDialog.value = false
+    closeNewOwnerDialog()
+
+    $q.notify({
+      type: 'positive',
+      message: 'Propietario registrado exitosamente'
+    })
+
+  } catch (error) {
+    $q.notify({
+      type: 'negative',
+      message: 'Error al registrar propietario'
+    })
+  } finally {
+    savingNewOwner.value = false
+  }
+}
+
+const closeNewPetDialog = () => {
+  showNewPetDialog.value = false
+  newPet.value = {
+    nombre: '',
+    especie: '',
+    raza: '',
+    edad: null
+  }
+  if (newPetForm.value) {
+    newPetForm.value.resetValidation()
+  }
+}
+
+const saveNewPet = async () => {
+  const valid = await newPetForm.value.validate()
+  if (!valid) return
+
+  savingNewPet.value = true
+
+  try {
+    await new Promise(resolve => setTimeout(resolve, 1500))
+
+    const pet = {
+      ...newPet.value,
+      id: Date.now(),
+      id_propietario: selectedOwner.value.id
+    }
+
+    selectedPet.value = pet
+    ownerPets.value.push(pet)
+
+    showNewPetDialog.value = false
+    closeNewPetDialog()
+
+    $q.notify({
+      type: 'positive',
+      message: 'Mascota registrada exitosamente'
+    })
+
+  } catch (error) {
+    $q.notify({
+      type: 'negative',
+      message: 'Error al registrar mascota'
+    })
+  } finally {
+    savingNewPet.value = false
+  }
+}
+
+const confirmAppointment = async () => {
+  savingAppointment.value = true
+
+  try {
+    await new Promise(resolve => setTimeout(resolve, 2000))
+
+    const appointmentData = {
+      propietario: selectedOwner.value,
+      mascota: selectedPet.value,
+      servicio: selectedService.value,
+      fecha: selectedSlot.value.fullDate,
+      hora: selectedSlot.value.time,
+      notas: appointmentNotes.value,
+      estado: 'programada'
+    }
+
+    // Marcar el horario como ocupado
+    if (viewMode.value === 'month') {
+      calendarDays.value.forEach(d => {
+        d.slots.forEach(s => {
+          if (s.status === 'selected') {
+            s.status = 'booked'
+            s.appointment = {
+              petName: selectedPet.value.nombre,
+              ownerName: `${selectedOwner.value.nombre} ${selectedOwner.value.primerapellido}`,
+              petType: selectedPet.value.especie,
+              service: selectedService.value.name
+            }
+          }
+        })
+      })
+    } else {
+      daySlots.value.forEach(s => {
+        if (s.status === 'selected') {
+          s.status = 'booked'
+          s.appointment = {
+            petName: selectedPet.value.nombre,
+            ownerName: `${selectedOwner.value.nombre} ${selectedOwner.value.primerapellido}`,
+            petType: selectedPet.value.especie,
+            service: selectedService.value.name
+          }
+        }
+      })
+    }
+
+    console.log('Cita guardada:', appointmentData)
+
+    showAppointmentDialog.value = false
+    showSuccessDialog.value = true
+
+    $q.notify({
+      type: 'positive',
+      message: 'Cita programada exitosamente'
+    })
+
+  } catch (error) {
+    $q.notify({
+      type: 'negative',
+      message: 'Error al programar la cita'
+    })
+  } finally {
+    savingAppointment.value = false
+  }
+}
+
+const closeSuccessDialog = () => {
+  showSuccessDialog.value = false
+
+  selectedSlot.value = null
+  selectedOwner.value = null
+  selectedPet.value = null
+  ownerSearch.value = ''
+  ownerResults.value = []
+  ownerPets.value = []
+  appointmentNotes.value = ''
 }
 
 onMounted(() => {
@@ -1220,7 +1699,7 @@ onMounted(() => {
 /* Sidebar de servicios */
 .services-sidebar {
   width: 320px;
-  background: linear-gradient(180deg, #1976D2 0%, #711bc8 100%);
+  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
   color: white;
   display: flex;
   flex-direction: column;
@@ -1262,6 +1741,24 @@ onMounted(() => {
 
 .toggle-btn:hover {
   opacity: 1;
+}
+
+.sidebar-search {
+  padding: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.search-input .q-field__control {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+}
+
+.search-input .q-field__native {
+  color: white;
+}
+
+.search-input .q-field__native::placeholder {
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .services-list {
@@ -1357,13 +1854,18 @@ onMounted(() => {
   text-overflow: ellipsis;
 }
 
-.service-name-encabezado {
-  font-size: 26px;
-  font-weight: 600;
-  margin-bottom: 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.service-details {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.service-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  opacity: 0.8;
 }
 
 .service-stats {
@@ -1415,10 +1917,25 @@ onMounted(() => {
   opacity: 0.8;
 }
 
+.sidebar-footer {
+  padding: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 .current-stats {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 16px;
+}
+
+.stats-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  opacity: 0.9;
 }
 
 .stats-grid {
@@ -1474,8 +1991,8 @@ onMounted(() => {
 
 .main-header {
   background: white;
-  padding: 1px 32px;
-  border-bottom: 4px solid #247df1;
+  padding: 24px 32px;
+  border-bottom: 1px solid #e2e8f0;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1523,19 +2040,6 @@ onMounted(() => {
   flex-wrap: wrap;
 }
 
-.view-toggle, .day-view-toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.day-view-toggle {
-  background: rgba(103, 58, 183, 0.1);
-  padding: 4px;
-  border-radius: 12px;
-  border: 1px solid rgba(103, 58, 183, 0.2);
-}
-
 .navigation-controls {
   display: flex;
   align-items: center;
@@ -1553,10 +2057,10 @@ onMounted(() => {
 
 /* Contenido del calendario */
 .calendar-content {
-  background: #ffffff;
   flex: 1;
   padding: 24px 32px;
   overflow: auto;
+  background: #f8fafc;
 }
 
 /* Calendario mensual */
@@ -1669,102 +2173,136 @@ onMounted(() => {
 }
 
 .time-slot-mini {
-  font-size: 12px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.2s ease;
+  font-size: 11px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  text-align: center;
+  font-weight: 500;
 }
 
 .time-slot-mini.available {
   background: #f0fdf4;
   color: #166534;
-  border: 1px solid #dcfce7;
+  border: 1px solid #bbf7d0;
 }
 
 .time-slot-mini.booked {
-  background: #fef2f2;
-  color: #991b1b;
-  border: 1px solid #fee2e2;
-}
-
-.slot-time-mini {
-  font-weight: 600;
+  background: #fefce8;
+  color: #a16207;
+  border: 1px solid #fde047;
 }
 
 .more-slots {
-  font-size: 11px;
+  font-size: 10px;
   color: #64748b;
   text-align: center;
-  padding: 4px;
+  margin-top: 4px;
+  font-style: italic;
 }
 
 .inactive-day {
-  position: absolute;
-  inset: 0;
-  background: rgba(248, 249, 250, 0.9);
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  color: #94a3b8;
   font-size: 12px;
+  color: #94a3b8;
 }
 
-/* Vista diaria - Modo Tarjetas */
+/* Vista diaria */
+.day-view-container {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.day-view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.day-info {
+  flex: 1;
+}
+
+.day-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Grid de citas */
 .appointments-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
-  padding: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 20px;
+  max-height: calc(100vh - 400px);
+  overflow-y: auto;
+  padding-right: 8px;
 }
 
 .appointment-card {
   background: white;
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: 16px;
+  border: 2px solid #e2e8f0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  min-height: 160px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: 2px solid #e2e8f0;
-  position: relative;
 }
 
 .appointment-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
 .appointment-card.available {
-  background: white;
-  border-color: #4ade80; /* Color verde para disponible */
+  border-color: #22c55e;
+  background: linear-gradient(135deg, #f0fdf4, #ffffff);
+}
+
+.appointment-card.available:hover {
+  border-color: #16a34a;
+  box-shadow: 0 8px 25px rgba(34, 197, 94, 0.2);
 }
 
 .appointment-card.booked {
-  background: white;
-  border-color: #f87171; /* Color rojo para ocupado */
+  border-color: #ef4444;
+  background: linear-gradient(135deg, #fef2f2, #ffffff);
+}
+
+.appointment-card.booked:hover {
+  border-color: #dc2626;
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.2);
 }
 
 .appointment-card.selected {
-  background: white;
-  border-color: #667eea; /* Color azul para seleccionado */
+  border-color: #667eea;
+  background: linear-gradient(135deg, #f0f4ff, #ffffff);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
 }
 
 .appointment-header {
+  padding: 20px 20px 16px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .time-section {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .time-display {
@@ -1774,202 +2312,159 @@ onMounted(() => {
 }
 
 .time-text {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 700;
   color: #1e293b;
 }
 
 .status-badge {
+  font-size: 11px;
   padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  background: white;
-}
-
-.status-badge[color="positive"] {
-  color: #4ade80;
-  border: 1px solid #4ade80;
-}
-
-.status-badge[color="negative"] {
-  color: #f87171;
-  border: 1px solid #f87171;
-}
-
-.status-badge[color="primary"] {
-  color: #667eea;
-  border: 1px solid #667eea;
+  border-radius: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .appointment-content {
   flex: 1;
-  display: flex;
-  align-items: center;
-  padding: 12px 0;
+  padding: 0 20px 16px 20px;
 }
 
 .appointment-details {
   display: flex;
-  gap: 16px;
   align-items: center;
-  width: 100%;
+  gap: 16px;
+  padding: 16px 0;
 }
 
-.client-info, .pet-info {
+.client-info,
+.pet-info {
   display: flex;
-  gap: 12px;
   align-items: center;
+  gap: 12px;
   flex: 1;
 }
 
-.client-details, .pet-details {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.client-details,
+.pet-details {
+  flex: 1;
+  min-width: 0;
 }
 
-.client-name, .pet-name {
+.client-name,
+.pet-name {
   font-weight: 600;
+  font-size: 16px;
   color: #1e293b;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.client-meta, .pet-type {
-  font-size: 12px;
+.client-meta,
+.pet-type {
   color: #64748b;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .empty-slot {
-  width: 100%;
   display: flex;
+  align-items: center;
   justify-content: center;
-  padding: 20px 0;
+  padding: 24px 0;
+  text-align: center;
 }
 
 .empty-slot-content {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 12px;
 }
 
-.empty-slot-text {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
 .empty-slot-title {
+  font-size: 16px;
   font-weight: 600;
-  color: #047857;
+  color: #22c55e;
+  margin-bottom: 4px;
 }
 
 .empty-slot-subtitle {
-  font-size: 12px;
+  font-size: 14px;
   color: #64748b;
+  opacity: 0.8;
 }
 
 .appointment-footer {
+  padding: 12px 20px;
+  background: #f8fafc;
+  border-top: 1px solid #f1f5f9;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 12px;
-  border-top: 1px solid #e2e8f0;
-  font-size: 12px;
-  color: #64748b;
 }
 
-.service-info, .duration-info {
+.service-info,
+.duration-info {
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-/* Vista diaria - Modo Tabla */
-.table-container {
-  background: white;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-}
-
-.appointments-table {
-  border: none;
-}
-
-.table-row {
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background: white !important;
-}
-
-.table-row:hover {
-  background: #f8faff !important;
-}
-
-.available-row {
-  background: white !important;
-  border-left: 4px solid #4ade80;
-}
-
-.booked-row {
-  background: white !important;
-  border-left: 4px solid #f87171;
-}
-
-.selected-row {
-  background: white !important;
-  border-left: 4px solid #667eea;
+  font-size: 14px;
+  color: #64748b;
 }
 
 /* Estado sin servicio seleccionado */
 .no-service-selected {
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px;
+  min-height: 500px;
 }
 
 .welcome-content {
   text-align: center;
-  max-width: 600px;
+  max-width: 500px;
 }
 
 .welcome-icon {
   margin-bottom: 24px;
-  opacity: 0.9;
+  opacity: 0.8;
 }
 
 .welcome-content h2 {
+  margin: 0 0 16px 0;
   font-size: 32px;
   font-weight: 700;
-  margin-bottom: 16px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #1e293b;
 }
 
 .welcome-content p {
+  margin: 0 0 32px 0;
   font-size: 16px;
   color: #64748b;
-  margin-bottom: 32px;
+  line-height: 1.6;
 }
 
 .welcome-stats {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
   gap: 24px;
+  justify-content: center;
   margin-top: 32px;
 }
 
 .welcome-stat {
-  background: white;
-  padding: 24px;
-  border-radius: 16px;
   display: flex;
   align-items: center;
-  gap: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  gap: 12px;
+  padding: 16px 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .stat-info {
@@ -1988,29 +2483,379 @@ onMounted(() => {
   color: #64748b;
 }
 
-/* Nuevos estilos sugeridos */
-.day-view-header {
+/* Dialogs */
+.appointment-dialog {
+  width: 100%;
+  max-width: none;
+}
+
+.dialog-header {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
 }
 
-.day-info {
+.header-info {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
-.day-meta {
+.header-info h4 {
+  margin: 0 0 4px 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.header-info p {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 14px;
+  text-transform: capitalize;
+}
+
+.dialog-content {
+  padding: 32px;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+
+.appointment-form {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.form-section {
+  margin-bottom: 32px;
+}
+
+.form-section h5 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-/* Nuevo estilo para el contenedor de acciones */
-.day-actions {
+.search-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.search-results {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8f9fa;
+}
+
+.results-list {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.result-item {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.result-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.result-item.selected {
+  border-color: #667eea;
+  background: #f0f4ff;
+}
+
+.result-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.result-main {
+  flex: 1;
+}
+
+.result-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.result-details {
+  display: flex;
+  gap: 16px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.result-details span {
   display: flex;
   align-items: center;
+  gap: 4px;
+}
+
+.pets-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.pet-item {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pet-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.pet-item.selected {
+  border-color: #667eea;
+  background: #f0f4ff;
+}
+
+.pet-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pet-info {
+  flex: 1;
+}
+
+.pet-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.pet-details {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.dialog-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dialog-title h5 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.form-grid .col-span-2 {
+  grid-column: span 2;
+}
+
+.dialog-actions {
+  padding: 16px 24px;
+  background: #f8fafc;
+}
+
+.success-dialog {
+  max-width: 500px;
+  border-radius: 16px;
+}
+
+.success-details {
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 8px;
+  margin-top: 16px;
+  text-align: left;
+}
+
+.success-details div {
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #475569;
+}
+
+.success-details div:last-child {
+  margin-bottom: 0;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .services-sidebar {
+    width: 280px;
+  }
+  
+  .services-sidebar.collapsed {
+    width: 70px;
+  }
+  
+  .appointments-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .welcome-stats {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .services-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    z-index: 1001;
+    transform: translateX(-100%);
+  }
+  
+  .services-sidebar.collapsed {
+    transform: translateX(-100%);
+  }
+  
+  .main-content {
+    margin-left: 0;
+    border-radius: 0;
+  }
+  
+  .main-header {
+    padding: 16px 20px;
+  }
+  
+  .calendar-content {
+    padding: 16px 20px;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .pets-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .appointment-details {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .appointment-details .q-separator {
+    display: none;
+  }
+}
+
+/* Scrollbar personalizado */
+.services-items::-webkit-scrollbar,
+.appointments-grid::-webkit-scrollbar,
+.search-results::-webkit-scrollbar {
+  width: 6px;
+}
+
+.services-items::-webkit-scrollbar-track,
+.appointments-grid::-webkit-scrollbar-track,
+.search-results::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.services-items::-webkit-scrollbar-thumb,
+.appointments-grid::-webkit-scrollbar-thumb,
+.search-results::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.services-items::-webkit-scrollbar-thumb:hover,
+.appointments-grid::-webkit-scrollbar-thumb:hover,
+.search-results::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Animaciones */
+@keyframes slideInRight {
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.appointment-card {
+  animation: slideInUp 0.3s ease-out;
+}
+
+.service-item {
+  animation: slideInRight 0.2s ease-out;
+}
+
+/* Estados de carga */
+.q-btn--loading .q-btn__content {
+  opacity: 0.6;
+}
+
+/* Mejoras de accesibilidad */
+.service-item:focus,
+.appointment-card:focus,
+.result-item:focus,
+.pet-item:focus {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* Transiciones suaves para el sidebar */
+.services-sidebar * {
+  transition: all 0.3s ease;
+}
+
+/* Efectos de glassmorphism para algunos elementos */
+.sidebar-search .search-input .q-field__control,
+.current-stats,
+.service-item {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 </style>

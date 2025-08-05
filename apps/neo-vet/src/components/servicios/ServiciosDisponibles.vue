@@ -186,12 +186,12 @@ export default defineComponent({
         //precio: 'Desde $40'
       },
       {
-        id: 'radiologia',
-        nombre: 'Radiología',
-        descripcion: 'Estudios radiológicos, ecografías y diagnóstico por imagen',
+        id: 'rayosx',
+        nombre: 'Rayos X',
+        descripcion: 'Estudios rayos X, diagnóstico por imagen',
         icono: 'medical_information',
         color: 'indigo',
-        tipo: 'radiologia',
+        tipo: 'rayosx',
         //precio: 'Desde $80',
         //premium: true
       },
@@ -214,16 +214,16 @@ export default defineComponent({
         tipo: 'estetica',
         //precio: 'Desde $35'
       },
-      /*{
-        id: 'nutricion',
-        nombre: 'Consulta Nutricional',
-        descripcion: 'Asesoramiento nutricional y planes alimentarios',
-        icono: 'restaurant',
-        color: 'lime',
-        tipo: 'nutricion',
-        precio: 'Desde $25'
-      },
       {
+        id: 'ultrasonido',
+        nombre: 'Ultrasonido',
+        descripcion: 'Ultrasonido diagnóstico por imagen',
+        icono: 'ultrasound',
+        color: 'lime',
+        tipo: 'ultrasonido',
+        //precio: 'Desde $25'
+      },
+      /*{
         id: 'emergencia',
         nombre: 'Atención de Emergencia',
         descripción: 'Atención veterinaria de urgencia las 24 horas',
