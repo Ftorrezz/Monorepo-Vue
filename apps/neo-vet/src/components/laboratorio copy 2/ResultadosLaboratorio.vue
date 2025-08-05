@@ -29,106 +29,6 @@
         
         <q-separator vertical inset class="q-mx-sm" />
         
-        <!-- Botones de validación masiva mejorados -->
-        <div class="validacion-masiva-actions">
-          <!-- Validar Todo -->
-          <q-btn
-            color="positive"
-            icon="verified_user"
-            label="Validar Todo"
-            :disable="!hayResultadosParaValidarTodo"
-            size="sm"
-            @click="confirmarValidarTodo"
-            class="btn-validacion-masiva"
-          >
-            <q-tooltip>Validar todos los resultados cargados</q-tooltip>
-          </q-btn>
-          
-          <!-- Dropdown para validación por sector -->
-          <q-btn-dropdown
-            color="info"
-            icon="domain"
-            label="Por Sector"
-            size="sm"
-            :disable="sectoresConResultados.length === 0"
-            class="btn-validacion-masiva"
-          >
-            <q-list>
-              <q-item
-                v-for="sector in sectoresConResultados"
-                :key="sector.id"
-                clickable
-                @click="confirmarValidarSector(sector)"
-                :disable="!sector.tieneResultadosParaValidar"
-              >
-                <q-item-section avatar>
-                  <div 
-                    class="sector-indicator-dropdown"
-                    :style="{ backgroundColor: getSectorColor(sector.id) }"
-                  />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>{{ sector.nombre }}</q-item-label>
-                  <q-item-label caption>
-                    {{ sector.resultadosCargados }} de {{ sector.totalResultados }} para validar
-                  </q-item-label>
-                </q-item-section>
-                <q-item-section side>
-                  <q-badge 
-                    :color="sector.tieneResultadosParaValidar ? 'positive' : 'grey-5'"
-                    :label="sector.resultadosCargados"
-                  />
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-btn-dropdown>
-          
-          <!-- Dropdown para validación por estudio -->
-          <q-btn-dropdown
-            color="primary"
-            icon="assignment"
-            label="Por Estudio"
-            size="sm"
-            :disable="estudiosConResultados.length === 0"
-            class="btn-validacion-masiva"
-          >
-            <q-list style="max-height: 300px" class="scroll">
-              <q-item
-                v-for="estudio in estudiosConResultados"
-                :key="estudio.id"
-                clickable
-                @click="confirmarValidarEstudio(estudio)"
-                :disable="!estudio.tieneResultadosParaValidar"
-              >
-                <q-item-section avatar>
-                  <div 
-                    class="sector-indicator-dropdown"
-                    :style="{ backgroundColor: getSectorColor(estudio.sectorId) }"
-                  />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>{{ estudio.nombre }}</q-item-label>
-                  <q-item-label caption>
-                    {{ estudio.sectorNombre }} • {{ estudio.codigo }}
-                  </q-item-label>
-                  <q-item-label caption>
-                    {{ estudio.resultadosCargados }} de {{ estudio.totalResultados }} para validar
-                  </q-item-label>
-                </q-item-section>
-                <q-item-section side>
-                  <q-badge 
-                    :color="estudio.tieneResultadosParaValidar ? 'positive' : 'grey-5'"
-                    :label="estudio.resultadosCargados"
-                  />
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-btn-dropdown>
-        </div>
-        
-        <q-separator vertical inset class="q-mx-sm" />
-        
-        <!-- Botones de selección individual (mantener funcionalidad existente) -->
         <q-btn-group flat>
           <q-btn
             :color="modoValidacionMasiva ? 'primary' : 'grey-7'"
@@ -161,7 +61,7 @@
       </div>
     </div>
 
-    <!-- Tabla moderna (mantener el resto del template igual) -->
+    <!-- Tabla moderna -->
     <div class="tabla-wrapper">
       <q-table
         :rows="pruebasFiltradasYOrdenadas"
@@ -429,33 +329,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Diálogos de confirmación -->
-    <q-dialog v-model="mostrarDialogoConfirmacion" persistent>
-      <q-card style="min-width: 400px">
-        <q-card-section class="row items-center">
-          <q-icon :name="dialogoConfirmacion.icono" :color="dialogoConfirmacion.color" size="32px" class="q-mr-md" />
-          <div class="text-h6">{{ dialogoConfirmacion.titulo }}</div>
-        </q-card-section>
-
-        <q-card-section>
-          <div>{{ dialogoConfirmacion.mensaje }}</div>
-          <div v-if="dialogoConfirmacion.detalles" class="text-caption text-grey-7 q-mt-sm">
-            {{ dialogoConfirmacion.detalles }}
-          </div>
-        </q-card-section>
-
-        <q-card-actions align="right">
-          <q-btn flat label="Cancelar" color="grey-7" @click="cerrarDialogoConfirmacion" />
-          <q-btn 
-            flat 
-            :label="dialogoConfirmacion.labelConfirmar" 
-            :color="dialogoConfirmacion.color" 
-            @click="ejecutarAccionConfirmada"
-          />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
   </div>
 </template>
 
@@ -484,37 +357,6 @@ interface Prueba {
   fechaValidacion?: string
 }
 
-interface SectorResumen {
-  id: string
-  nombre: string
-  totalResultados: number
-  resultadosCargados: number
-  resultadosValidados: number
-  tieneResultadosParaValidar: boolean
-}
-
-interface EstudioResumen {
-  id: string
-  codigo: string
-  nombre: string
-  sectorId: string
-  sectorNombre: string
-  totalResultados: number
-  resultadosCargados: number
-  resultadosValidados: number
-  tieneResultadosParaValidar: boolean
-}
-
-interface DialogoConfirmacion {
-  titulo: string
-  mensaje: string
-  detalles?: string
-  icono: string
-  color: string
-  labelConfirmar: string
-  accion: () => void
-}
-
 // Props
 const props = defineProps<{
   orden: {
@@ -540,59 +382,29 @@ const $q = useQuasar()
 const filtro = ref('')
 const modoValidacionMasiva = ref(false)
 const pruebasSeleccionadas = ref<Prueba[]>([])
-const mostrarDialogoConfirmacion = ref(false)
-const dialogoConfirmacion = ref<DialogoConfirmacion>({
-  titulo: '',
-  mensaje: '',
-  icono: '',
-  color: '',
-  labelConfirmar: '',
-  accion: () => {}
-})
 
 // Estado local para manejar los valores de los inputs independientemente
 const valoresResultados = reactive<Record<string, string>>({})
-// Estado local para manejar los estados de las pruebas
-const estadosPruebas = reactive<Record<string, 'pendiente' | 'cargado' | 'validado'>>({})
-// Estado local para metadatos de las pruebas
-const metadatosPruebas = reactive<Record<string, {
-  usuarioCargo?: string
-  fechaCarga?: string
-  usuarioValido?: string
-  fechaValidacion?: string
-}>>({})
 
-// Inicializar valores de resultados y estados
-const inicializarDatos = () => {
+// Inicializar valores de resultados
+const inicializarValoresResultados = () => {
   if (!props.orden?.estudios) return
   
   props.orden.estudios.forEach(estudio => {
     if (Array.isArray(estudio.pruebas)) {
       estudio.pruebas.forEach(prueba => {
-        // Inicializar valores solo si no existen
         if (!valoresResultados[prueba.id]) {
           valoresResultados[prueba.id] = prueba.resultado?.toString() || ''
-        }
-        if (!estadosPruebas[prueba.id]) {
-          estadosPruebas[prueba.id] = prueba.estado
-        }
-        if (!metadatosPruebas[prueba.id]) {
-          metadatosPruebas[prueba.id] = {
-            usuarioCargo: prueba.usuarioCargo,
-            fechaCarga: prueba.fechaCarga,
-            usuarioValido: prueba.usuarioValido,
-            fechaValidacion: prueba.fechaValidacion
-          }
         }
       })
     }
   })
 }
 
-// Inicializar datos al montar el componente
-inicializarDatos()
+// Inicializar valores al montar el componente
+inicializarValoresResultados()
 
-// Columnas de la tabla (mantener igual)
+// Columnas de la tabla
 const columns = [
   { 
     name: 'sectorNombre', 
@@ -670,7 +482,7 @@ const columns = [
   }
 ]
 
-// Computed properties existentes (actualizar para usar estados locales)
+// Computed properties
 const pruebasAplanadas = computed(() => {
   const pruebas: Prueba[] = []
   
@@ -679,25 +491,13 @@ const pruebasAplanadas = computed(() => {
   props.orden.estudios.forEach(estudio => {
     if (Array.isArray(estudio.pruebas)) {
       estudio.pruebas.forEach(prueba => {
-        // Crear copia de la prueba con estados locales actualizados
-        const pruebaActualizada: Prueba = {
+        pruebas.push({
           ...prueba,
           sectorNombre: estudio.sector?.nombre || '',
           estudioNombre: estudio.nombre,
           estudioId: estudio.id.toString(),
-          resultado: valoresResultados[prueba.id] ? 
-            (prueba.tipo === 'numerico' ? 
-              parseFloat(valoresResultados[prueba.id].replace(',', '.')) || valoresResultados[prueba.id] : 
-              valoresResultados[prueba.id]) : 
-            null,
-          estado: estadosPruebas[prueba.id] || prueba.estado,
-          usuarioCargo: metadatosPruebas[prueba.id]?.usuarioCargo,
-          fechaCarga: metadatosPruebas[prueba.id]?.fechaCarga,
-          usuarioValido: metadatosPruebas[prueba.id]?.usuarioValido,
-          fechaValidacion: metadatosPruebas[prueba.id]?.fechaValidacion
-        }
-        
-        pruebas.push(pruebaActualizada)
+          resultado: prueba.resultado ?? null
+        })
       })
     }
   })
@@ -739,80 +539,7 @@ const hayValidadosSeleccionados = computed(() =>
   pruebasSeleccionadas.value.some(p => p.estado === 'validado')
 )
 
-// Nuevos computed properties para validación masiva
-const hayResultadosParaValidarTodo = computed(() => 
-  pruebasAplanadas.value.some(p => p.estado === 'cargado')
-)
-
-const sectoresConResultados = computed((): SectorResumen[] => {
-  const sectoresMap = new Map<string, SectorResumen>()
-  
-  pruebasAplanadas.value.forEach(prueba => {
-    const sectorId = prueba.sectorId
-    if (!sectoresMap.has(sectorId)) {
-      sectoresMap.set(sectorId, {
-        id: sectorId,
-        nombre: prueba.sectorNombre,
-        totalResultados: 0,
-        resultadosCargados: 0,
-        resultadosValidados: 0,
-        tieneResultadosParaValidar: false
-      })
-    }
-    
-    const sector = sectoresMap.get(sectorId)!
-    sector.totalResultados++
-    
-    if (prueba.estado === 'cargado') {
-      sector.resultadosCargados++
-      sector.tieneResultadosParaValidar = true
-    } else if (prueba.estado === 'validado') {
-      sector.resultadosValidados++
-    }
-  })
-  
-  return Array.from(sectoresMap.values()).sort((a, b) => a.nombre.localeCompare(b.nombre))
-})
-
-const estudiosConResultados = computed((): EstudioResumen[] => {
-  const estudiosMap = new Map<string, EstudioResumen>()
-  
-  pruebasAplanadas.value.forEach(prueba => {
-    const estudioId = prueba.estudioId
-    if (!estudiosMap.has(estudioId)) {
-      estudiosMap.set(estudioId, {
-        id: estudioId,
-        codigo: prueba.codigo,
-        nombre: prueba.estudioNombre,
-        sectorId: prueba.sectorId,
-        sectorNombre: prueba.sectorNombre,
-        totalResultados: 0,
-        resultadosCargados: 0,
-        resultadosValidados: 0,
-        tieneResultadosParaValidar: false
-      })
-    }
-    
-    const estudio = estudiosMap.get(estudioId)!
-    estudio.totalResultados++
-    
-    if (prueba.estado === 'cargado') {
-      estudio.resultadosCargados++
-      estudio.tieneResultadosParaValidar = true
-    } else if (prueba.estado === 'validado') {
-      estudio.resultadosValidados++
-    }
-  })
-  
-  return Array.from(estudiosMap.values()).sort((a, b) => {
-    if (a.sectorNombre !== b.sectorNombre) {
-      return a.sectorNombre.localeCompare(b.sectorNombre)
-    }
-    return a.nombre.localeCompare(b.nombre)
-  })
-})
-
-// Métodos para manejar los valores de los inputs (mantener igual)
+// Métodos para manejar los valores de los inputs
 const getResultadoValue = (pruebaId: string): string => {
   return valoresResultados[pruebaId] || ''
 }
@@ -825,110 +552,61 @@ const updateResultadoValue = (pruebaId: string, valor: string) => {
 const procesarResultadoFinal = (pruebaId: string) => {
   console.log(`Procesando resultado final - ID: ${pruebaId}`)
   
+  const prueba = pruebasAplanadas.value.find(p => p.id === pruebaId)
+  if (!prueba) return
+  
   const valor = valoresResultados[pruebaId]?.trim() || ''
-  const estadoAnterior = estadosPruebas[pruebaId] || 'pendiente'
-  
-  // Encontrar la prueba original para obtener tipo y rangos
-  const pruebaOriginal = props.orden?.estudios
-    ?.flatMap(e => e.pruebas || [])
-    ?.find(p => p.id === pruebaId)
-  
-  if (!pruebaOriginal) return
   
   if (!valor) {
-    // Valor vacío - volver a pendiente solo si no estaba validado
-    if (estadoAnterior !== 'validado') {
-      estadosPruebas[pruebaId] = 'pendiente'
-      metadatosPruebas[pruebaId] = {
-        usuarioCargo: undefined,
-        fechaCarga: undefined,
-        usuarioValido: metadatosPruebas[pruebaId]?.usuarioValido,
-        fechaValidacion: metadatosPruebas[pruebaId]?.fechaValidacion
-      }
-      
-      console.log(`Resultado vacío - volviendo a pendiente`)
-    }
+    // Valor vacío
+    prueba.estado = 'pendiente'
+    prueba.usuarioCargo = undefined
+    prueba.fechaCarga = undefined
+    prueba.resultado = null
   } else {
-    // Hay valor, procesar según tipo
-    let resultadoValido = true
-    
-    if (pruebaOriginal.tipo === 'numerico') {
+    // Hay valor, procesear según tipo
+    if (prueba.tipo === 'numerico') {
       const valorNumerico = parseFloat(valor.replace(',', '.'))
       
-      if (isNaN(valorNumerico)) {
-        resultadoValido = false
+      if (!isNaN(valorNumerico)) {
+        prueba.resultado = valorNumerico
+      } else {
+        prueba.resultado = valor
         $q.notify({
           type: 'warning',
-          message: `"${valor}" no es un número válido para ${pruebaOriginal.nombre}`,
+          message: `"${valor}" no es un número válido para ${prueba.nombre}`,
           position: 'top-right',
           timeout: 3000
         })
       }
+    } else {
+      prueba.resultado = valor
     }
     
-    // Solo cambiar estado si no está validado y el resultado es válido
-    if (estadoAnterior !== 'validado' && resultadoValido) {
-      if (estadoAnterior === 'pendiente') {
-        // Primera vez que se ingresa un resultado
-        estadosPruebas[pruebaId] = 'cargado'
-        metadatosPruebas[pruebaId] = {
-          ...metadatosPruebas[pruebaId],
-          usuarioCargo: 'Usuario Actual',
-          fechaCarga: new Date().toISOString()
-        }
-        
-        console.log(`Primer resultado ingresado - cambiando a cargado`)
-        
-        $q.notify({
-          type: 'positive',
-          message: `Resultado cargado para ${pruebaOriginal.nombre}`,
-          position: 'top-right',
-          timeout: 2000
-        })
-      } else if (estadoAnterior === 'cargado') {
-        // Modificando un resultado ya cargado
-        metadatosPruebas[pruebaId] = {
-          ...metadatosPruebas[pruebaId],
-          fechaCarga: new Date().toISOString()
-        }
-        console.log(`Resultado modificado - manteniendo estado cargado`)
-      }
+    // Actualizar estado si no está validado
+    if (prueba.estado !== 'validado') {
+      prueba.estado = 'cargado'
+      prueba.usuarioCargo = 'Usuario Actual'
+      prueba.fechaCarga = new Date().toISOString()
     }
     
-    // Verificar rango si el resultado es válido y es numérico
-    if (resultadoValido && pruebaOriginal.tipo === 'numerico') {
-      const valorNumerico = parseFloat(valor.replace(',', '.'))
-      const fueraDeRango = (
-        (pruebaOriginal.valorMinimo !== undefined && valorNumerico < pruebaOriginal.valorMinimo) ||
-        (pruebaOriginal.valorMaximo !== undefined && valorNumerico > pruebaOriginal.valorMaximo)
-      )
-      
-      if (fueraDeRango) {
-        const rango = pruebaOriginal.valorMinimo && pruebaOriginal.valorMaximo ? 
-          `${pruebaOriginal.valorMinimo} - ${pruebaOriginal.valorMaximo}` :
-          pruebaOriginal.valorMinimo ? `≥ ${pruebaOriginal.valorMinimo}` : 
-          `≤ ${pruebaOriginal.valorMaximo}`
-        
-        $q.notify({
-          type: 'warning',
-          message: `⚠️ Valor fuera del rango normal: ${rango}`,
-          position: 'top-right',
-          timeout: 4000
-        })
-      }
+    // Verificar rango
+    if (estaFueraDeRango(prueba)) {
+      $q.notify({
+        type: 'warning',
+        message: `Valor fuera del rango normal: ${formatearRango(prueba)}`,
+        position: 'top-right',
+        timeout: 4000
+      })
     }
   }
   
-  // Emitir cambios con la prueba actualizada
-  const pruebaActualizada = pruebasAplanadas.value.find(p => p.id === pruebaId)
-  if (pruebaActualizada) {
-    emit('resultados-actualizados', [pruebaActualizada])
-  }
-  
-  console.log(`Resultado procesado - Estado: ${estadoAnterior} → ${estadosPruebas[pruebaId]}, Resultado: ${valor}`)
+  // Emitir cambios
+  emit('resultados-actualizados', [prueba])
+  console.log(`Resultado procesado - Estado: ${prueba.estado}, Resultado: ${prueba.resultado}`)
 }
 
-// Métodos para estilos y colores (mantener igual)
+// Métodos para estilos y colores
 const getSectorColor = (sectorId: string) => {
   const colores: Record<string, string> = {
     'HEM': '#7c3aed',
@@ -973,7 +651,7 @@ const getInputClass = (prueba: Prueba) => {
   ]
 }
 
-// Métodos de validación (mantener igual)
+// Métodos de validación
 const estaFueraDeRango = (prueba: Prueba) => {
   if (prueba.tipo !== 'numerico' || !prueba.resultado) return false
   
@@ -993,10 +671,10 @@ const estaFueraDeRango = (prueba: Prueba) => {
 
 const getMensajeError = (prueba: Prueba) => {
   if (!estaFueraDeRango(prueba)) return ''
-  return ''//`Valor fuera del rango normal (${formatearRango(prueba)})`
+  return `Valor fuera del rango normal (${formatearRango(prueba)})`
 }
 
-// Métodos de formateo (mantener igual)
+// Métodos de formateo
 const formatearRango = (prueba: Prueba) => {
   if (!prueba.valorMinimo && !prueba.valorMaximo) return 'No definido'
   if (prueba.valorMinimo && prueba.valorMaximo) {
@@ -1016,7 +694,7 @@ const formatearFecha = (fecha: string) => {
   })
 }
 
-// Métodos de navegación (mantener igual)
+// Métodos de navegación
 const focusNextResult = async (currentIndex: number) => {
   await nextTick()
   
@@ -1032,257 +710,46 @@ const focusNextResult = async (currentIndex: number) => {
 }
 
 const validarResultadoRapido = (prueba: Prueba) => {
-  const valor = getResultadoValue(prueba.id)
+  if (!getResultadoValue(prueba.id)) return
   
-  if (!valor) {
-    $q.notify({
-      type: 'warning',
-      message: 'Debe ingresar un resultado antes de validar',
-      position: 'top-right',
-      timeout: 2000
-    })
-    return
-  }
-  
-  const estadoActual = estadosPruebas[prueba.id] || prueba.estado
-  
-  if (estadoActual !== 'cargado') {
-    $q.notify({
-      type: 'warning',
-      message: 'Solo se pueden validar resultados en estado "Cargado"',
-      position: 'top-right',
-      timeout: 2000
-    })
-    return
-  }
-  
-  // Primero procesar el resultado para asegurar que esté guardado
+  // Primero procesar el resultado
   procesarResultadoFinal(prueba.id)
   
   // Luego validar
-  estadosPruebas[prueba.id] = 'validado'
-  metadatosPruebas[prueba.id] = {
-    ...metadatosPruebas[prueba.id],
-    usuarioValido: 'Usuario Actual',
-    fechaValidacion: new Date().toISOString()
-  }
+  prueba.estado = 'validado'
+  prueba.usuarioValido = 'Usuario Actual'
+  prueba.fechaValidacion = new Date().toISOString()
   
-  const pruebaActualizada = pruebasAplanadas.value.find(p => p.id === prueba.id)
-  if (pruebaActualizada) {
-    emit('resultados-actualizados', [pruebaActualizada])
-  }
+  emit('resultados-actualizados', [prueba])
   
   $q.notify({
     type: 'positive',
-    message: `✅ ${prueba.nombre} validado correctamente`,
+    message: 'Resultado validado',
     position: 'top-right',
     timeout: 1500
   })
 }
 
 const validarResultado = (prueba: Prueba) => {
-  const estadoActual = estadosPruebas[prueba.id] || prueba.estado
-  
-  if (estadoActual !== 'cargado') {
-    $q.notify({
-      type: 'warning',
-      message: 'Solo se pueden validar resultados en estado "Cargado"',
-      position: 'top-right',
-      timeout: 2000
-    })
-    return
-  }
-  
-  estadosPruebas[prueba.id] = 'validado'
-  metadatosPruebas[prueba.id] = {
-    ...metadatosPruebas[prueba.id],
-    usuarioValido: 'Usuario Actual',
-    fechaValidacion: new Date().toISOString()
-  }
-  
-  const pruebaActualizada = pruebasAplanadas.value.find(p => p.id === prueba.id)
-  if (pruebaActualizada) {
-    emit('resultados-actualizados', [pruebaActualizada])
-  }
-  
-  $q.notify({
-    type: 'positive',
-    message: `✅ ${prueba.nombre} validado correctamente`,
-    position: 'top-right',
-    timeout: 1500
-  })
+  validarResultadoRapido(prueba)
 }
 
 const desvalidarResultado = (prueba: Prueba) => {
-  const estadoActual = estadosPruebas[prueba.id] || prueba.estado
+  prueba.estado = 'cargado'
+  prueba.usuarioValido = undefined
+  prueba.fechaValidacion = undefined
   
-  if (estadoActual !== 'validado') {
-    $q.notify({
-      type: 'warning',
-      message: 'Solo se pueden desvalidar resultados que estén validados',
-      position: 'top-right',
-      timeout: 2000
-    })
-    return
-  }
-  
-  estadosPruebas[prueba.id] = 'cargado'
-  metadatosPruebas[prueba.id] = {
-    ...metadatosPruebas[prueba.id],
-    usuarioValido: undefined,
-    fechaValidacion: undefined
-  }
-  
-  const pruebaActualizada = pruebasAplanadas.value.find(p => p.id === prueba.id)
-  if (pruebaActualizada) {
-    emit('resultados-actualizados', [pruebaActualizada])
-  }
+  emit('resultados-actualizados', [prueba])
   
   $q.notify({
     type: 'info',
-    message: `↩️ ${prueba.nombre} desvalidado - vuelve a estado "Cargado"`,
+    message: 'Resultado desvalidado',
     position: 'top-right',
     timeout: 1500
-  })
-}
-
-// Nuevos métodos para validación masiva por diferentes niveles
-const confirmarValidarTodo = () => {
-  const pruebasParaValidar = pruebasAplanadas.value.filter(p => p.estado === 'cargado')
-  
-  if (pruebasParaValidar.length === 0) {
-    $q.notify({
-      type: 'warning',
-      message: 'No hay resultados cargados para validar',
-      position: 'top-right'
-    })
-    return
-  }
-  
-  mostrarConfirmacion({
-    titulo: 'Validar Todos los Resultados',
-    mensaje: `¿Está seguro de que desea validar TODOS los resultados cargados?`,
-    detalles: `Se validarán ${pruebasParaValidar.length} resultados de todos los sectores y estudios.`,
-    icono: 'verified_user',
-    color: 'positive',
-    labelConfirmar: 'Validar Todo',
-    accion: () => validarTodo()
-  })
-}
-
-const confirmarValidarSector = (sector: SectorResumen) => {
-  if (!sector.tieneResultadosParaValidar) {
-    $q.notify({
-      type: 'warning',
-      message: `No hay resultados cargados en el sector ${sector.nombre}`,
-      position: 'top-right'
-    })
-    return
-  }
-  
-  mostrarConfirmacion({
-    titulo: `Validar Sector: ${sector.nombre}`,
-    mensaje: `¿Está seguro de que desea validar todos los resultados del sector ${sector.nombre}?`,
-    detalles: `Se validarán ${sector.resultadosCargados} resultados cargados de este sector.`,
-    icono: 'domain',
-    color: 'info',
-    labelConfirmar: 'Validar Sector',
-    accion: () => validarSector(sector.id)
-  })
-}
-
-const confirmarValidarEstudio = (estudio: EstudioResumen) => {
-  if (!estudio.tieneResultadosParaValidar) {
-    $q.notify({
-      type: 'warning',
-      message: `No hay resultados cargados en el estudio ${estudio.nombre}`,
-      position: 'top-right'
-    })
-    return
-  }
-  
-  mostrarConfirmacion({
-    titulo: `Validar Estudio: ${estudio.nombre}`,
-    mensaje: `¿Está seguro de que desea validar todos los resultados del estudio "${estudio.nombre}"?`,
-    detalles: `Se validarán ${estudio.resultadosCargados} resultados cargados de este estudio (${estudio.sectorNombre}).`,
-    icono: 'assignment',
-    color: 'primary',
-    labelConfirmar: 'Validar Estudio',
-    accion: () => validarEstudio(estudio.id)
   })
 }
 
 // Métodos de validación masiva
-const validarTodo = () => {
-  const pruebasParaValidar = pruebasAplanadas.value.filter(p => p.estado === 'cargado')
-  
-  pruebasParaValidar.forEach(prueba => {
-    prueba.estado = 'validado'
-    prueba.usuarioValido = 'Usuario Actual'
-    prueba.fechaValidacion = new Date().toISOString()
-  })
-  
-  emit('resultados-actualizados', pruebasParaValidar)
-  
-  $q.notify({
-    type: 'positive',
-    message: `✅ ${pruebasParaValidar.length} resultados validados correctamente`,
-    position: 'top-right',
-    timeout: 3000
-  })
-  
-  cerrarDialogoConfirmacion()
-}
-
-const validarSector = (sectorId: string) => {
-  const pruebasParaValidar = pruebasAplanadas.value.filter(p => 
-    p.sectorId === sectorId && p.estado === 'cargado'
-  )
-  
-  pruebasParaValidar.forEach(prueba => {
-    prueba.estado = 'validado'
-    prueba.usuarioValido = 'Usuario Actual'
-    prueba.fechaValidacion = new Date().toISOString()
-  })
-  
-  emit('resultados-actualizados', pruebasParaValidar)
-  
-  const sector = sectoresConResultados.value.find(s => s.id === sectorId)
-  $q.notify({
-    type: 'positive',
-    message: `✅ Sector ${sector?.nombre}: ${pruebasParaValidar.length} resultados validados`,
-    position: 'top-right',
-    timeout: 3000
-  })
-  
-  cerrarDialogoConfirmacion()
-}
-
-const validarEstudio = (estudioId: string) => {
-  const pruebasParaValidar = pruebasAplanadas.value.filter(p => 
-    p.estudioId === estudioId && p.estado === 'cargado'
-  )
-  
-  pruebasParaValidar.forEach(prueba => {
-    prueba.estado = 'validado'
-    prueba.usuarioValido = 'Usuario Actual'
-    prueba.fechaValidacion = new Date().toISOString()
-  })
-  
-  emit('resultados-actualizados', pruebasParaValidar)
-  
-  const estudio = estudiosConResultados.value.find(e => e.id === estudioId)
-  $q.notify({
-    type: 'positive',
-    message: `✅ Estudio ${estudio?.nombre}: ${pruebasParaValidar.length} resultados validados`,
-    position: 'top-right',
-    timeout: 3000
-  })
-  
-  cerrarDialogoConfirmacion()
-}
-
-// Métodos de validación masiva existentes (mantener)
 const toggleModoValidacionMasiva = () => {
   modoValidacionMasiva.value = !modoValidacionMasiva.value
   if (!modoValidacionMasiva.value) {
@@ -1339,21 +806,7 @@ const desvalidarSeleccionados = () => {
   })
 }
 
-// Métodos auxiliares para diálogos
-const mostrarConfirmacion = (config: DialogoConfirmacion) => {
-  dialogoConfirmacion.value = config
-  mostrarDialogoConfirmacion.value = true
-}
-
-const cerrarDialogoConfirmacion = () => {
-  mostrarDialogoConfirmacion.value = false
-}
-
-const ejecutarAccionConfirmada = () => {
-  dialogoConfirmacion.value.accion()
-}
-
-// Métodos auxiliares (mantener igual)
+// Métodos auxiliares
 const filtrarPruebas = (rows: Prueba[], terms: string) => {
   if (!terms) return rows
   
@@ -1384,7 +837,7 @@ const mostrarHistorial = (prueba: Prueba) => {
 </script>
 
 <style scoped>
-/* Contenedor principal (mantener igual) */
+/* Contenedor principal */
 .resultados-container {
   background: white;
   border-radius: 8px;
@@ -1393,7 +846,7 @@ const mostrarHistorial = (prueba: Prueba) => {
   margin: 16px 0;
 }
 
-/* Header (mantener igual) */
+/* Header */
 .resultados-header {
   display: flex;
   justify-content: space-between;
@@ -1437,39 +890,13 @@ const mostrarHistorial = (prueba: Prueba) => {
   color: rgba(255, 255, 255, 0.8);
 }
 
-/* Nuevos estilos para validación masiva */
-.validacion-masiva-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.btn-validacion-masiva {
-  font-weight: 600;
-  border-radius: 6px;
-  text-transform: none;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease;
-}
-
-.btn-validacion-masiva:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
-
-.sector-indicator-dropdown {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-/* Resto de estilos mantener igual... */
+/* Tabla wrapper */
 .tabla-wrapper {
   background: white;
   min-height: 400px;
 }
 
+/* Tabla moderna con diseño limpio */
 .tabla-moderna {
   background: white;
 }
@@ -1510,6 +937,7 @@ const mostrarHistorial = (prueba: Prueba) => {
   border-right: none;
 }
 
+/* Filas de la tabla */
 .tabla-row {
   transition: all 0.2s ease;
 }
@@ -1542,6 +970,7 @@ const mostrarHistorial = (prueba: Prueba) => {
   border-left: 3px solid #ef4444;
 }
 
+/* Sector info */
 .sector-info {
   display: flex;
   align-items: center;
@@ -1568,6 +997,7 @@ const mostrarHistorial = (prueba: Prueba) => {
   font-weight: 500;
 }
 
+/* Estudio info */
 .estudio-info {
   display: flex;
   flex-direction: column;
@@ -1588,6 +1018,7 @@ const mostrarHistorial = (prueba: Prueba) => {
   font-weight: 500;
 }
 
+/* Prueba nombre */
 .prueba-nombre {
   font-weight: 500;
   color: #1f2937;
@@ -1595,6 +1026,7 @@ const mostrarHistorial = (prueba: Prueba) => {
   line-height: 1.4;
 }
 
+/* Rango info */
 .rango-info {
   text-align: center;
 }
@@ -1615,6 +1047,7 @@ const mostrarHistorial = (prueba: Prueba) => {
   font-size: 12px;
 }
 
+/* Unidad info */
 .unidad-info {
   text-align: center;
 }
@@ -1634,6 +1067,7 @@ const mostrarHistorial = (prueba: Prueba) => {
   font-size: 12px;
 }
 
+/* Resultado cell */
 .resultado-cell {
   width: 140px;
 }
@@ -1689,6 +1123,7 @@ const mostrarHistorial = (prueba: Prueba) => {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
+/* Validación rápida */
 .validacion-rapida {
   opacity: 0;
   transition: opacity 0.2s ease;
@@ -1698,6 +1133,7 @@ const mostrarHistorial = (prueba: Prueba) => {
   opacity: 1;
 }
 
+/* Estado badge */
 .estado-badge {
   font-size: 10px;
   font-weight: 700;
@@ -1707,6 +1143,7 @@ const mostrarHistorial = (prueba: Prueba) => {
   letter-spacing: 0.05em;
 }
 
+/* Usuario info */
 .usuario-info {
   display: flex;
   flex-direction: column;
@@ -1725,11 +1162,13 @@ const mostrarHistorial = (prueba: Prueba) => {
   font-family: 'JetBrains Mono', monospace;
 }
 
+/* Acciones */
 .acciones-cell {
   width: 120px;
   text-align: center;
 }
 
+/* No data */
 .no-data-container {
   display: flex;
   flex-direction: column;
@@ -1753,6 +1192,7 @@ const mostrarHistorial = (prueba: Prueba) => {
   color: #9ca3af;
 }
 
+/* Footer */
 .tabla-footer {
   display: flex;
   justify-content: space-between;
@@ -1783,24 +1223,13 @@ const mostrarHistorial = (prueba: Prueba) => {
   margin-top: 4px;
 }
 
+/* Selección múltiple */
 .tabla-moderna :deep(.q-table tbody tr.selected) {
   background-color: rgba(59, 130, 246, 0.08) !important;
   border-left: 4px solid #3b82f6 !important;
 }
 
-/* Responsive mejorado */
-@media (max-width: 1400px) {
-  .validacion-masiva-actions {
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-  
-  .btn-validacion-masiva {
-    font-size: 11px;
-    padding: 6px 12px;
-  }
-}
-
+/* Responsive */
 @media (max-width: 1200px) {
   .resultados-header {
     flex-direction: column;
@@ -1811,17 +1240,11 @@ const mostrarHistorial = (prueba: Prueba) => {
   .header-actions {
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 12px;
   }
   
   .search-input {
     width: 100%;
     max-width: 280px;
-  }
-  
-  .validacion-masiva-actions {
-    justify-content: center;
-    order: 1;
   }
 }
 
@@ -1838,17 +1261,6 @@ const mostrarHistorial = (prueba: Prueba) => {
   .header-actions {
     flex-direction: column;
     gap: 12px;
-  }
-  
-  .validacion-masiva-actions {
-    width: 100%;
-    justify-content: space-between;
-  }
-  
-  .btn-validacion-masiva {
-    flex: 1;
-    max-width: 120px;
-    font-size: 10px;
   }
   
   .tabla-moderna :deep(.q-table thead th),
@@ -1872,6 +1284,7 @@ const mostrarHistorial = (prueba: Prueba) => {
   }
 }
 
+/* Animaciones sutiles */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -1887,6 +1300,7 @@ const mostrarHistorial = (prueba: Prueba) => {
   animation: fadeIn 0.3s ease;
 }
 
+/* Tooltips */
 .q-tooltip {
   font-size: 11px;
   padding: 6px 8px;
@@ -1894,17 +1308,20 @@ const mostrarHistorial = (prueba: Prueba) => {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
+/* Estados hover mejorados */
 .tabla-moderna :deep(.q-btn:hover) {
   transform: scale(1.05);
   transition: transform 0.1s ease;
 }
 
+/* Mejoras para campos de entrada */
 .resultado-input :deep(.q-field__messages) {
   font-size: 10px;
   min-height: 14px;
   padding-top: 2px;
 }
 
+/* Print styles */
 @media print {
   .resultados-header,
   .tabla-footer,
