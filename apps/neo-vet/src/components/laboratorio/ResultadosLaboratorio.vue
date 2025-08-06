@@ -29,9 +29,8 @@
         
         <q-separator vertical inset class="q-mx-sm" />
         
-        <!-- Botones de validación masiva mejorados -->
+        <!-- Botones de validación masiva -->
         <div class="validacion-masiva-actions">
-          <!-- Validar Todo -->
           <q-btn
             color="positive"
             icon="verified_user"
@@ -44,7 +43,6 @@
             <q-tooltip>Validar todos los resultados cargados</q-tooltip>
           </q-btn>
           
-          <!-- Dropdown para validación por sector -->
           <q-btn-dropdown
             color="info"
             icon="domain"
@@ -83,7 +81,6 @@
             </q-list>
           </q-btn-dropdown>
           
-          <!-- Dropdown para validación por estudio -->
           <q-btn-dropdown
             color="primary"
             icon="assignment"
@@ -128,7 +125,7 @@
         
         <q-separator vertical inset class="q-mx-sm" />
         
-        <!-- Botones de selección individual (mantener funcionalidad existente) -->
+        <!-- Botones de selección múltiple -->
         <q-btn-group flat>
           <q-btn
             :color="modoValidacionMasiva ? 'primary' : 'grey-7'"
@@ -161,7 +158,7 @@
       </div>
     </div>
 
-    <!-- Tabla moderna (mantener el resto del template igual) -->
+    <!-- Tabla moderna -->
     <div class="tabla-wrapper">
       <q-table
         :rows="pruebasFiltradasYOrdenadas"
@@ -278,8 +275,8 @@
                   :placeholder="props.row.tipo === 'numerico' ? 'Ej: 12.5' : 'Ingrese resultado'"
                 />
                 
-                <!-- Indicador de validación rápida -->
-                <div v-if="getResultadoValue(props.row.id) && props.row.estado !== 'validado'" class="validacion-rapida">
+                <!-- Botón de validación rápida -->
+                <div v-if="getResultadoValue(props.row.id) && props.row.estado === 'cargado'" class="validacion-rapida">
                   <q-btn
                     dense
                     flat
@@ -592,7 +589,7 @@ const inicializarDatos = () => {
 // Inicializar datos al montar el componente
 inicializarDatos()
 
-// Columnas de la tabla (mantener igual)
+// Columnas de la tabla
 const columns = [
   { 
     name: 'sectorNombre', 
@@ -670,7 +667,7 @@ const columns = [
   }
 ]
 
-// Computed properties existentes (actualizar para usar estados locales)
+// Computed properties
 const pruebasAplanadas = computed(() => {
   const pruebas: Prueba[] = []
   
@@ -739,7 +736,6 @@ const hayValidadosSeleccionados = computed(() =>
   pruebasSeleccionadas.value.some(p => p.estado === 'validado')
 )
 
-// Nuevos computed properties para validación masiva
 const hayResultadosParaValidarTodo = computed(() => 
   pruebasAplanadas.value.some(p => p.estado === 'cargado')
 )
@@ -812,7 +808,7 @@ const estudiosConResultados = computed((): EstudioResumen[] => {
   })
 })
 
-// Métodos para manejar los valores de los inputs (mantener igual)
+// Métodos para manejar los valores de los inputs
 const getResultadoValue = (pruebaId: string): string => {
   return valoresResultados[pruebaId] || ''
 }
@@ -928,7 +924,7 @@ const procesarResultadoFinal = (pruebaId: string) => {
   console.log(`Resultado procesado - Estado: ${estadoAnterior} → ${estadosPruebas[pruebaId]}, Resultado: ${valor}`)
 }
 
-// Métodos para estilos y colores (mantener igual)
+// Métodos para estilos y colores
 const getSectorColor = (sectorId: string) => {
   const colores: Record<string, string> = {
     'HEM': '#7c3aed',
@@ -973,7 +969,7 @@ const getInputClass = (prueba: Prueba) => {
   ]
 }
 
-// Métodos de validación (mantener igual)
+// Métodos de validación
 const estaFueraDeRango = (prueba: Prueba) => {
   if (prueba.tipo !== 'numerico' || !prueba.resultado) return false
   
@@ -993,10 +989,10 @@ const estaFueraDeRango = (prueba: Prueba) => {
 
 const getMensajeError = (prueba: Prueba) => {
   if (!estaFueraDeRango(prueba)) return ''
-  return ''//`Valor fuera del rango normal (${formatearRango(prueba)})`
+  return ''
 }
 
-// Métodos de formateo (mantener igual)
+// Métodos de formateo
 const formatearRango = (prueba: Prueba) => {
   if (!prueba.valorMinimo && !prueba.valorMaximo) return 'No definido'
   if (prueba.valorMinimo && prueba.valorMaximo) {
@@ -1016,7 +1012,7 @@ const formatearFecha = (fecha: string) => {
   })
 }
 
-// Métodos de navegación (mantener igual)
+// Métodos de navegación
 const focusNextResult = async (currentIndex: number) => {
   await nextTick()
   
@@ -1031,6 +1027,7 @@ const focusNextResult = async (currentIndex: number) => {
   }
 }
 
+// Métodos de validación individual
 const validarResultadoRapido = (prueba: Prueba) => {
   const valor = getResultadoValue(prueba.id)
   
@@ -1146,7 +1143,7 @@ const desvalidarResultado = (prueba: Prueba) => {
   })
 }
 
-// Nuevos métodos para validación masiva por diferentes niveles
+// Métodos de validación masiva por diferentes niveles
 const confirmarValidarTodo = () => {
   const pruebasParaValidar = pruebasAplanadas.value.filter(p => p.estado === 'cargado')
   
@@ -1217,12 +1214,18 @@ const validarTodo = () => {
   const pruebasParaValidar = pruebasAplanadas.value.filter(p => p.estado === 'cargado')
   
   pruebasParaValidar.forEach(prueba => {
-    prueba.estado = 'validado'
-    prueba.usuarioValido = 'Usuario Actual'
-    prueba.fechaValidacion = new Date().toISOString()
+    estadosPruebas[prueba.id] = 'validado'
+    metadatosPruebas[prueba.id] = {
+      ...metadatosPruebas[prueba.id],
+      usuarioValido: 'Usuario Actual',
+      fechaValidacion: new Date().toISOString()
+    }
   })
   
-  emit('resultados-actualizados', pruebasParaValidar)
+  const pruebasActualizadas = pruebasAplanadas.value.filter(p => 
+    pruebasParaValidar.some(pp => pp.id === p.id)
+  )
+  emit('resultados-actualizados', pruebasActualizadas)
   
   $q.notify({
     type: 'positive',
@@ -1240,12 +1243,18 @@ const validarSector = (sectorId: string) => {
   )
   
   pruebasParaValidar.forEach(prueba => {
-    prueba.estado = 'validado'
-    prueba.usuarioValido = 'Usuario Actual'
-    prueba.fechaValidacion = new Date().toISOString()
+    estadosPruebas[prueba.id] = 'validado'
+    metadatosPruebas[prueba.id] = {
+      ...metadatosPruebas[prueba.id],
+      usuarioValido: 'Usuario Actual',
+      fechaValidacion: new Date().toISOString()
+    }
   })
   
-  emit('resultados-actualizados', pruebasParaValidar)
+  const pruebasActualizadas = pruebasAplanadas.value.filter(p => 
+    pruebasParaValidar.some(pp => pp.id === p.id)
+  )
+  emit('resultados-actualizados', pruebasActualizadas)
   
   const sector = sectoresConResultados.value.find(s => s.id === sectorId)
   $q.notify({
@@ -1264,12 +1273,18 @@ const validarEstudio = (estudioId: string) => {
   )
   
   pruebasParaValidar.forEach(prueba => {
-    prueba.estado = 'validado'
-    prueba.usuarioValido = 'Usuario Actual'
-    prueba.fechaValidacion = new Date().toISOString()
+    estadosPruebas[prueba.id] = 'validado'
+    metadatosPruebas[prueba.id] = {
+      ...metadatosPruebas[prueba.id],
+      usuarioValido: 'Usuario Actual',
+      fechaValidacion: new Date().toISOString()
+    }
   })
   
-  emit('resultados-actualizados', pruebasParaValidar)
+  const pruebasActualizadas = pruebasAplanadas.value.filter(p => 
+    pruebasParaValidar.some(pp => pp.id === p.id)
+  )
+  emit('resultados-actualizados', pruebasActualizadas)
   
   const estudio = estudiosConResultados.value.find(e => e.id === estudioId)
   $q.notify({
@@ -1282,7 +1297,7 @@ const validarEstudio = (estudioId: string) => {
   cerrarDialogoConfirmacion()
 }
 
-// Métodos de validación masiva existentes (mantener)
+// Métodos de validación masiva con selección múltiple
 const toggleModoValidacionMasiva = () => {
   modoValidacionMasiva.value = !modoValidacionMasiva.value
   if (!modoValidacionMasiva.value) {
@@ -1305,12 +1320,18 @@ const validarSeleccionados = () => {
   const pruebasAValidar = pruebasSeleccionadas.value.filter(p => p.estado === 'cargado')
   
   pruebasAValidar.forEach(prueba => {
-    prueba.estado = 'validado'
-    prueba.usuarioValido = 'Usuario Actual'
-    prueba.fechaValidacion = new Date().toISOString()
+    estadosPruebas[prueba.id] = 'validado'
+    metadatosPruebas[prueba.id] = {
+      ...metadatosPruebas[prueba.id],
+      usuarioValido: 'Usuario Actual',
+      fechaValidacion: new Date().toISOString()
+    }
   })
   
-  emit('resultados-actualizados', pruebasAValidar)
+  const pruebasActualizadas = pruebasAplanadas.value.filter(p => 
+    pruebasAValidar.some(pp => pp.id === p.id)
+  )
+  emit('resultados-actualizados', pruebasActualizadas)
   pruebasSeleccionadas.value = []
   
   $q.notify({
@@ -1324,12 +1345,18 @@ const desvalidarSeleccionados = () => {
   const pruebasADesvalidar = pruebasSeleccionadas.value.filter(p => p.estado === 'validado')
   
   pruebasADesvalidar.forEach(prueba => {
-    prueba.estado = 'cargado'
-    prueba.usuarioValido = undefined
-    prueba.fechaValidacion = undefined
+    estadosPruebas[prueba.id] = 'cargado'
+    metadatosPruebas[prueba.id] = {
+      ...metadatosPruebas[prueba.id],
+      usuarioValido: undefined,
+      fechaValidacion: undefined
+    }
   })
   
-  emit('resultados-actualizados', pruebasADesvalidar)
+  const pruebasActualizadas = pruebasAplanadas.value.filter(p => 
+    pruebasADesvalidar.some(pp => pp.id === p.id)
+  )
+  emit('resultados-actualizados', pruebasActualizadas)
   pruebasSeleccionadas.value = []
   
   $q.notify({
@@ -1353,7 +1380,7 @@ const ejecutarAccionConfirmada = () => {
   dialogoConfirmacion.value.accion()
 }
 
-// Métodos auxiliares (mantener igual)
+// Métodos auxiliares
 const filtrarPruebas = (rows: Prueba[], terms: string) => {
   if (!terms) return rows
   
@@ -1384,7 +1411,7 @@ const mostrarHistorial = (prueba: Prueba) => {
 </script>
 
 <style scoped>
-/* Contenedor principal (mantener igual) */
+/* Contenedor principal */
 .resultados-container {
   background: white;
   border-radius: 8px;
@@ -1393,7 +1420,7 @@ const mostrarHistorial = (prueba: Prueba) => {
   margin: 16px 0;
 }
 
-/* Header (mantener igual) */
+/* Header */
 .resultados-header {
   display: flex;
   justify-content: space-between;
@@ -1437,7 +1464,7 @@ const mostrarHistorial = (prueba: Prueba) => {
   color: rgba(255, 255, 255, 0.8);
 }
 
-/* Nuevos estilos para validación masiva */
+/* Validación masiva */
 .validacion-masiva-actions {
   display: flex;
   align-items: center;
@@ -1464,7 +1491,7 @@ const mostrarHistorial = (prueba: Prueba) => {
   flex-shrink: 0;
 }
 
-/* Resto de estilos mantener igual... */
+/* Tabla */
 .tabla-wrapper {
   background: white;
   min-height: 400px;
@@ -1788,7 +1815,7 @@ const mostrarHistorial = (prueba: Prueba) => {
   border-left: 4px solid #3b82f6 !important;
 }
 
-/* Responsive mejorado */
+/* Responsive */
 @media (max-width: 1400px) {
   .validacion-masiva-actions {
     flex-wrap: wrap;
@@ -1872,6 +1899,7 @@ const mostrarHistorial = (prueba: Prueba) => {
   }
 }
 
+/* Animaciones */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -1905,6 +1933,7 @@ const mostrarHistorial = (prueba: Prueba) => {
   padding-top: 2px;
 }
 
+/* Print styles */
 @media print {
   .resultados-header,
   .tabla-footer,
