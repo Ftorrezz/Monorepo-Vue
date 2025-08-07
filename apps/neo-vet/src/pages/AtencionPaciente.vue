@@ -346,6 +346,26 @@
                 @servicio-completado="completarServicio"
                 @servicio-eliminado="eliminarServicio"  
               />
+              <ServicioExploracionFisica
+                v-else-if="servicio.tipo === 'exploracion'"
+                :servicio-id="servicio.id"
+                :atencion-id="atenciones[atencionActual].id"
+                :datos-iniciales="servicio.datos"
+                :modo-lectura="servicio.completado || atenciones[atencionActual].estado === 'Finalizada'"
+                @servicio-actualizado="actualizarServicio"
+                @servicio-completado="completarServicio"
+                @servicio-eliminado="eliminarServicio"
+              />
+              <ServicioHospitalizacion
+                v-else-if="servicio.tipo === 'hospitalizacion'"
+                :servicio-id="servicio.id"
+                :atencion-id="atenciones[atencionActual].id"
+                :datos-iniciales="servicio.datos"
+                :modo-lectura="servicio.completado || atenciones[atencionActual].estado === 'Finalizada'"
+                @servicio-actualizado="actualizarServicio"
+                @servicio-completado="completarServicio"
+                @servicio-eliminado="eliminarServicio"
+              />
 
               <!-- Componente genérico para servicios no implementados -->
               <div v-else class="generic-service">
@@ -413,6 +433,8 @@ import ServiciosDisponibles from '../components/servicios/ServiciosDisponibles.v
 import OrdenLaboratorio from '../components/laboratorio/OrdenLaboratorio.vue';
 import ServicioRayosX from '../components/servicios/ServicioRayosX.vue';
 import ServicioUltrasonido from 'src/components/servicios/ServicioUltrasonido.vue';
+import ServicioExploracionFisica from 'src/components/servicios/ServicioExploracionFisica.vue';
+import ServicioHospitalizacion from 'src/components/servicios/ServicioHospitalizacion.vue';
 export default {
   name: 'AtencionPaciente',
   components: {
@@ -421,7 +443,9 @@ export default {
     ServiciosDisponibles,
     OrdenLaboratorio,
     ServicioRayosX,
-    ServicioUltrasonido
+    ServicioUltrasonido,
+    ServicioExploracionFisica,
+    ServicioHospitalizacion
   },
   setup() {
     const $q = useQuasar()

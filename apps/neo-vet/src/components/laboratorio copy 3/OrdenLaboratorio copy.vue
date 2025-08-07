@@ -62,30 +62,6 @@
 
           <div class="col-12 col-md-6">
             <q-select
-              v-model="ordenLab.profesionalSolicitante"
-              :options="profesionalesSolicitantes"
-              label="Profesional Solicitante *"
-              outlined
-              option-label="nombre"
-              option-value="id"
-              :readonly="modoLectura"
-              clearable
-              use-input
-              input-debounce="0"
-              @filter="filtrarProfesionales"
-            >
-              <template v-slot:no-option>
-                <q-item>
-                  <q-item-section class="text-grey">
-                    No hay profesionales disponibles
-                  </q-item-section>
-                </q-item>
-              </template>
-            </q-select>
-          </div>
-
-          <div class="col-12 col-md-6">
-            <q-select
               v-model="ordenLab.laboratorioExterno"
               :options="laboratoriosExternos"
               label="Laboratorio Externo"
@@ -101,74 +77,36 @@
             </q-select>
           </div>
 
-          <div class="col-12 col-md-6">
-            <q-checkbox
-              v-model="ordenLab.esUrgente"
-              label="Orden Urgente"
-              :readonly="modoLectura"
-              class="q-mt-md"
-            />
-          </div>
-
-          <div class="col-12 col-md-6">
+          <div class="col-12 col-md-4">
             <q-select
-              v-model="ordenLab.diagnostico"
-              :options="diagnosticos"
-              label="Diagnóstico Principal"
+              v-model="ordenLab.prioridad"
+              :options="prioridades"
+              label="Prioridad *"
               outlined
-              option-label="nombre"
-              option-value="codigo"
-              :readonly="modoLectura"
-              clearable
-              use-input
-              input-debounce="300"
-              @filter="filtrarDiagnosticos"
-            >
-              <template v-slot:no-option>
-                <q-item>
-                  <q-item-section class="text-grey">
-                    Escriba para buscar diagnósticos
-                  </q-item-section>
-                </q-item>
-              </template>
-            </q-select>
-          </div>
-
-          <div class="col-12 col-md-6">
-            <q-input
-              v-model="ordenLab.complementoDiagnostico"
-              label="Complemento Diagnóstico"
-              outlined
-              placeholder="Información adicional del diagnóstico"
+              option-label="label"
+              option-value="value"
               :readonly="modoLectura"
             />
           </div>
 
-          <div class="col-12 col-md-6">
+          <div class="col-12 col-md-4">
+            <q-select
+              v-model="ordenLab.tipoMuestra"
+              :options="tiposMuestra"
+              label="Tipo de Muestra *"
+              outlined
+              option-label="label"
+              option-value="value"
+              :readonly="modoLectura"
+            />
+          </div>
+
+          <div class="col-12 col-md-4">
             <q-input
               v-model="ordenLab.fechaRecoleccion"
               label="Fecha de Recolección"
               outlined
               type="datetime-local"
-              :readonly="modoLectura"
-            />
-          </div>
-
-          <div class="col-12 col-md-6">
-            <q-checkbox
-              v-model="ordenLab.esOrdenExterna"
-              label="Orden Externa"
-              :readonly="modoLectura"
-            />
-          </div>
-
-          <!-- Campo condicional para orden externa -->
-          <div v-if="ordenLab.esOrdenExterna" class="col-12 col-md-6">
-            <q-input
-              v-model="ordenLab.numeroOrdenExterna"
-              label="Número de Orden Externa"
-              outlined
-              placeholder="Número de orden del laboratorio externo"
               :readonly="modoLectura"
             />
           </div>
@@ -196,32 +134,6 @@
               rows="2"
               :readonly="modoLectura"
             />
-          </div>
-
-          <!-- Resumen de tipos de muestra (solo lectura) -->
-          <div v-if="tiposMuestraRequeridos.length > 0" class="col-12">
-            <q-card flat bordered class="bg-blue-1">
-              <q-card-section>
-                <div class="text-subtitle2 q-mb-sm">
-                  <q-icon name="biotech" class="q-mr-sm"/>
-                  Tipos de Muestra Requeridos
-                </div>
-                <div class="row q-gutter-xs">
-                  <q-chip
-                    v-for="tipoMuestra in tiposMuestraRequeridos"
-                    :key="tipoMuestra.value"
-                    :label="tipoMuestra.label"
-                    color="blue"
-                    text-color="white"
-                    icon="science"
-                    size="sm"
-                  />
-                </div>
-                <div class="text-caption text-grey-7 q-mt-sm">
-                  Estos tipos de muestra se determinan automáticamente según los estudios seleccionados
-                </div>
-              </q-card-section>
-            </q-card>
           </div>
         </div>
       </q-tab-panel>
@@ -324,6 +236,40 @@
   </q-dialog>
 </template>
 
+<script lang="ts">
+// Types for the new functionality
+export type EstudioEstado = 'pendiente' | 'cargado' | 'validado'
+export type OrdenEstado = 'borrador' | 'generada' | 'pendiente' | 'cargada' | 'validada'
+
+export interface Sector {
+  id: string
+  nombre: string
+  codigo: string
+  descripcion?: string
+}
+
+export interface Estudio {
+  id: number
+  codigo: string
+  nombre: string
+  sectorId: string
+  sector: Sector
+  estado: EstudioEstado
+  tipoMuestra: string      // Preestablecido
+  tiempoResultado: string  // Preestablecido
+  preparacion: string      // Preestablecido
+  precio: number          // Preestablecido
+  metodoAnalisis?: string // Preestablecido
+  valoresReferencia?: string // Preestablecido
+  resultado?: string
+  observaciones?: string   // Este sí se puede cargar
+  validadoPor?: string
+  fechaValidacion?: string
+  fechaCarga?: string
+  fechaAgregado: string
+}
+</script>
+
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import EstudioLaboratorio from './EstudioLaboratorio.vue'
@@ -353,14 +299,10 @@ const emit = defineEmits(['servicio-actualizado', 'servicio-completado', 'servic
 // Estados del formulario
 const ordenLab = ref({
   numeroOrden: '',
-  profesionalSolicitante: null,
   laboratorioExterno: null,
-  esUrgente: false,
-  diagnostico: null,
-  complementoDiagnostico: '',
+  prioridad: 'normal',
+  tipoMuestra: '',
   fechaRecoleccion: '',
-  esOrdenExterna: false,
-  numeroOrdenExterna: '',
   indicacionesEspeciales: '',
   estudios: [],
   observaciones: '',
@@ -375,30 +317,17 @@ const codigoEstudio = ref('')
 const { notify } = useQuasar()
 
 // Opciones para selects
-const profesionalesSolicitantes = ref([
-  { id: 'prof1', nombre: 'Dr. Juan Pérez - Medicina Interna', especialidad: 'Medicina Interna' },
-  { id: 'prof2', nombre: 'Dra. María García - Cardiología', especialidad: 'Cardiología' },
-  { id: 'prof3', nombre: 'Dr. Carlos López - Endocrinología', especialidad: 'Endocrinología' },
-  { id: 'prof4', nombre: 'Dra. Ana Martínez - Medicina General', especialidad: 'Medicina General' }
-])
-
-const profesionalesFiltrados = ref([...profesionalesSolicitantes.value])
-
 const laboratoriosExternos = [
   { id: 'lab1', nombre: 'Laboratorio Central', telefono: '555-0001' },
   { id: 'lab2', nombre: 'BioVet Labs', telefono: '555-0002' },
   { id: 'lab3', nombre: 'VetDiagnostic', telefono: '555-0003' }
 ]
 
-const diagnosticos = ref([
-  { codigo: 'E11', nombre: 'Diabetes mellitus tipo 2' },
-  { codigo: 'I10', nombre: 'Hipertensión esencial' },
-  { codigo: 'E78', nombre: 'Trastornos del metabolismo de las lipoproteínas' },
-  { codigo: 'N18', nombre: 'Enfermedad renal crónica' },
-  { codigo: 'K59', nombre: 'Otros trastornos funcionales del intestino' }
-])
-
-const diagnosticosFiltrados = ref([...diagnosticos.value])
+const prioridades = [
+  { label: 'Urgente', value: 'urgente' },
+  { label: 'Normal', value: 'normal' },
+  { label: 'Rutina', value: 'rutina' }
+]
 
 const tiposMuestra = [
   { label: 'Sangre - Suero', value: 'suero' },
@@ -415,191 +344,169 @@ const tiposMuestra = [
 const sectores = [
   { id: 'HEM', nombre: 'Hematología', codigo: 'HEM', descripcion: 'Estudios hematológicos' },
   { id: 'BQ', nombre: 'Bioquímica', codigo: 'BQ', descripcion: 'Estudios bioquímicos' },
-  { id: 'QUI', nombre: 'Química', codigo: 'QUI', descripcion: 'Estudios químicos' },
-  { id: 'MICRO', nombre: 'Microbiología', codigo: 'MICRO', descripcion: 'Estudios microbiológicos' }
+  { id: 'MICRO', nombre: 'Microbiología', codigo: 'MICRO', descripcion: 'Estudios microbiológicos' },
 ]
-
-// Configuración de estudios con tipos de muestra
-const estudiosPorSector = {
-  'HEM': {
-    'HEM001': {
-      nombre: 'Hemograma Completo',
-      tipoMuestra: 'sangre_completa',
-      tiempoResultado: '2-4 horas',
-      preparacion: 'No requiere ayuno',
-      pruebas: [
-        {
-          id: 'HEM001_01',
-          codigo: 'HGB',
-          nombre: 'Hemoglobina',
-          tipo: 'numerico',
-          valorMinimo: 12,
-          valorMaximo: 18,
-          unidad: 'g/dL',
-          estado: 'pendiente'
-        },
-        {
-          id: 'HEM001_02',
-          codigo: 'HTO',
-          nombre: 'Hematocrito',
-          tipo: 'numerico',
-          valorMinimo: 37,
-          valorMaximo: 55,
-          unidad: '%',
-          estado: 'pendiente'
-        }
-      ]
-    }
-  },
-  'BQ': {
-    'BQ001': {
-      nombre: 'Perfil Bioquímico Básico',
-      tipoMuestra: 'suero',
-      tiempoResultado: '4-6 horas',
-      preparacion: 'Ayuno de 8-12 horas',
-      pruebas: [
-        {
-          id: 'BQ001_01',
-          codigo: 'GLU',
-          nombre: 'Glucosa',
-          tipo: 'numerico',
-          valorMinimo: 70,
-          valorMaximo: 110,
-          unidad: 'mg/dL',
-          estado: 'pendiente'
-        }
-      ]
-    }
-  }
-}
-
-// Computed para tipos de muestra requeridos
-const tiposMuestraRequeridos = computed(() => {
-  const tiposUnicos = new Set()
-  
-  ordenLab.value.estudios.forEach(estudio => {
-    if (estudio.tipoMuestra) {
-      tiposUnicos.add(estudio.tipoMuestra)
-    }
-  })
-  
-  return tiposMuestra.filter(tipo => tiposUnicos.has(tipo.value))
-})
 
 // Validaciones
 const formularioValido = computed(() => {
-  return ordenLab.value.profesionalSolicitante && 
+  return ordenLab.value.prioridad && 
+         ordenLab.value.tipoMuestra && 
          ordenLab.value.estudios && 
          ordenLab.value.estudios.length > 0
 })
 
-// Métodos de filtrado
-const filtrarProfesionales = (val, update) => {
-  update(() => {
-    if (val === '') {
-      profesionalesFiltrados.value = profesionalesSolicitantes.value
-    } else {
-      const needle = val.toLowerCase()
-      profesionalesFiltrados.value = profesionalesSolicitantes.value.filter(
-        prof => prof.nombre.toLowerCase().includes(needle)
-      )
-    }
-  })
-}
-
-const filtrarDiagnosticos = (val, update) => {
-  update(() => {
-    if (val === '') {
-      diagnosticosFiltrados.value = diagnosticos.value
-    } else {
-      const needle = val.toLowerCase()
-      diagnosticosFiltrados.value = diagnosticos.value.filter(
-        diag => diag.nombre.toLowerCase().includes(needle) || 
-                diag.codigo.toLowerCase().includes(needle)
-      )
-    }
-  })
-}
-
 // Métodos para manejo de estudios
-const agregarEstudiosDesdeSelector = (estudiosSeleccionados) => {
+const agregarEstudios = (estudiosSeleccionados) => {
   estudiosSeleccionados.forEach(estudio => {
-    // Verificar duplicados
-    if (ordenLab.value.estudios.some(e => e.codigo === estudio.codigo)) {
-      notify({
-        type: 'warning',
-        message: `El estudio ${estudio.codigo} ya está en la lista`,
-        position: 'top'
-      })
-      return
-    }
-
-    const prefijo = estudio.codigo.substring(0, estudio.codigo.indexOf('0'))
-    const sectorId = estudio.sectorId || prefijo
-    const sector = sectores.find(s => s.id === sectorId)
-    const estudioConfig = estudiosPorSector[sectorId]?.[estudio.codigo]
-
-    if (!estudioConfig) {
-      notify({
-        type: 'negative',
-        message: `No se encontró configuración para el estudio ${estudio.codigo}`,
-        position: 'top'
-      })
-      return
-    }
-
     const nuevoEstudio = {
       id: Date.now() + Math.random(),
-      codigo: estudio.codigo,
-      nombre: estudioConfig.nombre,
-      sectorId: sectorId,
-      sector: sector,
-      tipoMuestra: estudioConfig.tipoMuestra,
-      tiempoResultado: estudioConfig.tiempoResultado,
-      preparacion: estudioConfig.preparacion,
+      ...estudio,
       estado: 'pendiente',
       fechaAgregado: new Date().toISOString(),
-      pruebas: estudioConfig.pruebas.map(prueba => ({
-        ...prueba,
-        id: `${prueba.id}_${Date.now()}`,
-        sectorId: sectorId,
-        sectorNombre: sector?.nombre || '',
-        resultado: null,
-        estado: 'pendiente'
-      }))
+      sector: sectores.find(s => s.id === estudio.sectorId) || null
     }
-
     ordenLab.value.estudios.push(nuevoEstudio)
-
-    notify({
-      type: 'positive',
-      message: `Estudio ${estudio.codigo} agregado correctamente`,
-      position: 'top'
-    })
   })
-
+  actualizarEstadoOrden()
   mostrarDialogoEstudio.value = false
   guardarDatos()
 }
 
+const agregarEstudiosDesdeSelector = (estudios) => {
+  // Verificar duplicados
+  const estudiosNuevos = estudios.filter(estudio => 
+    !ordenLab.value.estudios.some(e => e.codigo === estudio.codigo)
+  ).map(estudio => ({
+    ...estudio,
+    id: Date.now() + Math.random(),
+    estado: 'pendiente', // Aseguramos que se agregue el estado
+    fechaAgregado: new Date().toISOString()
+  }))
+
+  if (estudiosNuevos.length > 0) {
+    ordenLab.value.estudios.push(...estudiosNuevos)
+    mostrarDialogoEstudio.value = false
+    
+    notify({
+      type: 'positive',
+      message: `Se agregaron ${estudiosNuevos.length} estudios`,
+      position: 'top'
+    })
+  } else {
+    notify({
+      type: 'warning',
+      message: 'Los estudios seleccionados ya están en la orden',
+      position: 'top'
+    })
+  }
+}
+
+const actualizarEstudio = (estudioId, datosActualizados) => {
+  const index = ordenLab.value.estudios.findIndex(e => e.id === estudioId)
+  if (index !== -1) {
+    ordenLab.value.estudios[index] = { ...ordenLab.value.estudios[index], ...datosActualizados }
+    guardarDatos()
+  }
+}
+
+const eliminarEstudio = (estudioId) => {
+  ordenLab.value.estudios = ordenLab.value.estudios.filter(e => e.id !== estudioId)
+  guardarDatos()
+}
+
+// Función para buscar por código
 const buscarPorCodigo = async () => {
   if (!codigoEstudio.value) return
   
-  const codigo = codigoEstudio.value.toUpperCase()
-  const prefijo = codigo.substring(0, codigo.indexOf('0'))
-  const sectorId = prefijo
-  
-  if (!estudiosPorSector[sectorId]?.[codigo]) {
+  try {
+    // Simulación de búsqueda - Reemplazar con tu lógica real de API
+    const estudio = await buscarEstudioPorCodigo(codigoEstudio.value)
+    
+    if (estudio) {
+      // Verificar si ya existe
+      if (ordenLab.value.estudios.some(e => e.codigo === estudio.codigo)) {
+        notify({
+          type: 'warning',
+          message: 'Este estudio ya está en la lista',
+          position: 'top'
+        })
+        return
+      }
+
+      // Agregar el estudio
+      agregarEstudios([{
+        id: Date.now(),
+        ...estudio,
+        estado: 'pendiente'
+      }])
+
+      // Limpiar el input
+      codigoEstudio.value = ''
+      
+      notify({
+        type: 'positive',
+        message: 'Estudio agregado correctamente',
+        position: 'top'
+      })
+    } else {
+      notify({
+        type: 'negative',
+        message: 'Código no encontrado',
+        position: 'top',
+        actions: [{
+          label: 'Buscar',
+          color: 'white',
+          handler: () => {
+            mostrarDialogoEstudio.value = true
+          }
+        }]
+      })
+    }
+  } catch (error) {
+    console.error('Error al buscar estudio:', error)
     notify({
       type: 'negative',
-      message: 'Código de estudio no encontrado',
+      message: 'Error al buscar el estudio',
       position: 'top'
     })
-    return
   }
+}
 
-  await agregarEstudiosDesdeSelector([{ codigo, sectorId }])
-  codigoEstudio.value = ''
+// Simulación de datos preestablecidos - Reemplazar con tu API real
+const buscarEstudioPorCodigo = async (codigo) => {
+  // Simular delay de red
+  await new Promise(resolve => setTimeout(resolve, 300))
+  
+  // Simulación de datos preestablecidos
+  const estudiosDisponibles = {
+    'HEM001': { 
+      codigo: 'HEM001', 
+      nombre: 'Hemograma Completo',
+      sectorId: 'HEM',
+      tipoMuestra: 'sangre_completa',
+      tiempoResultado: '24h',
+      preparacion: 'Ayuno de 8 horas',
+      precio: 150,
+      metodoAnalisis: 'Analizador automático',
+      valoresReferencia: 'Ver tabla adjunta',
+      sector: sectores.find(s => s.id === 'HEM')
+    },
+    'BQ001': {
+      codigo: 'BQ001',
+      nombre: 'Perfil Bioquímico',
+      sectorId: 'BQ',
+      tipoMuestra: 'suero',
+      tiempoResultado: '48h',
+      preparacion: 'Ayuno de 12 horas',
+      precio: 200,
+      metodoAnalisis: 'Espectrofotometría',
+      valoresReferencia: 'Ver tabla adjunta',
+      sector: sectores.find(s => s.id === 'BQ')
+    }
+    // ... más estudios preestablecidos
+  }
+  
+  return estudiosDisponibles[codigo.toUpperCase()]
 }
 
 // Métodos de estado
@@ -634,6 +541,15 @@ const getEstadoLabel = () => {
 }
 
 // Métodos principales
+const generarNumeroOrden = () => {
+  const fecha = new Date()
+  const year = fecha.getFullYear()
+  const month = String(fecha.getMonth() + 1).padStart(2, '0')
+  const day = String(fecha.getDate()).padStart(2, '0')
+  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
+  return `LAB${year}${month}${day}${random}`
+}
+
 const generarOrden = () => {
   if (!formularioValido.value) {
     notify({
@@ -660,6 +576,30 @@ const generarOrden = () => {
   tab.value = 'resultados'
 }
 
+const confirmarOrden = () => {
+  if (formularioValido.value) {
+    mostrarDialogoConfirmacion.value = true
+  }
+}
+
+const duplicarOrden = () => {
+  const nuevaOrden = {
+    ...ordenLab.value,
+    numeroOrden: '',
+    estado: 'borrador',
+    fechaCreacion: new Date().toISOString(),
+    fechaGeneracion: null,
+    estudios: ordenLab.value.estudios.map(estudio => ({
+      ...estudio,
+      id: Date.now() + Math.random(),
+      estado: 'pendiente',
+      resultados: []
+    }))
+  }
+  
+  emit('servicio-actualizado', props.servicioId, nuevaOrden)
+}
+
 const guardarDatos = () => {
   emit('servicio-actualizado', props.servicioId, ordenLab.value)
 }
@@ -683,7 +623,53 @@ const actualizarResultados = (resultados) => {
     return estudio
   })
   
+  actualizarEstadoOrden()
   guardarDatos()
+}
+
+// Métodos para manejo de estados
+const actualizarEstadoEstudio = (estudioId, nuevoEstado) => {
+  const estudio = ordenLab.value.estudios.find(e => e.id === estudioId)
+  if (!estudio) return
+
+  switch (nuevoEstado) {
+    case 'cargado':
+      estudio.estado = 'cargado'
+      estudio.fechaCarga = new Date().toISOString()
+      break
+    case 'validado':
+      estudio.estado = 'validado'
+      estudio.fechaValidacion = new Date().toISOString()
+      estudio.validadoPor = 'Usuario Actual' // Reemplazar con el usuario actual
+      break
+    case 'pendiente':
+      estudio.estado = 'pendiente'
+      estudio.fechaValidacion = null
+      estudio.validadoPor = null
+      break
+  }
+  
+  actualizarEstadoOrden()
+  guardarDatos()
+}
+
+const actualizarEstadoOrden = () => {
+  const estudios = ordenLab.value.estudios
+  if (!estudios.length) {
+    ordenLab.value.estado = 'borrador'
+    return
+  }
+
+  const todosValidados = estudios.every(e => e.estado === 'validado')
+  const algunoCargado = estudios.some(e => e.estado === 'cargado' || e.estado === 'validado')
+
+  if (todosValidados) {
+    ordenLab.value.estado = 'validada'
+  } else if (algunoCargado) {
+    ordenLab.value.estado = 'cargada'
+  } else {
+    ordenLab.value.estado = 'pendiente'
+  }
 }
 
 // Inicializar fechas por defecto
@@ -694,6 +680,36 @@ if (!ordenLab.value.fechaRecoleccion) {
 
 // Watchers
 watch(ordenLab, guardarDatos, { deep: true })
+
+// Add to your setup script in ResultadosLaboratorio
+const sectoresConEstudios = computed(() => {
+  const sectoresUsados = new Set(orden.value.estudios.map(e => e.sectorId))
+  return sectores.filter(s => sectoresUsados.has(s.id))
+})
+
+const estudiosPorSector = computed(() => {
+  return orden.value.estudios.reduce((acc, estudio) => {
+    if (!acc[estudio.sectorId]) {
+      acc[estudio.sectorId] = []
+    }
+    acc[estudio.sectorId].push(estudio)
+    return acc
+  }, {})
+})
+
+const hayEstudiosParaValidar = computed(() => 
+  estudiosSeleccionados.value.some(id => {
+    const estudio = orden.value.estudios.find(e => e.id === id)
+    return estudio && estudio.estado === 'cargado'
+  })
+)
+
+const hayEstudiosValidados = computed(() => 
+  estudiosSeleccionados.value.some(id => {
+    const estudio = orden.value.estudios.find(e => e.id === id)
+    return estudio && estudio.estado === 'validado'
+  })
+)
 </script>
 
 <style scoped>
@@ -742,5 +758,16 @@ watch(ordenLab, guardarDatos, { deep: true })
 
 .estudio-item:hover {
   transform: translateX(4px);
+}
+
+.estudios-sector {
+  padding: 16px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.estudio-card {
+  margin-bottom: 8px;
 }
 </style>
