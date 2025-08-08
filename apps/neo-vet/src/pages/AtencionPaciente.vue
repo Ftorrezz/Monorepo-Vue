@@ -366,6 +366,16 @@
                 @servicio-completado="completarServicio"
                 @servicio-eliminado="eliminarServicio"
               />
+              <ServicioMedicamento
+                v-else-if="servicio.tipo === 'medicamentos'"
+                :servicio-id="servicio.id"
+                :atencion-id="atenciones[atencionActual].id"
+                :datos-iniciales="servicio.datos"
+                :modo-lectura="servicio.completado || atenciones[atencionActual].estado === 'Finalizada'"
+                @servicio-actualizado="actualizarServicio"
+                @servicio-completado="completarServicio"
+                @servicio-eliminado="eliminarServicio"
+              />
 
               <!-- Componente genérico para servicios no implementados -->
               <div v-else class="generic-service">
@@ -435,6 +445,8 @@ import ServicioRayosX from '../components/servicios/ServicioRayosX.vue';
 import ServicioUltrasonido from 'src/components/servicios/ServicioUltrasonido.vue';
 import ServicioExploracionFisica from 'src/components/servicios/ServicioExploracionFisica.vue';
 import ServicioHospitalizacion from 'src/components/servicios/ServicioHospitalizacion.vue';
+import ServicioMedicamento from 'src/components/servicios/ServicioMedicamento.vue';
+
 export default {
   name: 'AtencionPaciente',
   components: {
@@ -445,7 +457,8 @@ export default {
     ServicioRayosX,
     ServicioUltrasonido,
     ServicioExploracionFisica,
-    ServicioHospitalizacion
+    ServicioHospitalizacion,
+    ServicioMedicamento
   },
   setup() {
     const $q = useQuasar()

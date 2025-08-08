@@ -34,17 +34,6 @@
             >
               <q-icon name="star" size="xs" />
             </q-badge>
-            <!-- Badge de servicio integrable -->
-            <q-badge
-              v-if="servicio.integrable"
-              floating
-              color="blue"
-              text-color="white"
-              class="service-integrable-badge"
-              style="top: -8px; right: 16px;"
-            >
-              <q-icon name="link" size="xs" />
-            </q-badge>
           </div>
           
           <!-- Información del servicio -->
@@ -54,12 +43,6 @@
           </div>
           <div class="service-description text-caption text-grey-7 q-mb-xs">
             {{ servicio.descripcion }}
-          </div>
-          
-          <!-- Indicadores especiales -->
-          <div v-if="servicio.duracion" class="service-info text-caption text-grey-6 q-mb-xs">
-            <q-icon name="schedule" size="xs" class="q-mr-xs" />
-            {{ servicio.duracion }}
           </div>
           
           <!-- Precio estimado si existe -->
@@ -100,32 +83,12 @@
         <q-icon name="info" size="sm" class="q-mr-xs" />
         Servicios disponibles: {{ serviciosDisponibles.length }}
       </div>
-      <div class="text-caption text-grey-5 q-mb-sm">
+      <div class="text-caption text-grey-5">
         Los servicios marcados como "Ya agregado" no se pueden seleccionar nuevamente
       </div>
-      
-      <!-- Leyenda de badges -->
-      <div class="legend-badges q-mt-sm q-mb-md">
-        <q-chip
-          size="sm"
-          color="amber"
-          text-color="white"
-          icon="star"
-          label="Premium"
-          class="q-mr-sm"
-        />
-        <q-chip
-          size="sm"
-          color="blue"
-          text-color="white"
-          icon="link"
-          label="Integrable con otros servicios"
-        />
-      </div>
-      
       <q-card-actions align="right" class="q-pt-none">
-        <q-btn flat label="Cerrar" color="primary" @click="$emit('close')" />
-      </q-card-actions>
+      <q-btn flat label="Cerrar" color="primary" @click="$emit('close')" />
+    </q-card-actions>
     </div>
   </div>
 </template>
@@ -165,7 +128,7 @@ export default defineComponent({
   setup(props, { emit }) {
     const $q = useQuasar()
     
-    // Lista extendida de servicios disponibles con Administración de Medicamentos
+    // Lista extendida de servicios disponibles
     const serviciosDisponiblesPredeterminados = [
       {
         id: 'vacunacion',
@@ -174,8 +137,7 @@ export default defineComponent({
         icono: 'vaccines',
         color: 'green',
         tipo: 'vacunacion',
-        //duracion: '15-20 min'
-        // precio: 'Desde $25'
+       // precio: 'Desde $25'
       },
       {
         id: 'desparacitacion',
@@ -184,7 +146,6 @@ export default defineComponent({
         icono: 'medication',
         color: 'orange',
         tipo: 'desparacitacion',
-        //duracion: '10-15 min'
         //precio: 'Desde $15'
       },
       {
@@ -194,7 +155,6 @@ export default defineComponent({
         icono: 'health_and_safety',
         color: 'blue',
         tipo: 'exploracion',
-        //duracion: '20-30 min'
         //precio: 'Desde $30'
       },
       {
@@ -204,20 +164,7 @@ export default defineComponent({
         icono: 'description',
         color: 'purple',
         tipo: 'certificado',
-        //duracion: '5-10 min'
         //precio: 'Desde $10'
-      },
-      // ✨ NUEVO: Administración de Medicamentos
-      {
-        id: 'medicamentos',
-        nombre: 'Administración de Medicamentos',
-        descripcion: 'Gestión y control de prescripciones y administración de medicamentos',
-        icono: 'medication',
-        color: 'blue',
-        tipo: 'medicamentos',
-        //duracion: 'Continuo',
-        integrable: true // Se puede integrar con otros servicios
-        //precio: 'Según tratamiento'
       },
       {
         id: 'cirugia',
@@ -226,8 +173,6 @@ export default defineComponent({
         icono: 'local_hospital',
         color: 'red',
         tipo: 'cirugia',
-        //duracion: '30min - 3hrs',
-        integrable: true, // Se integra con medicamentos y hospitalización
         //precio: 'Consultar',
         //premium: true
       },
@@ -238,7 +183,6 @@ export default defineComponent({
         icono: 'biotech',
         color: 'teal',
         tipo: 'laboratorio',
-        //duracion: '24-48 hrs'
         //precio: 'Desde $40'
       },
       {
@@ -248,7 +192,6 @@ export default defineComponent({
         icono: 'medical_information',
         color: 'indigo',
         tipo: 'rayosx',
-        //duracion: '15-30 min'
         //precio: 'Desde $80',
         //premium: true
       },
@@ -259,8 +202,6 @@ export default defineComponent({
         icono: 'local_hotel',
         color: 'pink',
         tipo: 'hospitalizacion',
-        //duracion: '1+ días',
-        integrable: true, // Se integra con medicamentos
         //precio: 'Por día',
         //premium: true
       },
@@ -271,7 +212,6 @@ export default defineComponent({
         icono: 'content_cut',
         color: 'cyan',
         tipo: 'estetica',
-        //duracion: '45-90 min'
         //precio: 'Desde $35'
       },
       {
@@ -281,20 +221,27 @@ export default defineComponent({
         icono: 'ultrasound',
         color: 'lime',
         tipo: 'ultrasonido',
-        //duracion: '20-30 min'
         //precio: 'Desde $25'
       },
-      // Servicios adicionales que podrías agregar:
       {
+        id: 'medicamentos',
+        nombre: 'Administración de Medicamentos',
+        descripcion: 'Gestión y control de prescripciones y administración de medicamentos',
+        icono: 'medication',
+        color: 'blue',
+        tipo: 'medicamentos',
+        duracion: 'Continuo',
+        integrable: true // Se puede integrar con otros servicios
+        //precio: 'Según tratamiento'
+      },
+      /*{
         id: 'emergencia',
         nombre: 'Atención de Emergencia',
-        descripcion: 'Atención veterinaria de urgencia las 24 horas',
+        descripción: 'Atención veterinaria de urgencia las 24 horas',
         icono: 'emergency',
         color: 'deep-orange',
         tipo: 'emergencia',
-        //duracion: 'Inmediato',
-        integrable: true,
-        //precio: 'Consultar',
+        precio: 'Consultar',
         premium: true
       },
       {
@@ -304,10 +251,8 @@ export default defineComponent({
         icono: 'accessibility_new',
         color: 'brown',
         tipo: 'rehabilitacion',
-        //duracion: '30-45 min',
-        integrable: true
-        //precio: 'Por sesión'
-      }
+        precio: 'Por sesión'
+      }*/
     ]
     
     // Usar servicios custom si se proporcionan, sino usar los predeterminados
@@ -344,12 +289,6 @@ export default defineComponent({
         return
       }
       
-      // Mensaje especial para servicios integrables
-      let mensaje = `${servicio.nombre} agregado exitosamente`
-      if (servicio.integrable) {
-        mensaje += '. Este servicio puede integrarse con otros servicios activos.'
-      }
-      
       // Efecto visual temporal
       const cardElement = document.querySelector(`.service-card--${servicio.tipo}`)
       if (cardElement) {
@@ -368,9 +307,9 @@ export default defineComponent({
       // Mostrar feedback de éxito
       $q.notify({
         type: 'positive',
-        message: mensaje,
+        message: `${servicio.nombre} agregado exitosamente`,
         position: 'top',
-        timeout: servicio.integrable ? 3500 : 2000,
+        timeout: 2000,
         icon: servicio.icono,
         actions: [
           {
@@ -437,7 +376,7 @@ export default defineComponent({
   transform: translateY(0);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 2px solid transparent !important;
-  min-height: 200px;
+  min-height: 180px;
   display: flex;
   flex-direction: column;
 }
@@ -467,15 +406,10 @@ export default defineComponent({
   box-shadow: 0 8px 20px rgba(76, 175, 80, 0.2) !important;
 }
 
-/* Estados hover por tipo de servicio (incluyendo medicamentos) */
+/* Estados hover por tipo de servicio */
 .service-card--vacunacion:hover:not(.service-card--disabled) {
   border-color: #4caf50 !important;
   box-shadow: 0 16px 32px rgba(76, 175, 80, 0.25) !important;
-}
-
-.service-card--medicamentos:hover:not(.service-card--disabled) {
-  border-color: #2196f3 !important;
-  box-shadow: 0 16px 32px rgba(33, 150, 243, 0.25) !important;
 }
 
 .service-card--desparacitacion:hover:not(.service-card--disabled) {
@@ -503,7 +437,7 @@ export default defineComponent({
   box-shadow: 0 16px 32px rgba(0, 150, 136, 0.25) !important;
 }
 
-.service-card--rayosx:hover:not(.service-card--disabled) {
+.service-card--radiologia:hover:not(.service-card--disabled) {
   border-color: #3f51b5 !important;
   box-shadow: 0 16px 32px rgba(63, 81, 181, 0.25) !important;
 }
@@ -518,7 +452,7 @@ export default defineComponent({
   box-shadow: 0 16px 32px rgba(0, 188, 212, 0.25) !important;
 }
 
-.service-card--ultrasonido:hover:not(.service-card--disabled) {
+.service-card--nutricion:hover:not(.service-card--disabled) {
   border-color: #cddc39 !important;
   box-shadow: 0 16px 32px rgba(205, 220, 57, 0.25) !important;
 }
@@ -556,26 +490,12 @@ export default defineComponent({
   animation: premiumGlow 2s ease-in-out infinite alternate;
 }
 
-/* Badge integrable - NUEVO */
-.service-integrable-badge {
-  animation: integrableGlow 3s ease-in-out infinite alternate;
-}
-
 @keyframes premiumGlow {
   from {
     box-shadow: 0 0 5px rgba(255, 193, 7, 0.5);
   }
   to {
     box-shadow: 0 0 15px rgba(255, 193, 7, 0.8);
-  }
-}
-
-@keyframes integrableGlow {
-  from {
-    box-shadow: 0 0 5px rgba(33, 150, 243, 0.5);
-  }
-  to {
-    box-shadow: 0 0 12px rgba(33, 150, 243, 0.7);
   }
 }
 
@@ -589,18 +509,12 @@ export default defineComponent({
 .service-description {
   font-size: 0.75rem;
   line-height: 1.3;
-  min-height: 2.6em;
+  min-height: 2.4em;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   flex: 1;
-}
-
-.service-info {
-  font-size: 0.7rem;
-  color: #666;
-  margin-bottom: 4px;
 }
 
 .service-price {
@@ -614,14 +528,6 @@ export default defineComponent({
   transition: all 0.2s ease;
   font-weight: 500;
   margin-top: auto;
-}
-
-/* Leyenda de badges */
-.legend-badges {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 8px;
 }
 
 /* Efecto de selección */
@@ -675,8 +581,6 @@ export default defineComponent({
 .service-card:nth-child(10) { animation-delay: 0.5s; }
 .service-card:nth-child(11) { animation-delay: 0.55s; }
 .service-card:nth-child(12) { animation-delay: 0.6s; }
-.service-card:nth-child(13) { animation-delay: 0.65s; }
-.service-card:nth-child(14) { animation-delay: 0.7s; }
 
 @keyframes cardSlideIn {
   from {
@@ -737,7 +641,7 @@ export default defineComponent({
 /* Responsive para móviles pequeños */
 @media (max-width: 480px) {
   .service-card {
-    min-height: 180px;
+    min-height: 160px;
   }
   
   .service-name {
@@ -757,11 +661,6 @@ export default defineComponent({
   
   .service-price {
     font-size: 0.7rem;
-  }
-  
-  .legend-badges {
-    flex-direction: column;
-    align-items: center;
   }
 }
 </style>
