@@ -154,9 +154,6 @@ const isExpanded = (menu) => {
 </script>
 
 <style lang="scss" scoped>
-// Importar el módulo de color de Sass
-@use "sass:color";
-
 .modern-menu {
   padding: 8px;
   background: transparent;
@@ -386,8 +383,7 @@ const isExpanded = (menu) => {
   }
 
   .active-menu-item {
-    // Usar la nueva sintaxis con el módulo sass:color
-    background: linear-gradient(135deg, $primary 0%, color.adjust($primary, $lightness: 10%) 100%) !important;
+    background: linear-gradient(135deg, $primary 0%, lighten($primary, 10%) 100%) !important;
     border-left-color: $secondary !important;
     
     .menu-label,
