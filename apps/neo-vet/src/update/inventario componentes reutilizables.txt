@@ -1,0 +1,894 @@
+<!-- shared/components/fields/ConfigurableField.vue -->
+<template>
+  <div class="configurable-field">
+    <!-- Campo de texto -->
+    <q-input
+      v-if="field.tipo_campo === 'text'"
+      v-model="localValue"
+      :label="field.etiqueta"
+      :placeholder="field.placeholder"
+      :rules="validationRules"
+      :required="field.obligatorio"
+      outlined
+      dense
+      v-bind="fieldProps"
+      @update:model-value="updateValue"
+    />
+
+    <!-- Campo numérico -->
+    <q-input
+      v-else-if="field.tipo_campo === 'number'"
+      v-model.number="localValue"
+      :label="field.etiqueta"
+      :placeholder="field.placeholder"
+      :rules="validationRules"
+      :required="field.obligatorio"
+      type="number"
+      outlined
+      dense
+      v-bind="fieldProps"
+      @update:model-value="updateValue"
+    />
+
+    <!-- Campo de fecha -->
+    <q-input
+      v-else-if="field.tipo_campo === 'date'"
+      v-model="localValue"
+      :label="field.etiqueta"
+      :rules="validationRules"
+      :required="field.obligatorio"
+      type="date"
+      outlined
+      dense
+      v-bind="fieldProps"
+      @update:model-value="updateValue"
+    />
+
+    <!-- Campo de fecha y hora -->
+    <q-input
+      v-else-if="field.tipo_campo === 'datetime'"
+      v-model="localValue"
+      :label="field.etiqueta"
+      :rules="validationRules"
+      :required="field.obligatorio"
+      type="datetime-local"
+      outlined
+      dense
+      v-bind="fieldProps"
+      @update:model-value="updateValue"
+    />
+
+    <!-- Campo de área de texto -->
+    <q-input
+      v-else-if="field.tipo_campo === 'textarea'"
+      v-model="localValue"
+      :label="field.etiqueta"
+      :placeholder="field.placeholder"
+      :rules="validationRules"
+      :required="field.obligatorio"
+      type="textarea"
+      :rows="field.opciones?.rows || 3"
+      outlined
+      dense
+      v-bind="fieldProps"
+      @update:model-value="updateValue"
+    />
+
+    <!-- Campo de selección simple -->
+    <q-select
+      v-else-if="field.tipo_campo === 'select'"
+      v-model="localValue"
+      :options="selectOptions"
+      :label="field.etiqueta"
+      :rules="validationRules"
+      :required="field.obligatorio"
+      outlined
+      dense
+      option-label="label"
+      option-value="value"
+      emit-value
+      map-options
+      v-bind="fieldProps"
+      @update:model-value="updateValue"
+    />
+
+    <!-- Campo de selección múltiple -->
+    <q-select
+      v-else-if="field.tipo_campo === 'multiselect'"
+      v-model="localValue"
+      :options="selectOptions"
+      :label="field.etiqueta"
+      :rules="validationRules"
+      :required="field.obligatorio"
+      multiple
+      outlined
+      dense
+      option-label="label"
+      option-value="value"
+      emit-value
+      map-options
+      use-chips
+      v-bind="fieldProps"
+      @update:model-value="updateValue"
+    />
+
+    <!-- Campo booleano (checkbox) -->
+    <q-checkbox
+      v-else-if="field.tipo_campo === 'boolean'"
+      v-model="localValue"
+      :label="field.etiqueta"
+      v-bind="fieldProps"
+      @update:model-value="updateValue"
+    />
+
+    <!-- Campo de archivo -->
+    <q-file
+      v-else-if="field.tipo_campo === 'file'"
+      v-model="localValue"
+      :label="field.etiqueta"
+      :accept="field.opciones?.accept || '*/*'"
+      :multiple="field.opciones?.multiple || false"
+      :max-file-size="field.opciones?.maxSize"
+      outlined
+      dense
+      v-bind="fieldProps"
+      @update:model-value="updateValue"
+    >
+      <template v-slot:prepend>
+        <q-icon name="attach_file" />
+      </template>
+    </q-file>
+
+    <!-- Fallback para tipos no reconocidos -->
+    <q-input
+      v-else
+      v-model="localValue"
+      :label="field.etiqueta"
+      :placeholder="`Tipo de campo no soportado: ${field.tipo_campo}`"
+      outlined
+      dense
+      readonly
+      disable
+    />
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, watch, onMounted } from 'vue'
+
+const props = defineProps({
+  field: {
+    type: Object,
+    required: true
+  },
+  modelValue: {
+    type: [String, Number, Boolean, Array, Object, File],
+    default: null
+  },
+  readonly: {
+    type: Boolean,
+    default: false
+  },
+  dense: {
+    type: Boolean,
+    default: true
+  }
+})
+
+const emit = defineEmits(['update:modelValue', 'change'])
+
+const localValue = ref(props.modelValue)
+
+// Propiedades adicionales para el campo
+const fieldProps = computed(() => ({
+  readonly: props.readonly,
+  dense: props.dense,
+  disable: props.readonly || props.field.readonly,
+  ...props.field.opciones?.props || {}
+}))
+
+// Opciones para campos select
+const selectOptions = computed(() => {
+  if (!props.field.opciones?.options) return []
+  
+  return props.field.opciones.options.map(option => {
+    if (typeof option === 'string') {
+      return { label: option, value: option }
+    }
+    return option
+  })
+})
+
+// Reglas de validación
+const validationRules = computed(() => {
+  const rules = []
+  
+  // Regla de campo obligatorio
+  if (props.field.obligatorio) {
+    rules.push(val => {
+      if (props.field.tipo_campo === 'boolean') return true
+      if (props.field.tipo_campo === 'multiselect') {
+        return (val && val.length > 0) || 'Este campo es obligatorio'
+      }
+      return (val !== null && val !== undefined && val !== '') || 'Este campo es obligatorio'
+    })
+  }
+  
+  // Reglas específicas por tipo
+  if (props.field.tipo_campo === 'number') {
+    if (props.field.validacion?.min !== undefined) {
+      rules.push(val => val >= props.field.validacion.min || `El valor mínimo es ${props.field.validacion.min}`)
+    }
+    if (props.field.validacion?.max !== undefined) {
+      rules.push(val => val <= props.field.validacion.max || `El valor máximo es ${props.field.validacion.max}`)
+    }
+  }
+  
+  if (props.field.tipo_campo === 'text' || props.field.tipo_campo === 'textarea') {
+    if (props.field.validacion?.minLength) {
+      rules.push(val => !val || val.length >= props.field.validacion.minLength || 
+        `Mínimo ${props.field.validacion.minLength} caracteres`)
+    }
+    if (props.field.validacion?.maxLength) {
+      rules.push(val => !val || val.length <= props.field.validacion.maxLength || 
+        `Máximo ${props.field.validacion.maxLength} caracteres`)
+    }
+    if (props.field.validacion?.pattern) {
+      const regex = new RegExp(props.field.validacion.pattern)
+      rules.push(val => !val || regex.test(val) || 'Formato inválido')
+    }
+  }
+  
+  return rules
+})
+
+const updateValue = (newValue) => {
+  localValue.value = newValue
+  emit('update:modelValue', newValue)
+  emit('change', newValue, props.field)
+}
+
+// Sincronizar con el prop modelValue
+watch(() => props.modelValue, (newValue) => {
+  localValue.value = newValue
+}, { immediate: true })
+
+onMounted(() => {
+  // Establecer valor por defecto si no hay valor y existe un defecto
+  if (!props.modelValue && props.field.valor_defecto !== undefined) {
+    const defaultValue = getDefaultValue()
+    if (defaultValue !== null) {
+      updateValue(defaultValue)
+    }
+  }
+})
+
+const getDefaultValue = () => {
+  const defecto = props.field.valor_defecto
+  
+  switch (props.field.tipo_campo) {
+    case 'boolean':
+      return defecto === 'true' || defecto === true
+    case 'number':
+      return Number(defecto)
+    case 'multiselect':
+      return Array.isArray(defecto) ? defecto : []
+    case 'date':
+    case 'datetime':
+      return defecto === 'now' ? new Date().toISOString().split('T')[0] : defecto
+    default:
+      return defecto
+  }
+}
+</script>
+
+<!-- shared/components/forms/DynamicForm.vue -->
+<template>
+  <q-form @submit="onSubmit" @reset="onReset" class="dynamic-form">
+    <div class="row q-col-gutter-md">
+      <div
+        v-for="field in visibleFields"
+        :key="field.id"
+        :class="getFieldClass(field)"
+      >
+        <ConfigurableField
+          :field="field"
+          :model-value="formData[field.nombre]"
+          :readonly="readonly"
+          @update:model-value="updateFieldValue(field.nombre, $event)"
+          @change="onFieldChange"
+        />
+      </div>
+    </div>
+
+    <!-- Campos personalizados -->
+    <div v-if="customFields.length > 0" class="q-mt-md">
+      <q-separator class="q-mb-md" />
+      <div class="text-h6 q-mb-md">{{ customFieldsTitle }}</div>
+      
+      <div class="row q-col-gutter-md">
+        <div
+          v-for="field in customFields"
+          :key="field.id"
+          :class="getFieldClass(field)"
+        >
+          <ConfigurableField
+            :field="field"
+            :model-value="customData[field.nombre]"
+            :readonly="readonly"
+            @update:model-value="updateCustomFieldValue(field.nombre, $event)"
+            @change="onFieldChange"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div v-if="!readonly" class="row justify-end q-mt-lg q-gutter-sm">
+      <q-btn
+        v-if="showReset"
+        flat
+        label="Limpiar"
+        type="reset"
+        color="grey-7"
+      />
+      <q-btn
+        v-if="showCancel"
+        flat
+        :label="cancelLabel"
+        @click="onCancel"
+        color="grey-7"
+      />
+      <q-btn
+        :label="submitLabel"
+        type="submit"
+        color="primary"
+        unelevated
+        :loading="loading"
+        :disable="!isFormValid"
+      />
+    </div>
+  </q-form>
+</template>
+
+<script setup>
+import { ref, computed, watch, onMounted } from 'vue'
+import ConfigurableField from '../fields/ConfigurableField.vue'
+import { useCamposPersonalizados } from '../../composables/useCamposPersonalizados'
+
+const props = defineProps({
+  fields: {
+    type: Array,
+    required: true
+  },
+  entity: {
+    type: String,
+    default: null
+  },
+  entityId: {
+    type: String,
+    default: null
+  },
+  modelValue: {
+    type: Object,
+    default: () => ({})
+  },
+  customFieldsTitle: {
+    type: String,
+    default: 'Campos Adicionales'
+  },
+  readonly: {
+    type: Boolean,
+    default: false
+  },
+  loading: {
+    type: Boolean,
+    default: false
+  },
+  showReset: {
+    type: Boolean,
+    default: true
+  },
+  showCancel: {
+    type: Boolean,
+    default: false
+  },
+  submitLabel: {
+    type: String,
+    default: 'Guardar'
+  },
+  cancelLabel: {
+    type: String,
+    default: 'Cancelar'
+  },
+  columns: {
+    type: Number,
+    default: 2
+  }
+})
+
+const emit = defineEmits(['update:modelValue', 'submit', 'cancel', 'reset', 'fieldChange'])
+
+const formData = ref({ ...props.modelValue })
+const customData = ref({})
+
+const { 
+  camposFormulario, 
+  cargarCampos, 
+  cargarValores, 
+  obtenerValor 
+} = useCamposPersonalizados()
+
+// Campos visibles del formulario
+const visibleFields = computed(() => 
+  props.fields.filter(field => 
+    field.visible_en_formulario !== false && field.activo !== false
+  ).sort((a, b) => (a.orden || 0) - (b.orden || 0))
+)
+
+// Campos personalizados
+const customFields = computed(() => 
+  props.entity ? camposFormulario.value(props.entity) : []
+)
+
+// Validación del formulario
+const isFormValid = computed(() => {
+  // Aquí podrías implementar validación más compleja
+  return true
+})
+
+const getFieldClass = (field) => {
+  const colSize = field.col_size || Math.floor(12 / props.columns)
+  return `col-12 col-md-${colSize}`
+}
+
+const updateFieldValue = (fieldName, value) => {
+  formData.value[fieldName] = value
+  emit('update:modelValue', formData.value)
+}
+
+const updateCustomFieldValue = (fieldName, value) => {
+  customData.value[fieldName] = value
+}
+
+const onFieldChange = (value, field) => {
+  emit('fieldChange', { value, field, formData: formData.value })
+}
+
+const onSubmit = () => {
+  emit('submit', {
+    data: formData.value,
+    customData: customData.value
+  })
+}
+
+const onReset = () => {
+  formData.value = {}
+  customData.value = {}
+  emit('reset')
+}
+
+const onCancel = () => {
+  emit('cancel')
+}
+
+// Cargar campos personalizados y valores
+onMounted(async () => {
+  if (props.entity) {
+    await cargarCampos(props.entity)
+    
+    if (props.entityId) {
+      await cargarValores(props.entityId, props.entity)
+      
+      // Llenar datos personalizados
+      customFields.value.forEach(field => {
+        customData.value[field.nombre] = obtenerValor(
+          props.entityId, 
+          props.entity, 
+          field.id, 
+          field.valor_defecto
+        )
+      })
+    }
+  }
+})
+
+// Sincronizar con modelValue
+watch(() => props.modelValue, (newValue) => {
+  formData.value = { ...newValue }
+}, { deep: true })
+</script>
+
+<!-- shared/components/tables/ConfigurableTable.vue -->
+<template>
+  <div class="configurable-table">
+    <q-table
+      :rows="rows"
+      :columns="visibleColumns"
+      :row-key="rowKey"
+      :pagination="paginationConfig"
+      :filter="filter"
+      :loading="loading"
+      :selection="selectionMode"
+      :selected="selectedRows"
+      binary-state-sort
+      v-bind="$attrs"
+      @update:pagination="updatePagination"
+      @update:selected="updateSelected"
+      @row-click="onRowClick"
+    >
+      <!-- Slot para la parte superior -->
+      <template v-slot:top="props">
+        <div class="row full-width items-center q-gutter-md">
+          <!-- Filtros configurables -->
+          <div v-if="showFilters" class="row q-gutter-sm">
+            <q-input
+              v-model="filter"
+              debounce="300"
+              placeholder="Buscar..."
+              outlined
+              dense
+              clearable
+              class="col-auto"
+            >
+              <template v-slot:append>
+                <q-icon name="search" />
+              </template>
+            </q-input>
+            
+            <!-- Filtros adicionales por columna -->
+            <div
+              v-for="column in filterableColumns"
+              :key="`filter-${column.name}`"
+              class="col-auto"
+            >
+              <component
+                :is="getFilterComponent(column)"
+                v-model="columnFilters[column.name]"
+                :field="column.filterConfig"
+                @update:model-value="applyFilters"
+              />
+            </div>
+          </div>
+
+          <q-space />
+
+          <!-- Configuración de columnas -->
+          <q-btn-dropdown
+            v-if="showColumnConfig"
+            flat
+            dense
+            icon="view_column"
+            label="Columnas"
+          >
+            <q-list dense>
+              <q-item
+                v-for="column in allColumns"
+                :key="column.name"
+                tag="label"
+                clickable
+              >
+                <q-item-section avatar>
+                  <q-checkbox
+                    v-model="visibleColumnNames"
+                    :val="column.name"
+                  />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>{{ column.label }}</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+
+          <!-- Exportar -->
+          <q-btn-dropdown
+            v-if="showExport"
+            flat
+            dense
+            icon="download"
+            label="Exportar"
+          >
+            <q-list dense>
+              <q-item clickable @click="exportData('csv')">
+                <q-item-section avatar>
+                  <q-icon name="insert_drive_file" />
+                </q-item-section>
+                <q-item-section>CSV</q-item-section>
+              </q-item>
+              <q-item clickable @click="exportData('excel')">
+                <q-item-section avatar>
+                  <q-icon name="table_chart" />
+                </q-item-section>
+                <q-item-section>Excel</q-item-section>
+              </q-item>
+              <q-item clickable @click="exportData('pdf')">
+                <q-item-section avatar>
+                  <q-icon name="picture_as_pdf" />
+                </q-item-section>
+                <q-item-section>PDF</q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+
+          <!-- Slot personalizado para la parte superior -->
+          <slot name="top-right" :props="props" />
+        </div>
+      </template>
+
+      <!-- Celdas personalizables -->
+      <template 
+        v-for="column in visibleColumns" 
+        :key="`body-cell-${column.name}`"
+        #[`body-cell-${column.name}`]="props"
+      >
+        <q-td :props="props">
+          <!-- Slot para columnas específicas -->
+          <slot 
+            :name="`body-cell-${column.name}`" 
+            :props="props"
+          >
+            <!-- Renderizado por defecto basado en tipo de columna -->
+            <component
+              :is="getCellComponent(column)"
+              :value="props.value"
+              :row="props.row"
+              :column="column"
+            />
+          </slot>
+        </q-td>
+      </template>
+
+      <!-- Slot para acciones -->
+      <template v-if="showActions" #body-cell-actions="props">
+        <q-td :props="props">
+          <div class="row no-wrap q-gutter-xs">
+            <slot name="row-actions" :row="props.row" :props="props">
+              <q-btn
+                flat
+                dense
+                round
+                icon="visibility"
+                color="blue"
+                size="sm"
+                @click="onAction('view', props.row)"
+              >
+                <q-tooltip>Ver</q-tooltip>
+              </q-btn>
+              <q-btn
+                flat
+                dense
+                round
+                icon="edit"
+                color="orange"
+                size="sm"
+                @click="onAction('edit', props.row)"
+              >
+                <q-tooltip>Editar</q-tooltip>
+              </q-btn>
+              <q-btn
+                flat
+                dense
+                round
+                icon="delete"
+                color="red"
+                size="sm"
+                @click="onAction('delete', props.row)"
+              >
+                <q-tooltip>Eliminar</q-tooltip>
+              </q-btn>
+            </slot>
+          </div>
+        </q-td>
+      </template>
+
+      <!-- Otros slots -->
+      <template v-for="(_, slotName) in $slots" :key="slotName" #[slotName]="slotProps">
+        <slot :name="slotName" v-bind="slotProps" />
+      </template>
+    </q-table>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, watch, onMounted } from 'vue'
+import ConfigurableField from '../fields/ConfigurableField.vue'
+
+// Componentes para renderizado de celdas
+const TableCell = {
+  props: ['value', 'row', 'column'],
+  template: `<span>{{ formatValue(value, column) }}</span>`,
+  methods: {
+    formatValue(value, column) {
+      if (value === null || value === undefined) return ''
+      
+      switch (column.type) {
+        case 'currency':
+          return new Intl.NumberFormat('es-MX', { 
+            style: 'currency', 
+            currency: 'MXN' 
+          }).format(value)
+        case 'number':
+          return new Intl.NumberFormat('es-MX').format(value)
+        case 'date':
+          return new Date(value).toLocaleDateString('es-MX')
+        case 'datetime':
+          return new Date(value).toLocaleString('es-MX')
+        case 'boolean':
+          return value ? 'Sí' : 'No'
+        default:
+          return value
+      }
+    }
+  }
+}
+
+const props = defineProps({
+  rows: {
+    type: Array,
+    required: true
+  },
+  columns: {
+    type: Array,
+    required: true
+  },
+  rowKey: {
+    type: String,
+    default: 'id'
+  },
+  loading: {
+    type: Boolean,
+    default: false
+  },
+  pagination: {
+    type: Object,
+    default: () => ({
+      page: 1,
+      rowsPerPage: 15,
+      sortBy: null,
+      descending: false
+    })
+  },
+  selectionMode: {
+    type: String,
+    default: 'none', // 'none', 'single', 'multiple'
+    validator: val => ['none', 'single', 'multiple'].includes(val)
+  },
+  showFilters: {
+    type: Boolean,
+    default: true
+  },
+  showColumnConfig: {
+    type: Boolean,
+    default: true
+  },
+  showExport: {
+    type: Boolean,
+    default: true
+  },
+  showActions: {
+    type: Boolean,
+    default: false
+  },
+  entity: {
+    type: String,
+    default: null
+  }
+})
+
+const emit = defineEmits([
+  'update:pagination',
+  'update:selected',
+  'row-click',
+  'action'
+])
+
+const filter = ref('')
+const columnFilters = ref({})
+const selectedRows = ref([])
+const visibleColumnNames = ref([])
+const paginationConfig = ref({ ...props.pagination })
+
+// Columnas con configuración de acciones
+const allColumns = computed(() => {
+  const cols = [...props.columns]
+  if (props.showActions) {
+    cols.push({
+      name: 'actions',
+      label: 'Acciones',
+      field: 'actions',
+      align: 'center',
+      sortable: false,
+      style: 'width: 120px'
+    })
+  }
+  return cols
+})
+
+// Columnas visibles
+const visibleColumns = computed(() =>
+  allColumns.value.filter(col => 
+    visibleColumnNames.value.length === 0 || 
+    visibleColumnNames.value.includes(col.name)
+  )
+)
+
+// Columnas filtrables
+const filterableColumns = computed(() =>
+  allColumns.value.filter(col => col.filterable)
+)
+
+const getCellComponent = (column) => {
+  return column.component || TableCell
+}
+
+const getFilterComponent = (column) => {
+  return column.filterComponent || ConfigurableField
+}
+
+const updatePagination = (newPagination) => {
+  paginationConfig.value = newPagination
+  emit('update:pagination', newPagination)
+}
+
+const updateSelected = (selected) => {
+  selectedRows.value = selected
+  emit('update:selected', selected)
+}
+
+const onRowClick = (evt, row, index) => {
+  emit('row-click', { evt, row, index })
+}
+
+const onAction = (action, row) => {
+  emit('action', { action, row })
+}
+
+const applyFilters = () => {
+  // Implementar filtrado por columnas
+  // Por ahora, el filtrado se manejará en el componente padre
+}
+
+const exportData = (format) => {
+  // Implementar exportación de datos
+  const data = {
+    rows: props.rows,
+    columns: visibleColumns.value,
+    format
+  }
+  
+  // Emitir evento para que el padre maneje la exportación
+  emit('export', data)
+}
+
+// Inicializar columnas visibles
+onMounted(() => {
+  visibleColumnNames.value = props.columns
+    .filter(col => col.visible !== false)
+    .map(col => col.name)
+})
+</script>
+
+<style scoped>
+.configurable-table {
+  width: 100%;
+}
+
+.q-table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.q-table .q-table__top {
+  background-color: #f5f5f5;
+  padding: 12px;
+}
+
+.dynamic-form {
+  width: 100%;
+}
+
+.configurable-field {
+  width: 100%;
+}
+</style>

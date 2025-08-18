@@ -1,0 +1,421 @@
+-- Estructura de base de datos para el sistema de exploración física dinámica
+
+-- Tabla para almacenar las configuraciones de exploración por sitio
+CREATE TABLE configuraciones_exploracion (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sitio_id UUID NOT NULL REFERENCES sitios(id) ON DELETE CASCADE,
+    nombre VARCHAR(255) NOT NULL,
+    descripcion TEXT,
+    version VARCHAR(50) DEFAULT '1.0',
+    activa BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by UUID REFERENCES usuarios(id),
+    updated_by UUID REFERENCES usuarios(id),
+    
+    UNIQUE(sitio_id, nombre)
+);
+
+-- Tabla para los grupos de exploración
+CREATE TABLE grupos_exploracion (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    configuracion_id UUID NOT NULL REFERENCES configuraciones_exploracion(id) ON DELETE CASCADE,
+    nombre VARCHAR(255) NOT NULL,
+    descripcion TEXT,
+    icono VARCHAR(100) NOT NULL,
+    color VARCHAR(50) NOT NULL,
+    orden INTEGER NOT NULL DEFAULT 1,
+    activo BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabla para las preguntas de cada grupo
+CREATE TABLE preguntas_exploracion (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    grupo_id UUID NOT NULL REFERENCES grupos_exploracion(id) ON DELETE CASCADE,
+    etiqueta VARCHAR(255) NOT NULL,
+    codigo VARCHAR(100) NOT NULL, -- Código único para identificar la pregunta
+    tipo VARCHAR(50) NOT NULL CHECK (tipo IN ('texto', 'textarea', 'numerico', 'select', 'checkbox')),
+    placeholder TEXT,
+    requerido BOOLEAN DEFAULT false,
+    orden INTEGER NOT NULL DEFAULT 1,
+    activa BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Campos específicos para preguntas numéricas
+    minimo DECIMAL(10,2),
+    maximo DECIMAL(10,2),
+    paso VARCHAR(10),
+    unidad VARCHAR(20),
+    
+    UNIQUE(grupo_id, codigo)
+);
+
+-- Tabla para opciones de preguntas de tipo select
+CREATE TABLE opciones_pregunta (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    pregunta_id UUID NOT NULL REFERENCES preguntas_exploracion(id) ON DELETE CASCADE,
+    etiqueta VARCHAR(255) NOT NULL,
+    valor VARCHAR(255) NOT NULL,
+    orden INTEGER NOT NULL DEFAULT 1,
+    activa BOOLEAN DEFAULT true
+);
+
+-- Tabla para almacenar las respuestas de exploración física
+CREATE TABLE respuestas_exploracion (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    atencion_id UUID NOT NULL REFERENCES atenciones(id) ON DELETE CASCADE,
+    servicio_id UUID NOT NULL, -- ID del servicio de exploración física
+    configuracion_id UUID NOT NULL REFERENCES configuraciones_exploracion(id),
+    grupo_id UUID NOT NULL REFERENCES grupos_exploracion(id),
+    pregunta_id UUID NOT NULL REFERENCES preguntas_exploracion(id),
+    codigo_pregunta VARCHAR(100) NOT NULL,
+    valor_texto TEXT,
+    valor_numerico DECIMAL(10,4),
+    valor_boolean BOOLEAN,
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    usuario_id UUID REFERENCES usuarios(id),
+    
+    UNIQUE(atencion_id, servicio_id, pregunta_id)
+);
+
+-- Tabla para el historial de cambios en configuraciones
+CREATE TABLE historial_configuraciones (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    configuracion_id UUID NOT NULL REFERENCES configuraciones_exploracion(id),
+    version_anterior JSONB,
+    version_nueva JSONB,
+    tipo_cambio VARCHAR(50) NOT NULL, -- 'create', 'update', 'delete'
+    descripcion_cambio TEXT,
+    fecha_cambio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    usuario_id UUID REFERENCES usuarios(id)
+);
+
+-- Tabla para plantillas predefinidas
+CREATE TABLE plantillas_exploracion (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    nombre VARCHAR(255) NOT NULL UNIQUE,
+    descripcion TEXT,
+    categoria VARCHAR(100), -- 'caninos', 'felinos', 'exoticos', etc.
+    configuracion JSONB NOT NULL, -- Configuración completa en formato JSON
+    publica BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by UUID REFERENCES usuarios(id)
+);
+
+-- Índices para optimizar consultas
+CREATE INDEX idx_configuraciones_sitio ON configuraciones_exploracion(sitio_id);
+CREATE INDEX idx_grupos_configuracion ON grupos_exploracion(configuracion_id);
+CREATE INDEX idx_grupos_orden ON grupos_exploracion(configuracion_id, orden);
+CREATE INDEX idx_preguntas_grupo ON preguntas_exploracion(grupo_id);
+CREATE INDEX idx_preguntas_orden ON preguntas_exploracion(grupo_id, orden);
+CREATE INDEX idx_opciones_pregunta ON opciones_pregunta(pregunta_id);
+CREATE INDEX idx_respuestas_atencion ON respuestas_exploracion(atencion_id);
+CREATE INDEX idx_respuestas_servicio ON respuestas_exploracion(atencion_id, servicio_id);
+CREATE INDEX idx_historial_config ON historial_configuraciones(configuracion_id);
+
+-- Triggers para actualizar timestamps
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_configuraciones_updated_at BEFORE UPDATE ON configuraciones_exploracion
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_grupos_updated_at BEFORE UPDATE ON grupos_exploracion
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_preguntas_updated_at BEFORE UPDATE ON preguntas_exploracion
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Función para obtener la configuración completa de un sitio
+CREATE OR REPLACE FUNCTION obtener_configuracion_sitio(p_sitio_id UUID)
+RETURNS TABLE (
+    configuracion_id UUID,
+    configuracion_nombre VARCHAR,
+    grupo_id UUID,
+    grupo_nombre VARCHAR,
+    grupo_descripcion TEXT,
+    grupo_icono VARCHAR,
+    grupo_color VARCHAR,
+    grupo_orden INTEGER,
+    grupo_activo BOOLEAN,
+    pregunta_id UUID,
+    pregunta_etiqueta VARCHAR,
+    pregunta_codigo VARCHAR,
+    pregunta_tipo VARCHAR,
+    pregunta_placeholder TEXT,
+    pregunta_requerido BOOLEAN,
+    pregunta_orden INTEGER,
+    pregunta_minimo DECIMAL,
+    pregunta_maximo DECIMAL,
+    pregunta_paso VARCHAR,
+    pregunta_unidad VARCHAR,
+    opciones JSONB
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        ce.id as configuracion_id,
+        ce.nombre as configuracion_nombre,
+        ge.id as grupo_id,
+        ge.nombre as grupo_nombre,
+        ge.descripcion as grupo_descripcion,
+        ge.icono as grupo_icono,
+        ge.color as grupo_color,
+        ge.orden as grupo_orden,
+        ge.activo as grupo_activo,
+        pe.id as pregunta_id,
+        pe.etiqueta as pregunta_etiqueta,
+        pe.codigo as pregunta_codigo,
+        pe.tipo as pregunta_tipo,
+        pe.placeholder as pregunta_placeholder,
+        pe.requerido as pregunta_requerido,
+        pe.orden as pregunta_orden,
+        pe.minimo as pregunta_minimo,
+        pe.maximo as pregunta_maximo,
+        pe.paso as pregunta_paso,
+        pe.unidad as pregunta_unidad,
+        COALESCE(
+            (SELECT jsonb_agg(
+                jsonb_build_object(
+                    'label', op.etiqueta,
+                    'value', op.valor,
+                    'orden', op.orden
+                ) ORDER BY op.orden
+            )
+            FROM opciones_pregunta op 
+            WHERE op.pregunta_id = pe.id AND op.activa = true),
+            '[]'::jsonb
+        ) as opciones
+    FROM configuraciones_exploracion ce
+    INNER JOIN grupos_exploracion ge ON ce.id = ge.configuracion_id
+    INNER JOIN preguntas_exploracion pe ON ge.id = pe.grupo_id
+    WHERE ce.sitio_id = p_sitio_id 
+        AND ce.activa = true 
+        AND ge.activo = true 
+        AND pe.activa = true
+    ORDER BY ge.orden, pe.orden;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Función para guardar respuestas de exploración
+CREATE OR REPLACE FUNCTION guardar_respuesta_exploracion(
+    p_atencion_id UUID,
+    p_servicio_id VARCHAR,
+    p_configuracion_id UUID,
+    p_grupo_id UUID,
+    p_pregunta_id UUID,
+    p_codigo_pregunta VARCHAR,
+    p_valor_texto TEXT DEFAULT NULL,
+    p_valor_numerico DECIMAL DEFAULT NULL,
+    p_valor_boolean BOOLEAN DEFAULT NULL,
+    p_usuario_id UUID DEFAULT NULL
+)
+RETURNS UUID AS $$
+DECLARE
+    respuesta_id UUID;
+BEGIN
+    INSERT INTO respuestas_exploracion (
+        atencion_id,
+        servicio_id,
+        configuracion_id,
+        grupo_id,
+        pregunta_id,
+        codigo_pregunta,
+        valor_texto,
+        valor_numerico,
+        valor_boolean,
+        usuario_id
+    ) VALUES (
+        p_atencion_id,
+        p_servicio_id,
+        p_configuracion_id,
+        p_grupo_id,
+        p_pregunta_id,
+        p_codigo_pregunta,
+        p_valor_texto,
+        p_valor_numerico,
+        p_valor_boolean,
+        p_usuario_id
+    )
+    ON CONFLICT (atencion_id, servicio_id, pregunta_id)
+    DO UPDATE SET
+        valor_texto = EXCLUDED.valor_texto,
+        valor_numerico = EXCLUDED.valor_numerico,
+        valor_boolean = EXCLUDED.valor_boolean,
+        fecha_registro = CURRENT_TIMESTAMP,
+        usuario_id = EXCLUDED.usuario_id
+    RETURNING id INTO respuesta_id;
+    
+    RETURN respuesta_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Función para obtener respuestas de una exploración
+CREATE OR REPLACE FUNCTION obtener_respuestas_exploracion(
+    p_atencion_id UUID,
+    p_servicio_id VARCHAR
+)
+RETURNS TABLE (
+    codigo_pregunta VARCHAR,
+    valor_texto TEXT,
+    valor_numerico DECIMAL,
+    valor_boolean BOOLEAN,
+    fecha_registro TIMESTAMP
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        re.codigo_pregunta,
+        re.valor_texto,
+        re.valor_numerico,
+        re.valor_boolean,
+        re.fecha_registro
+    FROM respuestas_exploracion re
+    WHERE re.atencion_id = p_atencion_id 
+        AND re.servicio_id = p_servicio_id
+    ORDER BY re.fecha_registro;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger para registrar cambios en el historial
+CREATE OR REPLACE FUNCTION registrar_cambio_configuracion()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'UPDATE' THEN
+        INSERT INTO historial_configuraciones (
+            configuracion_id,
+            version_anterior,
+            version_nueva,
+            tipo_cambio,
+            descripcion_cambio
+        ) VALUES (
+            NEW.id,
+            to_jsonb(OLD),
+            to_jsonb(NEW),
+            'update',
+            'Configuración actualizada'
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO historial_configuraciones (
+            configuracion_id,
+            version_anterior,
+            version_nueva,
+            tipo_cambio,
+            descripcion_cambio
+        ) VALUES (
+            OLD.id,
+            to_jsonb(OLD),
+            NULL,
+            'delete',
+            'Configuración eliminada'
+        );
+        RETURN OLD;
+    ELSIF TG_OP = 'INSERT' THEN
+        INSERT INTO historial_configuraciones (
+            configuracion_id,
+            version_anterior,
+            version_nueva,
+            tipo_cambio,
+            descripcion_cambio
+        ) VALUES (
+            NEW.id,
+            NULL,
+            to_jsonb(NEW),
+            'create',
+            'Configuración creada'
+        );
+        RETURN NEW;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_historial_configuraciones
+    AFTER INSERT OR UPDATE OR DELETE ON configuraciones_exploracion
+    FOR EACH ROW EXECUTE FUNCTION registrar_cambio_configuracion();
+
+-- Insertar plantillas predefinidas
+INSERT INTO plantillas_exploracion (nombre, descripcion, categoria, configuracion) VALUES 
+(
+    'Exploración Básica - Caninos',
+    'Configuración básica para exploración física de caninos',
+    'caninos',
+    '{
+        "grupos": [
+            {
+                "nombre": "Signos Vitales",
+                "descripcion": "Mediciones básicas de signos vitales",
+                "icono": "thermostat",
+                "color": "red",
+                "orden": 1,
+                "preguntas": [
+                    {
+                        "etiqueta": "Temperatura (°C)",
+                        "codigo": "temperatura",
+                        "tipo": "numerico",
+                        "requerido": true,
+                        "minimo": 37,
+                        "maximo": 40,
+                        "unidad": "°C",
+                        "paso": "0.1"
+                    },
+                    {
+                        "etiqueta": "Frecuencia Cardíaca (lpm)",
+                        "codigo": "frecuencia_cardiaca",
+                        "tipo": "numerico",
+                        "requerido": true,
+                        "minimo": 60,
+                        "maximo": 180,
+                        "unidad": "lpm"
+                    }
+                ]
+            }
+        ]
+    }'
+),
+(
+    'Exploración Básica - Felinos',
+    'Configuración básica para exploración física de felinos',
+    'felinos',
+    '{
+        "grupos": [
+            {
+                "nombre": "Signos Vitales",
+                "descripcion": "Mediciones básicas de signos vitales para felinos",
+                "icono": "thermostat",
+                "color": "red",
+                "orden": 1,
+                "preguntas": [
+                    {
+                        "etiqueta": "Temperatura (°C)",
+                        "codigo": "temperatura",
+                        "tipo": "numerico",
+                        "requerido": true,
+                        "minimo": 37.7,
+                        "maximo": 39.2,
+                        "unidad": "°C",
+                        "paso": "0.1"
+                    },
+                    {
+                        "etiqueta": "Frecuencia Cardíaca (lpm)",
+                        "codigo": "frecuencia_cardiaca",
+                        "tipo": "numerico",
+                        "requerido": true,
+                        "minimo": 120,
+                        "maximo": 240,
+                        "unidad": "lpm"
+                    }
+                ]
+            }
+        ]
+    }'
+);

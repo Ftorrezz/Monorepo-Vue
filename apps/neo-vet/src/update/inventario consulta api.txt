@@ -1,0 +1,390 @@
+// services/configuracionApi.js
+import { api } from '../../../shared/services/apiClient'
+
+export const configuracionApi = {
+  // Configuraciones del sistema
+  async obtenerTodas() {
+    const response = await api.get('/configuracion')
+    return response.data
+  },
+
+  async obtenerPorCategoria(categoria) {
+    const response = await api.get(`/configuracion/categoria/${categoria}`)
+    return response.data
+  },
+
+  async obtenerPorClave(clave) {
+    const response = await api.get(`/configuracion/clave/${clave}`)
+    return response.data
+  },
+
+  async actualizar(id, datos) {
+    const response = await api.put(`/configuracion/${id}`, datos)
+    return response.data
+  },
+
+  async crear(datos) {
+    const response = await api.post('/configuracion', datos)
+    return response.data
+  },
+
+  async eliminar(id) {
+    await api.delete(`/configuracion/${id}`)
+  },
+
+  // Configuraciones por lotes
+  async actualizarVarias(configuraciones) {
+    const response = await api.post('/configuracion/lote', {
+      configuraciones
+    })
+    return response.data
+  },
+
+  async resetearDefecto(clave) {
+    const response = await api.post(`/configuracion/${clave}/reset`)
+    return response.data
+  }
+}
+
+export const categoriasApi = {
+  async obtenerTodas() {
+    const response = await api.get('/categorias-productos')
+    return response.data
+  },
+
+  async obtenerPorId(id) {
+    const response = await api.get(`/categorias-productos/${id}`)
+    return response.data
+  },
+
+  async crear(datos) {
+    const response = await api.post('/categorias-productos', datos)
+    return response.data
+  },
+
+  async actualizar(id, datos) {
+    const response = await api.put(`/categorias-productos/${id}`, datos)
+    return response.data
+  },
+
+  async eliminar(id) {
+    await api.delete(`/categorias-productos/${id}`)
+  },
+
+  async reordenar(categorias) {
+    const response = await api.post('/categorias-productos/reordenar', {
+      categorias
+    })
+    return response.data
+  }
+}
+
+export const tiposProductosApi = {
+  async obtenerTodos() {
+    const response = await api.get('/tipos-productos')
+    return response.data
+  },
+
+  async obtenerPorId(id) {
+    const response = await api.get(`/tipos-productos/${id}`)
+    return response.data
+  },
+
+  async crear(datos) {
+    const response = await api.post('/tipos-productos', datos)
+    return response.data
+  },
+
+  async actualizar(id, datos) {
+    const response = await api.put(`/tipos-productos/${id}`, datos)
+    return response.data
+  },
+
+  async eliminar(id) {
+    await api.delete(`/tipos-productos/${id}`)
+  }
+}
+
+export const unidadesMedidaApi = {
+  async obtenerTodas() {
+    const response = await api.get('/unidades-medida')
+    return response.data
+  },
+
+  async obtenerPorTipo(tipo) {
+    const response = await api.get(`/unidades-medida/tipo/${tipo}`)
+    return response.data
+  },
+
+  async crear(datos) {
+    const response = await api.post('/unidades-medida', datos)
+    return response.data
+  },
+
+  async actualizar(id, datos) {
+    const response = await api.put(`/unidades-medida/${id}`, datos)
+    return response.data
+  },
+
+  async eliminar(id) {
+    await api.delete(`/unidades-medida/${id}`)
+  },
+
+  async convertir(cantidad, unidadOrigen, unidadDestino) {
+    const response = await api.post('/unidades-medida/convertir', {
+      cantidad,
+      unidad_origen: unidadOrigen,
+      unidad_destino: unidadDestino
+    })
+    return response.data
+  }
+}
+
+export const ubicacionesApi = {
+  async obtenerTodas() {
+    const response = await api.get('/ubicaciones')
+    return response.data
+  },
+
+  async obtenerJerarquia() {
+    const response = await api.get('/ubicaciones/jerarquia')
+    return response.data
+  },
+
+  async crear(datos) {
+    const response = await api.post('/ubicaciones', datos)
+    return response.data
+  },
+
+  async actualizar(id, datos) {
+    const response = await api.put(`/ubicaciones/${id}`, datos)
+    return response.data
+  },
+
+  async eliminar(id) {
+    await api.delete(`/ubicaciones/${id}`)
+  }
+}
+
+export const camposPersonalizadosApi = {
+  async obtenerTodos() {
+    const response = await api.get('/campos-personalizados')
+    return response.data
+  },
+
+  async obtenerPorEntidad(entidad) {
+    const response = await api.get(`/campos-personalizados/entidad/${entidad}`)
+    return response.data
+  },
+
+  async crear(datos) {
+    const response = await api.post('/campos-personalizados', datos)
+    return response.data
+  },
+
+  async actualizar(id, datos) {
+    const response = await api.put(`/campos-personalizados/${id}`, datos)
+    return response.data
+  },
+
+  async eliminar(id) {
+    await api.delete(`/campos-personalizados/${id}`)
+  },
+
+  async obtenerValores(entidadId, entidad = null) {
+    const params = entidad ? { entidad } : {}
+    const response = await api.get(`/campos-personalizados/valores/${entidadId}`, { params })
+    return response.data
+  },
+
+  async guardarValores(entidadId, entidad, valores) {
+    const response = await api.post(`/campos-personalizados/valores/${entidadId}`, {
+      entidad,
+      valores
+    })
+    return response.data
+  }
+}
+
+export const alertasApi = {
+  async obtenerConfiguraciones() {
+    const response = await api.get('/configuracion-alertas')
+    return response.data
+  },
+
+  async crearConfiguracion(datos) {
+    const response = await api.post('/configuracion-alertas', datos)
+    return response.data
+  },
+
+  async actualizarConfiguracion(id, datos) {
+    const response = await api.put(`/configuracion-alertas/${id}`, datos)
+    return response.data
+  },
+
+  async obtenerActivas() {
+    const response = await api.get('/alertas/activas')
+    return response.data
+  },
+
+  async crearAlertas(alertas) {
+    const response = await api.post('/alertas/lote', { alertas })
+    return response.data
+  },
+
+  async marcarComoLeida(alertaId) {
+    const response = await api.patch(`/alertas/${alertaId}/leida`)
+    return response.data
+  },
+
+  async dismiss(alertaId) {
+    await api.delete(`/alertas/${alertaId}`)
+  },
+
+  async obtenerHistorial(filtros = {}) {
+    const response = await api.get('/alertas/historial', { params: filtros })
+    return response.data
+  }
+}
+
+export const permisosApi = {
+  async obtenerTodos() {
+    const response = await api.get('/permisos')
+    return response.data
+  },
+
+  async obtenerPermisosUsuario(usuarioId = null) {
+    const url = usuarioId ? `/permisos/usuario/${usuarioId}` : '/permisos/usuario'
+    const response = await api.get(url)
+    return response.data
+  },
+
+  async actualizarPermisosUsuario(usuarioId, permisos) {
+    const response = await api.put(`/permisos/usuario/${usuarioId}`, { permisos })
+    return response.data
+  }
+}
+
+export const reportesApi = {
+  async obtenerConfiguraciones() {
+    const response = await api.get('/configuracion-reportes')
+    return response.data
+  },
+
+  async ejecutarReporte(reporteId, parametros = {}) {
+    const response = await api.post(`/reportes/${reporteId}/ejecutar`, { parametros })
+    return response.data
+  },
+
+  async crearConfiguracion(datos) {
+    const response = await api.post('/configuracion-reportes', datos)
+    return response.data
+  },
+
+  async actualizarConfiguracion(id, datos) {
+    const response = await api.put(`/configuracion-reportes/${id}`, datos)
+    return response.data
+  }
+}
+
+// services/apiClient.js - Cliente base para todas las APIs
+import axios from 'axios'
+import { Notify, Loading } from 'quasar'
+
+const API_BASE_URL = process.env.VUE_APP_API_URL || 'http://localhost:3000/api'
+
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+})
+
+// Interceptors para manejo de tokens
+apiClient.interceptors.request.use(
+  config => {
+    const token = localStorage.getItem('auth_token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    
+    // Mostrar loading para requests que no sean GET
+    if (config.method !== 'get' && !config.skipLoading) {
+      Loading.show()
+    }
+    
+    return config
+  },
+  error => {
+    Loading.hide()
+    return Promise.reject(error)
+  }
+)
+
+// Interceptors para manejo de respuestas
+apiClient.interceptors.response.use(
+  response => {
+    Loading.hide()
+    
+    // Mostrar notificación de éxito para operaciones que no sean GET
+    if (response.config.method !== 'get' && !response.config.skipNotification) {
+      const message = response.data.message || getSuccessMessage(response.config.method)
+      if (message) {
+        Notify.create({
+          type: 'positive',
+          message,
+          position: 'top-right',
+          timeout: 2000
+        })
+      }
+    }
+    
+    return response
+  },
+  error => {
+    Loading.hide()
+    
+    const message = error.response?.data?.message || getErrorMessage(error.response?.status)
+    
+    Notify.create({
+      type: 'negative',
+      message,
+      position: 'top-right',
+      timeout: 3000
+    })
+    
+    // Redirigir al login si el token expiró
+    if (error.response?.status === 401) {
+      localStorage.removeItem('auth_token')
+      window.location.href = '/login'
+    }
+    
+    return Promise.reject(error)
+  }
+)
+
+const getSuccessMessage = (method) => {
+  const messages = {
+    'post': 'Registro creado exitosamente',
+    'put': 'Registro actualizado exitosamente',
+    'patch': 'Registro actualizado exitosamente',
+    'delete': 'Registro eliminado exitosamente'
+  }
+  return messages[method]
+}
+
+const getErrorMessage = (status) => {
+  const messages = {
+    400: 'Solicitud inválida',
+    401: 'No autorizado',
+    403: 'Acceso denegado',
+    404: 'Recurso no encontrado',
+    422: 'Datos de entrada inválidos',
+    500: 'Error interno del servidor',
+    503: 'Servicio no disponible'
+  }
+  return messages[status] || 'Error en la comunicación con el servidor'
+}
+
+export const api = apiClient

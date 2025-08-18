@@ -1,0 +1,425 @@
+-- =============================================
+-- SISTEMA DE AGENDAMIENTO VETERINARIO
+-- Esquema de Base de Datos SQL Server
+-- =============================================
+
+-- 1. TABLA DE SERVICIOS
+CREATE TABLE Services (
+    ServiceId INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(100) NOT NULL,
+    Description NVARCHAR(500),
+    Duration INT NOT NULL, -- Duración en minutos
+    Price DECIMAL(10,2) NOT NULL,
+    Icon NVARCHAR(50) NOT NULL, -- Icono para la UI
+    Color NVARCHAR(7) NOT NULL, -- Color hexadecimal
+    IsActive BIT NOT NULL DEFAULT 1,
+    IsEmergency BIT NOT NULL DEFAULT 0, -- Si es servicio 24/7
+    RequiresPreparation BIT NOT NULL DEFAULT 0,
+    CategoryId INT,
+    CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+    UpdatedAt DATETIME2 NOT NULL DEFAULT GETDATE()
+);
+
+-- 2. CATEGORÍAS DE SERVICIOS
+CREATE TABLE ServiceCategories (
+    CategoryId INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(100) NOT NULL,
+    Description NVARCHAR(300),
+    DisplayOrder INT NOT NULL DEFAULT 0,
+    IsActive BIT NOT NULL DEFAULT 1
+);
+
+-- 3. HORARIOS DE TRABAJO POR SERVICIO
+CREATE TABLE ServiceSchedules (
+    ScheduleId INT IDENTITY(1,1) PRIMARY KEY,
+    ServiceId INT NOT NULL,
+    DayOfWeek INT NOT NULL, -- 0=Domingo, 1=Lunes, ..., 6=Sábado
+    StartTime TIME NOT NULL,
+    EndTime TIME NOT NULL,
+    SlotDuration INT NOT NULL, -- Duración de cada slot en minutos
+    IsActive BIT NOT NULL DEFAULT 1,
+    FOREIGN KEY (ServiceId) REFERENCES Services(ServiceId)
+);
+
+-- 4. EXCEPCIONES DE HORARIOS (Días festivos, vacaciones, etc.)
+CREATE TABLE ScheduleExceptions (
+    ExceptionId INT IDENTITY(1,1) PRIMARY KEY,
+    ServiceId INT,
+    ExceptionDate DATE NOT NULL,
+    ExceptionType NVARCHAR(50) NOT NULL, -- 'HOLIDAY', 'VACATION', 'MAINTENANCE'
+    Description NVARCHAR(200),
+    IsBlocked BIT NOT NULL DEFAULT 1, -- Si bloquea completamente el día
+    StartTime TIME, -- Si solo bloquea parcialmente
+    EndTime TIME,
+    CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+    FOREIGN KEY (ServiceId) REFERENCES Services(ServiceId)
+);
+
+-- 5. PROPIETARIOS/CLIENTES
+CREATE TABLE Owners (
+    OwnerId INT IDENTITY(1,1) PRIMARY KEY,
+    FirstName NVARCHAR(50) NOT NULL,
+    LastName NVARCHAR(50) NOT NULL,
+    Email NVARCHAR(100),
+    Phone NVARCHAR(20) NOT NULL,
+    Address NVARCHAR(200),
+    City NVARCHAR(50),
+    State NVARCHAR(50),
+    PostalCode NVARCHAR(10),
+    DateOfBirth DATE,
+    Gender CHAR(1), -- M/F
+    EmergencyContact NVARCHAR(100),
+    EmergencyPhone NVARCHAR(20),
+    Notes NVARCHAR(1000),
+    IsActive BIT NOT NULL DEFAULT 1,
+    CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+    UpdatedAt DATETIME2 NOT NULL DEFAULT GETDATE()
+);
+
+-- 6. MASCOTAS
+CREATE TABLE Pets (
+    PetId INT IDENTITY(1,1) PRIMARY KEY,
+    OwnerId INT NOT NULL,
+    Name NVARCHAR(50) NOT NULL,
+    Species NVARCHAR(30) NOT NULL, -- Perro, Gato, Ave, etc.
+    Breed NVARCHAR(50),
+    Gender CHAR(1), -- M/F
+    DateOfBirth DATE,
+    Weight DECIMAL(5,2),
+    Color NVARCHAR(50),
+    Microchip NVARCHAR(20),
+    IsNeutered BIT DEFAULT 0,
+    Allergies NVARCHAR(500),
+    MedicalConditions NVARCHAR(1000),
+    Notes NVARCHAR(1000),
+    IsActive BIT NOT NULL DEFAULT 1,
+    CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+    UpdatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+    FOREIGN KEY (OwnerId) REFERENCES Owners(OwnerId)
+);
+
+-- 7. VETERINARIOS/STAFF
+CREATE TABLE Veterinarians (
+    VetId INT IDENTITY(1,1) PRIMARY KEY,
+    FirstName NVARCHAR(50) NOT NULL,
+    LastName NVARCHAR(50) NOT NULL,
+    Email NVARCHAR(100) NOT NULL,
+    Phone NVARCHAR(20),
+    LicenseNumber NVARCHAR(50),
+    Specialization NVARCHAR(100),
+    IsActive BIT NOT NULL DEFAULT 1,
+    CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE()
+);
+
+-- 8. SERVICIOS ASIGNADOS A VETERINARIOS
+CREATE TABLE VeterinarianServices (
+    VetServiceId INT IDENTITY(1,1) PRIMARY KEY,
+    VetId INT NOT NULL,
+    ServiceId INT NOT NULL,
+    IsActive BIT NOT NULL DEFAULT 1,
+    FOREIGN KEY (VetId) REFERENCES Veterinarians(VetId),
+    FOREIGN KEY (ServiceId) REFERENCES Services(ServiceId)
+);
+
+-- 9. CITAS/APPOINTMENTS
+CREATE TABLE Appointments (
+    AppointmentId INT IDENTITY(1,1) PRIMARY KEY,
+    OwnerId INT NOT NULL,
+    PetId INT NOT NULL,
+    ServiceId INT NOT NULL,
+    VetId INT,
+    AppointmentDate DATE NOT NULL,
+    AppointmentTime TIME NOT NULL,
+    Duration INT NOT NULL, -- Duración en minutos
+    Status NVARCHAR(20) NOT NULL DEFAULT 'SCHEDULED', -- SCHEDULED, CONFIRMED, IN_PROGRESS, COMPLETED, CANCELLED, NO_SHOW
+    Priority NVARCHAR(10) NOT NULL DEFAULT 'NORMAL', -- LOW, NORMAL, HIGH, EMERGENCY
+    Reason NVARCHAR(500),
+    Notes NVARCHAR(1000),
+    ConfirmationSent BIT NOT NULL DEFAULT 0,
+    ReminderSent BIT NOT NULL DEFAULT 0,
+    CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+    UpdatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+    CreatedBy NVARCHAR(50),
+    FOREIGN KEY (OwnerId) REFERENCES Owners(OwnerId),
+    FOREIGN KEY (PetId) REFERENCES Pets(PetId),
+    FOREIGN KEY (ServiceId) REFERENCES Services(ServiceId),
+    FOREIGN KEY (VetId) REFERENCES Veterinarians(VetId)
+);
+
+-- 10. HISTORIAL DE CAMBIOS EN CITAS
+CREATE TABLE AppointmentHistory (
+    HistoryId INT IDENTITY(1,1) PRIMARY KEY,
+    AppointmentId INT NOT NULL,
+    ChangeType NVARCHAR(20) NOT NULL, -- CREATED, MODIFIED, CANCELLED, COMPLETED
+    OldStatus NVARCHAR(20),
+    NewStatus NVARCHAR(20),
+    OldDate DATE,
+    NewDate DATE,
+    OldTime TIME,
+    NewTime TIME,
+    Reason NVARCHAR(500),
+    ChangedBy NVARCHAR(50),
+    ChangedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+    FOREIGN KEY (AppointmentId) REFERENCES Appointments(AppointmentId)
+);
+
+-- 11. CONFIGURACIÓN GENERAL DEL SISTEMA
+CREATE TABLE SystemSettings (
+    SettingId INT IDENTITY(1,1) PRIMARY KEY,
+    SettingKey NVARCHAR(100) NOT NULL UNIQUE,
+    SettingValue NVARCHAR(500) NOT NULL,
+    Description NVARCHAR(200),
+    DataType NVARCHAR(20) NOT NULL DEFAULT 'STRING', -- STRING, INT, BOOL, JSON
+    IsUserEditable BIT NOT NULL DEFAULT 1,
+    CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+    UpdatedAt DATETIME2 NOT NULL DEFAULT GETDATE()
+);
+
+-- 12. PLANTILLAS DE NOTIFICACIONES
+CREATE TABLE NotificationTemplates (
+    TemplateId INT IDENTITY(1,1) PRIMARY KEY,
+    TemplateKey NVARCHAR(50) NOT NULL UNIQUE,
+    Subject NVARCHAR(200) NOT NULL,
+    Body NVARCHAR(MAX) NOT NULL,
+    Type NVARCHAR(20) NOT NULL, -- EMAIL, SMS, PUSH
+    IsActive BIT NOT NULL DEFAULT 1,
+    CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE()
+);
+
+-- 13. LOG DE NOTIFICACIONES ENVIADAS
+CREATE TABLE NotificationLog (
+    LogId INT IDENTITY(1,1) PRIMARY KEY,
+    AppointmentId INT,
+    OwnerId INT NOT NULL,
+    TemplateId INT NOT NULL,
+    RecipientEmail NVARCHAR(100),
+    RecipientPhone NVARCHAR(20),
+    Subject NVARCHAR(200),
+    Message NVARCHAR(MAX),
+    Status NVARCHAR(20) NOT NULL, -- SENT, FAILED, PENDING
+    SentAt DATETIME2,
+    ErrorMessage NVARCHAR(500),
+    FOREIGN KEY (AppointmentId) REFERENCES Appointments(AppointmentId),
+    FOREIGN KEY (OwnerId) REFERENCES Owners(OwnerId),
+    FOREIGN KEY (TemplateId) REFERENCES NotificationTemplates(TemplateId)
+);
+
+-- =============================================
+-- ÍNDICES PARA OPTIMIZAR CONSULTAS
+-- =============================================
+
+-- Índices en Appointments (tabla más consultada)
+CREATE INDEX IX_Appointments_Date_Status ON Appointments(AppointmentDate, Status);
+CREATE INDEX IX_Appointments_Service_Date ON Appointments(ServiceId, AppointmentDate);
+CREATE INDEX IX_Appointments_Owner ON Appointments(OwnerId);
+CREATE INDEX IX_Appointments_Pet ON Appointments(PetId);
+CREATE INDEX IX_Appointments_Vet_Date ON Appointments(VetId, AppointmentDate);
+
+-- Índices en ServiceSchedules
+CREATE INDEX IX_ServiceSchedules_Service_Day ON ServiceSchedules(ServiceId, DayOfWeek);
+
+-- Índices en Owners y Pets
+CREATE INDEX IX_Owners_Phone ON Owners(Phone);
+CREATE INDEX IX_Owners_Email ON Owners(Email);
+CREATE INDEX IX_Pets_Owner ON Pets(OwnerId);
+
+-- =============================================
+-- CONSTRAINTS ADICIONALES
+-- =============================================
+
+-- Constraint para evitar citas duplicadas
+ALTER TABLE Appointments 
+ADD CONSTRAINT UK_Appointments_DateTime_Service UNIQUE (ServiceId, AppointmentDate, AppointmentTime);
+
+-- Constraint para horarios válidos
+ALTER TABLE ServiceSchedules 
+ADD CONSTRAINT CK_ServiceSchedules_Times CHECK (StartTime < EndTime);
+
+-- Constraint para días de la semana válidos
+ALTER TABLE ServiceSchedules 
+ADD CONSTRAINT CK_ServiceSchedules_DayOfWeek CHECK (DayOfWeek BETWEEN 0 AND 6);
+
+-- =============================================
+-- DATOS INICIALES
+-- =============================================
+
+-- Categorías de servicios
+INSERT INTO ServiceCategories (Name, Description, DisplayOrder) VALUES
+('Consultas', 'Consultas médicas generales y especializadas', 1),
+('Procedimientos', 'Cirugías y procedimientos médicos', 2),
+('Prevención', 'Vacunación y medicina preventiva', 3),
+('Diagnóstico', 'Estudios y análisis diagnósticos', 4),
+('Estética', 'Servicios de belleza y cuidado', 5),
+('Emergencias', 'Atención de urgencias 24/7', 6);
+
+-- Servicios iniciales
+INSERT INTO Services (Name, Description, Duration, Price, Icon, Color, CategoryId, IsEmergency) VALUES
+('Consulta General', 'Revisión médica general de rutina', 30, 150.00, 'medical_services', '#667eea', 1, 0),
+('Consulta Especialidad', 'Consulta con veterinario especialista', 45, 300.00, 'psychology', '#764ba2', 1, 0),
+('Vacunación', 'Aplicación de vacunas preventivas', 20, 200.00, 'vaccines', '#f093fb', 3, 0),
+('Cirugía Menor', 'Procedimientos quirúrgicos menores', 60, 800.00, 'healing', '#f5576c', 2, 0),
+('Baño y Corte', 'Servicios de estética y cuidado', 90, 300.00, 'pets', '#4facfe', 5, 0),
+('Rayos X', 'Estudios radiológicos', 45, 400.00, 'medical_information', '#43e97b', 4, 0),
+('Laboratorio', 'Análisis clínicos y de laboratorio', 15, 250.00, 'science', '#fa709a', 4, 0),
+('Emergencias', 'Atención de urgencias médicas', 60, 500.00, 'emergency', '#ff6b6b', 6, 1);
+
+-- Horarios de trabajo estándar (Lunes a Viernes, 8:00-18:00)
+INSERT INTO ServiceSchedules (ServiceId, DayOfWeek, StartTime, EndTime, SlotDuration) 
+SELECT s.ServiceId, d.DayOfWeek, '08:00:00', '18:00:00', s.Duration
+FROM Services s
+CROSS JOIN (VALUES (1), (2), (3), (4), (5)) AS d(DayOfWeek)
+WHERE s.IsEmergency = 0;
+
+-- Horarios para emergencias (24/7)
+INSERT INTO ServiceSchedules (ServiceId, DayOfWeek, StartTime, EndTime, SlotDuration)
+SELECT ServiceId, d.DayOfWeek, '00:00:00', '23:59:59', 60
+FROM Services s
+CROSS JOIN (VALUES (0), (1), (2), (3), (4), (5), (6)) AS d(DayOfWeek)
+WHERE s.IsEmergency = 1;
+
+-- Configuraciones del sistema
+INSERT INTO SystemSettings (SettingKey, SettingValue, Description, DataType) VALUES
+('APPOINTMENT_REMINDER_HOURS', '24', 'Horas antes de la cita para enviar recordatorio', 'INT'),
+('CLINIC_NAME', 'VetCalendar Clinic', 'Nombre de la clínica', 'STRING'),
+('CLINIC_PHONE', '+52 55 1234 5678', 'Teléfono principal de la clínica', 'STRING'),
+('CLINIC_EMAIL', 'info@vetcalendar.com', 'Email de contacto', 'STRING'),
+('MAX_APPOINTMENTS_PER_SLOT', '1', 'Máximo de citas por horario', 'INT'),
+('ALLOW_SAME_DAY_BOOKING', 'true', 'Permitir agendar el mismo día', 'BOOL'),
+('BOOKING_ADVANCE_DAYS', '30', 'Días máximos para agendar por adelantado', 'INT'),
+('CANCELLATION_HOURS', '2', 'Horas mínimas para cancelar sin penalización', 'INT');
+
+-- Plantillas de notificación
+INSERT INTO NotificationTemplates (TemplateKey, Subject, Body, Type) VALUES
+('APPOINTMENT_CONFIRMATION', 'Confirmación de Cita - {{CLINIC_NAME}}', 
+ 'Estimado/a {{OWNER_NAME}}, su cita para {{PET_NAME}} ha sido confirmada para el {{DATE}} a las {{TIME}}. Servicio: {{SERVICE_NAME}}. Gracias por confiar en nosotros.', 'EMAIL'),
+('APPOINTMENT_REMINDER', 'Recordatorio de Cita - {{CLINIC_NAME}}', 
+ 'Le recordamos que {{PET_NAME}} tiene cita mañana {{DATE}} a las {{TIME}} para {{SERVICE_NAME}}. Si necesita reprogramar, contáctenos.', 'EMAIL'),
+('APPOINTMENT_CANCELLED', 'Cita Cancelada - {{CLINIC_NAME}}', 
+ 'Su cita para {{PET_NAME}} del {{DATE}} a las {{TIME}} ha sido cancelada. Para reagendar, contáctenos al {{CLINIC_PHONE}}.', 'EMAIL');
+
+-- =============================================
+-- VISTAS ÚTILES
+-- =============================================
+
+-- Vista para el calendario diario
+CREATE VIEW vw_DailySchedule AS
+SELECT 
+    s.ServiceId,
+    s.Name AS ServiceName,
+    s.Icon,
+    s.Color,
+    ss.DayOfWeek,
+    ss.StartTime,
+    ss.EndTime,
+    ss.SlotDuration
+FROM Services s
+INNER JOIN ServiceSchedules ss ON s.ServiceId = ss.ServiceId
+WHERE s.IsActive = 1 AND ss.IsActive = 1;
+
+-- Vista para citas del día
+CREATE VIEW vw_TodayAppointments AS
+SELECT 
+    a.AppointmentId,
+    a.AppointmentDate,
+    a.AppointmentTime,
+    a.Status,
+    s.Name AS ServiceName,
+    s.Icon AS ServiceIcon,
+    s.Color AS ServiceColor,
+    o.FirstName + ' ' + o.LastName AS OwnerName,
+    o.Phone AS OwnerPhone,
+    p.Name AS PetName,
+    p.Species AS PetType,
+    v.FirstName + ' ' + v.LastName AS VetName
+FROM Appointments a
+INNER JOIN Services s ON a.ServiceId = s.ServiceId
+INNER JOIN Owners o ON a.OwnerId = o.OwnerId
+INNER JOIN Pets p ON a.PetId = p.PetId
+LEFT JOIN Veterinarians v ON a.VetId = v.VetId
+WHERE a.AppointmentDate = CAST(GETDATE() AS DATE)
+AND a.Status NOT IN ('CANCELLED');
+
+-- =============================================
+-- PROCEDIMIENTOS ALMACENADOS
+-- =============================================
+
+-- Procedimiento para obtener slots disponibles
+CREATE PROCEDURE sp_GetAvailableSlots
+    @ServiceId INT,
+    @Date DATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    DECLARE @DayOfWeek INT = DATEPART(WEEKDAY, @Date) - 1; -- Convertir a 0-6
+    
+    -- Verificar si hay excepciones para esta fecha
+    IF EXISTS (SELECT 1 FROM ScheduleExceptions WHERE ServiceId = @ServiceId AND ExceptionDate = @Date AND IsBlocked = 1)
+    BEGIN
+        SELECT 'No hay horarios disponibles para esta fecha' AS Message;
+        RETURN;
+    END
+    
+    -- Obtener configuración de horarios
+    SELECT 
+        StartTime,
+        EndTime,
+        SlotDuration
+    FROM ServiceSchedules
+    WHERE ServiceId = @ServiceId 
+    AND DayOfWeek = @DayOfWeek 
+    AND IsActive = 1;
+END;
+
+-- Procedimiento para crear una cita
+CREATE PROCEDURE sp_CreateAppointment
+    @OwnerId INT,
+    @PetId INT,
+    @ServiceId INT,
+    @AppointmentDate DATE,
+    @AppointmentTime TIME,
+    @Reason NVARCHAR(500) = NULL,
+    @CreatedBy NVARCHAR(50) = 'SYSTEM'
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRANSACTION;
+    
+    BEGIN TRY
+        -- Verificar disponibilidad
+        IF EXISTS (
+            SELECT 1 FROM Appointments 
+            WHERE ServiceId = @ServiceId 
+            AND AppointmentDate = @AppointmentDate 
+            AND AppointmentTime = @AppointmentTime
+            AND Status NOT IN ('CANCELLED')
+        )
+        BEGIN
+            RAISERROR('El horario seleccionado no está disponible', 16, 1);
+            RETURN;
+        END
+        
+        -- Obtener duración del servicio
+        DECLARE @Duration INT;
+        SELECT @Duration = Duration FROM Services WHERE ServiceId = @ServiceId;
+        
+        -- Insertar la cita
+        INSERT INTO Appointments (OwnerId, PetId, ServiceId, AppointmentDate, AppointmentTime, Duration, Reason, CreatedBy)
+        VALUES (@OwnerId, @PetId, @ServiceId, @AppointmentDate, @AppointmentTime, @Duration, @Reason, @CreatedBy);
+        
+        DECLARE @AppointmentId INT = SCOPE_IDENTITY();
+        
+        -- Registrar en el historial
+        INSERT INTO AppointmentHistory (AppointmentId, ChangeType, NewStatus, ChangedBy)
+        VALUES (@AppointmentId, 'CREATED', 'SCHEDULED', @CreatedBy);
+        
+        COMMIT TRANSACTION;
+        
+        SELECT @AppointmentId AS AppointmentId, 'Cita creada exitosamente' AS Message;
+        
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END;

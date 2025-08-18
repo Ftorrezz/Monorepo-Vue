@@ -5,7 +5,7 @@
         <q-icon name="medical_services" color="blue" size="md" class="q-mr-md"/>
         <div class="col">
           <div class="text-h6">Exploración Física</div>
-          <div class="text-caption text-grey-7">Registro del examen físico completo</div>
+          <div class="text-caption text-grey-7">{{ configuracionCargada ? 'Configuración personalizada cargada' : 'Cargando configuración...' }}</div>
         </div>
         <q-btn-dropdown 
           flat round 
@@ -19,11 +19,17 @@
               </q-item-section>
               <q-item-section>Marcar como Completada</q-item-section>
             </q-item>
-            <q-item clickable @click="configurarCampos" v-if="!modoLectura">
+            <q-item clickable @click="abrirConfiguracion" v-if="!modoLectura">
               <q-item-section avatar>
                 <q-icon name="settings" color="primary"/>
               </q-item-section>
-              <q-item-section>Configurar Campos</q-item-section>
+              <q-item-section>Ir a Configuración</q-item-section>
+            </q-item>
+            <q-item clickable @click="recargarConfiguracion">
+              <q-item-section avatar>
+                <q-icon name="refresh" color="info"/>
+              </q-item-section>
+              <q-item-section>Recargar Configuración</q-item-section>
             </q-item>
             <q-item clickable @click="eliminarServicio">
               <q-item-section avatar>
@@ -36,130 +42,116 @@
       </div>
     </q-card-section>
     
-    <q-card-section>
-      <!-- Signos Vitales -->
-      <div class="row q-col-gutter-md">
-        <div class="col-12">
-          <div class="text-subtitle2 q-mb-md">
-            <q-icon name="favorite" color="red" class="q-mr-sm"/>
-            Signos Vitales
+    <q-card-section v-if="!configuracionCargada" class="text-center">
+      <q-spinner-dots size="50px" color="primary"/>
+      <div class="text-body2 q-mt-md">Cargando configuración del sitio...</div>
+    </q-card-section>
+
+    <q-card-section v-else-if="gruposActivos.length === 0" class="text-center">
+      <q-icon name="settings" size="50px" color="grey-5"/>
+      <div class="text-body1 q-mt-md">No hay grupos configurados</div>
+      <div class="text-caption text-grey-7 q-mb-md">Configure los grupos de exploración física para este sitio</div>
+      <q-btn 
+        color="primary" 
+        label="Configurar Ahora" 
+        @click="abrirConfiguracion"
+        v-if="!modoLectura"
+      />
+    </q-card-section>
+    
+    <q-card-section v-else>
+      <!-- Grupos dinámicos -->
+      <div 
+        v-for="(grupo, grupoIndex) in gruposActivos" 
+        :key="grupo.id"
+        class="grupo-exploracion"
+      >
+        <!-- Header del grupo -->
+        <div class="row items-center q-mb-md" v-if="grupoIndex > 0">
+          <q-separator class="col"/>
+        </div>
+        
+        <div class="text-subtitle2 q-mb-md">
+          <q-icon :name="grupo.icono" :color="grupo.color" class="q-mr-sm"/>
+          {{ grupo.nombre }}
+          <span v-if="grupo.descripcion" class="text-caption text-grey-7 q-ml-sm">
+            - {{ grupo.descripcion }}
+          </span>
+        </div>
+
+        <!-- Preguntas del grupo -->
+        <div class="row q-col-gutter-md">
+          <div 
+            v-for="pregunta in grupo.preguntas"
+            :key="pregunta.id"
+            :class="getColSize(pregunta)"
+          >
+            <!-- Campo de texto simple -->
+            <q-input
+              v-if="pregunta.tipo === 'texto'"
+              v-model="datosExploracion[pregunta.codigo]"
+              :label="pregunta.etiqueta"
+              outlined
+              :readonly="modoLectura"
+              :placeholder="pregunta.placeholder"
+              :rules="pregunta.requerido ? [val => !!val || `${pregunta.etiqueta} es requerido`] : []"
+            />
+            
+            <!-- Campo de área de texto -->
+            <q-input
+              v-else-if="pregunta.tipo === 'textarea'"
+              v-model="datosExploracion[pregunta.codigo]"
+              :label="pregunta.etiqueta"
+              outlined
+              type="textarea"
+              rows="2"
+              :readonly="modoLectura"
+              :placeholder="pregunta.placeholder"
+              :rules="pregunta.requerido ? [val => !!val || `${pregunta.etiqueta} es requerido`] : []"
+            />
+            
+            <!-- Campo numérico -->
+            <q-input
+              v-else-if="pregunta.tipo === 'numerico'"
+              v-model.number="datosExploracion[pregunta.codigo]"
+              :label="pregunta.etiqueta"
+              outlined
+              type="number"
+              :step="pregunta.paso || '1'"
+              :min="pregunta.minimo"
+              :max="pregunta.maximo"
+              :readonly="modoLectura"
+              :suffix="pregunta.unidad"
+              :placeholder="pregunta.placeholder"
+              :rules="pregunta.requerido ? [val => val !== null && val !== '' || `${pregunta.etiqueta} es requerido`] : []"
+            />
+            
+            <!-- Campo de selección -->
+            <q-select
+              v-else-if="pregunta.tipo === 'select'"
+              v-model="datosExploracion[pregunta.codigo]"
+              :options="pregunta.opciones"
+              :label="pregunta.etiqueta"
+              outlined
+              option-label="label"
+              option-value="value"
+              :readonly="modoLectura"
+              :rules="pregunta.requerido ? [val => !!val || `${pregunta.etiqueta} es requerido`] : []"
+              clearable
+            />
+            
+            <!-- Campo de checkbox -->
+            <q-checkbox
+              v-else-if="pregunta.tipo === 'checkbox'"
+              v-model="datosExploracion[pregunta.codigo]"
+              :label="pregunta.etiqueta"
+              :disable="modoLectura"
+            />
           </div>
-        </div>
-        
-        <div class="col-6 col-md-3" v-if="camposHabilitados.temperatura">
-          <q-input
-            v-model="datosExploracion.temperatura"
-            label="Temperatura (°C)"
-            outlined
-            type="number"
-            step="0.1"
-            min="35"
-            max="42"
-            :readonly="modoLectura"
-            suffix="°C"
-          />
-        </div>
-        
-        <div class="col-6 col-md-3" v-if="camposHabilitados.frecuenciaCardiaca">
-          <q-input
-            v-model="datosExploracion.frecuenciaCardiaca"
-            label="FC (lpm)"
-            outlined
-            type="number"
-            min="40"
-            max="250"
-            :readonly="modoLectura"
-            suffix="lpm"
-          />
-        </div>
-        
-        <div class="col-6 col-md-3" v-if="camposHabilitados.frecuenciaRespiratoria">
-          <q-input
-            v-model="datosExploracion.frecuenciaRespiratoria"
-            label="FR (rpm)"
-            outlined
-            type="number"
-            min="10"
-            max="60"
-            :readonly="modoLectura"
-            suffix="rpm"
-          />
-        </div>
-        
-        <div class="col-6 col-md-3" v-if="camposHabilitados.peso">
-          <q-input
-            v-model="datosExploracion.peso"
-            label="Peso (kg)"
-            outlined
-            type="number"
-            step="0.1"
-            min="0"
-            :readonly="modoLectura"
-            suffix="kg"
-          />
         </div>
       </div>
 
-      <!-- Examen por Sistemas -->
-      <div class="row q-col-gutter-md q-mt-md" v-for="sistema in sistemasHabilitados" :key="sistema.codigo">
-        <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">
-            <q-icon :name="sistema.icono" :color="sistema.color" class="q-mr-sm"/>
-            {{ sistema.nombre }}
-          </div>
-        </div>
-        
-        <div class="col-12" v-for="campo in sistema.campos" :key="campo.codigo">
-          <!-- Campo de texto -->
-          <q-input
-            v-if="campo.tipo === 'texto'"
-            v-model="datosExploracion.sistemas[sistema.codigo][campo.codigo]"
-            :label="campo.nombre"
-            outlined
-            type="textarea"
-            rows="2"
-            :readonly="modoLectura"
-            :placeholder="campo.placeholder"
-          />
-          
-          <!-- Campo de selección -->
-          <q-select
-            v-else-if="campo.tipo === 'select'"
-            v-model="datosExploracion.sistemas[sistema.codigo][campo.codigo]"
-            :options="campo.opciones"
-            :label="campo.nombre"
-            outlined
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura"
-          />
-          
-          <!-- Campo numérico -->
-          <q-input
-            v-else-if="campo.tipo === 'numerico'"
-            v-model="datosExploracion.sistemas[sistema.codigo][campo.codigo]"
-            :label="campo.nombre"
-            outlined
-            type="number"
-            :step="campo.paso || '1'"
-            :min="campo.minimo"
-            :max="campo.maximo"
-            :readonly="modoLectura"
-            :suffix="campo.unidad"
-          />
-          
-          <!-- Campo de checkbox -->
-          <q-checkbox
-            v-else-if="campo.tipo === 'checkbox'"
-            v-model="datosExploracion.sistemas[sistema.codigo][campo.codigo]"
-            :label="campo.nombre"
-            :disable="modoLectura"
-          />
-        </div>
-      </div>
-
-      <!-- Observaciones Generales -->
+      <!-- Observaciones Generales (siempre presente) -->
       <div class="row q-col-gutter-md q-mt-md">
         <div class="col-12">
           <q-separator class="q-my-md"/>
@@ -168,27 +160,33 @@
         
         <div class="col-12">
           <q-input
-            v-model="datosExploracion.observaciones"
-            label="Observaciones y Hallazgos"
+            v-model="datosExploracion.observaciones_generales"
+            label="Observaciones y Hallazgos Adicionales"
             outlined
             type="textarea"
             rows="3"
             :readonly="modoLectura"
+            placeholder="Registre cualquier observación adicional no contemplada en los campos anteriores..."
           />
         </div>
       </div>
     </q-card-section>
     
     <!-- Estado y acciones -->
-    <q-card-section v-if="!modoLectura" class="bg-grey-1">
+    <q-card-section v-if="!modoLectura && configuracionCargada && gruposActivos.length > 0" class="bg-grey-1">
       <div class="row items-center justify-between">
         <div class="col-auto">
-          <q-chip 
-            :color="formularioValido ? 'green' : 'orange'"
-            text-color="white"
-            :icon="formularioValido ? 'check_circle' : 'warning'"
-            :label="formularioValido ? 'Exploración Completa' : 'Exploración Incompleta'"
-          />
+          <div class="row items-center q-gutter-sm">
+            <q-chip 
+              :color="formularioValido ? 'green' : 'orange'"
+              text-color="white"
+              :icon="formularioValido ? 'check_circle' : 'warning'"
+              :label="formularioValido ? 'Exploración Completa' : 'Exploración Incompleta'"
+            />
+            <div class="text-caption text-grey-7">
+              {{ camposCompletados }}/{{ totalCamposRequeridos }} campos requeridos completados
+            </div>
+          </div>
         </div>
         
         <div class="col-auto">
@@ -203,71 +201,13 @@
       </div>
     </q-card-section>
 
-    <!-- Modal de Configuración -->
-    <q-dialog v-model="mostrarConfiguracion" persistent>
-      <q-card style="min-width: 600px">
-        <q-card-section>
-          <div class="text-h6">Configuración de Campos - Exploración Física</div>
-          <div class="text-caption">Configure qué campos mostrar para este sitio</div>
+    <!-- Modal de progreso -->
+    <q-dialog v-model="mostrandoProgreso" persistent>
+      <q-card>
+        <q-card-section class="text-center">
+          <q-spinner-dots size="50px" color="primary"/>
+          <div class="text-h6 q-mt-md">{{ mensajeProgreso }}</div>
         </q-card-section>
-
-        <q-card-section>
-          <q-tabs v-model="tabConfiguracion">
-            <q-tab name="vitales" label="Signos Vitales"/>
-            <q-tab name="sistemas" label="Sistemas"/>
-          </q-tabs>
-
-          <q-tab-panels v-model="tabConfiguracion">
-            <!-- Configuración Signos Vitales -->
-            <q-tab-panel name="vitales">
-              <div class="q-gutter-md">
-                <q-checkbox 
-                  v-model="configuracion.signos_vitales.temperatura"
-                  label="Temperatura"
-                />
-                <q-checkbox 
-                  v-model="configuracion.signos_vitales.frecuencia_cardiaca"
-                  label="Frecuencia Cardíaca"
-                />
-                <q-checkbox 
-                  v-model="configuracion.signos_vitales.frecuencia_respiratoria"
-                  label="Frecuencia Respiratoria"
-                />
-                <q-checkbox 
-                  v-model="configuracion.signos_vitales.peso"
-                  label="Peso"
-                />
-              </div>
-            </q-tab-panel>
-
-            <!-- Configuración Sistemas -->
-            <q-tab-panel name="sistemas">
-              <div class="q-gutter-md">
-                <div v-for="sistema in sistemasPredefinidos" :key="sistema.codigo">
-                  <q-expansion-item
-                    :icon="sistema.icono"
-                    :label="sistema.nombre"
-                    v-model="configuracion.sistemas[sistema.codigo].habilitado"
-                  >
-                    <div class="q-pa-md">
-                      <div v-for="campo in sistema.campos" :key="campo.codigo" class="q-mb-sm">
-                        <q-checkbox 
-                          v-model="configuracion.sistemas[sistema.codigo].campos[campo.codigo]"
-                          :label="campo.nombre"
-                        />
-                      </div>
-                    </div>
-                  </q-expansion-item>
-                </div>
-              </div>
-            </q-tab-panel>
-          </q-tab-panels>
-        </q-card-section>
-
-        <q-card-actions align="right">
-          <q-btn flat label="Cancelar" @click="cancelarConfiguracion"/>
-          <q-btn color="primary" label="Guardar" @click="guardarConfiguracion"/>
-        </q-card-actions>
       </q-card>
     </q-dialog>
   </q-card>
@@ -275,6 +215,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
 // Props
 const props = defineProps({
@@ -289,304 +230,351 @@ const props = defineProps({
   modoLectura: {
     type: Boolean,
     default: false
+  },
+  sitioId: {
+    type: String,
+    required: true
   }
 })
 
 // Emits
 const emit = defineEmits(['servicio-actualizado', 'servicio-completado', 'servicio-eliminado'])
 
-// Estados del formulario
+// Router
+const router = useRouter()
+
+// Estados principales
+const configuracionCargada = ref(false)
+const configuracionSitio = ref([])
 const datosExploracion = ref({
-  temperatura: '',
-  frecuenciaCardiaca: '',
-  frecuenciaRespiratoria: '',
-  peso: '',
-  sistemas: {
-    respiratorio: {},
-    cardiovascular: {},
-    digestivo: {},
-    neurologico: {},
-    musculoesqueletico: {},
-    tegumentario: {},
-    oftalmologico: {},
-    otologico: {},
-    genitourinario: {}
-  },
-  observaciones: ''
+  observaciones_generales: ''
 })
-
-// Estados de configuración
-const mostrarConfiguracion = ref(false)
-const tabConfiguracion = ref('vitales')
-
-// Configuración predefinida de sistemas
-const sistemasPredefinidos = [
-  {
-    codigo: 'respiratorio',
-    nombre: 'Sistema Respiratorio',
-    icono: 'air',
-    color: 'blue',
-    campos: [
-      {
-        codigo: 'respiracion',
-        nombre: 'Patrón Respiratorio',
-        tipo: 'select',
-        opciones: [
-          { label: 'Normal', value: 'normal' },
-          { label: 'Taquipnea', value: 'taquipnea' },
-          { label: 'Bradipnea', value: 'bradipnea' },
-          { label: 'Disnea', value: 'disnea' }
-        ]
-      },
-      {
-        codigo: 'auscultacion_pulmonar',
-        nombre: 'Auscultación Pulmonar',
-        tipo: 'texto',
-        placeholder: 'Describir hallazgos...'
-      },
-      {
-        codigo: 'tos',
-        nombre: 'Presencia de tos',
-        tipo: 'checkbox'
-      }
-    ]
-  },
-  {
-    codigo: 'cardiovascular',
-    nombre: 'Sistema Cardiovascular',
-    icono: 'favorite',
-    color: 'red',
-    campos: [
-      {
-        codigo: 'auscultacion_cardiaca',
-        nombre: 'Auscultación Cardíaca',
-        tipo: 'texto',
-        placeholder: 'R1 R2, soplos, arritmias...'
-      },
-      {
-        codigo: 'pulso',
-        nombre: 'Calidad del Pulso',
-        tipo: 'select',
-        opciones: [
-          { label: 'Fuerte', value: 'fuerte' },
-          { label: 'Débil', value: 'debil' },
-          { label: 'Filiforme', value: 'filiforme' },
-          { label: 'Saltón', value: 'salton' }
-        ]
-      },
-      {
-        codigo: 'mucosas',
-        nombre: 'Color de Mucosas',
-        tipo: 'select',
-        opciones: [
-          { label: 'Rosadas', value: 'rosadas' },
-          { label: 'Pálidas', value: 'palidas' },
-          { label: 'Cianóticas', value: 'cianoticas' },
-          { label: 'Ictéricas', value: 'ictericas' }
-        ]
-      }
-    ]
-  },
-  {
-    codigo: 'digestivo',
-    nombre: 'Sistema Digestivo',
-    icono: 'restaurant',
-    color: 'orange',
-    campos: [
-      {
-        codigo: 'palpacion_abdominal',
-        nombre: 'Palpación Abdominal',
-        tipo: 'texto',
-        placeholder: 'Dolor, masas, distensión...'
-      },
-      {
-        codigo: 'condicion_corporal',
-        nombre: 'Condición Corporal (1-9)',
-        tipo: 'numerico',
-        minimo: 1,
-        maximo: 9,
-        paso: '0.5'
-      }
-    ]
-  },
-  {
-    codigo: 'neurologico',
-    nombre: 'Sistema Neurológico',
-    icono: 'psychology',
-    color: 'purple',
-    campos: [
-      {
-        codigo: 'estado_mental',
-        nombre: 'Estado Mental',
-        tipo: 'select',
-        opciones: [
-          { label: 'Alerta', value: 'alerta' },
-          { label: 'Deprimido', value: 'deprimido' },
-          { label: 'Letárgico', value: 'letargico' },
-          { label: 'Estuporoso', value: 'estuporoso' }
-        ]
-      },
-      {
-        codigo: 'reflejos',
-        nombre: 'Reflejos',
-        tipo: 'texto',
-        placeholder: 'Reflejos pupilares, patelares...'
-      }
-    ]
-  },
-  {
-    codigo: 'tegumentario',
-    nombre: 'Sistema Tegumentario',
-    icono: 'healing',
-    color: 'brown',
-    campos: [
-      {
-        codigo: 'piel_pelaje',
-        nombre: 'Estado de Piel y Pelaje',
-        tipo: 'texto',
-        placeholder: 'Lesiones, parasitos, alopecia...'
-      },
-      {
-        codigo: 'hidratacion',
-        nombre: 'Estado de Hidratación',
-        tipo: 'select',
-        opciones: [
-          { label: 'Normal', value: 'normal' },
-          { label: 'Deshidratación leve', value: 'leve' },
-          { label: 'Deshidratación moderada', value: 'moderada' },
-          { label: 'Deshidratación severa', value: 'severa' }
-        ]
-      }
-    ]
-  }
-]
-
-// Configuración actual del sitio
-const configuracion = ref({
-  signos_vitales: {
-    temperatura: true,
-    frecuencia_cardiaca: true,
-    frecuencia_respiratoria: true,
-    peso: true
-  },
-  sistemas: {}
-})
-
-// Inicializar configuración de sistemas
-sistemasPredefinidos.forEach(sistema => {
-  configuracion.value.sistemas[sistema.codigo] = {
-    habilitado: true,
-    campos: {}
-  }
-  sistema.campos.forEach(campo => {
-    configuracion.value.sistemas[sistema.codigo].campos[campo.codigo] = true
-  })
-})
+const mostrandoProgreso = ref(false)
+const mensajeProgreso = ref('')
 
 // Computed properties
-const camposHabilitados = computed(() => {
-  return {
-    temperatura: configuracion.value.signos_vitales.temperatura,
-    frecuenciaCardiaca: configuracion.value.signos_vitales.frecuencia_cardiaca,
-    frecuenciaRespiratoria: configuracion.value.signos_vitales.frecuencia_respiratoria,
-    peso: configuracion.value.signos_vitales.peso
-  }
+const gruposActivos = computed(() => {
+  return configuracionSitio.value
+    .filter(grupo => grupo.activo)
+    .sort((a, b) => a.orden - b.orden)
 })
 
-const sistemasHabilitados = computed(() => {
-  return sistemasPredefinidos
-    .filter(sistema => configuracion.value.sistemas[sistema.codigo]?.habilitado)
-    .map(sistema => ({
-      ...sistema,
-      campos: sistema.campos.filter(campo => 
-        configuracion.value.sistemas[sistema.codigo]?.campos[campo.codigo]
-      )
-    }))
+const totalCamposRequeridos = computed(() => {
+  let total = 0
+  gruposActivos.value.forEach(grupo => {
+    total += grupo.preguntas.filter(p => p.requerido).length
+  })
+  return total
+})
+
+const camposCompletados = computed(() => {
+  let completados = 0
+  gruposActivos.value.forEach(grupo => {
+    grupo.preguntas.forEach(pregunta => {
+      if (pregunta.requerido && datosExploracion.value[pregunta.codigo]) {
+        const valor = datosExploracion.value[pregunta.codigo]
+        if (pregunta.tipo === 'checkbox') {
+          // Para checkboxes, cualquier valor booleano es válido
+          completados++
+        } else if (valor !== null && valor !== '' && valor !== undefined) {
+          completados++
+        }
+      }
+    })
+  })
+  return completados
 })
 
 const formularioValido = computed(() => {
-  // Al menos debe tener temperatura o peso
-  const tieneSignosBasicos = datosExploracion.value.temperatura || datosExploracion.value.peso
+  if (totalCamposRequeridos.value === 0) {
+    // Si no hay campos requeridos, el formulario es válido si tiene al menos una observación
+    return datosExploracion.value.observaciones_generales?.trim() || 
+           Object.keys(datosExploracion.value).some(key => {
+             const valor = datosExploracion.value[key]
+             return key !== 'observaciones_generales' && valor !== null && valor !== '' && valor !== undefined
+           })
+  }
   
-  // Debe tener al menos una observación en algún sistema o las observaciones generales
-  const tieneObservaciones = datosExploracion.value.observaciones ||
-    Object.values(datosExploracion.value.sistemas).some(sistema =>
-      Object.values(sistema).some(valor => valor && valor !== '')
-    )
-  
-  return tieneSignosBasicos && tieneObservaciones
+  // Si hay campos requeridos, deben estar todos completados
+  return camposCompletados.value === totalCamposRequeridos.value
 })
 
 // Métodos
-const configurarCampos = () => {
-  mostrarConfiguracion.value = true
+const getColSize = (pregunta) => {
+  // Determina el tamaño de columna basado en el tipo de pregunta
+  switch (pregunta.tipo) {
+    case 'textarea':
+      return 'col-12'
+    case 'checkbox':
+      return 'col-12 col-md-6'
+    case 'numerico':
+      return 'col-6 col-md-3'
+    default:
+      return 'col-12 col-md-6'
+  }
 }
 
-const guardarConfiguracion = () => {
-  // Aquí guardarías la configuración en el backend/localStorage
-  console.log('Guardando configuración:', configuracion.value)
-  mostrarConfiguracion.value = false
-  
-  // Reinicializar sistemas según nueva configuración
-  inicializarSistemas()
-}
-
-const cancelarConfiguracion = () => {
-  // Restaurar configuración anterior
-  cargarConfiguracion()
-  mostrarConfiguracion.value = false
-}
-
-const inicializarSistemas = () => {
-  sistemasPredefinidos.forEach(sistema => {
-    if (!datosExploracion.value.sistemas[sistema.codigo]) {
-      datosExploracion.value.sistemas[sistema.codigo] = {}
-    }
-    sistema.campos.forEach(campo => {
-      if (!datosExploracion.value.sistemas[sistema.codigo][campo.codigo]) {
-        datosExploracion.value.sistemas[sistema.codigo][campo.codigo] = 
-          campo.tipo === 'checkbox' ? false : ''
+const cargarConfiguracionSitio = async () => {
+  try {
+    mostrandoProgreso.value = true
+    mensajeProgreso.value = 'Cargando configuración del sitio...'
+    
+    // Simulación de llamada API
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    // Aquí harías la llamada real al API
+    // const response = await api.get(`/sitios/${props.sitioId}/configuracion-exploracion`)
+    // configuracionSitio.value = response.data
+    
+    // Datos de ejemplo para demostración
+    configuracionSitio.value = [
+      {
+        id: '1',
+        nombre: 'Signos Vitales',
+        descripcion: 'Mediciones básicas de signos vitales',
+        icono: 'thermostat',
+        color: 'red',
+        orden: 1,
+        activo: true,
+        preguntas: [
+          {
+            id: '1-1',
+            etiqueta: 'Temperatura (°C)',
+            codigo: 'temperatura',
+            tipo: 'numerico',
+            requerido: true,
+            minimo: 35,
+            maximo: 42,
+            unidad: '°C',
+            paso: '0.1',
+            orden: 1,
+            placeholder: 'Ej: 38.5'
+          },
+          {
+            id: '1-2',
+            etiqueta: 'Frecuencia Cardíaca (lpm)',
+            codigo: 'frecuencia_cardiaca',
+            tipo: 'numerico',
+            requerido: true,
+            minimo: 40,
+            maximo: 250,
+            unidad: 'lpm',
+            orden: 2
+          },
+          {
+            id: '1-3',
+            etiqueta: 'Peso (kg)',
+            codigo: 'peso',
+            tipo: 'numerico',
+            requerido: false,
+            minimo: 0,
+            unidad: 'kg',
+            paso: '0.1',
+            orden: 3
+          }
+        ]
+      },
+      {
+        id: '2',
+        nombre: 'Sistema Respiratorio',
+        descripcion: 'Evaluación del sistema respiratorio',
+        icono: 'air',
+        color: 'blue',
+        orden: 2,
+        activo: true,
+        preguntas: [
+          {
+            id: '2-1',
+            etiqueta: 'Patrón Respiratorio',
+            codigo: 'patron_respiratorio',
+            tipo: 'select',
+            requerido: true,
+            orden: 1,
+            opciones: [
+              { label: 'Normal', value: 'normal' },
+              { label: 'Taquipnea', value: 'taquipnea' },
+              { label: 'Bradipnea', value: 'bradipnea' },
+              { label: 'Disnea', value: 'disnea' }
+            ]
+          },
+          {
+            id: '2-2',
+            etiqueta: 'Auscultación Pulmonar',
+            codigo: 'auscultacion_pulmonar',
+            tipo: 'textarea',
+            requerido: false,
+            orden: 2,
+            placeholder: 'Describa los hallazgos en la auscultación pulmonar...'
+          },
+          {
+            id: '2-3',
+            etiqueta: 'Presencia de tos',
+            codigo: 'tos',
+            tipo: 'checkbox',
+            requerido: false,
+            orden: 3
+          }
+        ]
+      },
+      {
+        id: '3',
+        nombre: 'Sistema Cardiovascular',
+        descripcion: 'Evaluación cardiovascular',
+        icono: 'favorite',
+        color: 'red',
+        orden: 3,
+        activo: true,
+        preguntas: [
+          {
+            id: '3-1',
+            etiqueta: 'Auscultación Cardíaca',
+            codigo: 'auscultacion_cardiaca',
+            tipo: 'textarea',
+            requerido: false,
+            orden: 1,
+            placeholder: 'R1 R2, soplos, arritmias...'
+          },
+          {
+            id: '3-2',
+            etiqueta: 'Color de Mucosas',
+            codigo: 'mucosas',
+            tipo: 'select',
+            requerido: true,
+            orden: 2,
+            opciones: [
+              { label: 'Rosadas', value: 'rosadas' },
+              { label: 'Pálidas', value: 'palidas' },
+              { label: 'Cianóticas', value: 'cianoticas' },
+              { label: 'Ictéricas', value: 'ictericas' }
+            ]
+          }
+        ]
       }
-    })
+    ]
+    
+    // Inicializar los datos de exploración con los campos de la configuración
+    inicializarDatosExploracion()
+    
+    configuracionCargada.value = true
+    
+  } catch (error) {
+    console.error('Error al cargar configuración:', error)
+    // Mostrar notificación de error
+  } finally {
+    mostrandoProgreso.value = false
+  }
+}
+
+const inicializarDatosExploracion = () => {
+  // Inicializar todos los campos según la configuración
+  configuracionSitio.value.forEach(grupo => {
+    if (grupo.activo) {
+      grupo.preguntas.forEach(pregunta => {
+        if (datosExploracion.value[pregunta.codigo] === undefined) {
+          datosExploracion.value[pregunta.codigo] = 
+            pregunta.tipo === 'checkbox' ? false : 
+            pregunta.tipo === 'numerico' ? null : ''
+        }
+      })
+    }
   })
 }
 
-const cargarConfiguracion = () => {
-  // Aquí cargarías la configuración del sitio desde el backend
-  // Por ahora usa la configuración por defecto
-  console.log('Cargando configuración del sitio...')
+const recargarConfiguracion = async () => {
+  configuracionCargada.value = false
+  await cargarConfiguracionSitio()
 }
 
-const guardarDatos = () => {
-  emit('servicio-actualizado', props.servicioId, datosExploracion.value)
+const abrirConfiguracion = () => {
+  // Navegar a la página de configuración
+  router.push({
+    name: 'ConfiguracionExploracion',
+    params: { sitioId: props.sitioId }
+  })
 }
 
-const completarExploracion = () => {
-  if (formularioValido.value) {
-    emit('servicio-completado', props.servicioId, {
+const guardarDatos = async () => {
+  if (!configuracionCargada.value) return
+  
+  try {
+    // Aquí harías la llamada al API para guardar
+    // await api.put(`/atenciones/${props.atencionId}/servicios/${props.servicioId}`, {
+    //   datos: datosExploracion.value
+    // })
+    
+    emit('servicio-actualizado', props.servicioId, datosExploracion.value)
+  } catch (error) {
+    console.error('Error al guardar datos:', error)
+  }
+}
+
+const completarExploracion = async () => {
+  if (!formularioValido.value) return
+  
+  try {
+    mostrandoProgreso.value = true
+    mensajeProgreso.value = 'Completando exploración física...'
+    
+    const datosCompletos = {
       ...datosExploracion.value,
       fechaExploracion: new Date().toISOString(),
-      realizadaPor: 'Dr. Usuario Actual' // Obtener del contexto
-    })
+      realizadaPor: 'Dr. Usuario Actual', // Obtener del contexto de usuario
+      configuracionUsada: configuracionSitio.value.map(g => ({
+        id: g.id,
+        nombre: g.nombre,
+        version: g.version || '1.0'
+      }))
+    }
+    
+    // Simular guardado
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    emit('servicio-completado', props.servicioId, datosCompletos)
+    
+  } catch (error) {
+    console.error('Error al completar exploración:', error)
+  } finally {
+    mostrandoProgreso.value = false
   }
 }
 
 const eliminarServicio = () => {
-  emit('servicio-eliminado', props.servicioId)
+  if (confirm('¿Está seguro de eliminar este servicio de exploración física?')) {
+    emit('servicio-eliminado', props.servicioId)
+  }
 }
 
 // Lifecycle
-onMounted(() => {
-  cargarConfiguracion()
-  inicializarSistemas()
+onMounted(async () => {
+  await cargarConfiguracionSitio()
 })
 
 // Watchers
-watch(datosExploracion, guardarDatos, { deep: true })
+watch(datosExploracion, () => {
+  if (configuracionCargada.value && !modoLectura) {
+    guardarDatos()
+  }
+}, { deep: true })
+
+// Watch para cambios en sitioId (si el componente se reutiliza)
+watch(() => props.sitioId, async () => {
+  if (props.sitioId) {
+    configuracionCargada.value = false
+    await cargarConfiguracionSitio()
+  }
+})
 </script>
 
 <style scoped>
 .servicio-card {
   margin-bottom: 16px;
+}
+
+.grupo-exploracion {
+  margin-bottom: 24px;
+}
+
+.grupo-exploracion:last-child {
+  margin-bottom: 0;
 }
 </style>

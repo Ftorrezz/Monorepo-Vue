@@ -376,37 +376,6 @@
                 @servicio-completado="completarServicio"
                 @servicio-eliminado="eliminarServicio"
               />
-              <ServicioFisioterapia
-                v-else-if="servicio.tipo === 'rehabilitacion'"
-                :servicio-id="servicio.id"
-                :atencion-id="atenciones[atencionActual].id"
-                :datos-iniciales="servicio.datos"
-                :modo-lectura="servicio.completado || atenciones[atencionActual].estado === 'Finalizada'"
-                @servicio-actualizado="actualizarServicio"
-                @servicio-completado="completarServicio"
-                @servicio-eliminado="eliminarServicio"
-              />
-              <ServicioUrgencia
-                v-else-if="servicio.tipo === 'emergencia'"
-                :servicio-id="servicio.id"
-                :atencion-id="atenciones[atencionActual].id"
-                :datos-iniciales="servicio.datos"
-                :modo-lectura="servicio.completado || atenciones[atencionActual].estado === 'Finalizada'"
-                @servicio-actualizado="actualizarServicio"
-                @servicio-completado="completarServicio"
-                @servicio-eliminado="eliminarServicio"
-              />
-              <ServicioEstetica
-                v-else-if="servicio.tipo === 'estetica'"
-                :servicio-id="servicio.id"
-                :atencion-id="atenciones[atencionActual].id"
-                :datos-iniciales="servicio.datos"
-                :modo-lectura="servicio.completado || atenciones[atencionActual].estado === 'Finalizada'"
-                @servicio-actualizado="actualizarServicio"
-                @servicio-completado="completarServicio"
-                @servicio-eliminado="eliminarServicio"
-              />
-              
 
               <!-- Componente genérico para servicios no implementados -->
               <div v-else class="generic-service">
@@ -477,9 +446,6 @@ import ServicioUltrasonido from 'src/components/servicios/ServicioUltrasonido.vu
 import ServicioExploracionFisica from 'src/components/servicios/ServicioExploracionFisica.vue';
 import ServicioHospitalizacion from 'src/components/servicios/ServicioHospitalizacion.vue';
 import ServicioMedicamento from 'src/components/servicios/ServicioMedicamento.vue';
-import ServicioFisioterapia from 'src/components/servicios/ServicioFisioterapia.vue';
-import ServicioUrgencia from 'src/components/servicios/ServicioUrgencia.vue';
-import ServicioEstetica from 'src/components/servicios/ServicioEstetica.vue';
 
 export default {
   name: 'AtencionPaciente',
@@ -492,10 +458,7 @@ export default {
     ServicioUltrasonido,
     ServicioExploracionFisica,
     ServicioHospitalizacion,
-    ServicioMedicamento,
-    ServicioFisioterapia,
-    ServicioUrgencia,
-    ServicioEstetica
+    ServicioMedicamento
   },
   setup() {
     const $q = useQuasar()

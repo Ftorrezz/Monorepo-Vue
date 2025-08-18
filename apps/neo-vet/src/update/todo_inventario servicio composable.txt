@@ -1,0 +1,821 @@
+// composables/useConfiguration.js
+import { ref, computed, watch } from 'vue'
+import { configuracionApi } from '../services/configuracionApi'
+
+export const useConfiguration = () => {
+  const configuraciones = ref(new Map())
+  const loading = ref(false)
+  const error = ref(null)
+
+  // Cache de configuraciones por categoría
+  const configuracionesPorCategoria = computed(() => {
+    const result = {}
+    configuraciones.value.forEach((config, key) => {
+      if (!result[config.categoria]) {
+        result[config.categoria] = {}
+      }
+      result[config.categoria][key] = config
+    })
+    return result
+  })
+
+  // Obtener una configuración específica
+  const getConfig = (clave, valorDefecto = null) => {
+    const config = configuraciones.value.get(clave)
+    if (!config) return valorDefecto
+    
+    // Convertir el valor según el tipo
+    switch (config.tipo_dato) {
+      case 'boolean':
+        return config.valor === 'true' || config.valor === true
+      case 'number':
+        return Number(config.valor)
+      case 'json':
+        try {
+          return JSON.parse(config.valor)
+        } catch {
+          return valorDefecto
+        }
+      case 'date':
+        return new Date(config.valor)
+      default:
+        return config.valor || valorDefecto
+    }
+  }
+
+  // Establecer una configuración
+  const setConfig = async (clave, valor) => {
+    try {
+      loading.value = true
+      const config = configuraciones.value.get(clave)
+      
+      if (!config) {
+        throw new Error(`Configuración ${clave} no encontrada`)
+      }
+
+      // Validar el valor
+      if (!validarValor(valor, config)) {
+        throw new Error(`Valor inválido para ${clave}`)
+      }
+
+      // Convertir valor para almacenamiento
+      const valorParaGuardar = convertirValorParaGuardar(valor, config.tipo_dato)
+
+      await configuracionApi.actualizar(config.id, {
+        valor: valorParaGuardar
+      })
+
+      // Actualizar cache local
+      configuraciones.value.set(clave, {
+        ...config,
+        valor: valorParaGuardar
+      })
+
+      return true
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Cargar todas las configuraciones
+  const cargarConfiguraciones = async () => {
+    try {
+      loading.value = true
+      const data = await configuracionApi.obtenerTodas()
+      
+      configuraciones.value.clear()
+      data.forEach(config => {
+        configuraciones.value.set(config.clave, config)
+      })
+    } catch (err) {
+      error.value = err.message
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Cargar configuraciones por categoría
+  const cargarConfiguracionesPorCategoria = async (categoria) => {
+    try {
+      loading.value = true
+      const data = await configuracionApi.obtenerPorCategoria(categoria)
+      
+      data.forEach(config => {
+        configuraciones.value.set(config.clave, config)
+      })
+    } catch (err) {
+      error.value = err.message
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Validar valor según tipo y reglas
+  const validarValor = (valor, config) => {
+    switch (config.tipo_dato) {
+      case 'number':
+        if (isNaN(Number(valor))) return false
+        break
+      case 'boolean':
+        if (typeof valor !== 'boolean' && valor !== 'true' && valor !== 'false') return false
+        break
+      case 'json':
+        try {
+          JSON.parse(typeof valor === 'object' ? JSON.stringify(valor) : valor)
+        } catch {
+          return false
+        }
+        break
+    }
+
+    // Validación regex si existe
+    if (config.validacion_regex && typeof valor === 'string') {
+      const regex = new RegExp(config.validacion_regex)
+      return regex.test(valor)
+    }
+
+    return true
+  }
+
+  // Convertir valor para almacenamiento
+  const convertirValorParaGuardar = (valor, tipoDato) => {
+    switch (tipoDato) {
+      case 'json':
+        return typeof valor === 'object' ? JSON.stringify(valor) : valor
+      case 'boolean':
+        return valor.toString()
+      case 'number':
+        return valor.toString()
+      default:
+        return valor
+    }
+  }
+
+  return {
+    configuraciones: configuraciones.value,
+    configuracionesPorCategoria,
+    loading,
+    error,
+    getConfig,
+    setConfig,
+    cargarConfiguraciones,
+    cargarConfiguracionesPorCategoria
+  }
+}
+
+// composables/useCategoriasProductos.js
+import { ref, computed } from 'vue'
+import { categoriasApi } from '../services/configuracionApi'
+
+export const useCategoriasProductos = () => {
+  const categorias = ref([])
+  const loading = ref(false)
+  const error = ref(null)
+
+  // Categorías activas organizadas jerárquicamente
+  const categoriasJerarquicas = computed(() => {
+    const categoriasActivas = categorias.value.filter(cat => cat.activo)
+    const categoriasRaiz = categoriasActivas.filter(cat => !cat.parent_id)
+    
+    const construirJerarquia = (categoria) => ({
+      ...categoria,
+      hijos: categoriasActivas
+        .filter(cat => cat.parent_id === categoria.id)
+        .map(construirJerarquia)
+        .sort((a, b) => a.orden - b.orden)
+    })
+
+    return categoriasRaiz
+      .map(construirJerarquia)
+      .sort((a, b) => a.orden - b.orden)
+  })
+
+  // Categorías planas para selects
+  const categoriasParaSelect = computed(() => {
+    const resultado = []
+    
+    const agregarCategoria = (categoria, nivel = 0) => {
+      const prefijo = '  '.repeat(nivel)
+      resultado.push({
+        label: prefijo + categoria.nombre,
+        value: categoria.id,
+        codigo: categoria.codigo,
+        icon: categoria.icono,
+        color: categoria.color
+      })
+      
+      if (categoria.hijos) {
+        categoria.hijos.forEach(hijo => agregarCategoria(hijo, nivel + 1))
+      }
+    }
+
+    categoriasJerarquicas.value.forEach(categoria => agregarCategoria(categoria))
+    return resultado
+  })
+
+  const cargarCategorias = async () => {
+    try {
+      loading.value = true
+      categorias.value = await categoriasApi.obtenerTodas()
+    } catch (err) {
+      error.value = err.message
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const crearCategoria = async (datosCategoria) => {
+    try {
+      loading.value = true
+      const nuevaCategoria = await categoriasApi.crear(datosCategoria)
+      categorias.value.push(nuevaCategoria)
+      return nuevaCategoria
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const actualizarCategoria = async (id, datos) => {
+    try {
+      loading.value = true
+      const categoriaActualizada = await categoriasApi.actualizar(id, datos)
+      const index = categorias.value.findIndex(cat => cat.id === id)
+      if (index !== -1) {
+        categorias.value[index] = categoriaActualizada
+      }
+      return categoriaActualizada
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const eliminarCategoria = async (id) => {
+    try {
+      loading.value = true
+      await categoriasApi.eliminar(id)
+      categorias.value = categorias.value.filter(cat => cat.id !== id)
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return {
+    categorias,
+    categoriasJerarquicas,
+    categoriasParaSelect,
+    loading,
+    error,
+    cargarCategorias,
+    crearCategoria,
+    actualizarCategoria,
+    eliminarCategoria
+  }
+}
+
+// composables/useTiposProductos.js
+import { ref, computed } from 'vue'
+import { tiposProductosApi } from '../services/configuracionApi'
+
+export const useTiposProductos = () => {
+  const tipos = ref([])
+  const loading = ref(false)
+  const error = ref(null)
+
+  const tiposActivos = computed(() => 
+    tipos.value.filter(tipo => tipo.activo)
+  )
+
+  const tiposParaSelect = computed(() =>
+    tiposActivos.value.map(tipo => ({
+      label: tipo.nombre,
+      value: tipo.id,
+      codigo: tipo.codigo,
+      icon: tipo.icono,
+      color: tipo.color,
+      permiteFraccionamiento: tipo.permite_fraccionamiento,
+      requiereLote: tipo.requiere_lote,
+      requiereVencimiento: tipo.requiere_vencimiento,
+      requiereUbicacion: tipo.requiere_ubicacion
+    }))
+  )
+
+  const cargarTipos = async () => {
+    try {
+      loading.value = true
+      tipos.value = await tiposProductosApi.obtenerTodos()
+    } catch (err) {
+      error.value = err.message
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const obtenerTipoPorId = (id) => {
+    return tipos.value.find(tipo => tipo.id === id)
+  }
+
+  const obtenerTipoPorCodigo = (codigo) => {
+    return tipos.value.find(tipo => tipo.codigo === codigo)
+  }
+
+  const crearTipo = async (datosTipo) => {
+    try {
+      loading.value = true
+      const nuevoTipo = await tiposProductosApi.crear(datosTipo)
+      tipos.value.push(nuevoTipo)
+      return nuevoTipo
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const actualizarTipo = async (id, datos) => {
+    try {
+      loading.value = true
+      const tipoActualizado = await tiposProductosApi.actualizar(id, datos)
+      const index = tipos.value.findIndex(tipo => tipo.id === id)
+      if (index !== -1) {
+        tipos.value[index] = tipoActualizado
+      }
+      return tipoActualizado
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const eliminarTipo = async (id) => {
+    try {
+      loading.value = true
+      await tiposProductosApi.eliminar(id)
+      tipos.value = tipos.value.filter(tipo => tipo.id !== id)
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return {
+    tipos,
+    tiposActivos,
+    tiposParaSelect,
+    loading,
+    error,
+    cargarTipos,
+    obtenerTipoPorId,
+    obtenerTipoPorCodigo,
+    crearTipo,
+    actualizarTipo,
+    eliminarTipo
+  }
+}
+
+// composables/useUnidadesMedida.js
+import { ref, computed } from 'vue'
+import { unidadesMedidaApi } from '../services/configuracionApi'
+
+export const useUnidadesMedida = () => {
+  const unidades = ref([])
+  const loading = ref(false)
+  const error = ref(null)
+
+  const unidadesActivas = computed(() => 
+    unidades.value.filter(unidad => unidad.activo)
+  )
+
+  const unidadesPorTipo = computed(() => {
+    const resultado = {}
+    unidadesActivas.value.forEach(unidad => {
+      if (!resultado[unidad.tipo]) {
+        resultado[unidad.tipo] = []
+      }
+      resultado[unidad.tipo].push({
+        label: `${unidad.nombre} (${unidad.simbolo})`,
+        value: unidad.id,
+        simbolo: unidad.simbolo,
+        factorConversion: unidad.factor_conversion
+      })
+    })
+    return resultado
+  })
+
+  const cargarUnidades = async () => {
+    try {
+      loading.value = true
+      unidades.value = await unidadesMedidaApi.obtenerTodas()
+    } catch (err) {
+      error.value = err.message
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const convertir = (cantidad, unidadOrigen, unidadDestino) => {
+    const origen = unidades.value.find(u => u.id === unidadOrigen)
+    const destino = unidades.value.find(u => u.id === unidadDestino)
+    
+    if (!origen || !destino || origen.tipo !== destino.tipo) {
+      throw new Error('Conversión inválida')
+    }
+    
+    // Convertir a unidad base y luego a unidad destino
+    const cantidadBase = cantidad * origen.factor_conversion
+    return cantidadBase / destino.factor_conversion
+  }
+
+  return {
+    unidades,
+    unidadesActivas,
+    unidadesPorTipo,
+    loading,
+    error,
+    cargarUnidades,
+    convertir
+  }
+}
+
+// composables/useCamposPersonalizados.js
+import { ref, computed } from 'vue'
+import { camposPersonalizadosApi } from '../services/configuracionApi'
+
+export const useCamposPersonalizados = () => {
+  const campos = ref([])
+  const valores = ref(new Map())
+  const loading = ref(false)
+  const error = ref(null)
+
+  const camposPorEntidad = computed(() => {
+    const resultado = {}
+    campos.value.forEach(campo => {
+      if (!resultado[campo.entidad]) {
+        resultado[campo.entidad] = []
+      }
+      resultado[campo.entidad].push(campo)
+    })
+    
+    // Ordenar por orden
+    Object.keys(resultado).forEach(entidad => {
+      resultado[entidad].sort((a, b) => a.orden - b.orden)
+    })
+    
+    return resultado
+  })
+
+  const camposFormulario = computed(() => (entidad) => {
+    return camposPorEntidad.value[entidad]?.filter(campo => 
+      campo.activo && campo.visible_en_formulario
+    ) || []
+  })
+
+  const camposLista = computed(() => (entidad) => {
+    return camposPorEntidad.value[entidad]?.filter(campo => 
+      campo.activo && campo.visible_en_lista
+    ) || []
+  })
+
+  const cargarCampos = async (entidad = null) => {
+    try {
+      loading.value = true
+      if (entidad) {
+        const data = await camposPersonalizadosApi.obtenerPorEntidad(entidad)
+        campos.value = campos.value.filter(c => c.entidad !== entidad)
+        campos.value.push(...data)
+      } else {
+        campos.value = await camposPersonalizadosApi.obtenerTodos()
+      }
+    } catch (err) {
+      error.value = err.message
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const cargarValores = async (entidadId, entidad = null) => {
+    try {
+      const data = await camposPersonalizadosApi.obtenerValores(entidadId, entidad)
+      const clave = `${entidad || 'all'}_${entidadId}`
+      valores.value.set(clave, data)
+    } catch (err) {
+      error.value = err.message
+    }
+  }
+
+  const guardarValores = async (entidadId, entidad, valoresCampos) => {
+    try {
+      loading.value = true
+      await camposPersonalizadosApi.guardarValores(entidadId, entidad, valoresCampos)
+      const clave = `${entidad}_${entidadId}`
+      valores.value.set(clave, valoresCampos)
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const obtenerValor = (entidadId, entidad, campoId, valorDefecto = '') => {
+    const clave = `${entidad}_${entidadId}`
+    const valoresEntidad = valores.value.get(clave) || {}
+    return valoresEntidad[campoId] || valorDefecto
+  }
+
+  const crearCampo = async (datosCampo) => {
+    try {
+      loading.value = true
+      const nuevoCampo = await camposPersonalizadosApi.crear(datosCampo)
+      campos.value.push(nuevoCampo)
+      return nuevoCampo
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return {
+    campos,
+    valores,
+    camposPorEntidad,
+    camposFormulario,
+    camposLista,
+    loading,
+    error,
+    cargarCampos,
+    cargarValores,
+    guardarValores,
+    obtenerValor,
+    crearCampo
+  }
+}
+
+// composables/useAlertas.js
+import { ref, computed, watch } from 'vue'
+import { alertasApi } from '../services/configuracionApi'
+import { useConfiguration } from './useConfiguration'
+
+export const useAlertas = () => {
+  const configuracionesAlertas = ref([])
+  const alertasActivas = ref([])
+  const loading = ref(false)
+  const error = ref(null)
+  
+  const { getConfig } = useConfiguration()
+
+  const alertasPorTipo = computed(() => {
+    const resultado = {}
+    alertasActivas.value.forEach(alerta => {
+      if (!resultado[alerta.tipo_alerta]) {
+        resultado[alerta.tipo_alerta] = []
+      }
+      resultado[alerta.tipo_alerta].push(alerta)
+    })
+    return resultado
+  })
+
+  const alertasPorPrioridad = computed(() => {
+    const resultado = {
+      critica: [],
+      alta: [],
+      media: [],
+      baja: []
+    }
+    
+    alertasActivas.value.forEach(alerta => {
+      if (resultado[alerta.prioridad]) {
+        resultado[alerta.prioridad].push(alerta)
+      }
+    })
+    
+    return resultado
+  })
+
+  const cargarConfiguracionesAlertas = async () => {
+    try {
+      loading.value = true
+      configuracionesAlertas.value = await alertasApi.obtenerConfiguraciones()
+    } catch (err) {
+      error.value = err.message
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const evaluarAlertas = async (productos = []) => {
+    try {
+      const diasAlerta = getConfig('inventario.dias_alerta_vencimiento', 30)
+      const nuevasAlertas = []
+
+      productos.forEach(producto => {
+        // Evaluar stock bajo
+        if (producto.stockUnidades <= producto.stockMinimo) {
+          nuevasAlertas.push({
+            tipo_alerta: producto.stockUnidades === 0 ? 'stock_agotado' : 'stock_bajo',
+            producto_id: producto.id,
+            producto_nombre: producto.nombre,
+            mensaje: `${producto.nombre}: ${producto.stockUnidades === 0 ? 'Sin stock' : 'Stock bajo'} (${producto.stockUnidades} ${producto.unidadMedida})`,
+            prioridad: producto.stockUnidades === 0 ? 'critica' : 'alta',
+            fecha_creacion: new Date().toISOString(),
+            datos_adicionales: {
+              stock_actual: producto.stockUnidades,
+              stock_minimo: producto.stockMinimo,
+              unidad_medida: producto.unidadMedida
+            }
+          })
+        }
+
+        // Evaluar vencimiento
+        if (producto.fechaVencimiento) {
+          const fechaVencimiento = new Date(producto.fechaVencimiento)
+          const ahora = new Date()
+          const diffDias = Math.floor((fechaVencimiento - ahora) / (1000 * 60 * 60 * 24))
+
+          if (diffDias < 0) {
+            nuevasAlertas.push({
+              tipo_alerta: 'vencido',
+              producto_id: producto.id,
+              producto_nombre: producto.nombre,
+              mensaje: `${producto.nombre}: Producto vencido (${Math.abs(diffDias)} días)`,
+              prioridad: 'critica',
+              fecha_creacion: new Date().toISOString(),
+              datos_adicionales: {
+                fecha_vencimiento: producto.fechaVencimiento,
+                dias_vencido: Math.abs(diffDias)
+              }
+            })
+          } else if (diffDias <= diasAlerta) {
+            nuevasAlertas.push({
+              tipo_alerta: 'vencimiento_proximo',
+              producto_id: producto.id,
+              producto_nombre: producto.nombre,
+              mensaje: `${producto.nombre}: Vence en ${diffDias} días`,
+              prioridad: diffDias <= 7 ? 'alta' : 'media',
+              fecha_creacion: new Date().toISOString(),
+              datos_adicionales: {
+                fecha_vencimiento: producto.fechaVencimiento,
+                dias_restantes: diffDias
+              }
+            })
+          }
+        }
+      })
+
+      // Filtrar alertas duplicadas y aplicar límites de frecuencia
+      const alertasFiltradas = await filtrarAlertasPorFrecuencia(nuevasAlertas)
+      
+      if (alertasFiltradas.length > 0) {
+        await alertasApi.crearAlertas(alertasFiltradas)
+        alertasActivas.value.push(...alertasFiltradas)
+      }
+
+      return alertasFiltradas
+    } catch (err) {
+      error.value = err.message
+      return []
+    }
+  }
+
+  const filtrarAlertasPorFrecuencia = async (nuevasAlertas) => {
+    // Implementar lógica de filtrado por frecuencia
+    // Por ahora retornamos todas las alertas
+    return nuevasAlertas
+  }
+
+  const marcarAlertaComoLeida = async (alertaId) => {
+    try {
+      await alertasApi.marcarComoLeida(alertaId)
+      const alerta = alertasActivas.value.find(a => a.id === alertaId)
+      if (alerta) {
+        alerta.leida = true
+      }
+    } catch (err) {
+      error.value = err.message
+    }
+  }
+
+  const dismissAlerta = async (alertaId) => {
+    try {
+      await alertasApi.dismiss(alertaId)
+      alertasActivas.value = alertasActivas.value.filter(a => a.id !== alertaId)
+    } catch (err) {
+      error.value = err.message
+    }
+  }
+
+  const cargarAlertasActivas = async () => {
+    try {
+      loading.value = true
+      alertasActivas.value = await alertasApi.obtenerActivas()
+    } catch (err) {
+      error.value = err.message
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return {
+    configuracionesAlertas,
+    alertasActivas,
+    alertasPorTipo,
+    alertasPorPrioridad,
+    loading,
+    error,
+    cargarConfiguracionesAlertas,
+    evaluarAlertas,
+    marcarAlertaComoLeida,
+    dismissAlerta,
+    cargarAlertasActivas
+  }
+}
+
+// composables/usePermissions.js
+import { ref, computed } from 'vue'
+import { permisosApi } from '../services/configuracionApi'
+
+export const usePermissions = () => {
+  const permisos = ref([])
+  const permisosUsuario = ref(new Set())
+  const loading = ref(false)
+  const error = ref(null)
+
+  const permisosPorModulo = computed(() => {
+    const resultado = {}
+    permisos.value.forEach(permiso => {
+      if (!resultado[permiso.modulo]) {
+        resultado[permiso.modulo] = []
+      }
+      resultado[permiso.modulo].push(permiso)
+    })
+    return resultado
+  })
+
+  const cargarPermisos = async () => {
+    try {
+      loading.value = true
+      permisos.value = await permisosApi.obtenerTodos()
+    } catch (err) {
+      error.value = err.message
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const cargarPermisosUsuario = async (usuarioId = null) => {
+    try {
+      const permisosData = await permisosApi.obtenerPermisosUsuario(usuarioId)
+      permisosUsuario.value = new Set(permisosData.map(p => `${p.modulo}.${p.accion}`))
+    } catch (err) {
+      error.value = err.message
+    }
+  }
+
+  const tienePermiso = (modulo, accion) => {
+    return permisosUsuario.value.has(`${modulo}.${accion}`)
+  }
+
+  const tieneAlgunPermiso = (permisos) => {
+    return permisos.some(permiso => {
+      const [modulo, accion] = permiso.split('.')
+      return tienePermiso(modulo, accion)
+    })
+  }
+
+  const verificarPermisoModulo = (modulo) => {
+    const permisosModulo = Array.from(permisosUsuario.value)
+      .filter(p => p.startsWith(`${modulo}.`))
+    return permisosModulo.length > 0
+  }
+
+  return {
+    permisos,
+    permisosUsuario,
+    permisosPorModulo,
+    loading,
+    error,
+    cargarPermisos,
+    cargarPermisosUsuario,
+    tienePermiso,
+    tieneAlgunPermiso,
+    verificarPermisoModulo
+  }
+}

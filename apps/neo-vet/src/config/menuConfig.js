@@ -205,7 +205,7 @@ export const menuConfig = [
             subItems: [
               { label: "Plantillas de Consulta", icon: "note_add", to: "/config/plantillas-consulta" },
               { label: "Plantillas de Reporte", icon: "article", to: "/config/plantillas-reporte" },
-              { label: "Certificados", icon: "verified", to: "/config/certificados" },
+              { label: "Certificados", icon: "verified", to: "/templatemanager" },
             ]
           },
           {
@@ -222,6 +222,13 @@ export const menuConfig = [
       },
     ],
   },
+  {
+        label: "Inventario",
+        icon: "edit",
+        to: "/inventario",
+        
+        
+      },
   {
     label: "Ayuda",
     icon: "help",

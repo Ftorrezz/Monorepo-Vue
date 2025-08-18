@@ -141,6 +141,12 @@ const routes: RouteRecordRaw[] = [
         meta: { requireAuth: false },
 
       },
+      { path: '/inventario',
+        component: () => import('layouts/Layout.vue'),
+        children: [{ path: '', name: 'inventario', component: () => import('pages/inventario/inventario.vue') }],
+        meta: { requireAuth: false },
+
+      },
 
 
 
