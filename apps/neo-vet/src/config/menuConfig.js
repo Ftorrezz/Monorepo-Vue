@@ -228,7 +228,14 @@ export const menuConfig = [
         to: "/inventario",
         
         
-      },
+  },
+  {
+        label: "Ventas",
+        icon: "edit",
+        to: "/ventas",
+        
+        
+  },
   {
     label: "Ayuda",
     icon: "help",
