@@ -1,13 +1,5 @@
 <template>
   <q-page class="modern-dashboard">
-
-    <div class="particles-container">
-      <div
-        v-for="particle in particles"
-        :key="particle.id"
-        :style="particle.style"
-      />
-    </div>
     <!-- Header compacto y elegante -->
     <div class="dashboard-header q-pa-lg q-mb-lg">
       <div class="row items-center justify-between">
@@ -90,14 +82,6 @@ import { Chart, registerables } from 'chart.js'
 import ModernStatCard from './../components/card/ModernStatCard.vue'
 import ModernAlertCard from './../components/card/ModernAlertCard.vue'
 import CompactStatCard from './../components/card/CompactStatCard.vue'
-import { useParticles } from './../composables/useParticles'
-
-// Uso con configuración personalizada
-const { particles, start, stop } = useParticles({
-  particleCount: 20,
-  colors: ['rgba(255, 0, 0, 0.1)', 'rgba(0, 255, 0, 0.1)'],
-  speed: { min: -0.5, max: 0.5 }
-})
 
 Chart.register(...registerables)
 

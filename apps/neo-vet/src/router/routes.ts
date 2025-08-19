@@ -147,6 +147,12 @@ const routes: RouteRecordRaw[] = [
         meta: { requireAuth: false },
 
       },
+      { path: '/ventas',
+        component: () => import('layouts/Layout.vue'),
+        children: [{ path: '', name: 'ventas', component: () => import('pages/ventas/Ventas.vue') }],
+        meta: { requireAuth: false },
+
+      },
 
 
 

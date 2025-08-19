@@ -2,7 +2,7 @@ export const menuConfig = [
   {
     label: "Inicio",
     icon: "home",
-    defaultopened: false,    
+    defaultopened: false,
     items: [
       {
         label: "Tablero",
@@ -27,6 +27,20 @@ export const menuConfig = [
     ],
   },
   {
+        label: "Inventario",
+        icon: "inventory",
+        to: "/inventario",
+
+
+  },
+  {
+        label: "Ventas",
+        icon: "point_of_sale",
+        to: "/ventas",
+
+
+  },
+  {
     label: "Reportes",
     icon: "analytics",
     defaultopened: false,
@@ -44,18 +58,18 @@ export const menuConfig = [
         label: "Reportes Avanzados",
         icon: "insights",
         subItems: [
-          { 
-            label: "Análisis Financiero", 
-            icon: "attach_money", 
+          {
+            label: "Análisis Financiero",
+            icon: "attach_money",
             subItems: [
               { label: "Ingresos Mensuales", icon: "monetization_on", to: "/reportes/ingresos-mensuales" },
               { label: "Gastos Operativos", icon: "money_off", to: "/reportes/gastos-operativos" },
               { label: "Rentabilidad por Servicio", icon: "assessment", to: "/reportes/rentabilidad" },
             ]
           },
-          { 
-            label: "Métricas de Cliente", 
-            icon: "person_search", 
+          {
+            label: "Métricas de Cliente",
+            icon: "person_search",
             subItems: [
               { label: "Retención de Clientes", icon: "favorite", to: "/reportes/retencion" },
               { label: "Satisfacción", icon: "sentiment_very_satisfied", to: "/reportes/satisfaccion" },
@@ -89,9 +103,9 @@ export const menuConfig = [
         label: "General",
         icon: "tune",
         subItems: [
-          { 
-            label: "Servicios", 
-            icon: "medical_services", 
+          {
+            label: "Servicios",
+            icon: "medical_services",
             subItems: [
               { label: "Tipos de Servicio", icon: "category", to: "/config/tipos-servicio" },
               { label: "Precios", icon: "local_atm", to: "/config/precios" },
@@ -99,9 +113,9 @@ export const menuConfig = [
             ]
           },
           { label: "Ubicación", icon: "place", to: "/config/ubicacion" },
-          { 
-            label: "Personal", 
-            icon: "group", 
+          {
+            label: "Personal",
+            icon: "group",
             subItems: [
               { label: "Profesionales", icon: "person", to: "/config/profesionales" },
               { label: "Especialidades", icon: "star", to: "/config/especialidades" },
@@ -222,20 +236,7 @@ export const menuConfig = [
       },
     ],
   },
-  {
-        label: "Inventario",
-        icon: "edit",
-        to: "/inventario",
-        
-        
-  },
-  {
-        label: "Ventas",
-        icon: "edit",
-        to: "/ventas",
-        
-        
-  },
+
   {
     label: "Ayuda",
     icon: "help",
