@@ -23,7 +23,7 @@
       <q-drawer
         v-model="leftDrawerOpen"
         show-if-above
-        :width="360"
+        :width="400"
         :breakpoint="400"
         elevated
         side="left"

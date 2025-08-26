@@ -182,7 +182,7 @@ const isExpanded = (menu) => {
       
       .menu-icon {
         font-size: 24px;
-        color: $primary;
+        color: $dark;
         transition: all 0.3s ease;
         
         &.icon-active {
@@ -217,7 +217,7 @@ const isExpanded = (menu) => {
 
     .menu-icon {
       font-size: 24px;
-      color: $primary;
+      color: $dark;
       transition: all 0.3s ease;
     }
 

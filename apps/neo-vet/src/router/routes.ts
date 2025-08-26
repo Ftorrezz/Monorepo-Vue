@@ -153,8 +153,18 @@ const routes: RouteRecordRaw[] = [
         meta: { requireAuth: false },
 
       },
+      { path: '/pension',
+        component: () => import('layouts/Layout.vue'),
+        children: [{ path: '', name: 'pension', component: () => import('pages/pension/Pension.vue') }],
+        meta: { requireAuth: false },
 
+      },
 
+  {
+    path: '/login',
+    name: 'login',
+    component: () => import('pages/Usuario/Login.vue'),
+  },
 
   {
     path: '/:catchAll(.*)*',

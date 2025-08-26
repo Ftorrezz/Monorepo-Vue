@@ -34,6 +34,14 @@ export const menuConfig = [
 
   },
   {
+        label: "Pensión",
+        icon: "inventory",
+        to: "/pension",
+
+
+  },
+  
+  {
         label: "Ventas",
         icon: "point_of_sale",
         to: "/ventas",
