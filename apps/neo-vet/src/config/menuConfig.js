@@ -209,6 +209,15 @@ export const menuConfig = [
         ],
       },
       {
+        label: "Institucional",
+        icon: "key",
+        subItems: [
+          
+          { label: "Sitio", icon: "note_add", to: "/sitio" },
+          
+        ],
+      },
+      {
         label: "Sistema",
         icon: "computer",
         subItems: [
@@ -240,6 +249,23 @@ export const menuConfig = [
             ]
           },
           { label: "Configuración General", icon: "settings", to: "/config/general" },
+        ],
+      },
+      {
+        label: "Seguridad",
+        icon: "key",
+        subItems: [
+          
+          {
+            label: "Usuario",
+            icon: "person",
+            subItems: [
+              { label: "Usuario", icon: "note_add", to: "/usuario" },
+              { label: "Perfil", icon: "article", to: "/usuarioperfil" },
+              { label: "Acceso", icon: "verified", to: "/usuarioacceso" },
+            ]
+          },
+          
         ],
       },
     ],

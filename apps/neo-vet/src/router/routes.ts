@@ -109,7 +109,56 @@ const routes: RouteRecordRaw[] = [
         name: 'templatemanager',
         component: () => import('pages/configuration/template/TemplateManager.vue'),
         meta: { requireAuth: false },
-      }
+      },
+      {
+        path: "usuario",
+        name: "usuario",
+        component: () => import("src/pages/Usuario/Usuario.vue"),
+        meta: { requireAuth: true },
+      },
+      {
+        path: "usuarioperfil",
+        name: "usuarioperfil",
+        component: () => import("src/pages/Usuario/UsuarioPerfil.vue"),
+        meta: { requireAuth: true },
+      },
+      {
+        path: "usuarioacceso",
+        name: "usuarioacceso",
+        component: () => import("src/pages/Usuario/UsuarioAcceso.vue"),
+        meta: { requireAuth: true },
+      },
+      {
+        path: "sitio",
+        name: "sitio",
+        component: () => import("src/pages/Institucional/Sitio.vue"),
+        meta: { requireAuth: true },
+      },
+      {
+        path: "configuracion",
+        name: "configuracion",
+        component: () => import("src/pages/Institucional/SitioConfiguracion.vue"),
+        meta: { requireAuth: true },
+      },
+      {
+        path: "sucursal",
+        name: "sucursal",
+        component: () => import("src/pages/Institucional/Sucursal.vue"),
+        meta: { requireAuth: true },
+      },
+      {
+        path: "tipositioubicacion",
+        name: "tipositioubicacion",
+        component: () => import("src/pages/Institucional/TipoSitioUbicacion.vue"),
+        meta: { requireAuth: true },
+      },
+      {
+        path: "sitioubicacion",
+        name: "sitioubicacion",
+        component: () => import("src/pages/Institucional/SitioUbicacion.vue"),
+        meta: { requireAuth: true },
+      },
+
 
     ],
     //meta: { requireAuth: true },
