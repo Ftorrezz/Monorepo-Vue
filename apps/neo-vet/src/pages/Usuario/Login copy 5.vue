@@ -59,7 +59,7 @@
 
                 <!-- Descripción - Parte Inferior -->
                 <div class="welcome-section-bottom">
-
+                  <h2 class="welcome-title">{{ $t("login") }}</h2>
                   <p class="welcome-description">{{ $t("descripcionsistema") }}</p>
                 </div>
               </div>
@@ -539,7 +539,7 @@ const getParticleStyle = () => {
 }
 
 .welcome-description {
-  font-size: 18px;
+  font-size: 16px;
   color: #4a5568;
   line-height: 1.6;
   margin: 0;

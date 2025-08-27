@@ -8,7 +8,7 @@ const routes: RouteRecordRaw[] = [
       { path: '',
         name: 'inicio',
         component: () => import('pages/Index.vue'),
-        meta: { requireAuth: false } },
+        meta: { requireAuth: true } },
 
       { path: '/color',
         name: 'color',

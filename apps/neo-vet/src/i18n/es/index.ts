@@ -1,5 +1,5 @@
 export default {
-    descripcionsistema: 'Sistema integral de gestión hospitalaria',
+    descripcionsistema: 'Sistema integral de gestión veterinaria',
     login: 'Iniciar Sesión',
     forgotPassword: "¿Olvidó la clave?",
     cerrarsesion: 'Cerrar sesion',

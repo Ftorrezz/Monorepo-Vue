@@ -1,5 +1,5 @@
 export default {
-  descripcionsistema: 'Comprehensive hospital management system',
+  descripcionsistema: 'Comprehensive veterinary management system',
   login: 'Start session',
   forgotPassword: "Forgot your password?",
   cerrarsesion: 'Log out',
