@@ -13,8 +13,8 @@
       >
         <template v-slot:header>
           <q-item-section avatar>
-            <q-icon 
-              :name="menu.icon" 
+            <q-icon
+              :name="menu.icon"
               class="menu-icon"
               :class="{ 'icon-active': isExpanded(menu) }"
             />
@@ -160,7 +160,7 @@ const isExpanded = (menu) => {
 .modern-menu {
   padding: 8px;
   background: transparent;
-  
+
   .menu-item-parent {
     margin-bottom: 2px;
     border-radius: 12px;
@@ -179,12 +179,12 @@ const isExpanded = (menu) => {
       padding: 16px 20px;
       min-height: 60px;
       border-radius: 12px;
-      
+
       .menu-icon {
         font-size: 24px;
-        color: $dark;
+        color: rgba(0, 0, 0, 0.7); // Suavizado de negro a gris oscuro
         transition: all 0.3s ease;
-        
+
         &.icon-active {
           transform: rotate(90deg);
           color: $secondary;
@@ -192,9 +192,9 @@ const isExpanded = (menu) => {
       }
 
       .menu-label {
-        font-weight: 600;
+        font-weight: 400; // Cambiado de 600 a 400 (normal)
         font-size: 17px;
-        color: $dark;
+        color: rgba(0, 0, 0, 0.8); // Suavizado de negro puro a gris oscuro
         letter-spacing: 0.25px;
       }
     }
@@ -217,14 +217,14 @@ const isExpanded = (menu) => {
 
     .menu-icon {
       font-size: 24px;
-      color: $dark;
+      color: rgba(0, 0, 0, 0.7); // Suavizado
       transition: all 0.3s ease;
     }
 
     .menu-label {
-      font-weight: 600;
+      font-weight: 400; // Cambiado de 600 a 400
       font-size: 17px;
-      color: $dark;
+      color: rgba(0, 0, 0, 0.8); // Suavizado
       letter-spacing: 0.25px;
     }
   }
@@ -233,7 +233,7 @@ const isExpanded = (menu) => {
     background: rgba(255, 255, 255, 0.02);
     padding: 8px 16px 16px 16px;
     border-radius: 0 0 12px 12px;
-    
+
     .submenu-item {
       margin-bottom: 4px;
       border-radius: 10px;
@@ -256,9 +256,9 @@ const isExpanded = (menu) => {
       }
 
       .submenu-label {
-        font-weight: 500;
+        font-weight: 400; // Cambiado de 500 a 400
         font-size: 15px;
-        color: $dark;
+        color: rgba(0, 0, 0, 0.75); // Suavizado
         opacity: 0.9;
       }
     }
@@ -269,7 +269,7 @@ const isExpanded = (menu) => {
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.05);
       overflow: hidden;
-      
+
       .submenu-expansion-header {
         padding: 12px 16px;
         min-height: 48px;
@@ -287,9 +287,9 @@ const isExpanded = (menu) => {
       }
 
       .submenu-label {
-        font-weight: 500;
+        font-weight: 400; // Cambiado de 500 a 400
         font-size: 15px;
-        color: $dark;
+        color: rgba(0, 0, 0, 0.75); // Suavizado
         opacity: 0.9;
       }
     }
@@ -298,7 +298,7 @@ const isExpanded = (menu) => {
   .sub-submenu-container {
     background: rgba(255, 255, 255, 0.01);
     padding: 8px 12px;
-    
+
     .sub-submenu-item {
       margin-bottom: 2px;
       border-radius: 8px;
@@ -320,9 +320,9 @@ const isExpanded = (menu) => {
       }
 
       .sub-submenu-label {
-        font-weight: 400;
+        font-weight: 300; // Cambiado de 400 a 300 (más ligero)
         font-size: 14px;
-        color: $dark;
+        color: rgba(0, 0, 0, 0.7); // Suavizado
         opacity: 0.8;
       }
     }
@@ -331,7 +331,7 @@ const isExpanded = (menu) => {
       margin-bottom: 4px;
       border-radius: 8px;
       background: rgba(255, 255, 255, 0.02);
-      
+
       .sub-submenu-expansion-header {
         padding: 10px 12px;
         min-height: 40px;
@@ -344,9 +344,9 @@ const isExpanded = (menu) => {
       }
 
       .sub-submenu-label {
-        font-weight: 400;
+        font-weight: 300; // Cambiado de 400 a 300
         font-size: 14px;
-        color: $dark;
+        color: rgba(0, 0, 0, 0.7); // Suavizado
         opacity: 0.8;
       }
     }
@@ -355,7 +355,7 @@ const isExpanded = (menu) => {
   .deep-submenu-container {
     background: rgba(255, 255, 255, 0.005);
     padding: 4px 8px;
-    
+
     .deep-submenu-item {
       margin-bottom: 1px;
       border-radius: 6px;
@@ -377,9 +377,9 @@ const isExpanded = (menu) => {
       }
 
       .deep-submenu-label {
-        font-weight: 400;
+        font-weight: 300; // Cambiado de 400 a 300
         font-size: 13px;
-        color: $dark;
+        color: rgba(0, 0, 0, 0.65); // Más suavizado
         opacity: 0.75;
       }
     }
@@ -389,14 +389,14 @@ const isExpanded = (menu) => {
     // Usar la nueva sintaxis con el módulo sass:color
     background: linear-gradient(135deg, $primary 0%, color.adjust($primary, $lightness: 10%) 100%) !important;
     border-left-color: $secondary !important;
-    
+
     .menu-label,
     .submenu-label,
     .sub-submenu-label,
     .deep-submenu-label {
       color: white !important;
       opacity: 1 !important;
-      font-weight: 600 !important;
+      font-weight: 500 !important; // Reducido de 600 a 500
     }
 
     .menu-icon,
@@ -413,20 +413,20 @@ const isExpanded = (menu) => {
 @media (max-width: 768px) {
   .modern-menu {
     padding: 4px;
-    
+
     .menu-item-parent,
     .menu-item-direct {
       margin-bottom: 2px;
-      
+
       .menu-header {
         padding: 12px 16px;
         min-height: 52px;
       }
     }
-    
+
     .submenu-container {
       padding: 6px 12px 12px 12px;
-      
+
       .submenu-item,
       .submenu-expansion-header {
         padding: 10px 12px;
@@ -443,18 +443,18 @@ const isExpanded = (menu) => {
     .menu-item-direct {
       background: rgba(255, 255, 255, 0.08);
       border-color: rgba(255, 255, 255, 0.15);
-      
+
       &:hover {
         background: rgba(255, 255, 255, 0.12);
         border-color: rgba(255, 255, 255, 0.2);
       }
     }
-    
+
     .menu-label,
     .submenu-label,
     .sub-submenu-label,
     .deep-submenu-label {
-      color: rgba(255, 255, 255, 0.9);
+      color: rgba(255, 255, 255, 0.8) !important; // Suavizado en modo oscuro
     }
   }
 }

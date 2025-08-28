@@ -129,7 +129,6 @@
 import DarkModeToggle from "../components/DarkModeToggle.vue";
 import MenuOpcionesUsuario from "../components/MenuOpcionesUsuario.vue";
 import MenuPrincipal from "../components/MenuPrincipal.vue";
-import { useI18n } from "vue-i18n";
 import { ref } from "vue";
 
 defineOptions({
@@ -141,8 +140,7 @@ const miniState = ref(true);
 const isPinned = ref(false);
 const pinHovered = ref(false);
 const footerOpen = ref(false);
-const { t, locale } = useI18n({ useScope: "global" });
-const title = ref(t("descripcionsistemalargo"));
+const title = ref('NeoVET :: Sistema de Gestión Veterinaria');
 
 // Manejadores del drawer
 function handleMouseEnter() {
@@ -237,12 +235,12 @@ async function toggleLeftDrawer() {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 5px;
+  padding: 10px;
   gap: 10px;
 }
 
 .system-logo-expanded {
-  width: 280px;
+  width: 350px;
   height: 80px;
   object-fit: contain;
   border-radius: 8px;

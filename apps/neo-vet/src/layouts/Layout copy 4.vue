@@ -30,61 +30,90 @@
         @mouseenter="handleMouseEnter"
         @mouseleave="handleMouseLeave"
       >
-        <!-- LOGO ADAPTATIVO: Cambia según el estado del menú -->
-        <div
-          class="adaptive-logo-section"
-          :class="{ 'mini-mode': miniState && !isPinned }"
-        >
-          <!-- Logo grande cuando está expandido -->
-          <div
-            v-show="!miniState || isPinned"
-            class="logo-expanded-container"
-          >
-            <img
-              src="../../public/static/NeoVETMenu.png"
-              alt="NeoVET Logo"
-              class="system-logo-expanded"
-              @error="handleImageError"
-            />
-            <q-btn
-              flat
-              dense
-              round
-              :icon="isPinned ? 'push_pin' : 'push_pin'"
-              :color="isPinned ? 'primary' : 'grey-6'"
-              @click="togglePin"
-              @mouseenter="pinHovered = true"
-              @mouseleave="pinHovered = false"
-              size="sm"
-              class="pin-expanded"
-            >
-              <q-tooltip>{{ isPinned ? 'Desanclar menú' : 'Anclar menú' }}</q-tooltip>
-            </q-btn>
-          </div>
+        <!-- OPCIÓN 1: Pin superpuesto en la esquina del logo -->
+        <!--<div class="logo-section-option1">
+          <img
+            src="../../public/static/NeoVETMenu.png"
+            alt="NeoVET Logo"
+            class="system-logo"
+            @error="handleImageError"
+          />
 
-          <!-- Logo pequeño cuando está minimizado -->
-          <div
-            v-show="miniState && !isPinned"
-            class="logo-mini-container"
+          <q-btn
+            flat
+            dense
+            round
+            :icon="isPinned ? 'push_pin' : 'push_pin'"
+            :color="isPinned ? 'primary' : 'grey-6'"
+            @click="togglePin"
+            @mouseenter="pinHovered = true"
+            @mouseleave="pinHovered = false"
+            size="sm"
+            class="pin-floating"
+            v-if="!miniState || isPinned"
           >
-            <img
-              src="../../public/static/NeoVETMenuMini.png"
-              alt="NeoVET Logo Mini"
-              class="system-logo-mini"
-              @error="handleMiniImageError"
-            />
-          </div>
+            <q-tooltip>{{ isPinned ? 'Desanclar menú' : 'Anclar menú' }}</q-tooltip>
+          </q-btn>
+        </div>-->
+
+        <!-- OPCIÓN 2: Pin integrado horizontalmente con el logo -->
+
+        <div class="logo-section-option2">
+          <img
+            src="../../public/static/NeoVETMenu.png"
+            alt="NeoVET Logo"
+            class="system-logo-inline"
+            @error="handleImageError"
+          />
+          <q-btn
+            flat
+            dense
+            round
+            :icon="isPinned ? 'push_pin' : 'push_pin'"
+            :color="isPinned ? 'primary' : 'grey-6'"
+            @click="togglePin"
+            @mouseenter="pinHovered = true"
+            @mouseleave="pinHovered = false"
+            size="sm"
+            class="pin-inline"
+            v-if="!miniState || isPinned"
+          >
+            <q-tooltip>{{ isPinned ? 'Desanclar menú' : 'Anclar menú' }}</q-tooltip>
+          </q-btn>
         </div>
 
-        <q-separator />
+
+        <!-- OPCIÓN 3: Pin en el header del drawer -->
+        <!--
+        <div class="drawer-header">
+          <img
+            src="../../public/static/NeoVETMenu.png"
+            alt="NeoVET Logo"
+            class="system-logo"
+            @error="handleImageError"
+          />
+          <q-btn
+            flat
+            dense
+            round
+            :icon="isPinned ? 'push_pin' : 'push_pin'"
+            :color="isPinned ? 'primary' : 'grey-6'"
+            @click="togglePin"
+            @mouseenter="pinHovered = true"
+            @mouseleave="pinHovered = false"
+            size="sm"
+            class="pin-header"
+            v-if="!miniState || isPinned"
+          >
+            <q-tooltip>{{ isPinned ? 'Desanclar menú' : 'Anclar menú' }}</q-tooltip>
+          </q-btn>
+        </div>
+        -->
 
         <!-- Área del menú -->
         <div
           class="menu-section"
-          :class="[
-            $q.dark.isActive ? 'drawer_dark' : 'drawer_normal',
-            'menu-with-adaptive-logo'
-          ]"
+          :class="$q.dark.isActive ? 'drawer_dark' : 'drawer_normal'"
         >
           <q-scroll-area style="height: 100%">
             <MenuPrincipal />
@@ -129,7 +158,6 @@
 import DarkModeToggle from "../components/DarkModeToggle.vue";
 import MenuOpcionesUsuario from "../components/MenuOpcionesUsuario.vue";
 import MenuPrincipal from "../components/MenuPrincipal.vue";
-import { useI18n } from "vue-i18n";
 import { ref } from "vue";
 
 defineOptions({
@@ -141,8 +169,7 @@ const miniState = ref(true);
 const isPinned = ref(false);
 const pinHovered = ref(false);
 const footerOpen = ref(false);
-const { t, locale } = useI18n({ useScope: "global" });
-const title = ref(t("descripcionsistemalargo"));
+const title = ref('NeoVET :: Sistema de Gestión Veterinaria');
 
 // Manejadores del drawer
 function handleMouseEnter() {
@@ -175,22 +202,9 @@ function togglePin() {
 }
 
 function handleImageError(event: Event) {
-  console.warn('No se pudo cargar el logo del sistema completo');
+  console.warn('No se pudo cargar el logo del sistema');
   const target = event.target as HTMLImageElement;
   target.style.display = 'none';
-}
-
-function handleMiniImageError(event: Event) {
-  console.warn('No se pudo cargar el logo mini del sistema');
-  const target = event.target as HTMLImageElement;
-  // Fallback: mostrar solo las iniciales o un ícono
-  target.style.display = 'none';
-
-  // Opcional: crear un fallback con texto
-  const fallback = document.createElement('div');
-  fallback.className = 'logo-fallback';
-  fallback.textContent = 'NV';
-  target.parentNode?.appendChild(fallback);
 }
 
 let debounceTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -210,164 +224,108 @@ function collapseFooter() {
 }
 
 async function toggleLeftDrawer() {
-  leftDrawerOpen.value = await !leftDrawer;
+  leftDrawerOpen.value = await !leftDrawerOpen.value;
 }
 </script>
 
 <style scoped>
-/* LOGO ADAPTATIVO */
-.adaptive-logo-section {
+/* OPCIÓN 1: Pin flotante superpuesto */
+.logo-section-option1 {
   position: relative;
   color: white;
+  padding: 10px 10px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.system-logo {
+  width: 350px;
+  height: 100px;
+  object-fit: contain;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 1px;
+}
+
+.pin-floating {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: rgba(255, 255, 255, 0.9);
   transition: all 0.3s ease;
-  min-height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.adaptive-logo-section.mini-mode {
-  min-height: 50px;
-  padding: 5px;
+.pin-floating:hover {
+  background-color: rgba(255, 255, 255, 1);
+  transform: scale(1.1);
 }
 
-/* LOGO EXPANDIDO (menú abierto) */
-.logo-expanded-container {
+/* OPCIÓN 2: Pin integrado horizontalmente */
+.logo-section-option2 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
-  padding: 5px;
+  color: white;
+  padding: 10px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
   gap: 10px;
 }
 
-.system-logo-expanded {
-  width: 280px;
+.system-logo-inline {
+  width: 350px;
   height: 80px;
   object-fit: contain;
   border-radius: 8px;
   background-color: rgba(255, 255, 255, 0.1);
-  padding: 4px;
+  padding: 1px;
   flex-shrink: 0;
-  transition: all 0.3s ease;
 }
 
-.pin-expanded {
+.pin-inline {
   background-color: rgba(255, 255, 255, 0.2);
   transition: all 0.3s ease;
   flex-shrink: 0;
 }
 
-.pin-expanded:hover {
+.pin-inline:hover {
   background-color: rgba(255, 255, 255, 0.3);
-  transform: scale(1.05);
 }
 
-/* LOGO MINI (menú minimizado) */
-.logo-mini-container {
+/* OPCIÓN 3: Pin en header del drawer */
+.drawer-header {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  padding: 8%;
-  ;
-}
-
-.system-logo-mini {
-  width: 50px;
-  height: 40px;
-  object-fit: contain;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.1);
-  padding: 2px;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.system-logo-mini:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-  transform: scale(1.1);
-}
-
-/* Fallback para logo mini cuando no se puede cargar */
-.logo-fallback {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 14px;
+  flex-direction: column;
   color: white;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.drawer-header .system-logo {
+  width: 350px;
+  height: 100px;
+  object-fit: contain;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 1px;
+  margin: 10px auto;
+}
+
+.pin-header {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(255, 255, 255, 0.2);
   transition: all 0.3s ease;
 }
 
-.logo-fallback:hover {
+.pin-header:hover {
   background-color: rgba(255, 255, 255, 0.3);
-  transform: scale(1.1);
 }
 
-/* SECCIÓN DEL MENÚ */
+/* Estilos para la sección del menú */
 .menu-section {
   flex: 1;
+  height: calc(100vh - 190px); /* Ajustado para el nuevo layout */
   padding: 8px;
-  transition: height 0.3s ease;
-}
-
-.menu-with-adaptive-logo {
-  height: calc(100vh - 160px); /* Altura ajustada para logo adaptativo */
-}
-
-/* ANIMACIONES DE TRANSICIÓN */
-.logo-expanded-container {
-  animation: fadeInScale 0.3s ease-out;
-}
-
-.logo-mini-container {
-  animation: fadeInRotate 0.3s ease-out;
-}
-
-@keyframes fadeInScale {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes fadeInRotate {
-  from {
-    opacity: 0;
-    transform: rotate(-180deg) scale(0.5);
-  }
-  to {
-    opacity: 1;
-    transform: rotate(0deg) scale(1);
-  }
-}
-
-/* RESPONSIVE */
-@media (max-width: 600px) {
-  .system-logo-expanded {
-    width: 300px;
-    height: 70px;
-  }
-
-  .system-logo-mini {
-    width: 35px;
-    height: 35px;
-  }
-
-  .logo-fallback {
-    width: 35px;
-    height: 35px;
-    font-size: 12px;
-  }
 }
 
 /* Footer styles - sin cambios */

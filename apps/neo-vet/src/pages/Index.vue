@@ -9,7 +9,7 @@
       />
     </div>
     <!-- Header compacto y elegante -->
-    <div class="dashboard-header q-pa-lg q-mb-lg">
+    <!--<div class="dashboard-header q-pa-lg q-mb-lg">
       <div class="row items-center justify-between">
         <div class="header-info">
           <h1 class="dashboard-title">VetCare Dashboard</h1>
@@ -20,7 +20,7 @@
           <div class="current-date">{{ formatDate(currentTime) }}</div>
         </div>
       </div>
-    </div>
+    </div>-->
 
     <div class="dashboard-content q-px-lg">
       <!-- Stats Grid Principal -->
