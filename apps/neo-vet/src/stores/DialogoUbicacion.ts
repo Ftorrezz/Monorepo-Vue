@@ -26,6 +26,7 @@ export const useDialogStore = defineStore("useDialogStore", {
   },
   getters: {
     id_sitio: (state) => state.sucursalSeleccionada?.id_sitio,
+    id_sucursal: (state) => state.sucursalSeleccionada?.id,
   },
   persist: true
 });

@@ -214,6 +214,8 @@ export const menuConfig = [
         subItems: [
           
           { label: "Sitio", icon: "note_add", to: "/sitio" },
+          { label: "TipoSitioUbicacion", icon: "note_add", to: "/tipositioubicacion" },
+          { label: "Sitio", icon: "note_add", to: "/sitio" },
           
         ],
       },
