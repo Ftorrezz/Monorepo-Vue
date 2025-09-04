@@ -356,14 +356,25 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
       modelName === "raza" ||
       modelName === "ocupacion" ||
       modelName === "servicio" ||
-      modelName === "tipoprofesional"
+      modelName === "tipoprofesional" ||
+      modelName === "perfilconfiguracion" ||
+      modelName === "sitio" ||
+      modelName === "sucursal" ||
+      modelName === "configuracion" ||
+      modelName === "tipositioubicacion" ||
+      modelName === "sitioubicacion"
     ) {
       mostrarFormIntegrado.value = true;
 
       // Utilizar el formulario genérico de observación
 
       if (modelName === "sexo" ||
-          modelName === "diagnostico") {
+          modelName === "diagnostico" ||
+         modelName === "sitio" ||
+         modelName === "sucursal" ||
+         modelName === "configuracion" ||
+         modelName === "tipositioubicacion" ||
+         modelName === "sitioubicacion") {
         return formConfig[modelName] || [];
       } else return formConfig["genericoDescripcion"] || [];
     } else {
