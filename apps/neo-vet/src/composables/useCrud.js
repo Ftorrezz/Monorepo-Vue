@@ -40,7 +40,7 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
     const genericoModels = [
       "color", "especie", "razamascota", "caracter", "dieta", "habitat",
       "especialidad", "escolaridad", "estadocivil", "religion", "raza",
-      "ocupacion", "servicio", "tipoprofesional"
+      "ocupacion", "servicio", "tipoprofesional", "perfilconfiguracion"
     ];
 
     if (genericoModels.includes(modelName)) {
@@ -435,7 +435,7 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
   };
 
   onMounted(() => {
-    //getFormConfig();
+    getFormConfig();
   });
 
   const getData = async () => {

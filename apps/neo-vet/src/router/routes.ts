@@ -131,7 +131,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: "sitio",
         name: "sitio",
-        component: () => import("src/pages/Institucional/Sitio.vue"),
+        component: () => import("pages/Institucional/Sitio.vue"),
         meta: { requireAuth: true },
       },
       {
@@ -174,7 +174,10 @@ const routes: RouteRecordRaw[] = [
 
       { path: '/agenda',
         component: () => import('layouts/Layout.vue'),
-        children: [{ path: '', name: 'agenda', component: () => import('pages/agenda/Agenda.vue') }],
+        children: [
+          { path: '', name: 'agenda', component: () => import('pages/agenda/Agenda.vue') },
+          { path: '/agendaservicio', name: 'agendaservicio', component: () => import('pages/configuration/agenda/Servicio.vue') }
+        ],
         meta: { requireAuth: false },
 
       },
@@ -205,6 +208,25 @@ const routes: RouteRecordRaw[] = [
       { path: '/pension',
         component: () => import('layouts/Layout.vue'),
         children: [{ path: '', name: 'pension', component: () => import('pages/pension/Pension.vue') }],
+        meta: { requireAuth: false },
+
+      },
+
+      { path: '/configuracionmodulo',
+        component: () => import('layouts/Layout.vue'),
+        children: [{ path: '', name: 'configuracionmodulo', component: () => import('pages/Configuration/generico/ConfiguracionModulo.vue') }],
+        meta: { requireAuth: false },
+
+      },
+      { path: '/configuracioncampo',
+        component: () => import('layouts/Layout.vue'),
+        children: [{ path: '', name: 'configuracioncampo', component: () => import('pages/Configuration/generico/ConfiguracionCampo.vue') }],
+        meta: { requireAuth: false },
+
+      },
+      { path: '/configuracionvalor',
+        component: () => import('layouts/Layout.vue'),
+        children: [{ path: '', name: 'configuracionvalor', component: () => import('pages/Configuration/generico/ConfiguracionValor.vue') }],
         meta: { requireAuth: false },
 
       },

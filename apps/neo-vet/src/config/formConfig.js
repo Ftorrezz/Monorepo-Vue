@@ -196,7 +196,7 @@ export const formConfig = {
         label: "Sitio",
         component: "q-select",
         classes: ["q-mb-xs"],
-        options: sitios.value,
+        //options: sitios.value,
         rules: [(val) => !!val || "Seleccione un sitio"],
         //rules: [(val) => (val && val.length > 0) || "Seleccione un sitio"]
       },
@@ -226,7 +226,7 @@ export const formConfig = {
         label: "Sitio",
         component: "q-select",
         classes: ["q-mb-xs"],
-        options: sitios.value,
+        //options: sitios.value,
         rules: [(val) => !!val || "Seleccione un sitio"],
         //rules: [(val) => (val && val.length > 0) || "Seleccione un sitio"]
       },
@@ -287,7 +287,7 @@ export const formConfig = {
         label: "Sitio",
         component: "q-select",
         classes: ["q-mb-xs"],
-        options: sitios.value,
+        //options: sitios.value,
         rules: [(val) => !!val || "Seleccione un sitio"],
         //rules: [(val) => (val && val.length > 0) || "Seleccione un sitio"]
       },
@@ -296,7 +296,7 @@ export const formConfig = {
         label: "Sitio Ubicación",
         component: "q-select",
         classes: ["q-mb-xs"],
-        options: _listaTipoSitioUbicacion.value,
+        //options: _listaTipoSitioUbicacion.value,
         rules: [(val) => !!val || "Seleccione el tipo de ubicación del sitio"],
         //rules: [(val) => (val && val.length > 0) || "Seleccione un sitio"]
       },

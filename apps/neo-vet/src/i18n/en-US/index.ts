@@ -38,29 +38,169 @@ export default {
     }
   },
   mainMenu: {
-    home: 'Home',
+    home: {
+      title: 'Home',
+      dashboard: 'Dashboard',
+      ownerPet: 'Owner / Pet',
+      petCare: 'Pet Care',
+      schedule: 'Schedule'
+    },
+    inventory: {
+      title: 'Inventory'
+    },
+    boarding: {
+      title: 'Boarding'
+    },
+    sales: {
+      title: 'Sales'
+    },
+    reports: {
+      title: 'Reports',
+      basic: {
+        title: 'Basic Reports',
+        dailySales: 'Daily Sales',
+        activeClients: 'Active Clients',
+        popularServices: 'Popular Services'
+      },
+      advanced: {
+        title: 'Advanced Reports',
+        financial: {
+          title: 'Financial Analysis',
+          monthlyIncome: 'Monthly Income',
+          operatingExpenses: 'Operating Expenses',
+          serviceProfitability: 'Service Profitability'
+        },
+        clientMetrics: {
+          title: 'Client Metrics',
+          retention: 'Client Retention',
+          satisfaction: 'Satisfaction',
+          visitFrequency: 'Visit Frequency'
+        }
+      },
+      exportData: 'Export Data'
+    },
     settings: {
       title: 'Settings',
+      schedule: {
+        title: 'Schedule',
+        configureHours: 'Configure Hours',
+        holidays: 'Holidays',
+        reminders: 'Reminders'
+      },
+      general: {
+        title: 'General',
+        location: 'Location',
+        services: {
+          title: 'Services',
+          types: 'Service Types',
+          prices: 'Prices',
+          duration: 'Duration'
+        },
+        staff: {
+          title: 'Staff',
+          professionals: 'Professionals',
+          specialties: 'Specialties',
+          workHours: 'Work Hours',
+          permissions: 'Permissions'
+        }
+      },
+      pet: {
+        title: 'Pet',
+        physical: {
+          title: 'Physical Characteristics',
+          color: 'Color',
+          breed: 'Breed',
+          size: 'Size'
+        },
+        biological: {
+          title: 'Biological Information',
+          species: 'Species',
+          sex: 'Sex',
+          age: 'Age'
+        },
+        behavior: {
+          title: 'Behavior',
+          character: 'Character',
+          activityLevel: 'Activity Level',
+          socialization: 'Socialization'
+        },
+        care: {
+          title: 'Care',
+          diet: 'Diet',
+          habitat: 'Habitat',
+          exercise: 'Exercise'
+        }
+      },
+      owner: {
+        title: 'Owner',
+        personal: {
+          title: 'Personal Information',
+          gender: 'Gender',
+          maritalStatus: 'Marital Status',
+          age: 'Age'
+        },
+        academic: {
+          title: 'Academic Information',
+          education: 'Education',
+          profession: 'Profession',
+          workArea: 'Work Area'
+        },
+        cultural: {
+          title: 'Cultural Information',
+          religion: 'Religion',
+          language: 'Language',
+          nationality: 'Nationality'
+        }
+      },
       institutional: {
         title: 'Institutional',
-        entity: 'Site',
-        entityconf: 'Site Configuration',
-        branch: 'Branch',
-        type: 'Site Location Type',
-        location: 'Site Location'
+        site: 'Site',
+        entityconf: 'Site Settings',
+        siteLocationType: 'Site Location Type',
+        siteLocation: 'Site Location',
+        branch: 'Branch'
+      },
+      system: {
+        title: 'System',
+        general: 'General Configuration',
+        usersPermissions: {
+          title: 'Users & Permissions',
+          userManagement: 'User Management',
+          roles: 'Roles',
+          permissions: 'Permissions'
+        },
+        templates: {
+          title: 'Templates',
+          consultation: 'Consultation Templates',
+          report: 'Report Templates',
+          certificates: 'Certificates'
+        },
+        backups: {
+          title: 'Backups',
+          create: 'Create Backup',
+          restore: 'Restore',
+          schedule: 'Schedule Backups'
+        }
       },
       security: {
         title: 'Security',
-        access: 'Access',
-        users: 'Users',
-        profiles: 'Profiles',
-        user: 'User',
-        profile: 'Profile',
-        role: 'Role'
-      },
-      admin: {
-        title: 'Administrator',
-        config: 'Configuration'
+        user: {
+          title: 'User',
+          user: 'User',
+          profile: 'Profile',
+          access: 'Access'
+        }
+      }
+    },
+    help: {
+      title: 'Help',
+      documentation: 'Documentation',
+      support: 'Support',
+      tutorials: {
+        title: 'Tutorials',
+        introVideos: 'Intro Videos',
+        stepByStep: 'Step by Step Guides',
+        useCases: 'Use Cases'
       }
     }
   },

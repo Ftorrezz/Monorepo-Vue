@@ -38,173 +38,32 @@ export default {
       }
     },
     mainMenu: {
-    home: {
-      title: 'Inicio',
-      dashboard: 'Tablero',
-      ownerPet: 'Propietario / Mascota',
-      petCare: 'Atención Mascota',
-      schedule: 'Agenda'
-    },
-    inventory: {
-      title: 'Inventario'
-    },
-    boarding: {
-      title: 'Pensión'
-    },
-    sales: {
-      title: 'Ventas'
-    },
-    reports: {
-      title: 'Reportes',
-      basic: {
-        title: 'Reportes Básicos',
-        dailySales: 'Ventas Diarias',
-        activeClients: 'Clientes Activos',
-        popularServices: 'Servicios Populares'
-      },
-      advanced: {
-        title: 'Reportes Avanzados',
-        financial: {
-          title: 'Análisis Financiero',
-          monthlyIncome: 'Ingresos Mensuales',
-          operatingExpenses: 'Gastos Operativos',
-          serviceProfitability: 'Rentabilidad por Servicio'
+      home: 'Inicio',
+      settings: {
+        title: 'Configuración',
+        institutional: {
+          title: 'Institucional',
+          entity: 'Sitio',
+          entityconf: 'Sitio Configuración',
+          branch: 'Sucursal',
+          type: 'Tipo de Sitio Ubicación',
+          location: 'Sitio Ubicación'
         },
-        clientMetrics: {
-          title: 'Métricas de Cliente',
-          retention: 'Retención de Clientes',
-          satisfaction: 'Satisfacción',
-          visitFrequency: 'Frecuencia de Visitas'
-        }
-      },
-      exportData: 'Exportar Datos'
-    },
-    settings: {
-      title: 'Configuración',
-      schedule: {
-        title: 'Agenda',
-        service: 'Servicio',
-        configureHours: 'Horarios de Atención',
-        holidays: 'Días Festivos',
-        reminders: 'Recordatorios'
-      },
-      general: {
-        title: 'General',
-        location: 'Ubicación',
-        services: {
-          title: 'Servicios',
-          types: 'Tipos de Servicio',
-          prices: 'Precios',
-          duration: 'Duración'
-        },
-        staff: {
-          title: 'Personal',
-          professionals: 'Profesionales',
-          specialties: 'Especialidades',
-          workHours: 'Horarios de Trabajo',
-          permissions: 'Permisos'
-        }
-      },
-      pet: {
-        title: 'Mascota',
-        physical: {
-          title: 'Características Físicas',
-          color: 'Color',
-          breed: 'Raza',
-          size: 'Tamaño'
-        },
-        biological: {
-          title: 'Información Biológica',
-          species: 'Especie',
-          sex: 'Sexo',
-          age: 'Edad'
-        },
-        behavior: {
-          title: 'Comportamiento',
-          character: 'Carácter',
-          activityLevel: 'Nivel de Actividad',
-          socialization: 'Socialización'
-        },
-        care: {
-          title: 'Cuidados',
-          diet: 'Dieta',
-          habitat: 'Hábitat',
-          exercise: 'Ejercicio'
-        }
-      },
-      owner: {
-        title: 'Propietario',
-        personal: {
-          title: 'Información Personal',
-          gender: 'Género',
-          maritalStatus: 'Estado Civil',
-          age: 'Edad'
-        },
-        academic: {
-          title: 'Información Académica',
-          education: 'Escolaridad',
-          profession: 'Profesión',
-          workArea: 'Área de Trabajo'
-        },
-        cultural: {
-          title: 'Información Cultural',
-          religion: 'Religión',
-          language: 'Idioma',
-          nationality: 'Nacionalidad'
-        }
-      },
-      institutional: {
-        title: 'Institucional',
-        site: 'Sitio',
-        entityconf: 'Sitio Configuración',
-        siteLocationType: 'Tipo Sitio Ubicación',
-        siteLocation: 'Sitio Ubicación',
-        branch: 'Sucursal'
-      },
-      system: {
-        title: 'Sistema',
-        general: 'Configuración General',
-        usersPermissions: {
-          title: 'Usuarios y Permisos',
-          userManagement: 'Gestión de Usuarios',
-          roles: 'Roles',
-          permissions: 'Permisos'
-        },
-        templates: {
-          title: 'Plantillas',
-          consultation: 'Plantillas de Consulta',
-          report: 'Plantillas de Reporte',
-          certificates: 'Certificados'
-        },
-        backups: {
-          title: 'Respaldos',
-          create: 'Crear Respaldo',
-          restore: 'Restaurar',
-          schedule: 'Programar Respaldos'
-        }
-      },
-      security: {
-        title: 'Seguridad',
-        user: {
-          title: 'Usuario',
+        security: {
+          title: 'Seguridad',
+          access: 'Accesos',
+          users: 'Usuarios',
+          profiles: 'Perfiles',
           user: 'Usuario',
           profile: 'Perfil',
-          access: 'Acceso'
+          role: 'Rol'
+        },
+        admin: {
+          title: 'Administrador',
+          config: 'Configuración'
         }
       }
     },
-    help: {
-      title: 'Ayuda',
-      documentation: 'Documentación',
-      support: 'Soporte',
-      tutorials: {
-        title: 'Tutoriales',
-        introVideos: 'Videos Introductorios',
-        stepByStep: 'Guías Paso a Paso',
-        useCases: 'Casos de Uso'
-      }
-    }
-  },
     userProfile: {
       title: 'Perfil de usuario',
       deleteTitle: 'Perfil',

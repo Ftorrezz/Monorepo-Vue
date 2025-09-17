@@ -1,0 +1,71 @@
+-- 1. Tabla de módulos (catálogo principal)
+CREATE TABLE modulos_configuracion (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(100) NOT NULL UNIQUE,
+    descripcion VARCHAR(255),
+    icono VARCHAR(50), -- Para UI (ej: 'settings', 'users', etc)
+    color VARCHAR(20), -- Color para UI
+    activo BOOLEAN DEFAULT TRUE,
+    orden INT DEFAULT 0,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- 2. Tabla de campos de configuración (metadatos)
+CREATE TABLE campos_configuracion (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    modulo_id INT NOT NULL,
+    clave VARCHAR(100) NOT NULL,
+    etiqueta VARCHAR(100) NOT NULL,
+    descripcion TEXT,
+    tipo_campo ENUM('text', 'number', 'boolean', 'select', 'textarea', 'json', 'date', 'email', 'url') NOT NULL,
+    tipo_dato ENUM('string', 'integer', 'decimal', 'boolean', 'json', 'date') DEFAULT 'string',
+    opciones JSON, -- Para selects: {"opciones": [{"value": "1", "label": "Opción 1"}]}
+    validaciones JSON, -- {"required": true, "min": 1, "max": 100, "pattern": "regex"}
+    valor_defecto TEXT,
+    grupo VARCHAR(50), -- Para agrupar campos relacionados
+    orden INT DEFAULT 0,
+    activo BOOLEAN DEFAULT TRUE,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (modulo_id) REFERENCES modulos_configuracion(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_modulo_campo (modulo_id, clave)
+);
+
+-- 3. Tabla de valores actuales
+CREATE TABLE valores_configuracion (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    modulo_id INT NOT NULL,
+    campo_id INT NOT NULL,
+    valor TEXT,
+    usuario_actualizacion INT, -- ID del usuario que hizo el cambio
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (modulo_id) REFERENCES modulos_configuracion(id) ON DELETE CASCADE,
+    FOREIGN KEY (campo_id) REFERENCES campos_configuracion(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_modulo_campo_valor (modulo_id, campo_id)
+);
+
+-- 4. Datos de ejemplo
+INSERT INTO modulos_configuracion (nombre, descripcion, icono, color, orden) VALUES
+('usuarios', 'Configuración de usuarios del sistema', 'people', 'primary', 1),
+('sistema', 'Configuración general del sistema', 'settings', 'secondary', 2),
+('notificaciones', 'Configuración de notificaciones', 'notifications', 'warning', 3),
+('seguridad', 'Configuración de seguridad', 'security', 'negative', 4);
+
+-- Ejemplo de campos para módulo usuarios
+INSERT INTO campos_configuracion (modulo_id, clave, etiqueta, descripcion, tipo_campo, tipo_dato, validaciones, grupo, orden) VALUES
+(1, 'max_intentos_login', 'Máximo intentos de login', 'Número máximo de intentos fallidos antes de bloquear usuario', 'number', 'integer', '{"required": true, "min": 1, "max": 10}', 'autenticacion', 1),
+(1, 'tiempo_bloqueo', 'Tiempo de bloqueo (minutos)', 'Tiempo en minutos que permanece bloqueado el usuario', 'number', 'integer', '{"required": true, "min": 5, "max": 1440}', 'autenticacion', 2),
+(1, 'politica_password', 'Política de contraseñas', 'Nivel de complejidad requerido para contraseñas', 'select', 'string', '{"required": true}', 'autenticacion', 3),
+(1, 'permitir_registro', 'Permitir auto-registro', 'Permitir que usuarios se registren automáticamente', 'boolean', 'boolean', '{}', 'registro', 4);
+
+-- Opciones para campo select
+UPDATE campos_configuracion 
+SET opciones = '{"opciones": [{"value": "basica", "label": "Básica"}, {"value": "intermedia", "label": "Intermedia"}, {"value": "avanzada", "label": "Avanzada"}]}'
+WHERE clave = 'politica_password';
+
+-- Valores por defecto
+INSERT INTO valores_configuracion (modulo_id, campo_id, valor) VALUES
+(1, 1, '3'),
+(1, 2, '15'),
+(1, 3, 'intermedia'),
+(1, 4, '0');

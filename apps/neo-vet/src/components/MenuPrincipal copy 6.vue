@@ -5,7 +5,7 @@
       <q-expansion-item
         v-if="menu.items && menu.items.length > 0"
         :icon="menu.icon"
-        :label="$t(menu.labelKey)"
+        :label="menu.label"
         :default-opened="menu.defaultopened"
         class="menu-item-parent"
         header-class="menu-header"
@@ -20,7 +20,7 @@
             />
           </q-item-section>
           <q-item-section>
-            <q-item-label class="menu-label">{{ $t(menu.labelKey) }}</q-item-label>
+            <q-item-label class="menu-label">{{ menu.label }}</q-item-label>
           </q-item-section>
         </template>
 
@@ -39,7 +39,7 @@
                 <q-icon :name="item.icon" class="submenu-icon" />
               </q-item-section>
               <q-item-section>
-                <q-item-label class="submenu-label">{{ $t(item.labelKey) }}</q-item-label>
+                <q-item-label class="submenu-label">{{ item.label }}</q-item-label>
               </q-item-section>
             </q-item>
 
@@ -47,7 +47,7 @@
             <q-expansion-item
               v-else
               :icon="item.icon"
-              :label="$t(item.labelKey)"
+              :label="item.label"
               class="submenu-expansion"
               header-class="submenu-expansion-header"
             >
@@ -56,7 +56,7 @@
                   <q-icon :name="item.icon" class="submenu-icon" />
                 </q-item-section>
                 <q-item-section>
-                  <q-item-label class="submenu-label">{{ $t(item.labelKey) }}</q-item-label>
+                  <q-item-label class="submenu-label">{{ item.label }}</q-item-label>
                 </q-item-section>
               </template>
 
@@ -75,7 +75,7 @@
                       <q-icon :name="subItem.icon" class="sub-submenu-icon" />
                     </q-item-section>
                     <q-item-section>
-                      <q-item-label class="sub-submenu-label">{{ $t(subItem.labelKey) }}</q-item-label>
+                      <q-item-label class="sub-submenu-label">{{ subItem.label }}</q-item-label>
                     </q-item-section>
                   </q-item>
 
@@ -83,7 +83,7 @@
                   <q-expansion-item
                     v-else
                     :icon="subItem.icon"
-                    :label="$t(subItem.labelKey)"
+                    :label="subItem.label"
                     class="sub-submenu-expansion"
                     header-class="sub-submenu-expansion-header"
                   >
@@ -92,7 +92,7 @@
                         <q-icon :name="subItem.icon" class="sub-submenu-icon" />
                       </q-item-section>
                       <q-item-section>
-                        <q-item-label class="sub-submenu-label">{{ $t(subItem.labelKey) }}</q-item-label>
+                        <q-item-label class="sub-submenu-label">{{ subItem.label }}</q-item-label>
                       </q-item-section>
                     </template>
 
@@ -110,7 +110,7 @@
                           <q-icon :name="deepItem.icon" class="deep-submenu-icon" />
                         </q-item-section>
                         <q-item-section>
-                          <q-item-label class="deep-submenu-label">{{ $t(deepItem.labelKey) }}</q-item-label>
+                          <q-item-label class="deep-submenu-label">{{ deepItem.label }}</q-item-label>
                         </q-item-section>
                       </q-item>
                     </q-list>
@@ -135,7 +135,7 @@
           <q-icon :name="menu.icon" class="menu-icon" />
         </q-item-section>
         <q-item-section>
-          <q-item-label class="menu-label">{{ $t(menu.labelKey) }}</q-item-label>
+          <q-item-label class="menu-label">{{ menu.label }}</q-item-label>
         </q-item-section>
       </q-item>
     </template>
@@ -144,16 +144,12 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useI18n } from 'vue-i18n' // Importar useI18n si estás usando Composition API
 import { menuConfig } from "src/config/menuConfig"
-
-// Si usas Composition API para i18n
-const { t } = useI18n()
 
 const expandedItems = ref(new Set())
 
 const isExpanded = (menu) => {
-  return expandedItems.value.has(menu.labelKey || menu.label)
+  return expandedItems.value.has(menu.label)
 }
 </script>
 
@@ -460,68 +456,6 @@ const isExpanded = (menu) => {
     .deep-submenu-label {
       color: rgba(255, 255, 255, 0.8) !important; // Suavizado en modo oscuro
     }
-
-    .menu-icon,
-    .submenu-icon,
-    .sub-submenu-icon,
-    .deep-submenu-icon {
-      color: rgba(255, 255, 255, 0.8) !important;
-    }
-  }
-}
-
-// Loading states
-.menu-loading {
-  .menu-label,
-  .submenu-label,
-  .sub-submenu-label,
-  .deep-submenu-label {
-    background: linear-gradient(90deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 100%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-    border-radius: 4px;
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-// Accessibility improvements
-.modern-menu {
-  .menu-item-parent,
-  .menu-item-direct,
-  .submenu-item,
-  .sub-submenu-item,
-  .deep-submenu-item {
-    &:focus-visible {
-      outline: 2px solid $primary;
-      outline-offset: 2px;
-    }
-  }
-}
-
-// Animation for menu expansion
-.q-expansion-item__content {
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.5, 1);
-}
-
-// Improved hover states
-.modern-menu {
-  .menu-item-parent:hover .menu-icon,
-  .menu-item-direct:hover .menu-icon {
-    transform: scale(1.1);
-  }
-  
-  .submenu-item:hover .submenu-icon,
-  .sub-submenu-item:hover .sub-submenu-icon,
-  .deep-submenu-item:hover .deep-submenu-icon {
-    transform: scale(1.05) rotate(5deg);
   }
 }
 </style>
