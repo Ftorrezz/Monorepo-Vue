@@ -20,7 +20,7 @@
 
       <q-card-section>
         <!-- Grid de Servicios -->
-        <div class="row q-gutter-sm q-mb-lg">
+        <div class="row q-gutter-md q-mb-lg">
           <div
             v-for="service in services"
             :key="service.id"
