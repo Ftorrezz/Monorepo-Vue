@@ -1,257 +1,170 @@
 <template>
-  <div class="template-type-selector">
-    <!-- Header con información del tipo actual -->
-    <div class="type-header">
-      <div class="current-type-info">
-        <q-avatar 
-          :icon="currentTemplateType?.icon || 'description'" 
-          :color="currentTemplateType?.color || 'primary'"
-          text-color="white"
-          size="md"
-        />
-        <div class="type-details">
-          <h6 class="type-name">{{ currentTemplateType?.name || 'Seleccionar Tipo' }}</h6>
-          <p class="type-description">{{ currentTemplateType?.description || 'Elige el tipo de documento a configurar' }}</p>
-        </div>
-      </div>
+  <div class="template-manager q-pa-md">
+    <!-- Tabs para cambiar entre tipos y plantillas -->
+    <q-tabs
+      v-model="activeTab"
+      class="text-primary q-mb-md"
+      dense
+      align="left"
+      :breakpoint="0"
+    >
+      <q-tab name="types" icon="style" label="Tipos de Plantillas" />
+      <q-tab name="templates" icon="description" label="Mis Plantillas" />
+    </q-tabs>
 
-      <div class="header-actions">
-        <q-btn
-          flat
-          dense
-          icon="swap_horiz"
-          label="Cambiar Tipo"
-          @click="showTypeSelector = true"
-          color="primary"
-          size="sm"
-        />
-        
-        <q-btn
-          flat
-          dense
-          icon="settings"
-          @click="showTypeSettings = true"
-          size="sm"
-        >
-          <q-tooltip>Configurar Tipo de Plantilla</q-tooltip>
-        </q-btn>
-      </div>
-    </div>
+    <!-- Panel de Tipos de Plantillas -->
+    <q-tab-panels v-model="activeTab" animated>
+      <q-tab-panel name="types">
+        <div class="row q-col-gutter-md">
+          <div v-for="type in templateTypes" :key="type.id" class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <q-card class="template-type-card">
+              <q-card-section class="q-pb-none">
+                <div class="row items-center no-wrap">
+                  <q-icon :name="type.icon" :color="type.color" size="md" class="q-mr-sm"/>
+                  <div class="col">
+                    <div class="text-subtitle1">{{ type.name }}</div>
+                    <div class="text-caption text-grey">{{ type.description }}</div>
+                  </div>
+                </div>
+              </q-card-section>
 
-    <!-- Variables específicas del tipo -->
-    <div class="type-variables" v-if="currentTemplateType">
-      <div class="variables-header">
-        <q-icon name="code" size="sm" />
-        <span>Variables Disponibles para {{ currentTemplateType.name }}</span>
-        <q-chip :label="`${availableVariables.length} variables`" size="sm" color="info" />
-      </div>
-
-      <div class="variables-grid">
-        <div 
-          v-for="variable in availableVariables" 
-          :key="variable.name"
-          class="variable-card"
-          :class="{ 'required': variable.required }"
-        >
-          <div class="variable-info">
-            <div class="variable-name">
-              <q-icon :name="getVariableIcon(variable.type)" size="xs" />
-              <span>{{ variable.label || variable.name }}</span>
-              <q-chip v-if="variable.required" label="Requerido" size="xs" color="orange" />
-            </div>
-            <p class="variable-description">{{ variable.description }}</p>
-            <div class="variable-meta">
-              <span class="variable-type">{{ getVariableTypeLabel(variable.type) }}</span>
-              <span class="variable-syntax">{{{{ variable.name }}}}</span>
-            </div>
-          </div>
-          
-          <div class="variable-actions">
-            <q-btn
-              flat
-              dense
-              round
-              icon="content_copy"
-              size="xs"
-              @click="copyVariableToClipboard(variable.name)"
-            >
-              <q-tooltip>Copiar variable</q-tooltip>
-            </q-btn>
-            
-            <q-btn
-              flat
-              dense
-              round
-              icon="add"
-              size="xs"
-              @click="insertVariable(variable.name)"
-            >
-              <q-tooltip>Insertar en editor</q-tooltip>
-            </q-btn>
+              <q-card-actions align="right">
+                <q-btn 
+                  color="primary" 
+                  label="Usar plantilla" 
+                  @click="createFromType(type)"
+                  flat
+                />
+              </q-card-actions>
+            </q-card>
           </div>
         </div>
-      </div>
-    </div>
+      </q-tab-panel>
 
-    <!-- Dialog de selección de tipo -->
-    <q-dialog v-model="showTypeSelector" persistent>
-      <q-card style="min-width: 600px; max-width: 800px;">
-        <q-card-section class="row items-center">
-          <q-icon name="category" size="md" class="text-primary q-mr-md" />
-          <div class="text-h6">Seleccionar Tipo de Plantilla</div>
-          <q-space />
-          <q-btn icon="close" flat round dense @click="showTypeSelector = false" />
-        </q-card-section>
+      <!-- Panel de Plantillas Activas -->
+      <q-tab-panel name="templates">
+        <div class="row items-center justify-between q-mb-md">
+          <div class="text-h6">Mis Plantillas</div>
+          <q-btn-group flat>
+            <q-btn outline color="primary" icon="add" label="Nueva desde tipo" to="/templates/types" />
+            <q-btn outline color="secondary" icon="filter_list">
+              <q-menu>
+                <q-list style="min-width: 200px">
+                  <q-item>
+                    <q-select
+                      v-model="moduleFilter"
+                      :options="availableModules"
+                      label="Filtrar por módulo"
+                      dense
+                      options-dense
+                      emit-value
+                      map-options
+                      style="min-width: 200px"
+                    />
+                  </q-item>
+                  <q-item>
+                    <q-toggle v-model="showInactive" label="Mostrar inactivas" />
+                  </q-item>
+                </q-list>
+              </q-menu>
+            </q-btn>
+          </q-btn-group>
+        </div>
 
-        <q-separator />
+        <!-- Grid de plantillas existentes -->
+        <div class="row q-col-gutter-md">
+          <div v-for="template in filteredTemplates" :key="template.id" class="col-12 col-sm-6 col-md-3 col-lg-2">
+            <q-card class="template-card">
+              <q-img
+                :src="getTemplateTypeIcon(template.type)"
+                height="100px"
+                class="template-header"
+              >
+                <div class="absolute-bottom text-subtitle2 text-center bg-transparent">
+                  {{ template.name }}
+                </div>
+              </q-img>
 
+              <q-card-actions align="center">
+                <q-btn flat round color="grey" icon="preview" size="sm">
+                  <q-tooltip>Vista previa</q-tooltip>
+                </q-btn>
+                <q-btn flat round color="primary" icon="edit" size="sm">
+                  <q-tooltip>Editar</q-tooltip>
+                </q-btn>
+                <q-btn 
+                  flat 
+                  round 
+                  :color="template.active ? 'negative' : 'positive'" 
+                  :icon="template.active ? 'toggle_off' : 'toggle_on'"
+                  size="sm"
+                >
+                  <q-tooltip>{{ template.active ? 'Desactivar' : 'Activar' }}</q-tooltip>
+                </q-btn>
+              </q-card-actions>
+            </q-card>
+          </div>
+        </div>
+      </q-tab-panel>
+    </q-tab-panels>
+
+    <!-- Diálogo para seleccionar tipo de plantilla nueva -->
+    <q-dialog v-model="showNewTemplateDialog">
+      <q-card style="width: 700px; max-width: 90vw;">
         <q-card-section>
-          <div class="template-types-grid">
-            <div 
-              v-for="templateType in templateTypes" 
-              :key="templateType.id"
-              class="template-type-card"
-              :class="{ 'selected': selectedType === templateType.id }"
-              @click="selectedType = templateType.id"
-            >
-              <q-avatar 
-                :icon="templateType.icon" 
-                :color="templateType.color"
-                text-color="white"
-                size="lg"
-                class="type-avatar"
-              />
-              
-              <div class="type-content">
-                <h6 class="type-title">{{ templateType.name }}</h6>
-                <p class="type-desc">{{ templateType.description }}</p>
-                
-                <div class="type-features">
-                  <q-chip 
-                    v-for="feature in templateType.features" 
-                    :key="feature"
-                    :label="feature" 
-                    size="sm" 
-                    color="grey-3" 
-                    text-color="grey-8"
-                  />
-                </div>
-                
-                <div class="type-stats">
-                  <span class="stat">
-                    <q-icon name="code" size="xs" />
-                    {{ templateType.variables?.length || 0 }} variables
-                  </span>
-                  <span class="stat">
-                    <q-icon name="schedule" size="xs" />
-                    {{ templateType.estimatedTime || '5 min' }}
-                  </span>
-                </div>
-              </div>
+          <div class="text-h6">Seleccionar Tipo de Plantilla</div>
+        </q-card-section>
 
-              <div class="selection-indicator" v-if="selectedType === templateType.id">
-                <q-icon name="check_circle" color="positive" size="md" />
-              </div>
+        <q-card-section class="q-pa-md">
+          <div class="row q-col-gutter-md">
+            <div v-for="type in templateTypes" :key="type.id" class="col-12 col-sm-6">
+              <q-card 
+                class="template-type-card cursor-pointer" 
+                :class="{ 'selected': selectedTemplateType === type.id }"
+                @click="selectedTemplateType = type.id"
+                flat
+                bordered
+              >
+                <q-card-section class="q-pa-sm">
+                  <div class="row items-center no-wrap">
+                    <q-icon :name="type.icon" :color="type.color" size="md" class="q-mr-md"/>
+                    <div class="col">
+                      <div class="text-subtitle1">{{ type.name }}</div>
+                      <div class="text-caption">{{ type.description }}</div>
+                    </div>
+                  </div>
+                </q-card-section>
+              </q-card>
             </div>
           </div>
         </q-card-section>
 
-        <q-separator />
-
-        <q-card-actions align="right">
-          <q-btn label="Cancelar" flat @click="showTypeSelector = false" />
+        <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="Cancelar" v-close-popup />
           <q-btn 
-            label="Seleccionar" 
             color="primary" 
-            :disable="!selectedType"
-            @click="selectTemplateType"
+            label="Crear" 
+            :disable="!selectedTemplateType"
+            @click="createNewTemplate" 
           />
         </q-card-actions>
       </q-card>
     </q-dialog>
 
-    <!-- Dialog de configuración del tipo -->
-    <q-dialog v-model="showTypeSettings" persistent>
-      <q-card style="min-width: 500px;">
-        <q-card-section class="row items-center">
-          <q-icon name="settings" size="md" class="text-primary q-mr-md" />
-          <div class="text-h6">Configuración de {{ currentTemplateType?.name }}</div>
-          <q-space />
-          <q-btn icon="close" flat round dense @click="showTypeSettings = false" />
-        </q-card-section>
-
-        <q-separator />
-
-        <q-card-section v-if="currentTemplateType">
-          <q-form>
-            <q-input
-              v-model="typeSettings.customName"
-              label="Nombre personalizado (opcional)"
-              outlined
-              class="q-mb-md"
-            />
-            
-            <q-input
-              v-model="typeSettings.prefix"
-              label="Prefijo para numeración"
-              outlined
-              class="q-mb-md"
-              :placeholder="currentTemplateType.defaultPrefix"
-            />
-            
-            <q-toggle 
-              v-model="typeSettings.autoNumber" 
-              label="Numeración automática"
-              class="q-mb-md"
-            />
-            
-            <q-toggle 
-              v-model="typeSettings.requireSignature" 
-              label="Requerir firma digital"
-              class="q-mb-md"
-            />
-            
-            <q-toggle 
-              v-model="typeSettings.includeLogo" 
-              label="Incluir logo de la clínica"
-              class="q-mb-md"
-            />
-
-            <q-select
-              v-model="typeSettings.paperSize"
-              :options="paperSizes"
-              label="Tamaño de papel"
-              outlined
-              emit-value
-              map-options
-              class="q-mb-md"
-            />
-
-            <q-select
-              v-model="typeSettings.orientation"
-              :options="orientations"
-              label="Orientación"
-              outlined
-              emit-value
-              map-options
-            />
-          </q-form>
-        </q-card-section>
-
-        <q-separator />
-
-        <q-card-actions align="right">
-          <q-btn label="Cancelar" flat @click="showTypeSettings = false" />
-          <q-btn label="Guardar" color="primary" @click="saveTypeSettings" />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
+    <!-- Usar el nuevo componente de formulario -->
+    <template-form
+      ref="templateForm"
+      @save="handleTemplateSave"
+      @close="handleTemplateClose"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, reactive, watch } from 'vue'
+import { ref, computed, reactive, watch, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
+import TemplateForm from '../../../components/templates/TemplateForm.vue'
+import { templateService } from '@/services/templateService'
 
 // Props
 const props = defineProps({
@@ -275,6 +188,17 @@ const $q = useQuasar()
 const showTypeSelector = ref(false)
 const showTypeSettings = ref(false)
 const selectedType = ref(props.selectedTemplateTypeId)
+const showDialog = ref(false)
+const isEditing = ref(false)
+
+// Estado para filtros y diálogos
+const moduleFilter = ref(null)
+const showInactive = ref(false)
+const showNewTemplateDialog = ref(false)
+const selectedTemplateType = ref(null)
+
+// Referencias
+const templateForm = ref(null)
 
 // Configuración del tipo actual
 const typeSettings = reactive({
@@ -301,141 +225,56 @@ const orientations = [
 ]
 
 // Tipos de plantillas disponibles
-const templateTypes = ref([
+const templates = ref([
   {
-    id: 'vaccination_certificate',
-    name: 'Certificado de Vacunación',
-    description: 'Documento oficial que certifica las vacunas aplicadas a la mascota',
-    icon: 'vaccines',
-    color: 'green',
-    features: ['Historial de vacunas', 'Fechas de aplicación', 'Próximas dosis'],
-    defaultPrefix: 'CV',
-    estimatedTime: '3 min',
-    variables: [
-      { name: 'petName', label: 'Nombre de la mascota', type: 'text', required: true, description: 'Nombre completo de la mascota' },
-      { name: 'ownerName', label: 'Nombre del propietario', type: 'text', required: true, description: 'Nombre completo del dueño' },
-      { name: 'petSpecies', label: 'Especie', type: 'text', required: true, description: 'Perro, Gato, etc.' },
-      { name: 'petBreed', label: 'Raza', type: 'text', required: false, description: 'Raza de la mascota' },
-      { name: 'petAge', label: 'Edad', type: 'text', required: false, description: 'Edad actual de la mascota' },
-      { name: 'vaccineList', label: 'Lista de vacunas', type: 'array', required: true, description: 'Vacunas aplicadas con fechas' },
-      { name: 'veterinarianName', label: 'Veterinario', type: 'text', required: true, description: 'Nombre del veterinario certificante' },
-      { name: 'clinicName', label: 'Clínica', type: 'text', required: true, description: 'Nombre de la clínica veterinaria' },
-      { name: 'issueDate', label: 'Fecha de emisión', type: 'date', required: true, description: 'Fecha de emisión del certificado' },
-      { name: 'certificateNumber', label: 'Número de certificado', type: 'text', required: true, description: 'Número único del certificado' },
-      { name: 'nextVaccination', label: 'Próxima vacunación', type: 'date', required: false, description: 'Fecha de la próxima vacuna' }
-    ]
+    id: '1',
+    name: 'Plantilla 1',
+    description: 'Descripción de la plantilla 1',
+    active: true,
+    modules: ['consultations', 'vaccinations'],
+    variables: [],
+    content: '<p>Contenido de la plantilla 1</p>',
+    updatedAt: '2023-10-01'
   },
   {
-    id: 'deworming_certificate',
-    name: 'Certificado de Desparasitación',
-    description: 'Documento que certifica los tratamientos antiparasitarios aplicados',
-    icon: 'pest_control',
-    color: 'orange',
-    features: ['Historial de tratamientos', 'Medicamentos utilizados', 'Dosis aplicadas'],
-    defaultPrefix: 'CD',
-    estimatedTime: '3 min',
-    variables: [
-      { name: 'petName', label: 'Nombre de la mascota', type: 'text', required: true, description: 'Nombre completo de la mascota' },
-      { name: 'ownerName', label: 'Nombre del propietario', type: 'text', required: true, description: 'Nombre completo del dueño' },
-      { name: 'petSpecies', label: 'Especie', type: 'text', required: true, description: 'Perro, Gato, etc.' },
-      { name: 'petWeight', label: 'Peso', type: 'number', required: true, description: 'Peso actual de la mascota en kg' },
-      { name: 'dewormingList', label: 'Lista de desparasitaciones', type: 'array', required: true, description: 'Tratamientos aplicados con fechas y dosis' },
-      { name: 'medication', label: 'Medicamento utilizado', type: 'text', required: true, description: 'Nombre del antiparasitario' },
-      { name: 'veterinarianName', label: 'Veterinario', type: 'text', required: true, description: 'Nombre del veterinario tratante' },
-      { name: 'clinicName', label: 'Clínica', type: 'text', required: true, description: 'Nombre de la clínica veterinaria' },
-      { name: 'treatmentDate', label: 'Fecha de tratamiento', type: 'date', required: true, description: 'Fecha del último tratamiento' },
-      { name: 'nextTreatment', label: 'Próximo tratamiento', type: 'date', required: false, description: 'Fecha del próximo tratamiento' }
-    ]
-  },
-  {
-    id: 'commitment_letter',
-    name: 'Carta Compromiso',
-    description: 'Documento de compromiso para cuidados específicos o tratamientos',
-    icon: 'handshake',
-    color: 'blue',
-    features: ['Términos y condiciones', 'Responsabilidades', 'Compromisos específicos'],
-    defaultPrefix: 'CC',
-    estimatedTime: '5 min',
-    variables: [
-      { name: 'ownerName', label: 'Nombre del propietario', type: 'text', required: true, description: 'Nombre completo del responsable' },
-      { name: 'ownerIdNumber', label: 'Número de identificación', type: 'text', required: true, description: 'Cédula o documento de identidad' },
-      { name: 'petName', label: 'Nombre de la mascota', type: 'text', required: true, description: 'Nombre de la mascota involucrada' },
-      { name: 'commitmentType', label: 'Tipo de compromiso', type: 'text', required: true, description: 'Naturaleza del compromiso adquirido' },
-      { name: 'commitmentDetails', label: 'Detalles del compromiso', type: 'text', required: true, description: 'Descripción específica de las obligaciones' },
-      { name: 'startDate', label: 'Fecha de inicio', type: 'date', required: true, description: 'Fecha de inicio del compromiso' },
-      { name: 'endDate', label: 'Fecha de vencimiento', type: 'date', required: false, description: 'Fecha límite del compromiso' },
-      { name: 'veterinarianName', label: 'Veterinario supervisor', type: 'text', required: true, description: 'Veterinario que supervisa el cumplimiento' },
-      { name: 'clinicName', label: 'Clínica', type: 'text', required: true, description: 'Clínica responsable del seguimiento' },
-      { name: 'consequences', label: 'Consecuencias', type: 'text', required: false, description: 'Consecuencias por incumplimiento' }
-    ]
-  },
-  {
-    id: 'health_certificate',
-    name: 'Certificado de Salud',
-    description: 'Certificado médico general del estado de salud de la mascota',
-    icon: 'health_and_safety',
-    color: 'teal',
-    features: ['Examen físico', 'Estado general', 'Recomendaciones'],
-    defaultPrefix: 'CS',
-    estimatedTime: '4 min',
-    variables: [
-      { name: 'petName', label: 'Nombre de la mascota', type: 'text', required: true, description: 'Nombre completo de la mascota' },
-      { name: 'ownerName', label: 'Nombre del propietario', type: 'text', required: true, description: 'Nombre del propietario' },
-      { name: 'petSpecies', label: 'Especie', type: 'text', required: true, description: 'Especie animal' },
-      { name: 'petAge', label: 'Edad', type: 'text', required: true, description: 'Edad de la mascota' },
-      { name: 'healthStatus', label: 'Estado de salud', type: 'text', required: true, description: 'Estado general de salud' },
-      { name: 'examDate', label: 'Fecha de examen', type: 'date', required: true, description: 'Fecha del examen médico' },
-      { name: 'findings', label: 'Hallazgos', type: 'text', required: false, description: 'Hallazgos relevantes del examen' },
-      { name: 'recommendations', label: 'Recomendaciones', type: 'text', required: false, description: 'Recomendaciones médicas' },
-      { name: 'veterinarianName', label: 'Veterinario', type: 'text', required: true, description: 'Veterinario certificante' },
-      { name: 'validUntil', label: 'Válido hasta', type: 'date', required: false, description: 'Fecha de vencimiento del certificado' }
-    ]
-  },
-  {
-    id: 'surgery_consent',
-    name: 'Consentimiento de Cirugía',
-    description: 'Documento de autorización para procedimientos quirúrgicos',
-    icon: 'medical_services',
-    color: 'red',
-    features: ['Autorización quirúrgica', 'Riesgos informados', 'Términos legales'],
-    defaultPrefix: 'CQ',
-    estimatedTime: '7 min',
-    variables: [
-      { name: 'ownerName', label: 'Nombre del propietario', type: 'text', required: true, description: 'Nombre del responsable legal' },
-      { name: 'petName', label: 'Nombre de la mascota', type: 'text', required: true, description: 'Nombre de la mascota' },
-      { name: 'surgeryType', label: 'Tipo de cirugía', type: 'text', required: true, description: 'Procedimiento quirúrgico a realizar' },
-      { name: 'surgeryDate', label: 'Fecha de cirugía', type: 'date', required: true, description: 'Fecha programada para la cirugía' },
-      { name: 'risks', label: 'Riesgos informados', type: 'text', required: true, description: 'Riesgos asociados al procedimiento' },
-      { name: 'preOperativeCare', label: 'Cuidados preoperatorios', type: 'text', required: false, description: 'Instrucciones previas a la cirugía' },
-      { name: 'postOperativeCare', label: 'Cuidados postoperatorios', type: 'text', required: false, description: 'Cuidados posteriores a la cirugía' },
-      { name: 'surgeonName', label: 'Cirujano', type: 'text', required: true, description: 'Veterinario que realizará la cirugía' },
-      { name: 'estimatedCost', label: 'Costo estimado', type: 'number', required: false, description: 'Costo aproximado del procedimiento' },
-      { name: 'emergencyContact', label: 'Contacto de emergencia', type: 'text', required: true, description: 'Teléfono de contacto de emergencia' }
-    ]
-  },
-  {
-    id: 'euthanasia_consent',
-    name: 'Consentimiento de Eutanasia',
-    description: 'Documento de autorización para procedimiento de eutanasia humanitaria',
-    icon: 'pets',
-    color: 'purple',
-    features: ['Autorización legal', 'Consideraciones éticas', 'Opciones finales'],
-    defaultPrefix: 'CE',
-    estimatedTime: '10 min',
-    variables: [
-      { name: 'ownerName', label: 'Nombre del propietario', type: 'text', required: true, description: 'Nombre del propietario responsable' },
-      { name: 'petName', label: 'Nombre de la mascota', type: 'text', required: true, description: 'Nombre de la mascota' },
-      { name: 'medicalReason', label: 'Razón médica', type: 'text', required: true, description: 'Justificación médica para el procedimiento' },
-      { name: 'alternativesDiscussed', label: 'Alternativas discutidas', type: 'text', required: true, description: 'Opciones alternativas consideradas' },
-      { name: 'procedureDate', label: 'Fecha del procedimiento', type: 'date', required: true, description: 'Fecha programada' },
-      { name: 'veterinarianName', label: 'Veterinario', type: 'text', required: true, description: 'Veterinario responsable' },
-      { name: 'witnessName', label: 'Testigo', type: 'text', required: false, description: 'Nombre del testigo presente' },
-      { name: 'disposalOption', label: 'Opción de disposición final', type: 'text', required: true, description: 'Cremación, entierro, etc.' },
-      { name: 'ownerSignature', label: 'Firma del propietario', type: 'text', required: true, description: 'Confirmación de firma' },
-      { name: 'vetSignature', label: 'Firma del veterinario', type: 'text', required: true, description: 'Confirmación de firma profesional' }
-    ]
+    id: '2',
+    name: 'Plantilla 2',
+    description: 'Descripción de la plantilla 2',
+    active: false,
+    modules: ['surgeries', 'hospitalization'],
+    variables: [],
+    content: '<p>Contenido de la plantilla 2</p>',
+    updatedAt: '2023-09-15'
   }
 ])
+
+// Módulos disponibles en el sistema
+const availableModules = [
+  { label: 'Consultas', value: 'consultations', icon: 'medical_services' },
+  { label: 'Vacunación', value: 'vaccinations', icon: 'vaccines' },
+  { label: 'Cirugías', value: 'surgeries', icon: 'medical_services' },
+  { label: 'Hospitalización', value: 'hospitalization', icon: 'local_hospital' },
+  { label: 'Laboratorio', value: 'laboratory', icon: 'science' },
+  { label: 'Peluquería', value: 'grooming', icon: 'content_cut' },
+  { label: 'Farmacia', value: 'pharmacy', icon: 'medication' },
+  { label: 'Historias Clínicas', value: 'medical_records', icon: 'folder_shared' }
+]
+
+// Variables comunes disponibles para todas las plantillas
+const commonVariables = [
+  { name: 'clinic.name', label: 'Nombre Clínica' },
+  { name: 'clinic.address', label: 'Dirección Clínica' },
+  { name: 'clinic.phone', label: 'Teléfono Clínica' },
+  { name: 'clinic.logo', label: 'Logo Clínica' },
+  { name: 'pet.name', label: 'Nombre Mascota' },
+  { name: 'pet.species', label: 'Especie' },
+  { name: 'pet.breed', label: 'Raza' },
+  { name: 'owner.name', label: 'Nombre Propietario' },
+  { name: 'owner.phone', label: 'Teléfono Propietario' },
+  { name: 'vet.name', label: 'Nombre Veterinario' },
+  { name: 'date.now', label: 'Fecha Actual' },
+  { name: 'date.next', label: 'Próxima Fecha' }
+]
 
 // Computed properties
 const currentTemplateType = computed(() => {
@@ -445,6 +284,30 @@ const currentTemplateType = computed(() => {
 const availableVariables = computed(() => {
   return currentTemplateType.value?.variables || []
 })
+
+const filteredTemplates = computed(() => {
+  let filtered = [...templates.value]
+  
+  if (moduleFilter.value) {
+    filtered = filtered.filter(t => t.modules.includes(moduleFilter.value))
+  }
+  
+  if (!showInactive.value) {
+    filtered = filtered.filter(t => t.active)
+  }
+  
+  return filtered
+})
+
+// Nuevos métodos
+const getModuleIcon = (moduleValue) => {
+  const module = availableModules.find(m => m.value === moduleValue)
+  return module?.icon || 'extension'
+}
+
+const formatDate = (date) => {
+  return new Date(date).toLocaleDateString()
+}
 
 // Métodos
 const getVariableIcon = (type) => {
@@ -525,340 +388,183 @@ const saveTypeSettings = () => {
   })
 }
 
+const toggleTemplateStatus = async (template) => {
+  try {
+    // Aquí iría la llamada a la API para actualizar el estado
+    template.active = !template.active
+    $q.notify({
+      message: `Plantilla ${template.active ? 'activada' : 'desactivada'} correctamente`,
+      color: 'positive'
+    })
+  } catch (error) {
+    $q.notify({
+      message: 'Error al cambiar el estado de la plantilla',
+      color: 'negative'
+    })
+  }
+}
+
+const previewTemplate = (template) => {
+  // Implementar vista previa
+}
+
+const showTemplateDialog = (template = null) => {
+  templateForm.value.showDialog = true
+}
+
+const loadTemplates = async () => {
+  try {
+    templates.value = await templateService.getTemplates()
+  } catch (error) {
+    $q.notify({
+      message: 'Error al cargar las plantillas',
+      color: 'negative'
+    })
+  }
+}
+
+const handleTemplateSave = async (templateData) => {
+  try {
+    if (templateData.id) {
+      await templateService.updateTemplate(templateData.id, templateData)
+    } else {
+      await templateService.createTemplate(templateData)
+    }
+    await loadTemplates()
+    $q.notify({
+      message: 'Plantilla guardada exitosamente',
+      color: 'positive'
+    })
+  } catch (error) {
+    $q.notify({
+      message: 'Error al guardar la plantilla',
+      color: 'negative'
+    })
+  }
+}
+
+const createNewTemplate = () => {
+  const type = templateTypes.find(t => t.id === selectedTemplateType.value)
+  if (type) {
+    showNewTemplateDialog.value = false
+    templateForm.value.open({
+      type: type.id,
+      name: '',
+      description: '',
+      modules: [],
+      variables: type.variables,
+      content: type.defaultContent || ''
+    })
+  }
+}
+
+// Cargar plantillas al montar el componente
+onMounted(() => {
+  loadTemplates()
+})
+
+const handleTemplateClose = () => {
+  // Lógica adicional al cerrar el formulario si es necesaria
+}
+
 // Watchers
 watch(() => props.selectedTemplateTypeId, (newId) => {
   selectedType.value = newId
 })
+
+// Estado para tabs
+const activeTab = ref('types')
+
+// Tipos de plantillas predefinidos
+const templateTypes = [
+  {
+    id: 'consultation',
+    name: 'Consulta General',
+    description: 'Plantilla para registrar consultas médicas',
+    icon: 'medical_services',
+    color: 'primary',
+    defaultContent: '<h2>Consulta Veterinaria</h2><p>Fecha: {{date.now}}</p>'
+  },
+  {
+    id: 'vaccine',
+    name: 'Certificado de Vacunación',
+    description: 'Certificado oficial de vacunación',
+    icon: 'vaccines',
+    color: 'positive',
+    defaultContent: '<h2>Certificado de Vacunación</h2>'
+  },
+  {
+    id: 'surgery',
+    name: 'Informe Quirúrgico',
+    description: 'Informe detallado de cirugía',
+    icon: 'medical_services',
+    color: 'negative',
+    defaultContent: '<h2>Informe Quirúrgico</h2>'
+  },
+  {
+    id: 'prescription',
+    name: 'Receta Médica',
+    description: 'Prescripción de medicamentos',
+    icon: 'medication',
+    color: 'warning',
+    defaultContent: '<h2>Receta Médica</h2>'
+  }
+]
+
+// Método para crear desde tipo
+const createFromType = (type) => {
+  templateForm.value.open({
+    type: type.id,
+    name: '',
+    description: '',
+    modules: [],
+    content: type.defaultContent,
+    variables: [],
+    active: true
+  })
+}
+
+// Método para obtener icono de tipo
+const getTemplateTypeIcon = (typeId) => {
+  const type = templateTypes.find(t => t.id === typeId)
+  return type?.icon || 'description'
+}
 </script>
 
 <style lang="scss" scoped>
-.template-type-selector {
-  background: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.type-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  border-bottom: 1px solid #f1f5f9;
-
-  .current-type-info {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-
-    .type-details {
-      .type-name {
-        margin: 0 0 0.25rem 0;
-        font-weight: 600;
-        color: #1f2937;
-      }
-
-      .type-description {
-        margin: 0;
-        font-size: 0.875rem;
-        color: #6b7280;
-      }
-    }
-  }
-
-  .header-actions {
-    display: flex;
-    gap: 0.5rem;
-  }
-}
-
-.type-variables {
-  padding: 1rem;
-
-  .variables-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-    font-weight: 600;
-    color: #374151;
-  }
-
-  .variables-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1rem;
-  }
-
-  .variable-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: 1rem;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
-    background: #f9fafb;
-    transition: all 0.2s ease;
-
-    &:hover {
-      border-color: #d1d5db;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-
-    &.required {
-      border-left: 4px solid #f59e0b;
-    }
-
-    .variable-info {
-      flex: 1;
-
-      .variable-name {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 0.5rem;
-        font-weight: 600;
-        color: #1f2937;
-      }
-
-      .variable-description {
-        margin: 0 0 0.5rem 0;
-        font-size: 0.875rem;
-        color: #6b7280;
-      }
-
-      .variable-meta {
-        display: flex;
-        gap: 1rem;
-        font-size: 0.75rem;
-
-        .variable-type {
-          color: #059669;
-          font-weight: 500;
-        }
-
-        .variable-syntax {
-          color: #dc2626;
-          font-family: monospace;
-          background: #fef2f2;
-          padding: 0.125rem 0.25rem;
-          border-radius: 0.25rem;
-        }
-      }
-    }
-
-    .variable-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-    }
-  }
-}
-
-.template-types-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
-  max-height: 60vh;
-  overflow-y: auto;
-}
-
-.template-type-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 1.5rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 0.75rem;
-  background: #ffffff;
-  cursor: pointer;
-  transition: all 0.3s ease;
-
-  &:hover {
-    border-color: #d1d5db;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transform: translateY(-2px);
-  }
-
-  &.selected {
-    border-color: #3b82f6;
-    background: #eff6ff;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
-  }
-
-  .type-avatar {
-    margin-bottom: 1rem;
-  }
-
-  .type-content {
-    text-align: center;
-    flex: 1;
-
-    .type-title {
-      margin: 0 0 0.5rem 0;
-      font-weight: 600;
-      color: #1f2937;
-    }
-
-    .type-desc {
-      margin: 0 0 1rem 0;
-      font-size: 0.875rem;
-      color: #6b7280;
-      line-height: 1.4;
-    }
-
-    .type-features {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 0.25rem;
-      margin-bottom: 1rem;
-    }
-
-    .type-stats {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      font-size: 0.75rem;
-      color: #9ca3af;
-
-      .stat {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-      }
-    }
-  }
-
-  .selection-indicator {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-  }
-}
-
-// Responsive
-@media (max-width: 768px) {
-  .type-header {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
-
-    .current-type-info {
-      justify-content: center;
-      text-align: center;
-    }
-
-    .header-actions {
-      justify-content: center;
-    }
-  }
-
-  .variables-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .template-types-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .variable-card {
-    flex-direction: column;
-    gap: 1rem;
-
-    .variable-actions {
-      flex-direction: row;
-      justify-content: center;
-    }
-  }
-}
-
-// Dark theme
-.body--dark {
-  .template-type-selector {
-    background: #1e293b;
-    border-bottom-color: #334155;
-  }
-
-  .type-header {
-    border-bottom-color: #334155;
-
-    .type-details {
-      .type-name {
-        color: #e2e8f0;
-      }
-
-      .type-description {
-        color: #94a3b8;
-      }
-    }
-  }
-
-  .type-variables {
-    .variables-header {
-      color: #e2e8f0;
-    }
-
-    .variable-card {
-      background: #334155;
-      border-color: #475569;
-
-      &:hover {
-        border-color: #64748b;
-      }
-
-      &.required {
-        border-left-color: #f59e0b;
-      }
-
-      .variable-info {
-        .variable-name {
-          color: #e2e8f0;
-        }
-
-        .variable-description {
-          color: #94a3b8;
-        }
-
-        .variable-meta {
-          .variable-type {
-            color: #10b981;
-          }
-
-          .variable-syntax {
-            color: #ef4444;
-            background: #450a0a;
-          }
-        }
-      }
-    }
-  }
+.template-manager {
+  max-width: 1400px;
+  margin: 0 auto;
 
   .template-type-card {
-    background: #334155;
-    border-color: #475569;
+    transition: all 0.2s ease;
+    cursor: pointer;
 
     &:hover {
-      border-color: #64748b;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+  }
+
+  .template-card {
+    transition: all 0.2s ease;
+    height: 180px;
+
+    .template-header {
+      background: linear-gradient(45deg, var(--q-primary) 0%, var(--q-secondary) 100%);
     }
 
-    &.selected {
-      background: #1e3a8a;
-      border-color: #3b82f6;
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
+  }
+}
 
-    .type-content {
-      .type-title {
-        color: #e2e8f0;
-      }
-
-      .type-desc {
-        color: #94a3b8;
-      }
-
-      .type-stats {
-        color: #64748b;
-      }
-    }
+// Dark theme support
+.body--dark {
+  .template-type-card {
+    background: #1d1d1d;
   }
 }
 </style>
