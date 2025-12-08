@@ -655,7 +655,6 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import NdPeticionControl from 'src/controles/rest.control'
 
 const $q = useQuasar()
 
@@ -666,11 +665,86 @@ const currentMonth = ref(new Date().getMonth())
 const selectedService = ref(null)
 const selectedSlot = ref(null)
 const viewMode = ref('month')
-const dayViewMode = ref('cards')
+const dayViewMode = ref('cards') // Nuevo estado para el modo de vista diaria
 const selectedDate = ref(new Date())
 const showDatePicker = ref(false)
-const sidebarCollapsed = ref(false)
 
+// Estados del sidebar
+const sidebarCollapsed = ref(false)
+const serviceSearch = ref('')
+
+// Servicios disponibles
+const services = ref([
+  {
+    id: 1,
+    name: 'Consulta General',
+    duration: 30,
+    price: 150,
+    icon: 'medical_services',
+    color: '#667eea'
+  },
+  {
+    id: 2,
+    name: 'Consulta Especialidad',
+    duration: 45,
+    price: 300,
+    icon: 'psychology',
+    color: '#764ba2'
+  },
+  {
+    id: 3,
+    name: 'Vacunación',
+    duration: 20,
+    price: 200,
+    icon: 'vaccines',
+    color: '#f093fb'
+  },
+  {
+    id: 4,
+    name: 'Cirugía Menor',
+    duration: 60,
+    price: 800,
+    icon: 'healing',
+    color: '#f5576c'
+  },
+  {
+    id: 5,
+    name: 'Baño y Corte',
+    duration: 90,
+    price: 300,
+    icon: 'pets',
+    color: '#4facfe'
+  },
+  {
+    id: 6,
+    name: 'Rayos X',
+    duration: 45,
+    price: 400,
+    icon: 'medical_information',
+    color: '#43e97b'
+  },
+  {
+    id: 7,
+    name: 'Laboratorio',
+    duration: 15,
+    price: 250,
+    icon: 'science',
+    color: '#fa709a'
+  },
+  {
+    id: 8,
+    name: 'Emergencias',
+    duration: 60,
+    price: 500,
+    icon: 'emergency',
+    color: '#ff6b6b'
+  }
+])
+
+// Días de la semana
+const weekdays = ref(['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'])
+
+// Columnas para la tabla del modo día
 const dayColumns = ref([
   {
     name: 'time',
@@ -722,39 +796,6 @@ const dayColumns = ref([
     style: 'width: 150px'
   }
 ])
-
-// Servicios disponibles
-const services = ref([])
-const serviceSearch = ref('')
-
-const loadServices = async () => {
-  try {
-    const peticion = new NdPeticionControl()
-    const response = await peticion.invocarMetodo('servicioagenda', 'get')
-    
-    // Handle both array and object response
-    const data = Array.isArray(response) ? response : (response?.data || [])
-    
-    if (Array.isArray(data)) {
-      services.value = data.map(s => ({
-        id: s.id,
-        name: s.nombre,
-        duration: s.duracion_minutos,
-        price: s.precio,
-        icon: s.icono || 'pets',
-        color: s.color || 'blue',
-        active: s.activo,
-        urgency: s.urgencias
-      }))
-    }
-  } catch (error) {
-    console.error('Error cargando servicios:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Error al cargar los servicios'
-    })
-  }
-}
 
 // Horarios de trabajo por servicio
 const getWorkingHours = (serviceId) => {
@@ -1121,6 +1162,25 @@ const selectTimeSlot = (day, slot) => {
   }
 
   // Limpiar selección anterior
+  if (viewMode.value === 'month') {
+    calendarDays.value.forEach(d => {
+      d.slots.forEach(s => {
+        if (s.status === 'selected') {
+          s.status = 'available'
+        }
+      })
+    })
+  } else {
+    daySlots.value.forEach(s => {
+      if (s.status === 'selected') {
+        s.status = 'available'
+      }
+    })
+  }
+
+  // Marcar como seleccionado
+  slot.status = 'selected'
+
   selectedSlot.value = {
     date: day.fullDate.toLocaleDateString('es-ES'),
     dayName: day.fullDate.toLocaleDateString('es-ES', { weekday: 'long' }),
@@ -1137,7 +1197,10 @@ const selectTimeSlot = (day, slot) => {
 }
 
 onMounted(() => {
-  loadServices()
+  // Seleccionar el primer servicio por defecto
+  if (services.value.length > 0) {
+    selectedService.value = services.value[0]
+  }
 })
 </script>
 

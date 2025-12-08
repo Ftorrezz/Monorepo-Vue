@@ -666,10 +666,9 @@ const currentMonth = ref(new Date().getMonth())
 const selectedService = ref(null)
 const selectedSlot = ref(null)
 const viewMode = ref('month')
-const dayViewMode = ref('cards')
+const dayViewMode = ref('cards') // Nuevo estado para el modo de vista diaria
 const selectedDate = ref(new Date())
 const showDatePicker = ref(false)
-const sidebarCollapsed = ref(false)
 
 const dayColumns = ref([
   {
@@ -732,11 +731,8 @@ const loadServices = async () => {
     const peticion = new NdPeticionControl()
     const response = await peticion.invocarMetodo('servicioagenda', 'get')
     
-    // Handle both array and object response
-    const data = Array.isArray(response) ? response : (response?.data || [])
-    
-    if (Array.isArray(data)) {
-      services.value = data.map(s => ({
+    if (response && Array.isArray(response)) {
+      services.value = response.map(s => ({
         id: s.id,
         name: s.nombre,
         duration: s.duracion_minutos,

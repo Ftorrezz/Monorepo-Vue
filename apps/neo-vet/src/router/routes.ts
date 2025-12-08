@@ -5,107 +5,127 @@ const routes: RouteRecordRaw[] = [
     path: '/',
     component: () => import('layouts/Layout.vue'),
     children: [
-      { path: '',
+      {
+        path: '',
         name: 'inicio',
         component: () => import('pages/Index.vue'),
-        meta: { requireAuth: true } },
+        meta: { requireAuth: true }
+      },
 
-      { path: '/color',
+      {
+        path: '/color',
         name: 'color',
         component: () => import('../../../neo-vet/src/pages/configuration/mascota/color.vue'),
         meta: { requireAuth: false },
 
       },
-      { path: '/sexo',
+      {
+        path: '/sexo',
         name: 'sexo',
         component: () => import('../../../neo-vet/src/pages/configuration/mascota/sexo.vue'),
         meta: { requireAuth: false },
 
       },
-      { path: '/habitat',
+      {
+        path: '/habitat',
         name: 'habitat',
         component: () => import('../../../neo-vet/src/pages/configuration/mascota/habitat.vue'),
         meta: { requireAuth: false },
 
       },
-      { path: '/especie',
+      {
+        path: '/especie',
         name: 'especie',
         component: () => import('../../../neo-vet/src/pages/configuration/mascota/especie.vue'),
         meta: { requireAuth: false },
 
       },
-      { path: '/razamascota',
+      {
+        path: '/razamascota',
         name: 'razamascota',
         component: () => import('../../../neo-vet/src/pages/configuration/mascota/raza.vue'),
         meta: { requireAuth: false },
 
       },
-      { path: '/caracter',
+      {
+        path: '/caracter',
         name: 'caracter',
         component: () => import('../../../neo-vet/src/pages/configuration/mascota/caracter.vue'),
         meta: { requireAuth: false },
 
       },
-      { path: '/dieta',
+      {
+        path: '/dieta',
         name: 'dieta',
         component: () => import('../../../neo-vet/src/pages/configuration/mascota/dieta.vue'),
         meta: { requireAuth: false },
 
       },
-      { path: '/diagnostico',
+      {
+        path: '/diagnostico',
         name: 'diagnostico',
         component: () => import('../../../neo-vet/src/pages/configuration/mascota/diagnostico.vue'),
         meta: { requireAuth: false },
 
       },
-      { path: '/especialidad',
+      {
+        path: '/especialidad',
         name: 'especialidad',
         component: () => import('../../../neo-vet/src/pages/configuration/mascota/especialidad.vue'),
         meta: { requireAuth: false },
 
       },
-      { path: '/escolaridad',
+      {
+        path: '/escolaridad',
         name: 'escolaridad',
         component: () => import('../../../neo-vet/src/pages/configuration/propietario/escolaridad.vue'),
         meta: { requireAuth: false },
 
       },
-      { path: '/estadocivil',
+      {
+        path: '/estadocivil',
         name: 'estadocivil',
         component: () => import('../../../neo-vet/src/pages/configuration/propietario/estadocivil.vue'),
         meta: { requireAuth: false },
       },
-      { path: '/ocupacion',
+      {
+        path: '/ocupacion',
         name: 'ocupacion',
         component: () => import('../../../neo-vet/src/pages/configuration/propietario/ocupacion.vue'),
         meta: { requireAuth: false },
       },
-      { path: '/raza',
+      {
+        path: '/raza',
         name: 'raza',
         component: () => import('../../../neo-vet/src/pages/configuration/propietario/raza.vue'),
         meta: { requireAuth: false },
       },
-      { path: '/religion',
+      {
+        path: '/religion',
         name: 'religion',
         component: () => import('../../../neo-vet/src/pages/configuration/propietario/religion.vue'),
         meta: { requireAuth: false },
       },
-      { path: '/ubicacion',
+      {
+        path: '/ubicacion',
         name: 'ubicacion',
         component: () => import('pages/configuration/general/ubicacion.vue'),
         meta: { requireAuth: false },
       },
-      { path: '/servicio',
+      {
+        path: '/servicio',
         name: 'servicio',
         component: () => import('pages/configuration/general/servicio.vue'),
         meta: { requireAuth: false },
       },
-      { path: '/tipoprofesional',
+      {
+        path: '/tipoprofesional',
         name: 'tipoprofesional',
         component: () => import('pages/configuration/general/tipoprofesional.vue'),
         meta: { requireAuth: false },
       },
-      { path: '/templatemanager',
+      {
+        path: '/templatemanager',
         name: 'templatemanager',
         component: () => import('pages/configuration/template/TemplateManager.vue'),
         meta: { requireAuth: false },
@@ -165,71 +185,82 @@ const routes: RouteRecordRaw[] = [
 
   },
 
-      { path: '/propietariomascota',
-        component: () => import('layouts/Layout.vue'),
-        children: [{ path: '', name: 'busquedapropietariomascota', component: () => import('pages/busqueda/BusquedaPropietarioMascota.vue') }],
-        meta: { requireAuth: false },
+  {
+    path: '/propietariomascota',
+    component: () => import('layouts/Layout.vue'),
+    children: [{ path: '', name: 'busquedapropietariomascota', component: () => import('pages/busqueda/BusquedaPropietarioMascota.vue') }],
+    meta: { requireAuth: false },
 
-      },
+  },
 
-      { path: '/agenda',
-        component: () => import('layouts/Layout.vue'),
-        children: [
-          { path: '', name: 'agenda', component: () => import('pages/agenda/Agenda.vue') },
-          { path: '/agendaservicio', name: 'agendaservicio', component: () => import('pages/configuration/agenda/Servicio.vue') }
-        ],
-        meta: { requireAuth: false },
+  {
+    path: '/agenda',
+    component: () => import('layouts/Layout.vue'),
+    children: [
+      { path: '', name: 'agenda', component: () => import('pages/agenda/Agenda.vue') },
+      { path: '/agendaservicio', name: 'agendaservicio', component: () => import('pages/configuration/agenda/Servicio.vue') },
+      { path: '/generar-agenda', name: 'generar-agenda', component: () => import('pages/configuration/agenda/GenerarAgenda.vue') }
+    ],
+    meta: { requireAuth: false },
 
-      },
-      { path: '/reportes',
-        component: () => import('layouts/Layout.vue'),
-        children: [{ path: '', name: 'reportes', component: () => import('pages/ReportesPage.vue') }],
-        meta: { requireAuth: false },
+  },
+  {
+    path: '/reportes',
+    component: () => import('layouts/Layout.vue'),
+    children: [{ path: '', name: 'reportes', component: () => import('pages/ReportesPage.vue') }],
+    meta: { requireAuth: false },
 
-      },
-      { path: '/atencionpaciente',
-        component: () => import('layouts/Layout.vue'),
-        children: [{ path: '', name: 'atencionpaciente', component: () => import('pages/AtencionPaciente.vue') }],
-        meta: { requireAuth: false },
+  },
+  {
+    path: '/atencionpaciente',
+    component: () => import('layouts/Layout.vue'),
+    children: [{ path: '', name: 'atencionpaciente', component: () => import('pages/AtencionPaciente.vue') }],
+    meta: { requireAuth: false },
 
-      },
-      { path: '/inventario',
-        component: () => import('layouts/Layout.vue'),
-        children: [{ path: '', name: 'inventario', component: () => import('pages/inventario/inventario.vue') }],
-        meta: { requireAuth: false },
+  },
+  {
+    path: '/inventario',
+    component: () => import('layouts/Layout.vue'),
+    children: [{ path: '', name: 'inventario', component: () => import('pages/inventario/inventario.vue') }],
+    meta: { requireAuth: false },
 
-      },
-      { path: '/ventas',
-        component: () => import('layouts/Layout.vue'),
-        children: [{ path: '', name: 'ventas', component: () => import('pages/ventas/Ventas.vue') }],
-        meta: { requireAuth: false },
+  },
+  {
+    path: '/ventas',
+    component: () => import('layouts/Layout.vue'),
+    children: [{ path: '', name: 'ventas', component: () => import('pages/ventas/Ventas.vue') }],
+    meta: { requireAuth: false },
 
-      },
-      { path: '/pension',
-        component: () => import('layouts/Layout.vue'),
-        children: [{ path: '', name: 'pension', component: () => import('pages/pension/Pension.vue') }],
-        meta: { requireAuth: false },
+  },
+  {
+    path: '/pension',
+    component: () => import('layouts/Layout.vue'),
+    children: [{ path: '', name: 'pension', component: () => import('pages/pension/Pension.vue') }],
+    meta: { requireAuth: false },
 
-      },
+  },
 
-      { path: '/configuracionmodulo',
-        component: () => import('layouts/Layout.vue'),
-        children: [{ path: '', name: 'configuracionmodulo', component: () => import('pages/Configuration/generico/ConfiguracionModulo.vue') }],
-        meta: { requireAuth: false },
+  {
+    path: '/configuracionmodulo',
+    component: () => import('layouts/Layout.vue'),
+    children: [{ path: '', name: 'configuracionmodulo', component: () => import('pages/Configuration/generico/ConfiguracionModulo.vue') }],
+    meta: { requireAuth: false },
 
-      },
-      { path: '/configuracioncampo',
-        component: () => import('layouts/Layout.vue'),
-        children: [{ path: '', name: 'configuracioncampo', component: () => import('pages/Configuration/generico/ConfiguracionCampo.vue') }],
-        meta: { requireAuth: false },
+  },
+  {
+    path: '/configuracioncampo',
+    component: () => import('layouts/Layout.vue'),
+    children: [{ path: '', name: 'configuracioncampo', component: () => import('pages/Configuration/generico/ConfiguracionCampo.vue') }],
+    meta: { requireAuth: false },
 
-      },
-      { path: '/configuracionvalor',
-        component: () => import('layouts/Layout.vue'),
-        children: [{ path: '', name: 'configuracionvalor', component: () => import('pages/Configuration/generico/ConfiguracionValor.vue') }],
-        meta: { requireAuth: false },
+  },
+  {
+    path: '/configuracionvalor',
+    component: () => import('layouts/Layout.vue'),
+    children: [{ path: '', name: 'configuracionvalor', component: () => import('pages/Configuration/generico/ConfiguracionValor.vue') }],
+    meta: { requireAuth: false },
 
-      },
+  },
 
   {
     path: '/login',

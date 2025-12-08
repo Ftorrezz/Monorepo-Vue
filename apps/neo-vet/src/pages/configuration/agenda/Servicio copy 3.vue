@@ -38,80 +38,64 @@
         <q-tab-panel name="services">
           <q-card-section>
             <!-- Grid de Servicios -->
-            <div class="row q-col-gutter-md">
+            <div class="row q-gutter-sm q-md-lg">
               <div
                 v-for="service in services"
                 :key="service.id"
-                class="col-12 col-sm-6 col-md-3 col-lg-3"
+                class="col-12 col-xs-6 col-md-3"
               >
                 <q-card 
-                  class="service-card cursor-pointer full-height column no-wrap"
+                  class="service-card cursor-pointer"
                   :class="{ 'selected-service': selectedService?.id === service.id }"
-                  flat
                   bordered
                   @click="selectService(service)"
                 >
-                  <div :class="`bg-${service.color}`" style="height: 6px; width: 100%"></div>
-                  
-                  <q-card-section class="q-pa-md col flex column">
-                    <div class="row items-start no-wrap q-mb-md">
+                  <q-card-section class="q-pa-sm">
+                    <div class="row items-center q-mb-xs">
                       <q-avatar
-                        :color="`${service.color}-1`"
-                        :text-color="service.color"
+                        :color="service.color"
+                        text-color="white"
                         :icon="service.icono"
-                        size="48px"
-                        class="q-mr-md shadow-1"
+                        size="30px"
+                        class="q-mr-sm"
                       />
                       <div class="col">
-                        <div class="text-subtitle1 text-weight-bold ellipsis-2-lines line-height-normal text-grey-9">
+                        <div class="text-subtitle2 text-weight-medium ellipsis">
                           {{ service.nombre }}
                         </div>
-                        <div class="text-caption text-grey-7 q-mt-xs flex items-center">
-                          <q-icon name="schedule" size="14px" class="q-mr-xs" />
-                          {{ service.duracion_minutos }} min
-                        </div>
-                         <div class="text-caption text-grey-7 flex items-center">
-                          <q-icon name="attach_money" size="14px" class="q-mr-xs" />
-                          {{ service.precio.toFixed(2) }}
+                        <div class="text-caption text-grey-6">
+                          {{ service.duracion_minutos }}min - ${{ service.precio.toFixed(2) }}
                         </div>
                       </div>
                     </div>
 
-                    <q-space />
-
-                    <div class="row items-center justify-between q-mt-sm">
-                      <q-badge
-                        :color="service.activo === 'S' ? 'positive' : 'grey-5'"
-                        rounded
-                        class="q-px-sm q-py-xs"
-                        outline
+                    <div class="flex items-center justify-between">
+                      <q-chip
+                        :color="service.activo === 'S' ? 'green' : 'red'"
+                        text-color="white"
+                        size="sm"
                       >
                         {{ service.activo === 'S' ? 'Activo' : 'Inactivo' }}
-                      </q-badge>
-
-                      <div class="row q-gutter-x-sm action-buttons">
-                         <q-btn
-                          flat
-                          round
-                          dense
-                          color="grey-7"
-                          icon="edit"
-                          size="sm"
-                          @click.stop="openServiceDialog(service)"
-                        >
-                          <q-tooltip>Editar</q-tooltip>
-                        </q-btn>
+                      </q-chip>
+                      <div class="flex q-gutter-xs">
                         <q-btn
                           flat
                           round
                           dense
-                          color="negative"
-                          icon="delete_outline"
+                          color="primary"
+                          icon="edit"
+                          size="sm"
+                          @click.stop="openServiceDialog(service)"
+                        />
+                        <q-btn
+                          flat
+                          round
+                          dense
+                          color="red"
+                          icon="delete"
                           size="sm"
                           @click.stop="confirmDeleteService(service.id)"
-                        >
-                          <q-tooltip>Eliminar</q-tooltip>
-                        </q-btn>
+                        />
                       </div>
                     </div>
                   </q-card-section>
@@ -893,26 +877,19 @@ onMounted(() => {
 
 <style scoped>
 .service-card {
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  overflow: hidden;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
 }
 
 .service-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 20px -10px rgba(0, 0, 0, 0.15);
-  border-color: transparent;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
 }
 
 .selected-service {
   border-color: var(--q-primary) !important;
-  background-color: #f5f8ff; /* Very light primary tint */
-  transform: translateY(-4px);
-  box-shadow: 0 12px 20px -10px rgba(var(--q-primary-rgb), 0.3);
-}
-
-.line-height-normal {
-  line-height: 1.2;
+  background-color: rgba(var(--q-primary-rgb), 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(var(--q-primary-rgb), 0.3);
 }
 </style>

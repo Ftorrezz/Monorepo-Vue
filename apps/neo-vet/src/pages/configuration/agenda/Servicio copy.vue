@@ -9,7 +9,6 @@
             Configuración de Servicios
           </div>
           <q-btn
-            v-if="tab === 'services'"
             color="white"
             text-color="primary"
             label="Nuevo Servicio"
@@ -19,235 +18,196 @@
         </div>
       </q-card-section>
 
-      <q-tabs
-        v-model="tab"
-        dense
-        class="text-grey"
-        active-color="primary"
-        indicator-color="primary"
-        align="justify"
-        narrow-indicator
-      >
-        <q-tab name="services" label="Servicios" icon="medical_services" />
-        <q-tab name="exceptions" label="Días de Excepción" icon="event_busy" />
-      </q-tabs>
-
-      <q-separator />
-
-      <q-tab-panels v-model="tab" animated>
-        <q-tab-panel name="services">
-          <q-card-section>
-            <!-- Grid de Servicios -->
-            <div class="row q-col-gutter-md">
-              <div
-                v-for="service in services"
-                :key="service.id"
-                class="col-12 col-sm-6 col-md-3 col-lg-3"
-              >
-                <q-card 
-                  class="service-card cursor-pointer full-height column no-wrap"
-                  :class="{ 'selected-service': selectedService?.id === service.id }"
-                  flat
-                  bordered
-                  @click="selectService(service)"
-                >
-                  <div :class="`bg-${service.color}`" style="height: 6px; width: 100%"></div>
-                  
-                  <q-card-section class="q-pa-md col flex column">
-                    <div class="row items-start no-wrap q-mb-md">
-                      <q-avatar
-                        :color="`${service.color}-1`"
-                        :text-color="service.color"
-                        :icon="service.icono"
-                        size="48px"
-                        class="q-mr-md shadow-1"
-                      />
-                      <div class="col">
-                        <div class="text-subtitle1 text-weight-bold ellipsis-2-lines line-height-normal text-grey-9">
-                          {{ service.nombre }}
-                        </div>
-                        <div class="text-caption text-grey-7 q-mt-xs flex items-center">
-                          <q-icon name="schedule" size="14px" class="q-mr-xs" />
-                          {{ service.duracion_minutos }} min
-                        </div>
-                         <div class="text-caption text-grey-7 flex items-center">
-                          <q-icon name="attach_money" size="14px" class="q-mr-xs" />
-                          {{ service.precio.toFixed(2) }}
-                        </div>
-                      </div>
+      <q-card-section>
+        <!-- Grid de Servicios -->
+        <div class="row q-gutter-md q-mb-lg">
+          <div
+            v-for="service in services"
+            :key="service.id"
+            class="col-12 col-sm-6 col-md-3"
+          >
+            <q-card 
+              class="service-card cursor-pointer"
+              :class="{ 'selected-service': selectedService?.id === service.id }"
+              bordered
+              @click="selectService(service)"
+            >
+              <q-card-section class="q-pa-sm">
+                <div class="row items-center q-mb-xs">
+                  <q-avatar
+                    :color="service.color"
+                    text-color="white"
+                    :icon="service.icono"
+                    size="30px"
+                    class="q-mr-sm"
+                  />
+                  <div class="col">
+                    <div class="text-subtitle2 text-weight-medium ellipsis">
+                      {{ service.nombre }}
                     </div>
-
-                    <q-space />
-
-                    <div class="row items-center justify-between q-mt-sm">
-                      <q-badge
-                        :color="service.activo === 'S' ? 'positive' : 'grey-5'"
-                        rounded
-                        class="q-px-sm q-py-xs"
-                        outline
-                      >
-                        {{ service.activo === 'S' ? 'Activo' : 'Inactivo' }}
-                      </q-badge>
-
-                      <div class="row q-gutter-x-sm action-buttons">
-                         <q-btn
-                          flat
-                          round
-                          dense
-                          color="grey-7"
-                          icon="edit"
-                          size="sm"
-                          @click.stop="openServiceDialog(service)"
-                        >
-                          <q-tooltip>Editar</q-tooltip>
-                        </q-btn>
-                        <q-btn
-                          flat
-                          round
-                          dense
-                          color="negative"
-                          icon="delete_outline"
-                          size="sm"
-                          @click.stop="confirmDeleteService(service.id)"
-                        >
-                          <q-tooltip>Eliminar</q-tooltip>
-                        </q-btn>
-                      </div>
+                    <div class="text-caption text-grey-6">
+                      {{ service.duracion_minutos }}min - ${{ service.precio.toFixed(2) }}
                     </div>
-                  </q-card-section>
-                </q-card>
-              </div>
-            </div>
-
-            <!-- Sección de Horarios del Servicio Seleccionado en Tabla -->
-            <div v-if="selectedService" class="q-mt-lg">
-              <div class="row items-center justify-between q-mb-md">
-                <div class="text-h6 text-primary">
-                  Horarios de Atención - {{ selectedService.nombre }}
+                  </div>
                 </div>
+
+                <div class="flex items-center justify-between">
+                  <q-chip
+                    :color="service.activo === 'S' ? 'green' : 'red'"
+                    text-color="white"
+                    size="sm"
+                  >
+                    {{ service.activo === 'S' ? 'Activo' : 'Inactivo' }}
+                  </q-chip>
+                  <div class="flex q-gutter-xs">
+                    <q-btn
+                      flat
+                      round
+                      dense
+                      color="primary"
+                      icon="edit"
+                      size="sm"
+                      @click.stop="openServiceDialog(service)"
+                    />
+                    <q-btn
+                      flat
+                      round
+                      dense
+                      color="red"
+                      icon="delete"
+                      size="sm"
+                      @click.stop="confirmDeleteService(service.id)"
+                    />
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+        </div>
+
+        <!-- Sección de Horarios del Servicio Seleccionado en Tabla -->
+        <div v-if="selectedService" class="q-mt-lg">
+          <div class="row items-center justify-between q-mb-md">
+            <div class="text-h6 text-primary">
+              Horarios de Atención - {{ selectedService.nombre }}
+            </div>
+            <q-btn
+              color="primary"
+              label="Agregar Horario"
+              icon="add"
+              size="sm"
+              @click="openScheduleDialog()"
+            />
+          </div>
+
+          <!-- Tabla de Horarios -->
+          <q-table
+            :rows="selectedServiceSchedules"
+            :columns="scheduleColumns"
+            row-key="id"
+            flat
+            bordered
+            :loading="false"
+            no-data-label="No hay horarios configurados para este servicio"
+            :pagination="{ rowsPerPage: 10 }"
+          >
+            <template #body-cell-dia_semana="props">
+              <q-td :props="props">
+                <q-badge color="blue-grey" :label="getDiaName(props.value)" />
+              </q-td>
+            </template>
+
+            <template #body-cell-horario="props">
+              <q-td :props="props">
+                <div class="row items-center">
+                  <q-icon name="schedule" color="grey-6" size="sm" class="q-mr-sm" />
+                  <span>{{ formatTime(props.row.hora_inicio) }} - {{ formatTime(props.row.hora_fin) }}</span>
+                </div>
+              </q-td>
+            </template>
+
+            <template #body-cell-sucursal="props">
+              <q-td :props="props">
+                <div class="row items-center">
+                  <q-icon name="place" color="grey-6" size="sm" class="q-mr-sm" />
+                  <span>{{ getSucursalName(props.value) }}</span>
+                </div>
+              </q-td>
+            </template>
+
+            <template #body-cell-intervalo_minutos="props">
+              <q-td :props="props">
+                <q-chip color="orange" text-color="white" size="sm">
+                  {{ props.value }} min
+                </q-chip>
+              </q-td>
+            </template>
+
+            <template #body-cell-activo="props">
+              <q-td :props="props">
+                <q-chip
+                  :color="props.value === 'S' ? 'green' : 'red'"
+                  text-color="white"
+                  size="sm"
+                >
+                  {{ props.value === 'S' ? 'Activo' : 'Inactivo' }}
+                </q-chip>
+              </q-td>
+            </template>
+
+            <template #body-cell-acciones="props">
+              <q-td :props="props">
+                <div class="q-gutter-xs">
+                  <q-btn
+                    flat
+                    round
+                    dense
+                    color="primary"
+                    icon="edit"
+                    size="sm"
+                    @click="openScheduleDialog(props.row)"
+                  >
+                    <q-tooltip>Editar horario</q-tooltip>
+                  </q-btn>
+                  <q-btn
+                    flat
+                    round
+                    dense
+                    color="red"
+                    icon="delete"
+                    size="sm"
+                    @click="confirmDeleteSchedule(props.row.id)"
+                  >
+                    <q-tooltip>Eliminar horario</q-tooltip>
+                  </q-btn>
+                </div>
+              </q-td>
+            </template>
+
+            <template #no-data="{ icon, message }">
+              <div class="full-width row flex-center q-gutter-sm q-pa-lg">
+                <q-icon :name="icon" size="2em" color="grey-4" />
+                <span class="text-subtitle1 text-grey-6">{{ message }}</span>
                 <q-btn
                   color="primary"
-                  label="Agregar Horario"
+                  label="Agregar Primer Horario"
                   icon="add"
                   size="sm"
                   @click="openScheduleDialog()"
                 />
               </div>
+            </template>
+          </q-table>
+        </div>
 
-              <!-- Tabla de Horarios -->
-              <q-table
-                :rows="selectedServiceSchedules"
-                :columns="scheduleColumns"
-                row-key="id"
-                flat
-                bordered
-                :loading="false"
-                no-data-label="No hay horarios configurados para este servicio"
-                :pagination="{ rowsPerPage: 10 }"
-              >
-                <template #body-cell-dia_semana="props">
-                  <q-td :props="props">
-                    <q-badge color="blue-grey" :label="getDiaName(props.value)" />
-                  </q-td>
-                </template>
-
-                <template #body-cell-horario="props">
-                  <q-td :props="props">
-                    <div class="row items-center">
-                      <q-icon name="schedule" color="grey-6" size="sm" class="q-mr-sm" />
-                      <span>{{ formatTime(props.row.hora_inicio) }} - {{ formatTime(props.row.hora_fin) }}</span>
-                    </div>
-                  </q-td>
-                </template>
-
-                <!--<template #body-cell-sucursal="props">
-                  <q-td :props="props">
-                    <div class="row items-center">
-                      <q-icon name="place" color="grey-6" size="sm" class="q-mr-sm" />
-                      <span>{{ getSucursalName(props.value) }}</span>
-                    </div>
-                  </q-td>
-                </template>-->
-
-                <template #body-cell-intervalo_minutos="props">
-                  <q-td :props="props">
-                    <q-chip color="orange" text-color="white" size="sm">
-                      {{ props.value }} min
-                    </q-chip>
-                  </q-td>
-                </template>
-
-                <template #body-cell-activo="props">
-                  <q-td :props="props">
-                    <q-chip
-                      :color="props.value === 'S' ? 'green' : 'red'"
-                      text-color="white"
-                      size="sm"
-                    >
-                      {{ props.value === 'S' ? 'Activo' : 'Inactivo' }}
-                    </q-chip>
-                  </q-td>
-                </template>
-
-                <template #body-cell-acciones="props">
-                  <q-td :props="props">
-                    <div class="q-gutter-xs">
-                      <q-btn
-                        flat
-                        round
-                        dense
-                        color="primary"
-                        icon="edit"
-                        size="sm"
-                        @click="openScheduleDialog(props.row)"
-                      >
-                        <q-tooltip>Editar horario</q-tooltip>
-                      </q-btn>
-                      <q-btn
-                        flat
-                        round
-                        dense
-                        color="red"
-                        icon="delete"
-                        size="sm"
-                        @click="confirmDeleteSchedule(props.row.id)"
-                      >
-                        <q-tooltip>Eliminar horario</q-tooltip>
-                      </q-btn>
-                    </div>
-                  </q-td>
-                </template>
-
-                <template #no-data="{ icon, message }">
-                  <div class="full-width row flex-center q-gutter-sm q-pa-lg">
-                    <q-icon :name="icon" size="2em" color="grey-4" />
-                    <span class="text-subtitle1 text-grey-6">{{ message }}</span>
-                    <q-btn
-                      color="primary"
-                      label="Agregar Primer Horario"
-                      icon="add"
-                      size="sm"
-                      @click="openScheduleDialog()"
-                    />
-                  </div>
-                </template>
-              </q-table>
-            </div>
-
-            <!-- Mensaje inicial cuando no hay servicio seleccionado -->
-            <div v-else class="text-center q-pa-lg">
-              <q-icon name="touch_app" size="48px" color="grey-4" class="q-mb-md" />
-              <div class="text-subtitle1 text-grey-6">
-                Selecciona un servicio para ver y configurar sus horarios de atención
-              </div>
-            </div>
-          </q-card-section>
-        </q-tab-panel>
-
-        <q-tab-panel name="exceptions">
-          <DiasExcepcion />
-        </q-tab-panel>
-      </q-tab-panels>
+        <!-- Mensaje inicial cuando no hay servicio seleccionado -->
+        <div v-else class="text-center q-pa-lg">
+          <q-icon name="touch_app" size="48px" color="grey-4" class="q-mb-md" />
+          <div class="text-subtitle1 text-grey-6">
+            Selecciona un servicio para ver y configurar sus horarios de atención
+          </div>
+        </div>
+      </q-card-section>
     </q-card>
 
     <!-- Dialog de Servicios -->
@@ -387,7 +347,7 @@
 
         <q-card-section>
           <q-form ref="scheduleForm" @submit="saveSchedule" class="column q-gutter-md">
-            <!--<q-select
+            <q-select
               v-model="currentSchedule.id_sucursal"
               label="Sucursal"
               outlined
@@ -397,7 +357,7 @@
               emit-value
               map-options
               :rules="[val => !!val || 'La sucursal es requerida']"
-            />-->
+            />
 
             <q-select
               v-model="currentSchedule.dia_semana"
@@ -505,16 +465,10 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
-import NdPeticionControl from 'src/controles/rest.control'
-import PeticionService from 'src/services/peticion.service'
-import { useDialogStore } from 'neo-auth/src/stores/DialogoUbicacion'
-import DiasExcepcion from './DiasExcepcion.vue'
 
 const $q = useQuasar()
-const store = useDialogStore()
 
 // Estados reactivos
-const tab = ref('services')
 const services = ref([])
 const schedules = ref([])
 const selectedService = ref(null)
@@ -575,8 +529,13 @@ const scheduleColumns = [
   }
 ]
 
-// Datos estáticos (estos podrían venir también de BD si fuera necesario)
-const sucursales = ref([]) // Se cargarán de BD
+// Datos estáticos
+const sucursales = ref([
+  { id: 1, nombre: 'Sucursal Centro' },
+  { id: 2, nombre: 'Sucursal Norte' },
+  { id: 3, nombre: 'Sucursal Sur' }
+])
+
 const diasSemana = [
   { value: 1, label: 'Lunes' },
   { value: 2, label: 'Martes' },
@@ -629,70 +588,110 @@ const selectedServiceSchedules = computed(() => {
   return schedules.value.filter(s => s.id_servicio === selectedService.value.id)
 })
 
-// Métodos Auxiliares
-const getDiaName = (dia) => {
-  const d = diasSemana.find(d => d.value === dia)
-  return d ? d.label : 'Desconocido'
-}
-
-const getSucursalName = (id) => {
-  const s = sucursales.value.find(s => s.id === id)
-  return s ? s.nombre : 'Desconocida'
-}
-
-const formatTime = (time) => {
-  if (!time) return ''
-  return time.substring(0, 5)
-}
-
-// Métodos de Carga de Datos
-const loadSucursales = async () => {
-  try {
-    const peticion = new NdPeticionControl()
-    const response = await peticion.invocarMetodo('sucursal', 'get')
-    if (response) {
-      sucursales.value = response.map(s => ({
-        id: s.id,
-        nombre: s.descripcion // Asumiendo que 'descripcion' es el nombre
-      }))
-    }
-  } catch (error) {
-    console.error('Error cargando sucursales', error)
-  }
-}
-
-const loadServices = async () => {
-  try {
-    const peticion = new NdPeticionControl()
-    const response = await peticion.invocarMetodo('servicioagenda', 'get')
-    if (response) {
-      services.value = response
-    }
-  } catch (error) {
-    $q.notify({
-      type: 'negative',
-      message: 'Error al cargar los servicios',
-      position: 'top-right'
-    })
-  }
-}
-
-const loadSchedules = async () => {
-  try {
-    const peticion = new NdPeticionControl()
-    // Asumiendo que el modelo es 'horarioservicio'
-    const response = await peticion.invocarMetodo('servicioagendahorario', 'get')
-    if (response) {
-      schedules.value = response
-    }
-  } catch (error) {
-    console.error('Error cargando horarios', error)
-    // No notificamos error visual aquí para no saturar si falla este endpoint específico
-  }
-}
-
+// Métodos
 const loadData = async () => {
-  await Promise.all([loadSucursales(), loadServices(), loadSchedules()])
+  // Datos de ejemplo
+  services.value = [
+    {
+      id: 1,
+      id_configuracion: 1,
+      duracion_minutos: 30,
+      nombre: 'Consulta General',
+      descripcion: 'Consulta veterinaria general para revisión de salud',
+      activo: 'S',
+      fechaalta: '2024-01-15T10:30:00',
+      precio: 250.00,
+      icono: 'medical_services',
+      color: 'blue',
+      urgencias: 'N'
+    },
+    {
+      id: 2,
+      id_configuracion: 1,
+      duracion_minutos: 45,
+      nombre: 'Vacunación',
+      descripcion: 'Aplicación de vacunas preventivas',
+      activo: 'S',
+      fechaalta: '2024-01-15T11:00:00',
+      precio: 180.00,
+      icono: 'vaccines',
+      color: 'green',
+      urgencias: 'N'
+    },
+    {
+      id: 3,
+      id_configuracion: 1,
+      duracion_minutos: 60,
+      nombre: 'Cirugía Menor',
+      descripcion: 'Procedimientos quirúrgicos menores',
+      activo: 'S',
+      fechaalta: '2024-01-15T12:00:00',
+      precio: 800.00,
+      icono: 'healing',
+      color: 'red',
+      urgencias: 'S'
+    },
+    {
+      id: 4,
+      id_configuracion: 1,
+      duracion_minutos: 20,
+      nombre: 'Desparasitación',
+      descripcion: 'Tratamiento antiparasitario',
+      activo: 'S',
+      fechaalta: '2024-01-15T13:00:00',
+      precio: 120.00,
+      icono: 'medication',
+      color: 'orange',
+      urgencias: 'N'
+    }
+  ]
+
+  schedules.value = [
+    {
+      id: 1,
+      id_servicio: 1,
+      id_sucursal: 1,
+      dia_semana: 1,
+      hora_inicio: '08:00:00',
+      hora_fin: '17:00:00',
+      intervalo_minutos: 30,
+      activo: 'S',
+      fechaalta: '2024-01-15T10:30:00'
+    },
+    {
+      id: 2,
+      id_servicio: 1,
+      id_sucursal: 1,
+      dia_semana: 2,
+      hora_inicio: '08:00:00',
+      hora_fin: '17:00:00',
+      intervalo_minutos: 30,
+      activo: 'S',
+      fechaalta: '2024-01-15T10:30:00'
+    },
+    {
+      id: 3,
+      id_servicio: 2,
+      id_sucursal: 1,
+      dia_semana: 1,
+      hora_inicio: '09:00:00',
+      hora_fin: '16:00:00',
+      intervalo_minutos: 45,
+      activo: 'S',
+      fechaalta: '2024-01-15T11:00:00'
+    },
+    {
+      id: 4,
+      id_servicio: 1,
+      id_sucursal: 2,
+      dia_semana: 3,
+      hora_inicio: '10:00:00',
+      hora_fin: '18:00:00',
+      intervalo_minutos: 30,
+      activo: 'S',
+      fechaalta: '2024-01-15T12:00:00'
+    }
+  ]
 }
 
 const selectService = (service) => {
@@ -712,8 +711,7 @@ const openServiceDialog = (service = null) => {
       precio: 0,
       icono: 'medical_services',
       color: 'blue',
-      urgencias: 'N',
-      id_sucursal: store.sucursalSeleccionada.id
+      urgencias: 'N'
     }
   }
   serviceDialog.value = true
@@ -721,37 +719,36 @@ const openServiceDialog = (service = null) => {
 
 const saveService = async () => {
   try {
-    const peticionService = new PeticionService()
-    let response
-    
-    // Asegurar tipos de datos
-    const dataToSend = {
-      ...currentService.value,
-      precio: Number(currentService.value.precio),
-      duracion_minutos: Number(currentService.value.duracion_minutos),
-      id_configuracion: 1
-    }
-
     if (currentService.value.id) {
-      response = await peticionService.actualizar('servicioagenda', dataToSend)
-    } else {
-      response = await peticionService.crear('servicioagenda', dataToSend)
-    }
-
-    if (response) {
-      /*$q.notify({
-        type: 'positive',
-        message: 'Servicio guardado correctamente',
-        position: 'top-right'
-      })*/
-      await loadServices()
-      serviceDialog.value = false
+      const index = services.value.findIndex(s => s.id === currentService.value.id)
+      services.value[index] = { ...currentService.value }
       
-      // Si estábamos editando el seleccionado, actualizarlo
+      // Si el servicio editado es el seleccionado, actualizarlo
       if (selectedService.value?.id === currentService.value.id) {
-        selectedService.value = services.value.find(s => s.id === currentService.value.id)
+        selectedService.value = { ...currentService.value }
       }
+      
+      $q.notify({
+        type: 'positive',
+        message: 'Servicio actualizado correctamente',
+        position: 'top-right'
+      })
+    } else {
+      const newService = {
+        ...currentService.value,
+        id: Date.now(),
+        fechaalta: new Date().toISOString()
+      }
+      services.value.push(newService)
+      
+      $q.notify({
+        type: 'positive',
+        message: 'Servicio creado correctamente',
+        position: 'top-right'
+      })
     }
+    
+    serviceDialog.value = false
   } catch (error) {
     $q.notify({
       type: 'negative',
@@ -774,21 +771,19 @@ const confirmDeleteService = (serviceId) => {
 
 const deleteService = async (serviceId) => {
   try {
-    const peticionService = new PeticionService()
-    await peticionService.eliminar('servicio', { id: serviceId })
+    services.value = services.value.filter(s => s.id !== serviceId)
+    schedules.value = schedules.value.filter(sh => sh.id_servicio !== serviceId)
+    
+    // Si el servicio eliminado estaba seleccionado, deseleccionarlo
+    if (selectedService.value?.id === serviceId) {
+      selectedService.value = null
+    }
     
     $q.notify({
       type: 'positive',
       message: 'Servicio eliminado correctamente',
       position: 'top-right'
     })
-    
-    await loadServices()
-    await loadSchedules() // Recargar horarios por si se borraron en cascada
-    
-    if (selectedService.value?.id === serviceId) {
-      selectedService.value = null
-    }
   } catch (error) {
     $q.notify({
       type: 'negative',
@@ -809,18 +804,20 @@ const openScheduleDialog = (schedule = null) => {
   }
 
   if (schedule) {
-    currentSchedule.value = { ...schedule }
+    currentSchedule.value = {
+      ...schedule,
+      hora_inicio: schedule.hora_inicio.substring(0, 5),
+      hora_fin: schedule.hora_fin.substring(0, 5)
+    }
   } else {
     currentSchedule.value = {
       id_servicio: selectedService.value.id,
-      id_sucursal: store.sucursalSeleccionada.id,
-      dia_semana: null,
+      id_sucursal: sucursales.value[0].id,
+      dia_semana: 1,
       hora_inicio: '08:00',
       hora_fin: '17:00',
       intervalo_minutos: selectedService.value.duracion_minutos,
-      activo: 'S',
-      fechaalta: new Date().toISOString(),
-      //id_sitio: store.id_sitio
+      activo: 'S'
     }
   }
   scheduleDialog.value = true
@@ -828,64 +825,91 @@ const openScheduleDialog = (schedule = null) => {
 
 const saveSchedule = async () => {
   try {
-    const peticionService = new PeticionService()
-    let response
-    
-    const dataToSend = {
+    const scheduleToSave = {
       ...currentSchedule.value,
-      intervalo_minutos: Number(currentSchedule.value.intervalo_minutos),
-      id_servicio: selectedService.value.id
+      id_servicio: selectedService.value.id,
+      hora_inicio: `${currentSchedule.value.hora_inicio}:00`,
+      hora_fin: `${currentSchedule.value.hora_fin}:00`
     }
 
     if (currentSchedule.value.id) {
-      response = await peticionService.actualizar('servicioagendahorario', dataToSend)
-    } else {
-      response = await peticionService.crear('servicioagendahorario', dataToSend)
-    }
-
-    if (response) {
-      /*$q.notify({
+      const index = schedules.value.findIndex(sh => sh.id === currentSchedule.value.id)
+      schedules.value[index] = scheduleToSave
+      
+      $q.notify({
         type: 'positive',
-        message: 'Horario guardado correctamente',
+        message: 'Horario actualizado correctamente',
         position: 'top-right'
-      })*/
-      await loadSchedules()
-      scheduleDialog.value = false
+      })
+    } else {
+      const newSchedule = {
+        ...scheduleToSave,
+        id: Date.now(),
+        fechaalta: new Date().toISOString()
+      }
+      schedules.value.push(newSchedule)
+      
+      $q.notify({
+        type: 'positive',
+        message: 'Horario creado correctamente',
+        position: 'top-right'
+      })
     }
+    
+    scheduleDialog.value = false
   } catch (error) {
-    /*$q.notify({
+    $q.notify({
       type: 'negative',
       message: 'Error al guardar el horario',
       position: 'top-right'
-    })*/
+    })
   }
 }
 
 const confirmDeleteSchedule = (scheduleId) => {
-  deleteSchedule(scheduleId)
+  $q.dialog({
+    title: 'Confirmar eliminación',
+    message: '¿Estás seguro de que deseas eliminar este horario?',
+    cancel: true,
+    persistent: true
+  }).onOk(() => {
+    deleteSchedule(scheduleId)
+  })
 }
 
 const deleteSchedule = async (scheduleId) => {
   try {
-    const peticionService = new PeticionService()
-    await peticionService.eliminar('servicioagendahorario', { id: scheduleId }, true, '')
+    schedules.value = schedules.value.filter(sh => sh.id !== scheduleId)
     
-    /*$q.notify({
+    $q.notify({
       type: 'positive',
       message: 'Horario eliminado correctamente',
       position: 'top-right'
-    })*/
-    
-    await loadSchedules()
+    })
   } catch (error) {
-    /*$q.notify({
+    $q.notify({
       type: 'negative',
       message: 'Error al eliminar el horario',
       position: 'top-right'
-    })*/
+    })
   }
 }
 
+const getSucursalName = (sucursalId) => {
+  const sucursal = sucursales.value.find(s => s.id === sucursalId)
+  return sucursal ? sucursal.nombre : 'Sucursal no encontrada'
+}
+
+const getDiaName = (dia) => {
+  const diaObj = diasSemana.find(d => d.value === dia)
+  return diaObj ? diaObj.label : 'Día no válido'
+}
+
+const formatTime = (time) => {
+  return time.substring(0, 5)
+}
+
+// Lifecycle
 onMounted(() => {
   loadData()
 })
@@ -893,26 +917,19 @@ onMounted(() => {
 
 <style scoped>
 .service-card {
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  overflow: hidden;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
 }
 
 .service-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 20px -10px rgba(0, 0, 0, 0.15);
-  border-color: transparent;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
 }
 
 .selected-service {
   border-color: var(--q-primary) !important;
-  background-color: #f5f8ff; /* Very light primary tint */
-  transform: translateY(-4px);
-  box-shadow: 0 12px 20px -10px rgba(var(--q-primary-rgb), 0.3);
-}
-
-.line-height-normal {
-  line-height: 1.2;
+  background-color: rgba(var(--q-primary-rgb), 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(var(--q-primary-rgb), 0.3);
 }
 </style>

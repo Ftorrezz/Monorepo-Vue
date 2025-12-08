@@ -98,8 +98,9 @@ export const menuConfig = [
         icon: "calendar_month",
         subItems: [
           { labelKey: "mainMenu.settings.schedule.service", icon: "schedule", to: "/agendaservicio" },
-          { labelKey: "mainMenu.settings.schedule.configureHours", icon: "schedule", to: "/config/horarios" },
-          { labelKey: "mainMenu.settings.schedule.holidays", icon: "event", to: "/config/festivos" },
+          { labelKey: "Generar Agenda", icon: "autorenew", to: "/generar-agenda" },
+          //{ labelKey: "mainMenu.settings.schedule.configureHours", icon: "schedule", to: "/config/horarios" },
+          //{ labelKey: "mainMenu.settings.schedule.holidays", icon: "event", to: "/config/festivos" },
           { labelKey: "mainMenu.settings.schedule.reminders", icon: "notification_important", to: "/config/recordatorios" },
         ],
       },
@@ -300,7 +301,7 @@ export const menuConfig = [
         icon: "description",
         to: "/configuracionmodulo",
       },
-      
+
       {
         labelKey: "mainMenu.valor.support",
         icon: "support_agent",

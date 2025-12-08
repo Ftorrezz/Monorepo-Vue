@@ -666,10 +666,9 @@ const currentMonth = ref(new Date().getMonth())
 const selectedService = ref(null)
 const selectedSlot = ref(null)
 const viewMode = ref('month')
-const dayViewMode = ref('cards')
+const dayViewMode = ref('cards') // Nuevo estado para el modo de vista diaria
 const selectedDate = ref(new Date())
 const showDatePicker = ref(false)
-const sidebarCollapsed = ref(false)
 
 const dayColumns = ref([
   {
@@ -732,11 +731,8 @@ const loadServices = async () => {
     const peticion = new NdPeticionControl()
     const response = await peticion.invocarMetodo('servicioagenda', 'get')
     
-    // Handle both array and object response
-    const data = Array.isArray(response) ? response : (response?.data || [])
-    
-    if (Array.isArray(data)) {
-      services.value = data.map(s => ({
+    if (response && Array.isArray(response)) {
+      services.value = response.map(s => ({
         id: s.id,
         name: s.nombre,
         duration: s.duracion_minutos,
@@ -1143,33 +1139,6 @@ onMounted(() => {
 
 <style scoped>
 /* Layout principal */
-.fullscreen-calendar {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  font-family: 'Inter', sans-serif;
-}
-
-.app-layout {
-  display: flex;
-  min-height: 100vh;
-}
-
-/* Sidebar de servicios */
-.services-sidebar {
-  width: 320px;
-  background: linear-gradient(180deg, #1976D2 0%, #711bc8 100%);
-  color: white;
-  display: flex;
-  flex-direction: column;
-  transition: all 0.3s ease;
-  box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
-  position: relative;
-  z-index: 1000;
-}
-
-.services-sidebar.collapsed {
-  width: 80px;
-}
 
 .sidebar-header {
   padding: 20px;
