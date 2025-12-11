@@ -1,18 +1,23 @@
 <template>
   <div class="compact-stat-card" @click="$emit('click')">
+    <!-- Indicador de color superior -->
+    <div class="color-indicator" :style="{ background: color }"></div>
+    
     <div class="compact-content">
-      <div class="compact-icon" :style="{ backgroundColor: color + '20', color: color }">
-        <q-icon :name="icon" size="20px" />
+      <div class="compact-icon-wrapper">
+        <div class="icon-bg" :style="{ backgroundColor: color + '15' }"></div>
+        <div class="compact-icon" :style="{ color: color }">
+          <q-icon :name="icon" size="22px" />
+        </div>
       </div>
       <div class="compact-info">
         <div class="compact-value">{{ formatNumber(value) }}</div>
         <div class="compact-title">{{ title }}</div>
       </div>
       <div class="compact-arrow">
-        <q-icon name="chevron_right" size="16px" color="grey-5" />
+        <q-icon name="arrow_forward" size="18px" :color="color" />
       </div>
     </div>
-    <div class="compact-glow" :style="{ backgroundColor: color + '10' }"></div>
   </div>
 </template>
 
@@ -50,43 +55,90 @@ const formatNumber = (num) => {
 
 <style scoped>
 .compact-stat-card {
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  padding: 1rem;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 0.625rem;
   position: relative;
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  min-height: 80px;
+  min-height: 60px;
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.05),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.compact-stat-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(255,255,255,0.4));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
 .compact-stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(-3px);
+  box-shadow: 
+    0 4px 6px rgba(0, 0, 0, 0.07),
+    0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
-.compact-stat-card:hover .compact-glow {
+.compact-stat-card:hover::before {
   opacity: 1;
+}
+
+.compact-stat-card:hover .compact-arrow {
+  opacity: 1;
+  transform: translateX(3px);
+}
+
+.compact-stat-card:hover .compact-icon {
+  transform: scale(1.1);
+}
+
+.color-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 12px 12px 0 0;
+  opacity: 0.7;
 }
 
 .compact-content {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.625rem;
   position: relative;
   z-index: 2;
 }
 
-.compact-icon {
-  width: 40px;
-  height: 40px;
+.compact-icon-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.icon-bg {
+  position: absolute;
+  inset: -4px;
   border-radius: 12px;
+  opacity: 0.5;
+}
+
+.compact-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 600;
 }
 
 .compact-info {
@@ -95,67 +147,52 @@ const formatNumber = (num) => {
 }
 
 .compact-value {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.0625rem;
+  font-weight: 800;
   color: #1a1a1a;
-  line-height: 1.2;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 
 .compact-title {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: #6b7280;
-  font-weight: 500;
+  font-weight: 600;
   margin-top: 0.125rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .compact-arrow {
   flex-shrink: 0;
-  opacity: 0.7;
+  opacity: 0.5;
   transition: all 0.3s ease;
-}
-
-.compact-stat-card:hover .compact-arrow {
-  opacity: 1;
-  transform: translateX(2px);
-}
-
-.compact-glow {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  filter: blur(20px);
-  z-index: 1;
 }
 
 @media (max-width: 768px) {
   .compact-stat-card {
     padding: 0.75rem;
-    min-height: 70px;
+    min-height: 65px;
   }
 
   .compact-content {
-    gap: 0.5rem;
+    gap: 0.625rem;
   }
 
   .compact-icon {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
   }
 
   .compact-value {
-    font-size: 1rem;
+    font-size: 1.125rem;
   }
 
   .compact-title {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
   }
 }
 </style>

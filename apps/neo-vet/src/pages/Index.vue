@@ -1,53 +1,50 @@
 <template>
-  <q-page class="modern-dashboard">
-
-    <div class="particles-container">
-      <div
-        v-for="particle in particles"
-        :key="particle.id"
-        :style="particle.style"
-      />
-    </div>
-    <!-- Header compacto y elegante -->
-    <!--<div class="dashboard-header q-pa-lg q-mb-lg">
-      <div class="row items-center justify-between">
-        <div class="header-info">
-          <h1 class="dashboard-title">VetCare Dashboard</h1>
-          <p class="dashboard-subtitle">Sistema de Gestión Veterinaria</p>
+  <q-page class="vet-dashboard">
+    <!-- Header Compacto -->
+    <div class="dashboard-header">
+      <div class="header-content">
+        <div class="header-left">
+          <q-icon name="pets" size="32px" color="primary" class="header-icon" />
+          <div class="header-info">
+            <h1 class="dashboard-title">VetCare Dashboard</h1>
+            <p class="dashboard-subtitle">Sistema de Gestión Veterinaria</p>
+          </div>
         </div>
-        <div class="time-display">
-          <div class="current-time">{{ formatTime(currentTime) }}</div>
-          <div class="current-date">{{ formatDate(currentTime) }}</div>
+        <div class="header-right">
+          <div class="time-display">
+            <div class="current-time">{{ formatTime(currentTime) }}</div>
+            <div class="current-date">{{ formatDate(currentTime) }}</div>
+          </div>
         </div>
       </div>
-    </div>-->
+    </div>
 
-    <div class="dashboard-content q-px-lg">
-      <!-- Stats Grid Principal -->
-      <div class="stats-grid q-mb-xl">
-        <div v-for="stat in mainStats" :key="stat.id" class="stat-item">
+    <div class="dashboard-content">
+      <!-- Stats Grid Principal - 4 columnas compactas -->
+      <div class="stats-grid-main">
+        <div v-for="stat in mainStats" :key="stat.id">
           <modern-stat-card v-bind="stat" />
         </div>
       </div>
 
-      <!-- Contenido en Grid -->
+      <!-- Contenido en Grid: Gráficos + Alertas -->
       <div class="content-grid">
-        <!-- Gráficos -->
-        <div class="chart-section">
-          <div class="chart-card appointments-chart">
+        <!-- Columna Izquierda: Gráficos -->
+        <div class="charts-column">
+          <div class="chart-card">
             <div class="chart-header">
               <h3>Citas por Hora</h3>
-              <span class="chart-subtitle">Hoy</span>
+              <span class="chart-badge">Hoy</span>
             </div>
             <div class="chart-container">
               <canvas ref="appointmentsChart"></canvas>
             </div>
           </div>
 
-          <div class="chart-card services-chart">
+          <div class="chart-card">
             <div class="chart-header">
               <h3>Distribución de Servicios</h3>
-              <span class="chart-subtitle">Este mes</span>
+              <span class="chart-badge">Este mes</span>
             </div>
             <div class="chart-container">
               <canvas ref="servicesChart"></canvas>
@@ -55,29 +52,44 @@
           </div>
         </div>
 
-        <!-- Panel de Alertas Moderno -->
-        <div class="alerts-panel">
-          <div class="panel-header">
-            <h3>Alertas Recientes</h3>
-            <q-badge color="negative" :label="alerts.length" />
+        <!-- Columna Derecha: Alertas + Próximas Citas -->
+        <div class="sidebar-column">
+          <div class="alerts-panel">
+            <div class="panel-header">
+              <h3>Alertas</h3>
+              <q-badge color="negative" :label="alerts.length" />
+            </div>
+            <div class="alerts-container">
+              <modern-alert-card
+                v-for="alert in alerts"
+                :key="alert.id"
+                v-bind="alert"
+              />
+            </div>
           </div>
-          <div class="alerts-container">
-            <modern-alert-card
-              v-for="alert in alerts"
-              :key="alert.id"
-              v-bind="alert"
-            />
+
+          <div class="upcoming-panel">
+            <div class="panel-header">
+              <h3>Próximas Citas</h3>
+              <q-badge color="primary" label="5" />
+            </div>
+            <div class="upcoming-list">
+              <div v-for="appointment in upcomingAppointments" :key="appointment.id" class="appointment-item">
+                <div class="appointment-time">{{ appointment.time }}</div>
+                <div class="appointment-info">
+                  <div class="appointment-pet">{{ appointment.pet }}</div>
+                  <div class="appointment-owner">{{ appointment.owner }}</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Stats Secundarias -->
-      <div class="secondary-stats q-mt-xl">
-        <h3 class="section-title">Métricas Adicionales</h3>
-        <div class="secondary-grid">
-          <div v-for="stat in secondaryStats" :key="stat.id" class="secondary-stat">
-            <compact-stat-card v-bind="stat" />
-          </div>
+      <!-- Stats Secundarias - Grid compacto 6 columnas -->
+      <div class="stats-grid-secondary">
+        <div v-for="stat in secondaryStats" :key="stat.id">
+          <compact-stat-card v-bind="stat" />
         </div>
       </div>
     </div>
@@ -90,14 +102,6 @@ import { Chart, registerables } from 'chart.js'
 import ModernStatCard from './../components/card/ModernStatCard.vue'
 import ModernAlertCard from './../components/card/ModernAlertCard.vue'
 import CompactStatCard from './../components/card/CompactStatCard.vue'
-import { useParticles } from './../composables/useParticles'
-
-// Uso con configuración personalizada
-const { particles, start, stop } = useParticles({
-  particleCount: 20,
-  colors: ['rgba(255, 0, 0, 0.1)', 'rgba(0, 255, 0, 0.1)'],
-  speed: { min: -0.5, max: 0.5 }
-})
 
 Chart.register(...registerables)
 
@@ -125,6 +129,15 @@ const stats = ref({
   medicamentos_dispensados: 234
 })
 
+// Próximas citas
+const upcomingAppointments = ref([
+  { id: 1, time: '09:00', pet: 'Max', owner: 'Juan Pérez' },
+  { id: 2, time: '10:30', pet: 'Luna', owner: 'María García' },
+  { id: 3, time: '11:00', pet: 'Rocky', owner: 'Carlos López' },
+  { id: 4, time: '14:00', pet: 'Bella', owner: 'Ana Martínez' },
+  { id: 5, time: '15:30', pet: 'Coco', owner: 'Luis Rodríguez' }
+])
+
 // Datos para gráficos
 const appointmentsData = [
   { time: '08:00', citas: 3 },
@@ -141,11 +154,11 @@ const appointmentsData = [
 ]
 
 const servicesData = [
-  { name: 'Consultas', value: 45, color: '#667eea' },
-  { name: 'Vacunación', value: 25, color: '#764ba2' },
-  { name: 'Cirugías', value: 15, color: '#f093fb' },
-  { name: 'Emergencias', value: 10, color: '#4facfe' },
-  { name: 'Otros', value: 5, color: '#43e97b' }
+  { name: 'Consultas', value: 45, color: '#10b981' },
+  { name: 'Vacunación', value: 25, color: '#3b82f6' },
+  { name: 'Cirugías', value: 15, color: '#8b5cf6' },
+  { name: 'Emergencias', value: 10, color: '#ef4444' },
+  { name: 'Otros', value: 5, color: '#f59e0b' }
 ]
 
 // Computed properties para las estadísticas organizadas
@@ -155,7 +168,7 @@ const mainStats = computed(() => [
     title: 'Mascotas Atendidas',
     value: stats.value.mascotas_atendidas,
     icon: 'pets',
-    gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    gradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
     subtitle: 'Este mes',
     trend: '+12%'
   },
@@ -164,7 +177,7 @@ const mainStats = computed(() => [
     title: 'Citas Asignadas',
     value: stats.value.citas_asignadas,
     icon: 'event',
-    gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+    gradient: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
     subtitle: 'Hoy',
     trend: '+5%'
   },
@@ -173,7 +186,7 @@ const mainStats = computed(() => [
     title: 'Vacunas Aplicadas',
     value: stats.value.vacunas_aplicadas,
     icon: 'medical_services',
-    gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+    gradient: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
     subtitle: 'Este mes',
     trend: '+18%'
   },
@@ -182,7 +195,7 @@ const mainStats = computed(() => [
     title: 'Ingresos del Mes',
     value: stats.value.ingresos_mes,
     icon: 'attach_money',
-    gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+    gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
     subtitle: 'Pesos mexicanos',
     trend: '+8%',
     prefix: '$'
@@ -195,35 +208,35 @@ const secondaryStats = computed(() => [
     title: 'Desparasitaciones',
     value: stats.value.desparasitaciones,
     icon: 'shield',
-    color: '#ff9500'
+    color: '#10b981'
   },
   {
     id: 'hospitalizaciones',
     title: 'Hospitalizaciones',
     value: stats.value.hospitalizaciones,
     icon: 'local_hospital',
-    color: '#ff6b6b'
+    color: '#ef4444'
   },
   {
     id: 'cirugias',
     title: 'Cirugías',
     value: stats.value.cirugias_realizadas,
     icon: 'healing',
-    color: '#a855f7'
+    color: '#8b5cf6'
   },
   {
     id: 'emergencias',
     title: 'Emergencias',
     value: stats.value.consultas_emergencia,
     icon: 'emergency',
-    color: '#ef4444'
+    color: '#f59e0b'
   },
   {
     id: 'clientes',
     title: 'Clientes Nuevos',
     value: stats.value.clientes_nuevos,
     icon: 'group_add',
-    color: '#06b6d4'
+    color: '#3b82f6'
   },
   {
     id: 'medicamentos',
@@ -295,14 +308,14 @@ const createAppointmentsChart = () => {
           {
             label: 'Citas',
             data: appointmentsData.map((d) => d.citas),
-            borderColor: '#667eea',
-            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
             tension: 0.4,
             fill: true,
-            pointBackgroundColor: '#667eea',
+            pointBackgroundColor: '#10b981',
             pointBorderColor: '#fff',
             pointBorderWidth: 2,
-            pointRadius: 6
+            pointRadius: 5
           }
         ]
       },
@@ -324,7 +337,7 @@ const createAppointmentsChart = () => {
             beginAtZero: true,
             grid: {
               borderDash: [2, 2],
-              color: 'rgba(0, 0, 0, 0.1)'
+              color: 'rgba(0, 0, 0, 0.05)'
             }
           }
         }
@@ -348,7 +361,7 @@ const createServicesChart = () => {
             data: servicesData.map((d) => d.value),
             backgroundColor: servicesData.map((d) => d.color),
             borderWidth: 0,
-            cutout: '65%'
+            cutout: '70%'
           }
         ]
       },
@@ -360,7 +373,10 @@ const createServicesChart = () => {
             position: 'right',
             labels: {
               usePointStyle: true,
-              padding: 20
+              padding: 15,
+              font: {
+                size: 11
+              }
             }
           }
         }
@@ -394,26 +410,64 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.modern-dashboard {
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  min-height: 100vh;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+/* Variables de colores veterinarios */
+:root {
+  --vet-primary: #10b981;
+  --vet-secondary: #3b82f6;
+  --vet-accent: #f59e0b;
+  --vet-danger: #ef4444;
+  --vet-purple: #8b5cf6;
 }
 
+.vet-dashboard {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dbeafe 50%, #fef3c7 100%);
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  padding: 0.5rem;
+}
+
+/* Header Compacto */
 .dashboard-header {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
-  border-radius: 24px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 0.625rem 1rem;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-icon {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white !important;
+  padding: 0.5rem;
+  border-radius: 12px;
+}
+
+.header-info {
+  display: flex;
+  flex-direction: column;
 }
 
 .dashboard-title {
-  font-size: 2rem;
+  font-size: 1.125rem;
   font-weight: 700;
   color: #1a1a1a;
   margin: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  line-height: 1.2;
+  background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -421,6 +475,7 @@ onUnmounted(() => {
 .dashboard-subtitle {
   color: #6b7280;
   margin: 0;
+  font-size: 0.6875rem;
   font-weight: 500;
 }
 
@@ -429,89 +484,110 @@ onUnmounted(() => {
 }
 
 .current-time {
-  font-size: 1.5rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #1a1a1a;
+  line-height: 1.2;
 }
 
 .current-date {
   color: #6b7280;
-  font-size: 0.875rem;
+  font-size: 0.65rem;
   text-transform: capitalize;
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
+/* Dashboard Content */
+.dashboard-content {
+  max-width: 100%;
+  margin: 0;
 }
 
+/* Stats Grid Principal - 4 columnas */
+.stats-grid-main {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Content Grid: 2 columnas (gráficos + sidebar) */
 .content-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 2rem;
-  margin-bottom: 2rem;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
-.chart-section {
-  display: grid;
-  gap: 1.5rem;
+.charts-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
+.sidebar-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Chart Cards */
 .chart-card {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
-  border-radius: 20px;
-  padding: 1.5rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .chart-header {
   display: flex;
-  justify-content: between;
+  justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.625rem;
 }
 
 .chart-header h3 {
   margin: 0;
-  font-size: 1.125rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: #1a1a1a;
 }
 
-.chart-subtitle {
-  font-size: 0.875rem;
+.chart-badge {
+  font-size: 0.7rem;
   color: #6b7280;
+  background: #f3f4f6;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  font-weight: 500;
 }
 
 .chart-container {
-  height: 300px;
+  height: 200px;
 }
 
-.alerts-panel {
+/* Alerts Panel */
+.alerts-panel,
+.upcoming-panel {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
-  border-radius: 20px;
-  padding: 1.5rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  height: fit-content;
-  position: sticky;
-  top: 2rem;
+  border-radius: 12px;
+  padding: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.625rem;
 }
 
 .panel-header h3 {
   margin: 0;
-  font-size: 1.125rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: #1a1a1a;
 }
@@ -519,61 +595,116 @@ onUnmounted(() => {
 .alerts-container {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.375rem;
 }
 
-.secondary-stats {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  padding: 1.5rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+/* Upcoming Appointments */
+.upcoming-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
 }
 
-.section-title {
-  margin: 0 0 1.5rem 0;
-  font-size: 1.25rem;
+.appointment-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem;
+  background: rgba(16, 185, 129, 0.05);
+  border-radius: 8px;
+  border-left: 3px solid #10b981;
+  transition: all 0.2s ease;
+}
+
+.appointment-item:hover {
+  background: rgba(16, 185, 129, 0.1);
+  transform: translateX(2px);
+}
+
+.appointment-time {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #10b981;
+  min-width: 45px;
+}
+
+.appointment-info {
+  flex: 1;
+}
+
+.appointment-pet {
+  font-size: 0.75rem;
   font-weight: 600;
   color: #1a1a1a;
+  line-height: 1.2;
 }
 
-.secondary-grid {
+.appointment-owner {
+  font-size: 0.65rem;
+  color: #6b7280;
+}
+
+/* Stats Secundarias - 6 columnas */
+.stats-grid-secondary {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.5rem;
 }
 
 /* Responsive */
+@media (max-width: 1400px) {
+  .stats-grid-main {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .stats-grid-secondary {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (max-width: 1024px) {
   .content-grid {
     grid-template-columns: 1fr;
   }
-
-  .stats-grid {
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  
+  .stats-grid-secondary {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 768px) {
+  .vet-dashboard {
+    padding: 0.375rem;
+  }
+
   .dashboard-header {
-    padding: 1rem;
+    padding: 0.75rem;
   }
 
-  .dashboard-content {
-    padding: 0 1rem;
+  .header-content {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
   }
 
-  .dashboard-title {
-    font-size: 1.5rem;
+  .header-right {
+    width: 100%;
   }
 
-  .stats-grid {
+  .time-display {
+    text-align: left;
+  }
+
+  .stats-grid-main {
     grid-template-columns: 1fr;
   }
 
-  .secondary-grid {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  .stats-grid-secondary {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-container {
+    height: 200px;
   }
 }
 </style>

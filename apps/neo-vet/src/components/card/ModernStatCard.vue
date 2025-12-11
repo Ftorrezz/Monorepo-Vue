@@ -1,18 +1,24 @@
 <template>
   <div class="modern-stat-card">
+    <!-- Borde gradiente animado -->
+    <div class="gradient-border" :style="{ background: gradient }"></div>
+    
     <div class="card-content">
       <div class="stat-header">
-        <div class="icon-container" :style="{ background: gradient }">
-          <q-icon :name="icon" size="24px" color="white" />
+        <div class="icon-wrapper">
+          <div class="icon-glow" :style="{ background: gradient }"></div>
+          <div class="icon-container" :style="{ background: gradient }">
+            <q-icon :name="icon" size="28px" color="white" />
+          </div>
         </div>
         <div v-if="trend" class="trend-indicator">
-          <q-icon name="trending_up" size="16px" />
+          <q-icon name="trending_up" size="14px" />
           <span>{{ trend }}</span>
         </div>
       </div>
 
       <div class="stat-body">
-        <div class="stat-value">
+        <div class="stat-value" :style="{ backgroundImage: gradient }">
           {{ prefix }}{{ formatNumber(value) }}
         </div>
         <div class="stat-title">{{ title }}</div>
@@ -20,8 +26,11 @@
       </div>
     </div>
 
-    <!-- Elemento decorativo -->
-    <div class="decorative-element" :style="{ background: gradient }"></div>
+    <!-- Patrón de puntos decorativo -->
+    <div class="dot-pattern"></div>
+    
+    <!-- Elemento decorativo con gradiente -->
+    <div class="decorative-circle" :style="{ background: gradient }"></div>
   </div>
 </template>
 
@@ -69,21 +78,61 @@ const formatNumber = (num) => {
 
 <style scoped>
 .modern-stat-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  padding: 1.5rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 0.875rem;
   position: relative;
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   cursor: pointer;
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.05),
+    0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.modern-stat-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  padding: 2px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.1));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
 }
 
 .modern-stat-card:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 
+    0 4px 6px rgba(0, 0, 0, 0.07),
+    0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.modern-stat-card:hover .icon-container {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.modern-stat-card:hover .icon-glow {
+  opacity: 0.4;
+  transform: scale(1.3);
+}
+
+.modern-stat-card:hover .decorative-circle {
+  transform: scale(1.2) translate(10px, 10px);
+  opacity: 0.15;
+}
+
+.gradient-border {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 20px 20px 0 0;
+  opacity: 0.8;
 }
 
 .card-content {
@@ -95,29 +144,50 @@ const formatNumber = (num) => {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.icon-wrapper {
+  position: relative;
+}
+
+.icon-glow {
+  position: absolute;
+  inset: -8px;
+  border-radius: 16px;
+  opacity: 0.2;
+  filter: blur(12px);
+  transition: all 0.4s ease;
+  z-index: 0;
 }
 
 .icon-container {
-  width: 60px;
-  height: 60px;
-  border-radius: 16px;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 
+    0 4px 6px rgba(0, 0, 0, 0.1),
+    0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  z-index: 1;
 }
 
 .trend-indicator {
   display: flex;
   align-items: center;
   gap: 4px;
-  background: rgba(76, 175, 80, 0.1);
-  color: #4caf50;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 0.875rem;
-  font-weight: 600;
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(56, 142, 60, 0.15));
+  color: #2e7d32;
+  padding: 6px 10px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border: 1px solid rgba(76, 175, 80, 0.2);
+  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.1);
 }
 
 .stat-body {
@@ -125,35 +195,53 @@ const formatNumber = (num) => {
 }
 
 .stat-value {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #1a1a1a;
+  font-size: 1.625rem;
+  font-weight: 800;
   line-height: 1;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.375rem;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.02em;
 }
 
 .stat-title {
-  font-size: 1rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: #374151;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.125rem;
+  letter-spacing: -0.01em;
 }
 
 .stat-subtitle {
-  font-size: 0.875rem;
+  font-size: 0.6875rem;
   color: #9ca3af;
   font-weight: 500;
 }
 
-.decorative-element {
+.dot-pattern {
   position: absolute;
-  bottom: -50px;
-  right: -50px;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  opacity: 0.1;
+  top: 0;
+  right: 0;
+  width: 100px;
+  height: 100px;
+  opacity: 0.03;
+  background-image: radial-gradient(circle, #000 1px, transparent 1px);
+  background-size: 8px 8px;
   z-index: 1;
+}
+
+.decorative-circle {
+  position: absolute;
+  bottom: -40px;
+  right: -40px;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  opacity: 0.08;
+  z-index: 1;
+  transition: all 0.4s ease;
+  filter: blur(20px);
 }
 
 @media (max-width: 768px) {
@@ -162,17 +250,17 @@ const formatNumber = (num) => {
   }
 
   .icon-container {
-    width: 50px;
-    height: 50px;
+    width: 48px;
+    height: 48px;
   }
 
   .stat-value {
-    font-size: 2rem;
+    font-size: 1.75rem;
   }
 
   .trend-indicator {
-    font-size: 0.75rem;
-    padding: 4px 8px;
+    font-size: 0.65rem;
+    padding: 5px 8px;
   }
 }
 </style>
