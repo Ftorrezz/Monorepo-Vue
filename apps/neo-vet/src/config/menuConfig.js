@@ -217,6 +217,18 @@ export const menuConfig = [
         ],
       },
       {
+        labelKey: "mainMenu.settings.inventory.title",
+        icon: "key",
+        subItems: [
+          { labelKey: "mainMenu.settings.inventory.category", icon: "note_add", to: "/inventario/categoria" },
+          { labelKey: "mainMenu.settings.inventory.brand", icon: "note_add", to: "/inventario/marca" },
+          { labelKey: "mainMenu.settings.inventory.product", icon: "note_add", to: "/inventario/producto" },
+          { labelKey: "mainMenu.settings.inventory.productType", icon: "note_add", to: "/productotipo" },
+          { labelKey: "Proveedores", icon: "business", to: "/inventario/proveedor" },
+
+        ],
+      },
+      {
         labelKey: "mainMenu.settings.system.title",
         icon: "computer",
         subItems: [

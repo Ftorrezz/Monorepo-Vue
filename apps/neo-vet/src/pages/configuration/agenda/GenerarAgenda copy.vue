@@ -91,14 +91,12 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useQuasar, Dialog } from 'quasar'
+import { useQuasar } from 'quasar'
 import NdPeticionControl from 'src/controles/rest.control'
 import { useDialogStore } from 'neo-auth/src/stores/DialogoUbicacion'
-import NdAlertasControl from 'src/controles/alertas.control'
 
 const $q = useQuasar()
 const store = useDialogStore()
-const alertas = new NdAlertasControl()
 
 const fechaInicio = ref('')
 const fechaFin = ref('')
@@ -115,51 +113,12 @@ const loadServices = async () => {
     }
   } catch (error) {
     console.error('Error cargando servicios', error)
-   
+    $q.notify({
+      type: 'negative',
+      message: 'Error al cargar los servicios',
+      position: 'top-right'
+    })
   }
-}
-
-const verificarAgenda = async () => {
-  const peticion = new NdPeticionControl()
-  
-  const params = {
-    fecha_inicio: fechaInicio.value,
-    fecha_fin: fechaFin.value,
-    id_sucursal: store.sucursalSeleccionada.id,
-  }
-
-  if (servicioSeleccionado.value) {
-    params.id_servicio = servicioSeleccionado.value
-  }
-
-  const dtoParams = {
-    filtro: params
-  }
-
-  const response = await peticion.invocarMetodo('agenda/verificar', 'post', null, dtoParams)
-  // El backend retorna un array con un objeto, extraemos el primer elemento
-  return Array.isArray(response) ? response[0] : response
-}
-
-const ejecutarGeneracion = async () => {
-  const peticion = new NdPeticionControl()
-  
-  const params = {
-    fecha_inicio: fechaInicio.value,
-    fecha_fin: fechaFin.value,
-    id_sucursal: store.sucursalSeleccionada.id,
-  }
-
-  if (servicioSeleccionado.value) {
-    params.id_servicio = servicioSeleccionado.value
-  }
-
-  const dtoParams = {
-    filtro: params
-  }
-
-  const response = await peticion.invocarMetodo('agenda/generar', 'post', null, dtoParams)
-  return response
 }
 
 const generarAgenda = async () => {
@@ -174,74 +133,31 @@ const generarAgenda = async () => {
 
   loading.value = true
   try {
-    // Primero verificar si existe una agenda
-    const verificacion = await verificarAgenda()
+    const peticion = new NdPeticionControl()
+    // Endpoint: agenda/generar
+    // Query params: fecha_inicio, fecha_fin, id_sucursal, id_sitio, id_servicio (opcional)
     
-    if (verificacion?.existe) {
-      // Mostrar diálogo de confirmación
-      const servicioTexto = servicioSeleccionado.value 
-        ? `del servicio seleccionado` 
-        : `de todos los servicios`
-      
-      const confirmar = await new Promise((resolve) => {
-        Dialog.create({
-          title: '⚠️ Agenda Existente',
-          message: `Ya existe una agenda generada para el rango de fechas seleccionado ${servicioTexto}:\n\n` +
-                   `📅 Período: ${fechaInicio.value} - ${fechaFin.value}\n` +
-                   `📊 Total de slots: ${verificacion.totalSlots}\n` +
-                   `✅ Disponibles: ${verificacion.slotsDisponibles}\n` +
-                   `📌 Ocupados: ${verificacion.slotsOcupados}\n\n` +
-                   `¿Desea regenerar la agenda de todas formas?\n` +
-                   `Nota: Solo se eliminarán los slots disponibles, las citas agendadas se mantendrán.`,
-          html: true,
-          cancel: {
-            label: 'Cancelar',
-            color: 'negative',
-            flat: true,
-            noCaps: true
-          },
-          ok: {
-            label: 'Sí, regenerar',
-            color: 'primary',
-            unelevated: true,
-            noCaps: true
-          },
-          style: {
-            width: '800px',
-            maxWidth: '150vw'
-          }
-        })
-        .onOk(() => resolve(true))
-        .onCancel(() => resolve(false))
-      })
-
-      if (!confirmar) {
-        $q.notify({
-          type: 'info',
-          message: 'Generación de agenda cancelada',
-          position: 'top-right'
-        })
-        return
-      }
+    const params = {
+      fecha_inicio: fechaInicio.value,
+      fecha_fin: fechaFin.value,
+      id_sucursal: store.sucursalSeleccionada.id,
+      //id_sitio: store.id_sitio || 1, // Fallback if id_sitio is not in store, though it should be
     }
 
-    // Ejecutar la generación (ya sea porque no existe o el usuario confirmó)
-    const response = await ejecutarGeneracion()
-    
-    if (response) {
-      $q.notify({
-        type: 'positive',
-        message: verificacion?.existe 
-          ? 'Agenda regenerada exitosamente' 
-          : 'Agenda generada exitosamente',
-        caption: `Se procesaron las fechas del ${fechaInicio.value} al ${fechaFin.value}`,
-        position: 'top-right',
-        timeout: 3000
-      })
+    if (servicioSeleccionado.value) {
+      params.id_servicio = servicioSeleccionado.value
     }
+
+    // Construct DtoParametros
+    const dtoParams = {
+      filtro: params
+    }
+
+    // Pass dtoParams as the 4th argument (parametros), 3rd argument (modelo) is null for GET
+    const response = await peticion.invocarMetodo('agenda/generar', 'post', null, dtoParams)
     
   } catch (error) {
-    console.error('Error en el proceso de agenda', error)
+    console.error('Error generando agenda', error)
     
   } finally {
     loading.value = false

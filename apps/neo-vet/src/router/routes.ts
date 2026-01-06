@@ -221,7 +221,13 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/inventario',
     component: () => import('layouts/Layout.vue'),
-    children: [{ path: '', name: 'inventario', component: () => import('pages/inventario/inventario.vue') }],
+    children: [{ path: '', name: 'inventario', component: () => import('pages/inventario/Inventario.vue') },
+    { path: '/categoria', name: 'categoria', component: () => import('pages/inventario/Categoria.vue') },
+    { path: '/marca', name: 'marca', component: () => import('pages/inventario/marca.vue') },
+    { path: '/producto', name: 'producto', component: () => import('pages/inventario/producto.vue') },
+    { path: '/productotipo', name: 'productotipo', component: () => import('pages/configuration/inventario/TiposProducto.vue') },
+    { path: '/proveedor', name: 'proveedor', component: () => import('pages/configuration/inventario/Proveedores.vue') },
+    ],
     meta: { requireAuth: false },
 
   },

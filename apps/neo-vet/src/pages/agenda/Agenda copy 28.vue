@@ -215,28 +215,11 @@
               @click="goToToday"
               no-caps
             />
-
-            <q-btn
-              color="secondary"
-              icon="refresh"
-              label="Refrescar"
-              @click="refrescarDisponibilidad"
-              no-caps
-              :loading="isLoadingDisponibilidad"
-            >
-              <q-tooltip>Actualizar disponibilidad</q-tooltip>
-            </q-btn>
           </div>
         </div>
 
         <!-- Contenido del calendario -->
         <div class="calendar-content">
-          <!-- Indicador de carga -->
-          <div v-if="isLoadingDisponibilidad" class="loading-overlay">
-            <q-spinner-dots color="primary" size="50px" />
-            <div class="loading-text">Cargando disponibilidad...</div>
-          </div>
-
           <!-- Vista mensual -->
           <div v-if="selectedService && viewMode === 'month'" class="calendar-container">
             <!-- Días de la semana -->
@@ -663,6 +646,9 @@
         :options="dateOptions"
       />
     </q-dialog>
+
+    <!-- Aquí irían los demás dialogs (appointment, new owner, new pet, success) -->
+    <!-- Los mantengo igual que en tu código original -->
   </div>
 </template>
 
@@ -670,10 +656,8 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import NdPeticionControl from 'src/controles/rest.control'
-import { useDialogStore } from 'neo-vet/src/stores/DialogoUbicacion'
 
 const $q = useQuasar()
-const store = useDialogStore()
 
 // Estados principales
 const currentDate = ref(new Date())
@@ -686,14 +670,6 @@ const dayViewMode = ref('cards')
 const selectedDate = ref(new Date())
 const showDatePicker = ref(false)
 const sidebarCollapsed = ref(false)
-
-// Estados para cache y carga
-const disponibilidadCache = ref({})
-const citasCache = ref({})
-const isLoadingDisponibilidad = ref(false)
-
-// Días de la semana
-const weekdays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 
 const dayColumns = ref([
   {
@@ -751,10 +727,6 @@ const dayColumns = ref([
 const services = ref([])
 const serviceSearch = ref('')
 
-// ============================================
-// FUNCIONES DE BACKEND
-// ============================================
-
 const loadServices = async () => {
   try {
     const peticion = new NdPeticionControl()
@@ -776,251 +748,35 @@ const loadServices = async () => {
       }))
     }
   } catch (error) {
+    console.error('Error cargando servicios:', error)
     $q.notify({
       type: 'negative',
-      message: 'Error al cargar los servicios',
-      caption: error.message
+      message: 'Error al cargar los servicios'
     })
   }
 }
 
-// Cargar disponibilidad desde el backend
-const loadDisponibilidad = async (idServicio, fechaInicio, fechaFin, idSucursal = null) => {
-  try {
-    const peticion = new NdPeticionControl()
-    const queryParams = new URLSearchParams()
-    queryParams.append('filtro[id_servicio]', idServicio)
-    queryParams.append('filtro[fecha_inicio]', fechaInicio.toISOString())
-    queryParams.append('filtro[fecha_fin]', fechaFin.toISOString())
-    queryParams.append('filtro[id_sucursal]', store.sucursalSeleccionada.id)
-       
+// Horarios de trabajo por servicio
+const getWorkingHours = (serviceId) => {
+  const baseHours = [
+    '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
+    '11:00', '11:30', '14:00', '14:30', '15:00', '15:30',
+    '16:00', '16:30', '17:00', '17:30'
+  ]
 
-    const response = await peticion.invocarMetodo(`agenda/disponibilidad?${queryParams.toString()}`, 'get')
-    return Array.isArray(response) ? response : []
-  } catch (error) {
-    $q.notify({
-      type: 'negative',
-      message: 'Error al cargar disponibilidad',
-      caption: error.message
-    })
-    return []
+  // Emergencias 24/7
+  if (serviceId === 8) {
+    return [
+      '00:00','01:00','02:00','03:00','04:00','05:00','06:00','07:00',
+      '08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00',
+      '16:00','17:00','18:00','19:00','20:00','21:00','22:00','23:00'
+    ]
   }
+
+  return baseHours
 }
 
-// Cargar disponibilidad para un día específico
-const loadDisponibilidadDia = async (idServicio, fecha, idSucursal = null) => {
-  try {
-    const peticion = new NdPeticionControl()
-    const queryParams = new URLSearchParams()
-    queryParams.append('filtro[id_servicio]', idServicio)
-    queryParams.append('filtro[fecha]', fecha.toISOString())
-    queryParams.append('filtro[id_sucursal]', store.sucursalSeleccionada.id)
-    
-
-
-
-
-
-
-    
-    const response = await peticion.invocarMetodo(`agenda/disponibilidad/dia?${queryParams.toString()}`, 'get')
-    return Array.isArray(response) ? response : []
-  } catch (error) {
-    $q.notify({
-      type: 'negative',
-      message: 'Error al cargar disponibilidad del día',
-      caption: error.message
-    })
-    return []
-  }
-}
-
-// Cargar citas por fecha
-const loadCitasPorFecha = async (fecha, idSucursal = null) => {
-  try {
-    const peticion = new NdPeticionControl()
-    const queryParams = new URLSearchParams()
-    queryParams.append('filtro[fecha]', fecha.toISOString())
-    queryParams.append('filtro[id_sucursal]', store.sucursalSeleccionada.id)
-       
-    const response = await peticion.invocarMetodo(`agenda/citas/fecha?${queryParams.toString()}`, 'get')
-    return Array.isArray(response) ? response : []
-  } catch (error) {
-    console.error('Error al cargar citas:', error)
-    return []
-  }
-}
-
-// ============================================
-// FUNCIONES DE PROCESAMIENTO
-// ============================================
-
-// Cargar disponibilidad para todo el mes
-const loadDisponibilidadMes = async () => {
-  if (!selectedService.value) return
-  
-  isLoadingDisponibilidad.value = true
-  
-  try {
-    const firstDay = new Date(currentYear.value, currentMonth.value, 1)
-    const lastDay = new Date(currentYear.value, currentMonth.value + 1, 0)
-    
-    // Cargar la disponibilidad directamente
-    const disponibilidad = await loadDisponibilidad(
-      selectedService.value.id,
-      firstDay,
-      lastDay
-    )
-    
-    // Procesar y guardar en caché
-    if (disponibilidad && disponibilidad.length > 0) {
-      procesarDisponibilidad(disponibilidad)
-    } else {
-      // Limpiar el caché si no hay disponibilidad
-      limpiarCacheMes()
-      
-      $q.notify({
-        type: 'info',
-        message: 'No hay agenda generada para este período',
-        caption: 'Por favor, genera la agenda desde el módulo correspondiente'
-      })
-    }
-    
-  } catch (error) {
-    console.error('Error al cargar disponibilidad del mes:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Error al cargar la disponibilidad',
-      caption: error.message
-    })
-  } finally {
-    isLoadingDisponibilidad.value = false
-  }
-}
-
-// Cargar disponibilidad para un día específico
-const loadDisponibilidadDiaActual = async () => {
-  if (!selectedService.value) return
-  
-  isLoadingDisponibilidad.value = true
-  
-  try {
-    const fecha = selectedDate.value
-    
-    // Cargar la disponibilidad del día directamente
-    const disponibilidad = await loadDisponibilidadDia(
-      selectedService.value.id,
-      fecha
-    )
-    
-    // Procesar y guardar en caché
-    if (disponibilidad && disponibilidad.length > 0) {
-      procesarDisponibilidadDia(disponibilidad, fecha)
-      
-      // También cargar las citas del día
-      const citas = await loadCitasPorFecha(fecha)
-      procesarCitas(citas, fecha)
-    } else {
-      // Limpiar el caché si no hay disponibilidad
-      const dateKey = fecha.toISOString().split('T')[0]
-      const cacheKey = `${selectedService.value.id}-${dateKey}`
-      disponibilidadCache.value[cacheKey] = []
-      
-      $q.notify({
-        type: 'info',
-        message: 'No hay agenda generada para este día',
-        caption: 'Por favor, genera la agenda desde el módulo correspondiente'
-      })
-    }
-    
-  } catch (error) {
-    console.error('Error al cargar disponibilidad del día:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Error al cargar la disponibilidad',
-      caption: error.message
-    })
-  } finally {
-    isLoadingDisponibilidad.value = false
-  }
-}
-
-// Procesar disponibilidad recibida del backend
-const procesarDisponibilidad = (disponibilidad) => {
-  if (!Array.isArray(disponibilidad)) return
-  
-  disponibilidad.forEach(item => {
-    const fecha = new Date(item.fecha)
-    const dateKey = fecha.toISOString().split('T')[0]
-    const cacheKey = `${selectedService.value.id}-${dateKey}`
-    
-    const slots = item.horarios?.map(horario => ({
-      time: horario.hora_inicio,
-      status: horario.estado === 'disponible' ? 'available' : 'booked',
-      id_slot: horario.id,
-      appointment: horario.cita ? {
-        id: horario.cita.id,
-        ownerName: horario.cita.propietario?.nombre || 'Sin nombre',
-        petName: horario.cita.mascota?.nombre || 'Sin nombre',
-        petType: horario.cita.mascota?.especie || 'Mascota'
-      } : null
-    })) || []
-    
-    disponibilidadCache.value[cacheKey] = slots
-  })
-}
-
-// Procesar disponibilidad de un día específico
-const procesarDisponibilidadDia = (disponibilidad, fecha) => {
-  const dateKey = fecha.toISOString().split('T')[0]
-  const cacheKey = `${selectedService.value.id}-${dateKey}`
-  
-  const slots = disponibilidad?.map(horario => ({
-    time: horario.hora_inicio,
-    status: horario.estado === 'disponible' ? 'available' : 'booked',
-    id_slot: horario.id,
-    appointment: horario.cita ? {
-      id: horario.cita.id,
-      ownerName: horario.cita.propietario?.nombre || 'Sin nombre',
-      petName: horario.cita.mascota?.nombre || 'Sin nombre',
-      petType: horario.cita.mascota?.especie || 'Mascota'
-    } : null
-  })) || []
-  
-  disponibilidadCache.value[cacheKey] = slots
-}
-
-// Procesar citas recibidas del backend
-const procesarCitas = (citas, fecha) => {
-  const dateKey = fecha.toISOString().split('T')[0]
-  citasCache.value[dateKey] = citas
-}
-
-// Limpiar caché del mes actual
-const limpiarCacheMes = () => {
-  const firstDay = new Date(currentYear.value, currentMonth.value, 1)
-  const lastDay = new Date(currentYear.value, currentMonth.value + 1, 0)
-  
-  for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
-    const dateKey = new Date(d).toISOString().split('T')[0]
-    const cacheKey = `${selectedService.value.id}-${dateKey}`
-    disponibilidadCache.value[cacheKey] = []
-  }
-}
-
-// Refrescar disponibilidad manualmente
-const refrescarDisponibilidad = () => {
-  if (viewMode.value === 'month') {
-    loadDisponibilidadMes()
-  } else {
-    loadDisponibilidadDiaActual()
-  }
-}
-
-// ============================================
-// COMPUTEDS
-// ============================================
-
+// Computeds
 const currentMonthName = computed(() => {
   return new Date(currentYear.value, currentMonth.value).toLocaleDateString('es-ES', { month: 'long' })
 })
@@ -1045,7 +801,7 @@ const filteredServices = computed(() => {
 
 // Estadísticas de bienvenida
 const totalAppointmentsToday = computed(() => {
-  return 12 // Mock data - puede ser calculado desde las citas reales
+  return 12 // Mock data
 })
 
 const totalServicesActive = computed(() => {
@@ -1056,15 +812,26 @@ const totalServicesActive = computed(() => {
 const daySlots = computed(() => {
   if (!selectedService.value) return []
 
-  const dateKey = selectedDate.value.toISOString().split('T')[0]
-  const cacheKey = `${selectedService.value.id}-${dateKey}`
-  
-  // Retornar desde caché si existe
-  if (disponibilidadCache.value[cacheKey]) {
-    return disponibilidadCache.value[cacheKey]
+  const date = selectedDate.value
+  const today = new Date()
+  const isPast = date < today && !isSameDay(date, today)
+  const isWeekend = date.getDay() === 0 || date.getDay() === 6
+
+  if (isPast || (selectedService.value.id !== 8 && isWeekend)) {
+    return []
   }
 
-  return []
+  const workingHours = getWorkingHours(selectedService.value.id)
+  return workingHours.map(time => {
+    const isBooked = Math.random() < 0.4
+    const mockAppointment = isBooked ? generateMockAppointment() : null
+
+    return {
+      time,
+      status: isBooked ? 'booked' : 'available',
+      appointment: mockAppointment
+    }
+  })
 })
 
 const calendarDays = computed(() => {
@@ -1101,11 +868,22 @@ const calendarDays = computed(() => {
     const isPast = date < today && !isToday
     const isWeekend = date.getDay() === 0 || date.getDay() === 6
 
-    const dateKey = date.toISOString().split('T')[0]
-    const cacheKey = `${selectedService.value.id}-${dateKey}`
-    
-    // Obtener slots desde caché o usar array vacío
-    const slots = disponibilidadCache.value[cacheKey] || []
+    // Generar slots para días válidos
+    const slots = []
+    if (!isPast && (selectedService.value.id === 8 || !isWeekend)) {
+      const workingHours = getWorkingHours(selectedService.value.id)
+      workingHours.forEach(time => {
+        const isBooked = Math.random() < 0.4
+        const mockAppointment = isBooked ? generateMockAppointment() : null
+
+        slots.push({
+          time,
+          status: isBooked ? 'booked' : 'available',
+          appointment: mockAppointment
+        })
+      })
+    }
+
     const availableSlots = slots.filter(s => s.status === 'available').length
     const bookedSlots = slots.filter(s => s.status === 'booked').length
 
@@ -1172,6 +950,33 @@ const currentStats = computed(() => {
   return { available, booked, revenue, efficiency }
 })
 
+// Generar datos mock de cita
+const generateMockAppointment = () => {
+  const owners = [
+    'García López', 'Rodríguez M.', 'Hernández S.', 'López García',
+    'Martínez R.', 'González P.', 'Pérez Luna', 'Sánchez V.',
+    'Ramírez C.', 'Torres M.', 'Flores D.', 'Rivera A.'
+  ]
+  const pets = [
+    'Max', 'Luna', 'Rocky', 'Bella', 'Charlie', 'Lucy', 'Cooper', 'Daisy',
+    'Buddy', 'Molly', 'Duke', 'Sadie', 'Zeus', 'Chloe', 'Bear', 'Sophie'
+  ]
+  const petTypes = ['Perro', 'Gato', 'Ave', 'Conejo']
+
+  return {
+    ownerName: owners[Math.floor(Math.random() * owners.length)],
+    petName: pets[Math.floor(Math.random() * pets.length)],
+    petType: petTypes[Math.floor(Math.random() * petTypes.length)]
+  }
+}
+
+// Función auxiliar para comparar fechas
+const isSameDay = (date1, date2) => {
+  return date1.getDate() === date2.getDate() &&
+         date1.getMonth() === date2.getMonth() &&
+         date1.getFullYear() === date2.getFullYear()
+}
+
 // Opciones para el selector de fecha
 const dateOptions = (date) => {
   const targetDate = new Date(date)
@@ -1182,10 +987,7 @@ const dateOptions = (date) => {
   return !isPast && (selectedService.value?.id === 8 || !isWeekend)
 }
 
-// ============================================
-// MÉTODOS DE NAVEGACIÓN Y SELECCIÓN
-// ============================================
-
+// Métodos
 const toggleSidebar = () => {
   sidebarCollapsed.value = !sidebarCollapsed.value
 }
@@ -1193,9 +995,6 @@ const toggleSidebar = () => {
 const selectService = (service) => {
   selectedService.value = service
   selectedSlot.value = null
-  
-  // Cargar disponibilidad para el mes actual
-  loadDisponibilidadMes()
 }
 
 const getServiceStats = (serviceId) => {
@@ -1242,46 +1041,19 @@ const viewAppointment = (slot) => {
   })
 }
 
-// Cancelar cita
-const cancelAppointment = async (slot) => {
-  if (!slot.appointment || !slot.appointment.id) {
-    $q.notify({
-      type: 'warning',
-      message: 'No hay cita para cancelar'
-    })
-    return
-  }
-  
+const cancelAppointment = (slot) => {
   $q.dialog({
     title: 'Cancelar Cita',
     message: `¿Estás seguro de que deseas cancelar la cita de ${slot.appointment.petName}?`,
     cancel: true,
     persistent: true
-  }).onOk(async () => {
-    try {
-      const peticion = new NdPeticionControl()
-      const response = await peticion.invocarMetodo(`agenda/citas/${slot.appointment.id}`, 'delete')
-      
-      if (response?.success) {
-        $q.notify({
-          type: 'positive',
-          message: 'Cita cancelada exitosamente'
-        })
-        
-        // Recargar disponibilidad
-        if (viewMode.value === 'month') {
-          await loadDisponibilidadMes()
-        } else {
-          await loadDisponibilidadDiaActual()
-        }
-      }
-    } catch (error) {
-      $q.notify({
-        type: 'negative',
-        message: 'Error al cancelar la cita',
-        caption: error.message
-      })
-    }
+  }).onOk(() => {
+    slot.status = 'available'
+    slot.appointment = null
+    $q.notify({
+      type: 'positive',
+      message: 'Cita cancelada exitosamente'
+    })
   })
 }
 
@@ -1292,7 +1064,6 @@ const previousMonth = () => {
   } else {
     currentMonth.value--
   }
-  loadDisponibilidadMes()
 }
 
 const nextMonth = () => {
@@ -1302,21 +1073,18 @@ const nextMonth = () => {
   } else {
     currentMonth.value++
   }
-  loadDisponibilidadMes()
 }
 
 const previousDay = () => {
   const newDate = new Date(selectedDate.value)
   newDate.setDate(newDate.getDate() - 1)
   selectedDate.value = newDate
-  loadDisponibilidadDiaActual()
 }
 
 const nextDay = () => {
   const newDate = new Date(selectedDate.value)
   newDate.setDate(newDate.getDate() + 1)
   selectedDate.value = newDate
-  loadDisponibilidadDiaActual()
 }
 
 const goToToday = () => {
@@ -1324,10 +1092,8 @@ const goToToday = () => {
   if (viewMode.value === 'month') {
     currentYear.value = today.getFullYear()
     currentMonth.value = today.getMonth()
-    loadDisponibilidadMes()
   } else {
     selectedDate.value = new Date(today)
-    loadDisponibilidadDiaActual()
   }
 }
 
@@ -1338,13 +1104,11 @@ const selectDayForDayView = (day) => {
 
   viewMode.value = 'day'
   selectedDate.value = new Date(day.fullDate)
-  loadDisponibilidadDiaActual()
 }
 
 const updateSelectedDate = (newDate) => {
   selectedDate.value = new Date(newDate)
   showDatePicker.value = false
-  loadDisponibilidadDiaActual()
 }
 
 const selectTimeSlot = (day, slot) => {
@@ -1361,8 +1125,7 @@ const selectTimeSlot = (day, slot) => {
     date: day.fullDate.toLocaleDateString('es-ES'),
     dayName: day.fullDate.toLocaleDateString('es-ES', { weekday: 'long' }),
     time: slot.time,
-    fullDate: day.fullDate,
-    id_slot: slot.id_slot
+    fullDate: day.fullDate
   }
 
   // Aquí abriría el dialog de cita
@@ -1372,56 +1135,6 @@ const selectTimeSlot = (day, slot) => {
     caption: 'Implementar dialog de nueva cita'
   })
 }
-
-// Crear cita en el backend
-const crearCitaBackend = async (citaData) => {
-  try {
-    const peticion = new NdPeticionControl()
-    const response = await peticion.invocarMetodo('agenda/citas', 'post', citaData)
-    
-    if (response?.success) {
-      $q.notify({
-        type: 'positive',
-        message: 'Cita creada exitosamente',
-        caption: 'La cita ha sido agendada correctamente'
-      })
-      
-      // Recargar disponibilidad
-      if (viewMode.value === 'month') {
-        await loadDisponibilidadMes()
-      } else {
-        await loadDisponibilidadDiaActual()
-      }
-      
-      return true
-    }
-    
-    return false
-  } catch (error) {
-    $q.notify({
-      type: 'negative',
-      message: 'Error al crear la cita',
-      caption: error.message
-    })
-    return false
-  }
-}
-
-// Función auxiliar para comparar fechas
-const isSameDay = (date1, date2) => {
-  return date1.getDate() === date2.getDate() &&
-         date1.getMonth() === date2.getMonth() &&
-         date1.getFullYear() === date2.getFullYear()
-}
-
-// Watch para cambios en el modo de vista
-watch(viewMode, (newMode) => {
-  if (newMode === 'day') {
-    loadDisponibilidadDiaActual()
-  } else {
-    loadDisponibilidadMes()
-  }
-})
 
 onMounted(() => {
   loadServices()
@@ -1781,30 +1494,6 @@ onMounted(() => {
   flex: 1;
   padding: 24px 32px;
   overflow: auto;
-  position: relative;
-}
-
-/* Indicador de carga */
-.loading-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.9);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  z-index: 1000;
-  backdrop-filter: blur(4px);
-}
-
-.loading-text {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1976D2;
 }
 
 /* Calendario mensual */
@@ -1990,17 +1679,17 @@ onMounted(() => {
 
 .appointment-card.available {
   background: white;
-  border-color: #4ade80;
+  border-color: #4ade80; /* Color verde para disponible */
 }
 
 .appointment-card.booked {
   background: white;
-  border-color: #f87171;
+  border-color: #f87171; /* Color rojo para ocupado */
 }
 
 .appointment-card.selected {
   background: white;
-  border-color: #667eea;
+  border-color: #667eea; /* Color azul para seleccionado */
 }
 
 .appointment-header {
@@ -2033,6 +1722,21 @@ onMounted(() => {
   font-size: 12px;
   font-weight: 500;
   background: white;
+}
+
+.status-badge[color="positive"] {
+  color: #4ade80;
+  border: 1px solid #4ade80;
+}
+
+.status-badge[color="negative"] {
+  color: #f87171;
+  border: 1px solid #f87171;
+}
+
+.status-badge[color="primary"] {
+  color: #667eea;
+  border: 1px solid #667eea;
 }
 
 .appointment-content {
@@ -2221,6 +1925,7 @@ onMounted(() => {
   color: #64748b;
 }
 
+/* Nuevos estilos sugeridos */
 .day-view-header {
   display: flex;
   justify-content: space-between;
@@ -2240,120 +1945,9 @@ onMounted(() => {
   gap: 8px;
 }
 
-.time-display-table {
+/* Nuevo estilo para el contenedor de acciones */
+.day-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.time-text-table {
-  font-weight: 600;
-  color: #1e293b;
-}
-
-.owner-info-table {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.owner-details-table {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.owner-name-table {
-  font-weight: 600;
-  color: #1e293b;
-}
-
-.owner-meta-table {
-  font-size: 12px;
-  color: #64748b;
-}
-
-.available-slot-table {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #047857;
-}
-
-.pet-info-table {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.pet-details-table {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.pet-name-table {
-  font-weight: 600;
-  color: #1e293b;
-}
-
-.pet-type-table {
-  font-size: 12px;
-  color: #64748b;
-}
-
-.no-pet-table {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.service-info-table {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.service-details-table {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.service-name-table {
-  font-weight: 600;
-  color: #1e293b;
-}
-
-.service-duration-table {
-  font-size: 12px;
-  color: #64748b;
-}
-
-.no-service-table {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.action-buttons-table {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-}
-
-.no-appointments {
-  text-align: center;
-  padding: 40px;
-}
-
-.no-appointments-text h5 {
-  margin: 16px 0 8px;
-  color: #1e293b;
-}
-
-.no-appointments-text p {
-  color: #64748b;
-  margin: 0;
 }
 </style>

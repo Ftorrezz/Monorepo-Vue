@@ -670,10 +670,8 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import NdPeticionControl from 'src/controles/rest.control'
-import { useDialogStore } from 'neo-vet/src/stores/DialogoUbicacion'
 
 const $q = useQuasar()
-const store = useDialogStore()
 
 // Estados principales
 const currentDate = ref(new Date())
@@ -792,9 +790,19 @@ const loadDisponibilidad = async (idServicio, fechaInicio, fechaFin, idSucursal 
     queryParams.append('filtro[id_servicio]', idServicio)
     queryParams.append('filtro[fecha_inicio]', fechaInicio.toISOString())
     queryParams.append('filtro[fecha_fin]', fechaFin.toISOString())
-    queryParams.append('filtro[id_sucursal]', store.sucursalSeleccionada.id)
-       
+    if (idSucursal) {
+      queryParams.append('filtro[id_sucursal]', idSucursal)
+    }
 
+
+        fecha_inicio: fechaInicio.toISOString(),
+        fecha_fin: fechaFin.toISOString(),
+        id_sucursal: idSucursal
+      }
+    }
+    
+    
+    console.log('Params:', params)
     const response = await peticion.invocarMetodo(`agenda/disponibilidad?${queryParams.toString()}`, 'get')
     return Array.isArray(response) ? response : []
   } catch (error) {
@@ -814,8 +822,9 @@ const loadDisponibilidadDia = async (idServicio, fecha, idSucursal = null) => {
     const queryParams = new URLSearchParams()
     queryParams.append('filtro[id_servicio]', idServicio)
     queryParams.append('filtro[fecha]', fecha.toISOString())
-    queryParams.append('filtro[id_sucursal]', store.sucursalSeleccionada.id)
-    
+    if (idSucursal) {
+      queryParams.append('filtro[id_sucursal]', idSucursal)
+    }
 
 
 
@@ -841,8 +850,15 @@ const loadCitasPorFecha = async (fecha, idSucursal = null) => {
     const peticion = new NdPeticionControl()
     const queryParams = new URLSearchParams()
     queryParams.append('filtro[fecha]', fecha.toISOString())
-    queryParams.append('filtro[id_sucursal]', store.sucursalSeleccionada.id)
-       
+    if (idSucursal) {
+      queryParams.append('filtro[id_sucursal]', idSucursal)
+    }
+      filtro: {
+        fecha: fecha.toISOString(),
+        id_sucursal: idSucursal
+      }
+    }
+    
     const response = await peticion.invocarMetodo(`agenda/citas/fecha?${queryParams.toString()}`, 'get')
     return Array.isArray(response) ? response : []
   } catch (error) {

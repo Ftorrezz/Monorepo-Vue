@@ -151,7 +151,7 @@
                   </template>
                 </q-input>
               </div>
-              <div class="col">
+              <!--<div class="col">
                 <q-select
                   v-model="currentException.id_sucursal"
                   label="Sucursal"
@@ -163,7 +163,7 @@
                   map-options
                   :rules="[val => !!val || 'La sucursal es requerida']"
                 />
-              </div>
+              </div>-->
             </div>
 
             <div class="row q-gutter-sm">
@@ -264,6 +264,7 @@ import { ref, onMounted } from 'vue'
 import { useQuasar, date } from 'quasar'
 import NdPeticionControl from 'src/controles/rest.control'
 import PeticionService from 'src/services/peticion.service'
+import { useDialogStore } from 'neo-auth/src/stores/DialogoUbicacion'
 
 const $q = useQuasar()
 
@@ -276,6 +277,7 @@ const sucursales = ref([])
 const loading = ref(false)
 const dialog = ref(false)
 const currentException = ref({})
+const store = useDialogStore()
 
 // Opciones
 const estadoOptions = [
@@ -366,7 +368,7 @@ const openDialog = (exception = null) => {
       hora_inicio: null,
       hora_fin: null,
       dia_semana: 0, // Se calculará al guardar
-      id_sucursal: sucursales.value.length > 0 ? sucursales.value[0].id : null
+      id_sucursal: store.sucursalSeleccionada.id
     }
   }
   dialog.value = true
@@ -393,20 +395,12 @@ const save = async () => {
     }
 
     if (response) {
-      $q.notify({
-        type: 'positive',
-        message: 'Guardado correctamente',
-        position: 'top-right'
-      })
+      
       await loadExceptions()
       dialog.value = false
     }
   } catch (error) {
-    $q.notify({
-      type: 'negative',
-      message: 'Error al guardar',
-      position: 'top-right'
-    })
+    
   }
 }
 
