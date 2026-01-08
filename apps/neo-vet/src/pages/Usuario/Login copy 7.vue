@@ -95,7 +95,7 @@
                     :label="$t('inputlogin.label')"
                     lazy-rules
                     :rules="[validationRule]"
-                    class="modern-input-usuario"
+                    class="uppercase modern-input"
 
                   >
                     <template v-slot:prepend>
@@ -111,7 +111,7 @@
                     lazy-rules
                     :rules="[passwordValidationRule]"
                     class="modern-input"
-
+                    placeholder="••••••••"
                   >
                     <template v-slot:prepend>
                       <q-icon name="lock_outline" color="primary" />
@@ -630,23 +630,6 @@ const getParticleStyle = () => {
   box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
 }
 
-.modern-input-usuario :deep(.q-field__control) {
-  height: 56px;
-  border-radius: 12px;
-  font-size: 16px;
-  background: white;
-  border: 2px solid #e2e8f0;
-  transition: all 0.3s ease;
-}
-
-.modern-input-usuario :deep(.q-field__control:hover) {
-  border-color: #cbd5e0;
-}
-
-.modern-input-usuario :deep(.q-field--focused .q-field__control) {
-  border-color: #4facfe;
-  box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
-}
 .form-options {
   display: flex;
   justify-content: space-between;
@@ -826,9 +809,6 @@ const getParticleStyle = () => {
   .brand-title {
     font-size: 28px;
   }
-}
-.modern-input-usuario :deep(input) {
-  text-transform: uppercase;
 }
 
 @media (max-width: 480px) {
