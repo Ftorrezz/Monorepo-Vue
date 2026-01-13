@@ -13,9 +13,9 @@ export default {
     validationpassword: 'Please enter a password',
   },
   pantallabloqueo: {
-     descripcion: 'Session locked due to inactivity',
-     label: 'Password to unlock',
-     validation: 'Please enter a password',
+    descripcion: 'Session locked due to inactivity',
+    label: 'Password to unlock',
+    validation: 'Please enter a password',
   },
   footer: {
     selectBranch: 'Select a branch',
@@ -43,7 +43,7 @@ export default {
       dashboard: 'Dashboard',
       ownerPet: 'Owner / Pet',
       petCare: 'Pet Care',
-      schedule: 'Schedule'
+      schedule: 'Calendar'
     },
     inventory: {
       title: 'Inventory'

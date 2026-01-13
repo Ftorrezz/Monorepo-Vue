@@ -266,14 +266,14 @@
               >
                 <div class="day-header">
                   <span class="day-number">{{ day.date }}</span>
-                  <div class="day-stats" v-if="day.isCurrentMonth && !day.isPast">
+                  <div class="day-stats" v-if="day.isCurrentMonth && !day.isPast && day.hasAgenda">
                     <span class="available-badge">{{ day.availableSlots }}</span>
                     <span class="booked-badge">{{ day.bookedSlots }}</span>
                   </div>
                 </div>
 
                 <!-- Horarios del día -->
-                <div class="day-slots-summary" v-if="day.isCurrentMonth && !day.isPast">
+                <div class="day-slots-summary" v-if="day.isCurrentMonth && !day.isPast && day.hasAgenda">
                   <div
                     v-for="(slot, index) in day.slots.slice(0, 4)"
                     :key="slot.time"
@@ -290,6 +290,12 @@
                   </div>
                 </div>
 
+                                <!-- Mensaje para días sin agenda -->
+                <div v-if="day.isCurrentMonth && !day.isPast && !day.hasAgenda" class="no-agenda-day">
+                  <q-icon name="event_busy" size="sm" color="grey-4" />
+                  <span>Sin Agenda</span>
+                </div>
+
                 <!-- Mensaje para días inactivos -->
                 <div v-if="(day.isPast || day.isWeekend) && day.isCurrentMonth" class="inactive-day">
                   <q-icon
@@ -303,7 +309,7 @@
             </div>
           </div>
 
-          <!-- Vista diaria - Modo Tarjetas -->
+                    <!-- Vista diaria - Modo Tarjetas -->
           <div v-if="selectedService && viewMode === 'day' && dayViewMode === 'cards'" class="day-view-container">
             <div class="day-view-header">
               <div class="day-info">
@@ -332,7 +338,7 @@
               <div 
                 v-for="slot in daySlots" 
                 :key="slot.time"
-                class="appointment-card"
+                class="modern-appointment-card"
                 :class="{
                   'available': slot.status === 'available',
                   'booked': slot.status === 'booked',
@@ -340,101 +346,59 @@
                 }"
                 @click="selectTimeSlot({ fullDate: selectedDate, slots: daySlots }, slot)"
               >
-                <!-- Header de la tarjeta -->
-                <div class="appointment-header">
-                  <div class="time-section">
-                    <div class="time-display">
-                      <q-icon 
-                        :name="getTimeIcon(slot.status)" 
-                        :color="getTimeIconColor(slot.status)"
-                        size="18px"
-                        class="time-icon"
-                      />
-                      <span class="time-text">{{ slot.time }}</span>
-                    </div>
-                    <q-badge 
-                      :color="slot.status === 'available' ? 'positive' : slot.status === 'booked' ? 'negative' : 'primary'"
-                      :label="getStatusLabel(slot.status)"
-                      class="status-badge"
-                    />
+                <div class="card-glass-overlay"></div>
+                
+                <div class="card-header">
+                  <div class="time-badge">
+                    <q-icon :name="getTimeIcon(slot.status)" size="16px" />
+                    <span>{{ slot.time }}</span>
                   </div>
-                  
-                  <div class="actions-section">
-                    <q-btn
-                      v-if="slot.status === 'available'"
-                      size="sm"
-                      color="positive"
-                      icon="add"
-                      round
-                      flat
-                      @click.stop="selectTimeSlot({ fullDate: selectedDate, slots: daySlots }, slot)"
-                    >
-                      <q-tooltip>Agendar cita</q-tooltip>
-                    </q-btn>
-                    <q-btn
-                      v-if="slot.status === 'booked'"
-                      size="sm"
-                      color="info"
-                      icon="visibility"
-                      round
-                      flat
-                      @click.stop="viewAppointment(slot)"
-                    >
-                      <q-tooltip>Ver detalles</q-tooltip>
-                    </q-btn>
+                  <div class="status-indicator" :class="slot.status">
+                    {{ getStatusLabel(slot.status) }}
                   </div>
                 </div>
 
-                <!-- Contenido de la cita -->
-                <div class="appointment-content">
-                  <div v-if="slot.appointment" class="appointment-details">
-                    <div class="client-info">
-                      <div class="client-avatar">
-                        <q-avatar color="primary" text-color="white" size="32px">
+                <div class="card-body">
+                  <template v-if="slot.appointment">
+                    <div class="appointment-info">
+                      <div class="info-row">
+                        <q-avatar size="36px" class="info-avatar person">
                           <q-icon name="person" />
                         </q-avatar>
+                        <div class="info-text">
+                          <div class="label">Propietario</div>
+                          <div class="value">{{ slot.appointment.ownerName }}</div>
+                        </div>
                       </div>
-                      <div class="client-details">
-                        <div class="client-name">{{ slot.appointment.ownerName }}</div>
-                        <div class="client-meta">Cliente</div>
-                      </div>
-                    </div>
-                    
-                    <q-separator vertical />
-                    
-                    <div class="pet-info">
-                      <div class="pet-avatar">
-                        <q-avatar color="secondary" text-color="white" size="32px">
+                      <div class="info-row">
+                        <q-avatar size="36px" class="info-avatar pet">
                           <q-icon name="pets" />
                         </q-avatar>
-                      </div>
-                      <div class="pet-details">
-                        <div class="pet-name">{{ slot.appointment.petName }}</div>
-                        <div class="pet-type">{{ slot.appointment.petType || 'Mascota' }}</div>
-                      </div>
+                        <div class="info-text">
+                          <div class="label">Mascota</div>
+                          <div class="value">{{ slot.appointment.petName }} <span class="pet-type">({{ slot.appointment.petType || 'Mascota' }})</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+                  <template v-else>
+                    <div class="available-info">
+                      <q-icon name="add_circle_outline" size="40px" color="positive" class="add-icon" />
+                      <div class="available-text">Disponible</div>
+                      <div class="available-subtext">Toca para agendar</div>
                     </div>
-                  </div>
-
-                  <div v-else class="empty-slot">
-                    <div class="empty-slot-content">
-                      <q-icon name="event_available" size="28px" color="positive" />
-                      <div class="empty-slot-text">
-                        <div class="empty-slot-title">Horario Disponible</div>
-                        <div class="empty-slot-subtitle">Haz clic para agendar</div>
-                      </div>
-                    </div>
-                  </div>
+                  </template>
                 </div>
 
-                <!-- Footer con información del servicio -->
-                <div v-if="slot.appointment" class="appointment-footer">
-                  <div class="service-info">
+                <div class="card-footer" v-if="slot.appointment">
+                  <div class="service-tag">
                     <q-icon :name="selectedService.icon" size="14px" />
                     <span>{{ selectedService.name }}</span>
                   </div>
-                  <div class="duration-info">
-                    <q-icon name="schedule" size="14px" />
-                    <span>{{ selectedService.duration }}min</span>
+                  <div class="action-btns">
+                    <q-btn flat round dense icon="visibility" color="primary" @click.stop="viewAppointment(slot)" />
+                    <q-btn flat round dense icon="delete_outline" color="negative" @click.stop="cancelAppointment(slot)" />
                   </div>
                 </div>
               </div>
@@ -663,769 +627,32 @@
         :options="dateOptions"
       />
     </q-dialog>
+    <!-- Al final del template, antes de </div> final -->
+    <DialogoAsignarCita
+      v-model:visible="mostrarDialogoAsignarCita"
+      :slot-info="slotSeleccionado"
+      :servicio="selectedService"
+      @cita-creada="onCitaCreada"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useQuasar } from 'quasar'
-import NdPeticionControl from 'src/controles/rest.control'
-import { useDialogStore } from 'neo-vet/src/stores/DialogoUbicacion'
-
-const $q = useQuasar()
-const store = useDialogStore()
-
-// Estados principales
-const currentDate = ref(new Date())
-const currentYear = ref(new Date().getFullYear())
-const currentMonth = ref(new Date().getMonth())
-const selectedService = ref(null)
-const selectedSlot = ref(null)
-const viewMode = ref('month')
-const dayViewMode = ref('cards')
-const selectedDate = ref(new Date())
-const showDatePicker = ref(false)
-const sidebarCollapsed = ref(false)
-
-// Estados para cache y carga
-const disponibilidadCache = ref({})
-const citasCache = ref({})
-const isLoadingDisponibilidad = ref(false)
-
-// Días de la semana
-const weekdays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
-
-const dayColumns = ref([
-  {
-    name: 'time',
-    required: true,
-    label: 'Hora',
-    align: 'left',
-    field: 'time',
-    sortable: false,
-    style: 'width: 120px'
-  },
-  {
-    name: 'status',
-    label: 'Estado',
-    align: 'center',
-    field: 'status',
-    sortable: false,
-    style: 'width: 140px'
-  },
-  {
-    name: 'owner',
-    label: 'Propietario',
-    align: 'left',
-    field: row => row.appointment?.ownerName || '',
-    sortable: false,
-    style: 'width: 200px'
-  },
-  {
-    name: 'pet',
-    label: 'Mascota',
-    align: 'left',
-    field: row => row.appointment?.petName || '',
-    sortable: false,
-    style: 'width: 180px'
-  },
-  {
-    name: 'service',
-    label: 'Servicio',
-    align: 'left',
-    field: 'service',
-    sortable: false,
-    style: 'width: 180px'
-  },
-  {
-    name: 'actions',
-    label: 'Acciones',
-    align: 'center',
-    field: 'actions',
-    sortable: false,
-    style: 'width: 150px'
-  }
-])
-
-// Servicios disponibles
-const services = ref([])
-const serviceSearch = ref('')
-
-// ============================================
-// FUNCIONES DE BACKEND
-// ============================================
-
-const loadServices = async () => {
-  try {
-    const peticion = new NdPeticionControl()
-    const response = await peticion.invocarMetodo('servicioagenda', 'get')
-    
-    // Handle both array and object response
-    const data = Array.isArray(response) ? response : (response?.data || [])
-    
-    if (Array.isArray(data)) {
-      services.value = data.map(s => ({
-        id: s.id,
-        name: s.nombre,
-        duration: s.duracion_minutos,
-        price: s.precio,
-        icon: s.icono || 'pets',
-        color: s.color || 'blue',
-        active: s.activo,
-        urgency: s.urgencias
-      }))
-    }
-  } catch (error) {
-    $q.notify({
-      type: 'negative',
-      message: 'Error al cargar los servicios',
-      caption: error.message
-    })
-  }
-}
-
-// Cargar disponibilidad desde el backend
-const loadDisponibilidad = async (idServicio, fechaInicio, fechaFin, idSucursal = null) => {
-  try {
-    const peticion = new NdPeticionControl()
-    const queryParams = new URLSearchParams()
-    queryParams.append('filtro[id_servicio]', idServicio)
-    queryParams.append('filtro[fecha_inicio]', fechaInicio.toISOString())
-    queryParams.append('filtro[fecha_fin]', fechaFin.toISOString())
-    queryParams.append('filtro[id_sucursal]', store.sucursalSeleccionada.id)
-       
-
-    const response = await peticion.invocarMetodo(`agenda/disponibilidad?${queryParams.toString()}`, 'get')
-    return Array.isArray(response) ? response : []
-  } catch (error) {
-    $q.notify({
-      type: 'negative',
-      message: 'Error al cargar disponibilidad',
-      caption: error.message
-    })
-    return []
-  }
-}
-
-// Cargar disponibilidad para un día específico
-const loadDisponibilidadDia = async (idServicio, fecha, idSucursal = null) => {
-  try {
-    const peticion = new NdPeticionControl()
-    const queryParams = new URLSearchParams()
-    queryParams.append('filtro[id_servicio]', idServicio)
-    queryParams.append('filtro[fecha]', fecha.toISOString())
-    queryParams.append('filtro[id_sucursal]', store.sucursalSeleccionada.id)
-    
-
-
-
-
-
-
-    
-    const response = await peticion.invocarMetodo(`agenda/disponibilidad/dia?${queryParams.toString()}`, 'get')
-    return Array.isArray(response) ? response : []
-  } catch (error) {
-    $q.notify({
-      type: 'negative',
-      message: 'Error al cargar disponibilidad del día',
-      caption: error.message
-    })
-    return []
-  }
-}
-
-// Cargar citas por fecha
-const loadCitasPorFecha = async (fecha, idSucursal = null) => {
-  try {
-    const peticion = new NdPeticionControl()
-    const queryParams = new URLSearchParams()
-    queryParams.append('filtro[fecha]', fecha.toISOString())
-    queryParams.append('filtro[id_sucursal]', store.sucursalSeleccionada.id)
-       
-    const response = await peticion.invocarMetodo(`agenda/citas/fecha?${queryParams.toString()}`, 'get')
-    return Array.isArray(response) ? response : []
-  } catch (error) {
-    console.error('Error al cargar citas:', error)
-    return []
-  }
-}
-
-// ============================================
-// FUNCIONES DE PROCESAMIENTO
-// ============================================
-
-// Cargar disponibilidad para todo el mes
-const loadDisponibilidadMes = async () => {
-  if (!selectedService.value) return
-  
-  isLoadingDisponibilidad.value = true
-  
-  try {
-    const firstDay = new Date(currentYear.value, currentMonth.value, 1)
-    const lastDay = new Date(currentYear.value, currentMonth.value + 1, 0)
-    
-    // Cargar la disponibilidad directamente
-    const disponibilidad = await loadDisponibilidad(
-      selectedService.value.id,
-      firstDay,
-      lastDay
-    )
-    
-    // Procesar y guardar en caché
-    if (disponibilidad && disponibilidad.length > 0) {
-      procesarDisponibilidad(disponibilidad)
-    } else {
-      // Limpiar el caché si no hay disponibilidad
-      limpiarCacheMes()
-      
-      $q.notify({
-        type: 'info',
-        message: 'No hay agenda generada para este período',
-        caption: 'Por favor, genera la agenda desde el módulo correspondiente'
-      })
-    }
-    
-  } catch (error) {
-    console.error('Error al cargar disponibilidad del mes:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Error al cargar la disponibilidad',
-      caption: error.message
-    })
-  } finally {
-    isLoadingDisponibilidad.value = false
-  }
-}
-
-// Cargar disponibilidad para un día específico
-const loadDisponibilidadDiaActual = async () => {
-  if (!selectedService.value) return
-  
-  isLoadingDisponibilidad.value = true
-  
-  try {
-    const fecha = selectedDate.value
-    
-    // Cargar la disponibilidad del día directamente
-    const disponibilidad = await loadDisponibilidadDia(
-      selectedService.value.id,
-      fecha
-    )
-    
-    // Procesar y guardar en caché
-    if (disponibilidad && disponibilidad.length > 0) {
-      procesarDisponibilidadDia(disponibilidad, fecha)
-      
-      // También cargar las citas del día
-      const citas = await loadCitasPorFecha(fecha)
-      procesarCitas(citas, fecha)
-    } else {
-      // Limpiar el caché si no hay disponibilidad
-      const dateKey = fecha.toISOString().split('T')[0]
-      const cacheKey = `${selectedService.value.id}-${dateKey}`
-      disponibilidadCache.value[cacheKey] = []
-      
-      $q.notify({
-        type: 'info',
-        message: 'No hay agenda generada para este día',
-        caption: 'Por favor, genera la agenda desde el módulo correspondiente'
-      })
-    }
-    
-  } catch (error) {
-    console.error('Error al cargar disponibilidad del día:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Error al cargar la disponibilidad',
-      caption: error.message
-    })
-  } finally {
-    isLoadingDisponibilidad.value = false
-  }
-}
-
-// Procesar disponibilidad recibida del backend
-const procesarDisponibilidad = (disponibilidad) => {
-  if (!Array.isArray(disponibilidad)) return
-  
-  disponibilidad.forEach(item => {
-    const fecha = new Date(item.fecha)
-    const dateKey = fecha.toISOString().split('T')[0]
-    const cacheKey = `${selectedService.value.id}-${dateKey}`
-    
-    const slots = item.horarios?.map(horario => ({
-      time: horario.hora_inicio,
-      status: horario.estado === 'disponible' ? 'available' : 'booked',
-      id_slot: horario.id,
-      appointment: horario.cita ? {
-        id: horario.cita.id,
-        ownerName: horario.cita.propietario?.nombre || 'Sin nombre',
-        petName: horario.cita.mascota?.nombre || 'Sin nombre',
-        petType: horario.cita.mascota?.especie || 'Mascota'
-      } : null
-    })) || []
-    
-    disponibilidadCache.value[cacheKey] = slots
-  })
-}
-
-// Procesar disponibilidad de un día específico
-const procesarDisponibilidadDia = (disponibilidad, fecha) => {
-  const dateKey = fecha.toISOString().split('T')[0]
-  const cacheKey = `${selectedService.value.id}-${dateKey}`
-  
-  const slots = disponibilidad?.map(horario => ({
-    time: horario.hora_inicio,
-    status: horario.estado === 'disponible' ? 'available' : 'booked',
-    id_slot: horario.id,
-    appointment: horario.cita ? {
-      id: horario.cita.id,
-      ownerName: horario.cita.propietario?.nombre || 'Sin nombre',
-      petName: horario.cita.mascota?.nombre || 'Sin nombre',
-      petType: horario.cita.mascota?.especie || 'Mascota'
-    } : null
-  })) || []
-  
-  disponibilidadCache.value[cacheKey] = slots
-}
-
-// Procesar citas recibidas del backend
-const procesarCitas = (citas, fecha) => {
-  const dateKey = fecha.toISOString().split('T')[0]
-  citasCache.value[dateKey] = citas
-}
-
-// Limpiar caché del mes actual
-const limpiarCacheMes = () => {
-  const firstDay = new Date(currentYear.value, currentMonth.value, 1)
-  const lastDay = new Date(currentYear.value, currentMonth.value + 1, 0)
-  
-  for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
-    const dateKey = new Date(d).toISOString().split('T')[0]
-    const cacheKey = `${selectedService.value.id}-${dateKey}`
-    disponibilidadCache.value[cacheKey] = []
-  }
-}
-
-// Refrescar disponibilidad manualmente
-const refrescarDisponibilidad = () => {
-  if (viewMode.value === 'month') {
-    loadDisponibilidadMes()
-  } else {
-    loadDisponibilidadDiaActual()
-  }
-}
-
-// ============================================
-// COMPUTEDS
-// ============================================
-
-const currentMonthName = computed(() => {
-  return new Date(currentYear.value, currentMonth.value).toLocaleDateString('es-ES', { month: 'long' })
-})
-
-const selectedDateString = computed({
-  get: () => {
-    return selectedDate.value.toISOString().split('T')[0]
-  },
-  set: (value) => {
-    selectedDate.value = new Date(value)
-  }
-})
-
-// Servicios filtrados
-const filteredServices = computed(() => {
-  if (!serviceSearch.value) return services.value
-  
-  return services.value.filter(service =>
-    service.name.toLowerCase().includes(serviceSearch.value.toLowerCase())
-  )
-})
-
-// Estadísticas de bienvenida
-const totalAppointmentsToday = computed(() => {
-  return 12 // Mock data - puede ser calculado desde las citas reales
-})
-
-const totalServicesActive = computed(() => {
-  return services.value.length
-})
-
-// Slots del día seleccionado para vista diaria
-const daySlots = computed(() => {
-  if (!selectedService.value) return []
-
-  const dateKey = selectedDate.value.toISOString().split('T')[0]
-  const cacheKey = `${selectedService.value.id}-${dateKey}`
-  
-  // Retornar desde caché si existe
-  if (disponibilidadCache.value[cacheKey]) {
-    return disponibilidadCache.value[cacheKey]
-  }
-
-  return []
-})
-
-const calendarDays = computed(() => {
-  if (!selectedService.value) return []
-
-  const firstDay = new Date(currentYear.value, currentMonth.value, 1)
-  const lastDay = new Date(currentYear.value, currentMonth.value + 1, 0)
-  const firstDayWeek = firstDay.getDay()
-  const today = new Date()
-
-  const days = []
-
-  // Días del mes anterior
-  for (let i = firstDayWeek - 1; i >= 0; i--) {
-    const date = new Date(firstDay)
-    date.setDate(date.getDate() - (i + 1))
-    days.push({
-      date: date.getDate(),
-      fullDate: new Date(date),
-      isCurrentMonth: false,
-      isToday: false,
-      isWeekend: date.getDay() === 0 || date.getDay() === 6,
-      isPast: date < today,
-      availableSlots: 0,
-      bookedSlots: 0,
-      slots: []
-    })
-  }
-
-  // Días del mes actual
-  for (let day = 1; day <= lastDay.getDate(); day++) {
-    const date = new Date(currentYear.value, currentMonth.value, day)
-    const isToday = date.toDateString() === today.toDateString()
-    const isPast = date < today && !isToday
-    const isWeekend = date.getDay() === 0 || date.getDay() === 6
-
-    const dateKey = date.toISOString().split('T')[0]
-    const cacheKey = `${selectedService.value.id}-${dateKey}`
-    
-    // Obtener slots desde caché o usar array vacío
-    const slots = disponibilidadCache.value[cacheKey] || []
-    const availableSlots = slots.filter(s => s.status === 'available').length
-    const bookedSlots = slots.filter(s => s.status === 'booked').length
-
-    days.push({
-      date: day,
-      fullDate: new Date(date),
-      isCurrentMonth: true,
-      isToday,
-      isWeekend,
-      isPast,
-      availableSlots,
-      bookedSlots,
-      slots
-    })
-  }
-
-  // Días del mes siguiente para completar la grilla
-  const totalCells = 42
-  const remainingCells = totalCells - days.length
-
-  for (let day = 1; day <= remainingCells; day++) {
-    const date = new Date(currentYear.value, currentMonth.value + 1, day)
-    days.push({
-      date: day,
-      fullDate: new Date(date),
-      isCurrentMonth: false,
-      isToday: false,
-      isWeekend: date.getDay() === 0 || date.getDay() === 6,
-      isPast: false,
-      availableSlots: 0,
-      bookedSlots: 0,
-      slots: []
-    })
-  }
-
-  return days
-})
-
-// Estadísticas actuales
-const currentStats = computed(() => {
-  if (!selectedService.value) return { available: 0, booked: 0, revenue: 0, efficiency: 0 }
-
-  let targetDay
-  if (viewMode.value === 'month') {
-    targetDay = calendarDays.value.find(day => day.isToday)
-  } else {
-    const available = daySlots.value.filter(s => s.status === 'available').length
-    const booked = daySlots.value.filter(s => s.status === 'booked').length
-    const total = available + booked
-    const revenue = booked * selectedService.value.price
-    const efficiency = total > 0 ? Math.round((booked / total) * 100) : 0
-
-    return { available, booked, revenue, efficiency }
-  }
-
-  if (!targetDay) return { available: 0, booked: 0, revenue: 0, efficiency: 0 }
-
-  const available = targetDay.availableSlots
-  const booked = targetDay.bookedSlots
-  const total = available + booked
-  const revenue = booked * selectedService.value.price
-  const efficiency = total > 0 ? Math.round((booked / total) * 100) : 0
-
-  return { available, booked, revenue, efficiency }
-})
-
-// Opciones para el selector de fecha
-const dateOptions = (date) => {
-  const targetDate = new Date(date)
-  const today = new Date()
-  const isWeekend = targetDate.getDay() === 0 || targetDate.getDay() === 6
-  const isPast = targetDate < today && !isSameDay(targetDate, today)
-
-  return !isPast && (selectedService.value?.id === 8 || !isWeekend)
-}
-
-// ============================================
-// MÉTODOS DE NAVEGACIÓN Y SELECCIÓN
-// ============================================
-
-const toggleSidebar = () => {
-  sidebarCollapsed.value = !sidebarCollapsed.value
-}
-
-const selectService = (service) => {
-  selectedService.value = service
-  selectedSlot.value = null
-  
-  // Cargar disponibilidad para el mes actual
-  loadDisponibilidadMes()
-}
-
-const getServiceStats = (serviceId) => {
-  // Mock data for service statistics
-  return {
-    todayAppointments: Math.floor(Math.random() * 10) + 1,
-    weekAppointments: Math.floor(Math.random() * 50) + 5
-  }
-}
-
-// Métodos para la tabla
-const getTimeIcon = (status) => {
-  switch (status) {
-    case 'available': return 'check_circle'
-    case 'booked': return 'event_busy'
-    case 'selected': return 'radio_button_checked'
-    default: return 'schedule'
-  }
-}
-
-const getTimeIconColor = (status) => {
-  switch (status) {
-    case 'available': return 'positive'
-    case 'booked': return 'negative'
-    case 'selected': return 'primary'
-    default: return 'grey'
-  }
-}
-
-const getStatusLabel = (status) => {
-  switch (status) {
-    case 'available': return 'Disponible'
-    case 'booked': return 'Ocupado'
-    case 'selected': return 'Seleccionado'
-    default: return 'Desconocido'
-  }
-}
-
-const viewAppointment = (slot) => {
-  $q.notify({
-    type: 'info',
-    message: `Cita de ${slot.appointment.petName} con ${slot.appointment.ownerName}`,
-    caption: `Hora: ${slot.time}`
-  })
-}
-
-// Cancelar cita
-const cancelAppointment = async (slot) => {
-  if (!slot.appointment || !slot.appointment.id) {
-    $q.notify({
-      type: 'warning',
-      message: 'No hay cita para cancelar'
-    })
-    return
-  }
-  
-  $q.dialog({
-    title: 'Cancelar Cita',
-    message: `¿Estás seguro de que deseas cancelar la cita de ${slot.appointment.petName}?`,
-    cancel: true,
-    persistent: true
-  }).onOk(async () => {
-    try {
-      const peticion = new NdPeticionControl()
-      const response = await peticion.invocarMetodo(`agenda/citas/${slot.appointment.id}`, 'delete')
-      
-      if (response?.success) {
-        $q.notify({
-          type: 'positive',
-          message: 'Cita cancelada exitosamente'
-        })
-        
-        // Recargar disponibilidad
-        if (viewMode.value === 'month') {
-          await loadDisponibilidadMes()
-        } else {
-          await loadDisponibilidadDiaActual()
-        }
-      }
-    } catch (error) {
-      $q.notify({
-        type: 'negative',
-        message: 'Error al cancelar la cita',
-        caption: error.message
-      })
-    }
-  })
-}
-
-const previousMonth = () => {
-  if (currentMonth.value === 0) {
-    currentMonth.value = 11
-    currentYear.value--
-  } else {
-    currentMonth.value--
-  }
-  loadDisponibilidadMes()
-}
-
-const nextMonth = () => {
-  if (currentMonth.value === 11) {
-    currentMonth.value = 0
-    currentYear.value++
-  } else {
-    currentMonth.value++
-  }
-  loadDisponibilidadMes()
-}
-
-const previousDay = () => {
-  const newDate = new Date(selectedDate.value)
-  newDate.setDate(newDate.getDate() - 1)
-  selectedDate.value = newDate
-  loadDisponibilidadDiaActual()
-}
-
-const nextDay = () => {
-  const newDate = new Date(selectedDate.value)
-  newDate.setDate(newDate.getDate() + 1)
-  selectedDate.value = newDate
-  loadDisponibilidadDiaActual()
-}
-
-const goToToday = () => {
-  const today = new Date()
-  if (viewMode.value === 'month') {
-    currentYear.value = today.getFullYear()
-    currentMonth.value = today.getMonth()
-    loadDisponibilidadMes()
-  } else {
-    selectedDate.value = new Date(today)
-    loadDisponibilidadDiaActual()
-  }
-}
-
-const selectDayForDayView = (day) => {
-  if (!day.isCurrentMonth || day.isPast || (!selectedService.value || selectedService.value.id !== 8) && day.isWeekend) {
-    return
-  }
-
-  viewMode.value = 'day'
-  selectedDate.value = new Date(day.fullDate)
-  loadDisponibilidadDiaActual()
-}
-
-const updateSelectedDate = (newDate) => {
-  selectedDate.value = new Date(newDate)
-  showDatePicker.value = false
-  loadDisponibilidadDiaActual()
-}
-
-const selectTimeSlot = (day, slot) => {
-  if (slot.status === 'booked') {
-    $q.notify({
-      type: 'warning',
-      message: `Este horario está ocupado por ${slot.appointment.petName} (${slot.appointment.ownerName})`
-    })
-    return
-  }
-
-  // Limpiar selección anterior
-  selectedSlot.value = {
-    date: day.fullDate.toLocaleDateString('es-ES'),
-    dayName: day.fullDate.toLocaleDateString('es-ES', { weekday: 'long' }),
-    time: slot.time,
-    fullDate: day.fullDate,
-    id_slot: slot.id_slot
-  }
-
-  // Aquí abriría el dialog de cita
-  $q.notify({
-    type: 'info',
-    message: `Horario seleccionado: ${slot.time}`,
-    caption: 'Implementar dialog de nueva cita'
-  })
-}
-
-// Crear cita en el backend
-const crearCitaBackend = async (citaData) => {
-  try {
-    const peticion = new NdPeticionControl()
-    const response = await peticion.invocarMetodo('agenda/citas', 'post', citaData)
-    
-    if (response?.success) {
-      $q.notify({
-        type: 'positive',
-        message: 'Cita creada exitosamente',
-        caption: 'La cita ha sido agendada correctamente'
-      })
-      
-      // Recargar disponibilidad
-      if (viewMode.value === 'month') {
-        await loadDisponibilidadMes()
-      } else {
-        await loadDisponibilidadDiaActual()
-      }
-      
-      return true
-    }
-    
-    return false
-  } catch (error) {
-    $q.notify({
-      type: 'negative',
-      message: 'Error al crear la cita',
-      caption: error.message
-    })
-    return false
-  }
-}
-
-// Función auxiliar para comparar fechas
-const isSameDay = (date1, date2) => {
-  return date1.getDate() === date2.getDate() &&
-         date1.getMonth() === date2.getMonth() &&
-         date1.getFullYear() === date2.getFullYear()
-}
-
-// Watch para cambios en el modo de vista
-watch(viewMode, (newMode) => {
-  if (newMode === 'day') {
-    loadDisponibilidadDiaActual()
-  } else {
-    loadDisponibilidadMes()
-  }
-})
-
-onMounted(() => {
-  loadServices()
-})
+import { useAgenda } from 'src/composables/useAgenda'
+import DialogoAsignarCita from 'src/components/agenda/DialogoAsignarCita.vue'
+
+const {
+  currentDate, currentYear, currentMonth, selectedService, selectedSlot, viewMode, dayViewMode,
+  selectedDate, showDatePicker, sidebarCollapsed, disponibilidadCache, citasCache,
+  isLoadingDisponibilidad, weekdays, dayColumns, services, serviceSearch,
+  currentMonthName, selectedDateString, filteredServices, totalAppointmentsToday,
+  totalServicesActive, daySlots, calendarDays, currentStats, dateOptions,
+  toggleSidebar, selectService, getServiceStats, getTimeIcon, getTimeIconColor,
+  getStatusLabel, viewAppointment, cancelAppointment, previousMonth, nextMonth,
+  previousDay, nextDay, goToToday, selectDayForDayView, updateSelectedDate,
+  selectTimeSlot, refrescarDisponibilidad, mostrarDialogoAsignarCita,
+  slotSeleccionado, onCitaCreada
+} = useAgenda()
 </script>
 
 <style scoped>
@@ -1900,13 +1127,13 @@ onMounted(() => {
 }
 
 .available-badge {
-  background: #dcfce7;
-  color: #166534;
+  background: #22c55e;
+  color: white;
 }
 
 .booked-badge {
-  background: #fef2f2;
-  color: #991b1b;
+  background: #ef4444;
+  color: white;
 }
 
 .day-slots-summary {
@@ -1927,15 +1154,15 @@ onMounted(() => {
 }
 
 .time-slot-mini.available {
-  background: #f0fdf4;
-  color: #166534;
-  border: 1px solid #dcfce7;
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #86efac;
 }
 
 .time-slot-mini.booked {
-  background: #fef2f2;
-  color: #991b1b;
-  border: 1px solid #fee2e2;
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
 }
 
 .slot-time-mini {
@@ -1965,9 +1192,9 @@ onMounted(() => {
 /* Vista diaria - Modo Tarjetas */
 .appointments-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
-  padding: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px;
+  padding: 16px;
 }
 
 .appointment-card {
@@ -2355,5 +1582,363 @@ onMounted(() => {
 .no-appointments-text p {
   color: #64748b;
   margin: 0;
+}
+
+/* MODERN CARDS DESIGN */
+.modern-appointment-card {
+  position: relative;
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 16px rgba(31, 38, 135, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modern-appointment-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(31, 38, 135, 0.12);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.modern-appointment-card.available {
+  border-left: 4px solid #10b981;
+}
+
+.modern-appointment-card.booked {
+  border-left: 4px solid #ef4444;
+}
+
+.modern-appointment-card.selected {
+  border-left: 4px solid #3b82f6;
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.time-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 12px;
+}
+
+.status-indicator {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.status-indicator.available { color: #059669; background: #ecfdf5; }
+.status-indicator.booked { color: #dc2626; background: #fef2f2; }
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.info-avatar {
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 16px !important; 
+  height: 28px !important;
+  width: 28px !important;
+}
+
+.info-avatar.person { color: #3b82f6; background: #eff6ff; }
+.info-avatar.pet { color: #ec4899; background: #fdf2f8; }
+
+.info-text .label {
+  font-size: 9px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.info-text .value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.pet-type {
+  font-weight: 400;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.available-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 0;
+  gap: 4px;
+}
+
+.add-icon {
+  transition: transform 0.3s ease;
+  font-size: 32px !important;
+}
+
+.modern-appointment-card:hover .add-icon {
+  transform: scale(1.2) rotate(90deg);
+}
+
+.available-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: #059669;
+}
+
+.available-subtext {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.card-footer {
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.service-tag {
+  display: flex;
+  align-items: center;
+}
+
+.service-info-table {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.service-details-table {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.service-name-table {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.service-duration-table {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.no-service-table {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.action-buttons-table {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.no-appointments {
+  text-align: center;
+  padding: 40px;
+}
+
+.no-appointments-text h5 {
+  margin: 16px 0 8px;
+  color: #1e293b;
+}
+
+.no-appointments-text p {
+  color: #64748b;
+  margin: 0;
+}
+
+/* MODERN CARDS DESIGN */
+.modern-appointment-card {
+  position: relative;
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 16px rgba(31, 38, 135, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modern-appointment-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(31, 38, 135, 0.12);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.modern-appointment-card.available {
+  border-left: 4px solid #10b981;
+}
+
+.modern-appointment-card.booked {
+  border-left: 4px solid #ef4444;
+}
+
+.modern-appointment-card.selected {
+  border-left: 4px solid #3b82f6;
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.time-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 12px;
+}
+
+.status-indicator {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.status-indicator.available { color: #059669; background: #ecfdf5; }
+.status-indicator.booked { color: #dc2626; background: #fef2f2; }
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.info-avatar {
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 16px !important; 
+  height: 28px !important;
+  width: 28px !important;
+}
+
+.info-avatar.person { color: #3b82f6; background: #eff6ff; }
+.info-avatar.pet { color: #ec4899; background: #fdf2f8; }
+
+.info-text .label {
+  font-size: 9px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.info-text .value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.pet-type {
+  font-weight: 400;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.available-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 0;
+  gap: 4px;
+}
+
+.add-icon {
+  transition: transform 0.3s ease;
+  font-size: 32px !important;
+}
+
+.modern-appointment-card:hover .add-icon {
+  transform: scale(1.2) rotate(90deg);
+}
+
+.available-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: #059669;
+}
+
+.available-subtext {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.card-footer {
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.service-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+}
+.no-agenda-day {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #94a3b8;
+  font-size: 11px;
+  background: #f8fafc;
+  border-radius: 8px;
+  margin-top: 4px;
 }
 </style>
