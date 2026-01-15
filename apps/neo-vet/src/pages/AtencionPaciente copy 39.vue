@@ -23,20 +23,6 @@
 
         <!-- Lista de atenciones -->
         <div class="attentions-list">
-          <div class="sidebar-action-container q-pa-md" v-show="!sidebarCollapsed">
-            <q-btn
-              color="white"
-              text-color="primary"
-              icon="add"
-              label="Nueva Atención"
-              class="full-width"
-              no-caps
-              rounded
-              unelevated
-              @click="nuevaAtencion"
-              style="font-weight: 700; height: 48px;"
-            />
-          </div>
           <div class="attentions-header" v-show="!sidebarCollapsed">
             <span class="attentions-title">Atenciones</span>
             <q-badge color="white" text-color="primary" :label="atenciones.length" />
@@ -92,6 +78,21 @@
               </q-tooltip>
             </div>
           </div>
+
+          <!-- Botón Nueva Atención -->
+          <div class="sidebar-footer" v-show="!sidebarCollapsed">
+            <q-btn
+              color="white"
+              text-color="primary"
+              icon="add"
+              label="Nueva Atención"
+              class="full-width"
+              no-caps
+              rounded
+              unelevated
+              @click="nuevaAtencion"
+            />
+          </div>
         </div>
       </div>
 
@@ -100,63 +101,41 @@
         <!-- Header principal -->
         <div class="main-header">
           <div class="header-left">
-            <div class="header-info-container" v-if="paciente">
-              <!-- Bloque Mascota -->
-              <div class="info-group pet-group">
-                <div class="info-icon">
-                  <q-icon name="pets" size="32px" color="primary" />
-                </div>
-                <div class="info-content">
-                  <div class="info-title">{{ paciente.nombre }}</div>
-                  <div class="info-subtitle">
-                    <span v-if="paciente.especie">{{ paciente.especie }}</span>
-                    <span v-if="paciente.raza" class="q-ml-xs">| {{ paciente.raza }}</span>
-                    <span v-if="paciente.edad" class="q-ml-xs">| {{ paciente.edad }} años</span>
-                    <span v-if="paciente.peso" class="q-ml-xs">| {{ paciente.peso }} kg</span>
-                    <span v-if="!paciente.especie && !paciente.raza && !paciente.edad && !paciente.peso" class="text-grey-5">Sin detalles registrados</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="info-separator"></div>
-
-              <!-- Bloque Propietario -->
-              <div class="info-group" v-if="paciente.propietario">
-                <div class="info-icon">
-                  <q-avatar size="38px" color="blue-1" text-color="primary">
-                    <q-icon name="person" size="24px" />
-                  </q-avatar>
-                </div>
-                <div class="info-content">
-                  <div class="info-label">PROPIETARIO</div>
-                  <div class="info-value">
-                    {{ paciente.propietario.nombre }} 
-                    {{ paciente.propietario.primerapellido }} 
-                    {{ paciente.propietario.segundoapellido }}
-                  </div>
-                  <div class="info-subtext" v-if="paciente.propietario.telefono1">
-                    <q-icon name="phone" size="14px" /> {{ paciente.propietario.telefono1 }}
-                  </div>
-                </div>
-              </div>
-
-              <div class="info-separator"></div>
-
-              <!-- Bloque Atención -->
-              <div class="info-group">
-                <div class="info-content">
-                  <div class="info-label">IDENTIFICADOR DE ATENCIÓN</div>
-                  <div class="info-value accent-text">{{ atenciones[atencionActual].numero }}</div>
-                  <div class="info-subtext">
-                    <q-icon name="event" size="14px" /> {{ formatDate(atenciones[atencionActual].fecha) }}
-                  </div>
-                </div>
+            <div class="breadcrumb" v-if="paciente">
+              <q-icon name="pets" size="30px" color="primary"/>
+              <span class="patient-name-header">{{ paciente.nombre }}</span>
+              <q-icon name="keyboard_arrow_right" size="16px" color="grey-5" />
+              <span class="view-name">Atención {{ atenciones[atencionActual].numero }}</span>
+              <q-separator vertical inset class="q-mx-md"/>
+              
+              <div class="header-patient-details">
+                <span class="detail-item">
+                  <q-icon name="category" size="xs" color="grey-7" />
+                  {{ paciente.especie }}
+                </span>
+                <span class="detail-item">
+                  <q-icon name="fiber_manual_record" size="xs" color="grey-7" />
+                  {{ paciente.raza }}
+                </span>
+                <span v-if="paciente.edad" class="detail-item">
+                  <q-icon name="cake" size="xs" color="grey-7" />
+                  {{ paciente.edad }} años
+                </span>
               </div>
             </div>
           </div>
           
           <div class="header-actions">
-
+            <!-- Info del Propietario -->
+            <div class="owner-pill q-mr-md" v-if="paciente.propietario">
+              <q-avatar size="32px" color="secondary" text-color="white">
+                <q-icon name="person" size="18px" />
+              </q-avatar>
+              <div class="owner-pill-text">
+                <div class="name">{{ paciente.propietario.nombre }}</div>
+                <div class="phone" v-if="paciente.propietario.telefono1">{{ paciente.propietario.telefono1 }}</div>
+              </div>
+            </div>
 
             <q-btn
               color="info"
@@ -209,7 +188,7 @@
           </div>
 
           <!-- Pestañas de servicios aplicados -->
-          <div class="services-container">
+          <div class="services-container q-pa-md">
             <q-card class="services-card">
               <q-card-section class="q-pa-none">
                 <div v-if="serviciosAplicados.length === 0" class="empty-services">
@@ -505,7 +484,7 @@ export default {
 
     // Datos del paciente (ahora vienen del store)
     const paciente = computed(() => mascotaSeleccionadaStore.mascota || {
-      id: '', nombre: '', especie: '', raza: '', edad: '', peso: '', propietario: '', telefono: ''
+      id: '', nombre: '', especie: '', raza: '', edad: '', propietario: '', telefono: ''
     })
 
     // Lista de atenciones del paciente
@@ -1008,87 +987,61 @@ export default {
   gap: 12px;
 }
 
-.header-info-container {
-  display: flex;
-  align-items: center;
-  gap: 0;
+.patient-name-header {
+  font-size: 24px;
+  font-weight: 800;
+  color: #1a202c;
+  letter-spacing: -0.5px;
 }
 
-.info-group {
+.view-name {
+  font-size: 18px;
+  color: #718096;
+  font-weight: 500;
+}
+
+.header-patient-details {
   display: flex;
   align-items: center;
   gap: 15px;
-  padding: 0 25px;
 }
 
-.pet-group {
-  padding-left: 0;
-}
-
-.info-separator {
-  width: 1px;
-  height: 40px;
-  background: #e2e8f0;
-}
-
-.info-content {
-  display: flex;
-  flex-direction: column;
-}
-
-.info-label {
-  font-size: 10px;
-  font-weight: 800;
-  color: #a0aec0;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 2px;
-}
-
-.info-title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #1a202c;
-  line-height: 1;
-}
-
-.info-value {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #2d3748;
-  line-height: 1.2;
-}
-
-.info-value.accent-text {
-  color: #1976D2;
-}
-
-.info-subtitle {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #718096;
-  margin-top: 4px;
-}
-
-.info-subtext {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #4a5568;
+.detail-item {
   display: flex;
   align-items: center;
-  gap: 4px;
-  margin-top: 2px;
+  gap: 5px;
+  font-size: 0.9rem;
+  color: #4a5568;
+  background: #f7fafc;
+  padding: 4px 10px;
+  border-radius: 6px;
 }
 
-.sidebar-action-container {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.05);
-}
-
+/* Header Actions */
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+}
+
+.owner-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f8fafc;
+  padding: 6px 15px 6px 6px;
+  border-radius: 50px;
+  border: 1px solid #e2e8f0;
+}
+
+.owner-pill-text .name {
+  font-weight: 600;
+  font-size: 0.85rem;
+  line-height: 1.2;
+}
+
+.owner-pill-text .phone {
+  font-size: 0.75rem;
+  color: #718096;
 }
 
 /* Status Banner */
@@ -1131,8 +1084,8 @@ export default {
 }
 
 .services-container {
-  width: 100%;
-  padding: 0 20px 20px 20px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .services-card {
@@ -1186,7 +1139,7 @@ export default {
 }
 
 /* Responsive */
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
   .header-patient-details {
     display: none;
   }
@@ -1204,20 +1157,4 @@ export default {
     overflow: hidden;
   }
 }
-
-/* Estilos para el diálogo de servicios */
-.servicios-dialog .q-dialog__inner > div {
-  width: 95vw;
-  max-width: 1200px;
-  min-width: 800px;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-}
-
-.dialog-content {
-  max-height: 85vh;
-  overflow-y: auto;
-}
-
 </style>
