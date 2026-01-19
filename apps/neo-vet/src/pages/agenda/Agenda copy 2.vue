@@ -280,7 +280,7 @@
                     class="time-slot-mini"
                     :class="{
                       'available': slot.status === 'available',
-                      'booked': slot.status === 'booked' || slot.status === 'confirmed'
+                      'booked': slot.status === 'booked'
                     }"
                   >
                     <div class="slot-time-mini">{{ slot.time }}</div>
@@ -318,7 +318,7 @@
                     {{ daySlots.filter(s => s.status === 'available').length }} disponibles
                   </q-chip>
                   <q-chip color="negative" text-color="white" icon="event_busy">
-                    {{ daySlots.filter(s => (s.status === 'booked' || s.status === 'confirmed')).length }} ocupados
+                    {{ daySlots.filter(s => s.status === 'booked').length }} ocupados
                   </q-chip>
                 </div>
               </div>
@@ -341,7 +341,7 @@
                 class="modern-appointment-card"
                 :class="{
                   'available': slot.status === 'available',
-                  'booked': slot.status === 'booked' || slot.status === 'confirmed',
+                  'booked': slot.status === 'booked',
                   'selected': slot.status === 'selected'
                 }"
                 @click="selectTimeSlot({ fullDate: selectedDate, slots: daySlots }, slot)"
@@ -376,11 +376,12 @@
                         </q-avatar>
                         <div class="info-text">
                           <div class="label">Mascota</div>
-                          <div class="value">{{ slot.appointment.petName }} <span class="pet-type">({{ slot.appointment.petType || 'Mascota' }})</span></div>
-                        </div>
-                      </div>
-                    </div>
-                  </template>
+                          <div class="value">{{ slot.appointment.petName }} <span class="pet-type">({{ slot.appointment.petType || 'Mascota' }})</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
                   <template v-else>
                     <div class="available-info">
                       <q-icon name="add_circle_outline" size="40px" color="positive" class="add-icon" />
@@ -413,7 +414,7 @@
                     {{ daySlots.filter(s => s.status === 'available').length }} disponibles
                   </q-chip>
                   <q-chip color="negative" text-color="white" icon="event_busy">
-                    {{ daySlots.filter(s => (s.status === 'booked' || s.status === 'confirmed')).length }} ocupados
+                    {{ daySlots.filter(s => s.status === 'booked').length }} ocupados
                   </q-chip>
                 </div>
               </div>
@@ -446,7 +447,7 @@
                     :props="props"
                     :class="{
                       'available-row': props.row.status === 'available',
-                      'booked-row': props.row.status === 'booked' || props.row.status === 'confirmed',
+                      'booked-row': props.row.status === 'booked',
                       'selected-row': props.row.status === 'selected'
                     }"
                     @click="selectTimeSlot({ fullDate: selectedDate, slots: daySlots }, props.row)"
@@ -467,7 +468,7 @@
 
                     <q-td key="status" :props="props" class="status-column">
                       <q-badge
-                        :color="(props.row.status === 'booked' || props.row.status === 'confirmed') ? 'negative' : props.row.status === 'available' ? 'positive' : 'primary'"
+                        :color="props.row.status === 'available' ? 'positive' : props.row.status === 'booked' ? 'negative' : 'primary'"
                         :label="getStatusLabel(props.row.status)"
                         class="status-badge-table"
                       />
@@ -534,7 +535,7 @@
                           <q-tooltip>Agendar cita</q-tooltip>
                         </q-btn>
                         <q-btn
-                          v-if="props.row.status === 'booked' || props.row.status === 'confirmed'"
+                          v-if="props.row.status === 'booked'"
                           size="sm"
                           color="info"
                           icon="visibility"
@@ -546,7 +547,7 @@
                           <q-tooltip>Ver detalles</q-tooltip>
                         </q-btn>
                         <q-btn
-                          v-if="props.row.status === 'booked' || props.row.status === 'confirmed'"
+                          v-if="props.row.status === 'booked'"
                           size="sm"
                           color="negative"
                           icon="cancel"
@@ -1447,264 +1448,54 @@ const {
   color: #64748b;
 }
 
-/* Estilos modernos para tarjetas de citas */
-.day-view-container {
-  padding: 24px;
-  background: #f8fafc;
-  min-height: 100%;
-}
-
 .day-view-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
-  padding: 0 16px;
+  margin-bottom: 20px;
 }
 
-.day-info h2 {
-  margin: 0 0 8px 0;
-  font-size: 24px;
-  font-weight: 700;
-  color: #1e293b;
+.day-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .day-meta {
   display: flex;
-  gap: 12px;
-}
-
-.modern-appointment-card {
-  background: white;
-  border-radius: 20px;
-  padding: 20px;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  cursor: pointer;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-}
-
-.modern-appointment-card:hover {
-  transform: translateY(-5px) scale(1.02);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-.modern-appointment-card.available {
-  border-left: 6px solid #4ade80;
-}
-
-.modern-appointment-card.booked {
-  border-left: 6px solid #f87171;
-}
-
-.modern-appointment-card.selected {
-  border-left: 6px solid #6366f1;
-  background: #f5f7ff;
-}
-
-.card-glass-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-  pointer-events: none;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 1;
-}
-
-.time-badge {
-  display: flex;
   align-items: center;
   gap: 8px;
-  background: #f1f5f9;
-  padding: 6px 12px;
-  border-radius: 12px;
-  font-weight: 700;
-  color: #1e293b;
-  font-size: 15px;
-}
-
-.status-indicator {
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  padding: 4px 10px;
-  border-radius: 8px;
-}
-
-.status-indicator.available {
-  background: #dcfce7;
-  color: #15803d;
-}
-
-.status-indicator.booked, .status-indicator.confirmed {
-  background: #fee2e2;
-  color: #b91c1c;
-}
-
-.card-body {
-  z-index: 1;
-  flex: 1;
-}
-
-.appointment-info {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.info-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.info-avatar {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-}
-
-.info-avatar.person {
-  background: linear-gradient(135deg, #6366f1, #4f46e5);
-  color: white;
-}
-
-.info-avatar.pet {
-  background: linear-gradient(135deg, #ec4899, #db2777);
-  color: white;
-}
-
-.info-text .label {
-  font-size: 11px;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 600;
-}
-
-.info-text .value {
-  font-size: 15px;
-  font-weight: 700;
-  color: #1e293b;
-}
-
-.pet-type {
-  font-weight: 400;
-  color: #64748b;
-  font-size: 13px;
-}
-
-.available-info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px 0;
-  gap: 8px;
-  opacity: 0.7;
-}
-
-.add-icon {
-  transition: transform 0.3s ease;
-}
-
-.modern-appointment-card:hover .add-icon {
-  transform: rotate(90deg) scale(1.1);
-}
-
-.available-text {
-  font-weight: 700;
-  color: #15803d;
-  font-size: 16px;
-}
-
-.available-subtext {
-  font-size: 12px;
-  color: #64748b;
-}
-
-.card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 16px;
-  border-top: 1px solid #f1f5f9;
-  z-index: 1;
-}
-
-.service-tag {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #64748b;
-  background: #f8fafc;
-  padding: 4px 8px;
-  border-radius: 6px;
-}
-
-.action-btns {
-  display: flex;
-  gap: 4px;
-}
-
-/* Estilos para la tabla moderna */
-.day-table-view {
-  padding: 24px;
-  background: #f8fafc;
-}
-
-.appointments-table {
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
 .time-display-table {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .time-text-table {
-  font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
   color: #1e293b;
 }
 
-.status-badge-table {
-  padding: 6px 12px;
-  border-radius: 10px;
-  font-weight: 700;
-  font-size: 12px;
-}
-
-.owner-info-table, .pet-info-table, .service-info-table {
+.owner-info-table {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.owner-name-table, .pet-name-table, .service-name-table {
-  font-weight: 700;
-  color: #1e293b;
-  font-size: 14px;
+.owner-details-table {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.owner-meta-table, .pet-type-table, .service-duration-table {
+.owner-name-table {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.owner-meta-table {
   font-size: 12px;
   color: #64748b;
 }
@@ -1713,76 +1504,441 @@ const {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #15803d;
+  color: #047857;
+}
+
+.pet-info-table {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pet-details-table {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pet-name-table {
   font-weight: 600;
+  color: #1e293b;
+}
+
+.pet-type-table {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.no-pet-table {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.service-info-table {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.service-details-table {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.service-name-table {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.service-duration-table {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.no-service-table {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.action-buttons-table {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
 }
 
 .no-appointments {
+  text-align: center;
+  padding: 40px;
+}
+
+.no-appointments-text h5 {
+  margin: 16px 0 8px;
+  color: #1e293b;
+}
+
+.no-appointments-text p {
+  color: #64748b;
+  margin: 0;
+}
+
+/* MODERN CARDS DESIGN */
+.modern-appointment-card {
+  position: relative;
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 16px rgba(31, 38, 135, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modern-appointment-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(31, 38, 135, 0.12);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.modern-appointment-card.available {
+  border-left: 4px solid #10b981;
+}
+
+.modern-appointment-card.booked {
+  border-left: 4px solid #ef4444;
+}
+
+.modern-appointment-card.selected {
+  border-left: 4px solid #3b82f6;
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.time-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 12px;
+}
+
+.status-indicator {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.status-indicator.available { color: #059669; background: #ecfdf5; }
+.status-indicator.booked { color: #dc2626; background: #fef2f2; }
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.info-avatar {
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 16px !important; 
+  height: 28px !important;
+  width: 28px !important;
+}
+
+.info-avatar.person { color: #3b82f6; background: #eff6ff; }
+.info-avatar.pet { color: #ec4899; background: #fdf2f8; }
+
+.info-text .label {
+  font-size: 9px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.info-text .value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.pet-type {
+  font-weight: 400;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.available-info {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 0;
-  gap: 16px;
+  padding: 12px 0;
+  gap: 4px;
+}
+
+.add-icon {
+  transition: transform 0.3s ease;
+  font-size: 32px !important;
+}
+
+.modern-appointment-card:hover .add-icon {
+  transform: scale(1.2) rotate(90deg);
+}
+
+.available-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: #059669;
+}
+
+.available-subtext {
+  font-size: 11px;
   color: #94a3b8;
 }
 
-.no-appointments-text {
+.card-footer {
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.service-tag {
+  display: flex;
+  align-items: center;
+}
+
+.service-info-table {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.service-details-table {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.service-name-table {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.service-duration-table {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.no-service-table {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.action-buttons-table {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.no-appointments {
   text-align: center;
+  padding: 40px;
 }
 
 .no-appointments-text h5 {
-  margin: 0 0 8px 0;
-  color: #475569;
+  margin: 16px 0 8px;
+  color: #1e293b;
 }
 
 .no-appointments-text p {
+  color: #64748b;
   margin: 0;
 }
 
-/* Animaciones */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
+/* MODERN CARDS DESIGN */
 .modern-appointment-card {
-  animation: fadeIn 0.4s ease-out forwards;
+  position: relative;
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 16px rgba(31, 38, 135, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-/* Media Queries */
-@media (max-width: 768px) {
-  .main-header {
-    padding: 16px;
-  }
-  
-  .header-actions {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .navigation-controls {
-    width: 100%;
-    justify-content: space-between;
-  }
-  
-  .period-display {
-    min-width: auto;
-  }
+.modern-appointment-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(31, 38, 135, 0.12);
+  background: rgba(255, 255, 255, 0.9);
 }
 
+.modern-appointment-card.available {
+  border-left: 4px solid #10b981;
+}
+
+.modern-appointment-card.booked {
+  border-left: 4px solid #ef4444;
+}
+
+.modern-appointment-card.selected {
+  border-left: 4px solid #3b82f6;
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.time-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 12px;
+}
+
+.status-indicator {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.status-indicator.available { color: #059669; background: #ecfdf5; }
+.status-indicator.booked { color: #dc2626; background: #fef2f2; }
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.info-avatar {
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 16px !important; 
+  height: 28px !important;
+  width: 28px !important;
+}
+
+.info-avatar.person { color: #3b82f6; background: #eff6ff; }
+.info-avatar.pet { color: #ec4899; background: #fdf2f8; }
+
+.info-text .label {
+  font-size: 9px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.info-text .value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.pet-type {
+  font-weight: 400;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.available-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 0;
+  gap: 4px;
+}
+
+.add-icon {
+  transition: transform 0.3s ease;
+  font-size: 32px !important;
+}
+
+.modern-appointment-card:hover .add-icon {
+  transform: scale(1.2) rotate(90deg);
+}
+
+.available-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: #059669;
+}
+
+.available-subtext {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.card-footer {
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.service-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+}
 .no-agenda-day {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 4px;
   color: #94a3b8;
-  font-size: 12px;
-  background: #fcfcfc;
-  border: 1px dashed #e2e8f0;
+  font-size: 11px;
+  background: #f8fafc;
   border-radius: 8px;
-  margin: 4px 0;
+  margin-top: 4px;
 }
 </style>

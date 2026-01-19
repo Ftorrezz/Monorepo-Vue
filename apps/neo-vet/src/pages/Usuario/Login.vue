@@ -49,7 +49,7 @@
                 <div class="logo-section-top">
                   <div class="logo-container-large">
                     <img
-                      src="../../../public/static/NeoVET.png"
+                      src="/static/NeoVET.png"
                       alt="NeoVET - Sistema de Gestión Veterinaria"
                       class="logo-image"
                       @error="handleLogoError"
@@ -60,7 +60,7 @@
                 <!-- Descripción - Parte Inferior -->
                 <div class="welcome-section-bottom">
 
-                  <p class="welcome-description">{{ $t("descripcionsistema") }}</p>
+                  <p class="welcome-description">{{ t("descripcionsistema") }}</p>
                 </div>
               </div>
 
@@ -82,17 +82,14 @@
             <div class="form-panel">
               <div class="form-wrapper">
                 <div class="form-header">
-                  <h3>{{ $t("login") }}</h3>
-                  <!--<div class="text-subtitle2">
-                    {{ $t("descripcionsistema") }}
-                  </div>-->
+                  <h3>{{ t("login") }}</h3>
                 </div>
 
                 <q-form class="login-form" @submit.prevent="onSubmit">
                   <q-input
                     outlined
                     v-model="userForm.nombreusuario"
-                    :label="$t('inputlogin.label')"
+                    :label="t('inputlogin.label')"
                     lazy-rules
                     :rules="[validationRule]"
                     class="modern-input-usuario"
@@ -106,7 +103,7 @@
                   <q-input
                     outlined
                     v-model="userForm.clave"
-                    :label="$t('inputlogin.labelpassword')"
+                    :label="t('inputlogin.labelpassword')"
                     :type="isPwd ? 'password' : 'text'"
                     lazy-rules
                     :rules="[passwordValidationRule]"
@@ -127,21 +124,6 @@
                   </q-input>
                   <div class="row items-center justify-between">
                     <div>
-
-                    <!--<q-select
-                    v-model="locale"
-                    :options="localeOptions"
-                    dense
-                    borderless
-                    emit-value
-                    map-options
-                    options-dense
-                    style="min-width: 150px"
-                  >
-                    <template v-slot:prepend>
-                      <q-icon name="translate" />
-                    </template>
-                  </q-select>-->
                   </div>
 
                     <q-btn
@@ -156,43 +138,10 @@
                   </div>
 
                   <div>
-
-
-
                   <q-btn type="submit" color="primary" class="full-width">
-                    {{ $t("login") }}
+                    {{ t("login") }}
                   </q-btn>
                 </div>
-                <!--<q-btn
-                    type="submit"
-                    :label="t('login')"
-                    color="primary"
-                    size="lg"
-                    :loading="loading"
-                    class="login-btn"
-                    unelevated
-                    no-caps
-                  >
-                    <template v-slot:loading>
-                      <q-spinner-oval />
-                      {{ $t("login") }}
-                    </template>
-                  </q-btn>-->
-                <!--<q-btn
-                    type="submit"
-                    :label={{ $t("login") }}
-                    color="primary"
-                    size="lg"
-                    :loading="loading"
-                    class="login-btn"
-                    unelevated
-                    no-caps
-                  >
-                    <template v-slot:loading>
-                      <q-spinner-oval />
-                      {{ texts.signingIn }}
-                    </template>
-                  </q-btn>-->
 
                   <!-- Componente de cambio de clave -->
                   <div v-if="olvidoClave && userForm.nombreusuario">
@@ -202,19 +151,6 @@
                     />
                   </div>
                 </q-form>
-
-                <!-- Links de ayuda -->
-                <!--<div class="help-links">
-                  <a href="#" class="help-link">
-                    <q-icon name="help_outline" size="16px" />
-                    {{ texts.help }}
-                  </a>
-                  <span class="divider">•</span>
-                  <a href="#" class="help-link">
-                    <q-icon name="phone" size="16px" />
-                    {{ texts.support }}
-                  </a>
-                </div>-->
 
                 <div class="form-footer">
                   <p> 'NeoVET v2.0 © 2025' </p>
@@ -285,7 +221,7 @@ const getCurrentLanguageFlag = () => {
 };
 
 // Método para cambiar idioma
-const changeLanguage = (languageValue) => {
+const changeLanguage = (languageValue: string) => {
   locale.value = languageValue;
   $q.notify({
     type: 'positive',
@@ -321,7 +257,7 @@ watch(olvidoClave, (newValue) => {
 });
 
 // Métodos
-const onSubmit = async (): void => {
+const onSubmit = async (): Promise<void> => {
   loading.value = true;
 
   try {
@@ -346,10 +282,11 @@ const cancelarOlvidoClave = () => {
   olvidoClave.value = false;
 };
 
-const handleLogoError = (event) => {
+const handleLogoError = (event: Event) => {
   console.error('Error cargando el logo:', event);
   // Fallback: mostrar texto si no se puede cargar la imagen
-  event.target.style.display = 'none';
+  const target = event.target as HTMLImageElement;
+  target.style.display = 'none';
 };
 
 const getParticleStyle = () => {
@@ -810,61 +747,13 @@ const getParticleStyle = () => {
   }
 
   .language-selector {
-    top: 20px;
-    right: 20px;
-  }
-
-  .help-links {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .divider {
-    display: none;
-  }
-
-  .brand-title {
-    font-size: 28px;
-  }
-}
-.modern-input-usuario :deep(input) {
-  text-transform: uppercase;
-}
-
-@media (max-width: 480px) {
-  .brand-panel {
-    padding: 15px;
-  }
-
-  .form-panel {
-    padding: 25px 20px;
-  }
-
-  .form-header h3 {
-    font-size: 24px;
-  }
-
-  .brand-title {
-    font-size: 26px;
-  }
-
-  .logo-container-large {
-    width: 85%;
-    max-width: 200px;
-    padding: 15px;
-  }
-
-  .language-select {
-    min-width: 120px;
-  }
-
-  .language-text {
-    font-size: 12px;
-  }
-
-  .language-selector {
     top: 15px;
     right: 15px;
+  }
+
+  .language-btn {
+    padding: 6px 12px;
+    min-width: 100px;
   }
 }
 </style>

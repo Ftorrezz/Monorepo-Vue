@@ -273,6 +273,7 @@ import NdPeticionControl from 'src/controles/rest.control'
 import BusquedaRapidaPropietarioMascota from './BusquedaRapidaPropietarioMascota.vue'
 import DialogPropietarioRapido from '../dialog/DialogPropietarioRapido.vue'
 import DialogMascotaRapido from '../dialog/DialogMascotaRapido.vue'
+import { useDialogStore } from 'src/stores/DialogoUbicacion'
 
 const props = defineProps({
   visible: Boolean,
@@ -283,6 +284,7 @@ const props = defineProps({
 const emit = defineEmits(['update:visible', 'cita-creada'])
 
 const $q = useQuasar()
+const store = useDialogStore()
 
 // Estados
 const dialogVisible = ref(false)
@@ -457,16 +459,12 @@ const confirmarCita = async () => {
       id_slot: props.slotInfo.id_slot,
       fecha: props.slotInfo.fullDate.toISOString().split('T')[0],
       hora: props.slotInfo.time,
-      motivo: motivoCita.value
+      motivo: motivoCita.value,
+      id_sucursal: store.sucursalSeleccionada.id,
     }
     
     const response = await peticion.invocarMetodo('agenda/citas', 'post', datos)
     
-    $q.notify({ 
-      type: 'positive', 
-      message: 'Cita agendada exitosamente',
-      caption: `${propietarioSeleccionado.value.nombre} - ${mascotaSeleccionada.value.nombre}`
-    })
     
     emit('cita-creada', response?.data || response)
     cerrar()

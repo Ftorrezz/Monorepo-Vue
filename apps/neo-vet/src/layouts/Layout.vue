@@ -41,7 +41,7 @@
             class="logo-expanded-container"
           >
             <img
-              src="../../public/static/NeoVETMenu.png"
+              src="/static/NeoVETMenu.png"
               alt="NeoVET Logo"
               class="system-logo-expanded"
               @error="handleImageError"
@@ -68,7 +68,7 @@
             class="logo-mini-container"
           >
             <img
-              src="../../public/static/NeoVETMenuMini.png"
+              src="/static/NeoVETMenuMini.png"
               alt="NeoVET Logo Mini"
               class="system-logo-mini"
               @error="handleMiniImageError"
@@ -130,7 +130,10 @@ import DarkModeToggle from "../components/DarkModeToggle.vue";
 import MenuOpcionesUsuario from "../components/MenuOpcionesUsuario.vue";
 import MenuPrincipal from "../components/MenuPrincipal.vue";
 import { useI18n } from "vue-i18n";
+import { useQuasar } from "quasar";
 import { ref } from "vue";
+
+const $q = useQuasar();
 
 defineOptions({
   name: "Layout",
@@ -210,7 +213,7 @@ function collapseFooter() {
 }
 
 async function toggleLeftDrawer() {
-  leftDrawerOpen.value = await !leftDrawer;
+  leftDrawerOpen.value = !leftDrawerOpen.value;
 }
 </script>
 
