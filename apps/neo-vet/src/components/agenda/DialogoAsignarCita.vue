@@ -372,7 +372,8 @@ const seleccionarPropietario = async (row) => {
   if (mascotas.length > 0) {
     mascotasPropietario.value = mascotas
   } else if (row.propietario?.id) {
-    await cargarMascotasPropietario(row.propietario.id)
+    mascotasPropietario.value = []
+    //await cargarMascotasPropietario(row.propietario.id)
   } else {
     mascotasPropietario.value = []
   }

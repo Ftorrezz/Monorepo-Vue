@@ -343,6 +343,9 @@ import ListaCaracter from "../../../../../libs/shared/src/components/listas/List
 import { OPCIONES_TAMANO_MASCOTA } from "../../../../../libs/shared/src/constant/mascota"
 import { obtenerIDValue } from "../../../../../libs/shared/src/helper/FuncionesGenericas"
 import { useLoading } from "../../../../../libs/shared/src/composables/useLoading";
+import { useDialogStore } from "src/stores/DialogoUbicacion";
+
+const store = useDialogStore()
 
 // Definir la interfaz Mascota para tipar correctamente la variable
 interface Mascota {
@@ -398,8 +401,8 @@ const props = defineProps({
       pedigri: "N",
       esterilizado: "N",
       activo: "S",
-      id_sitio: 1,
-      id_sucursal: 2,
+      //id_sitio: 1,
+      id_sucursal: 2
     }),
   },
 });

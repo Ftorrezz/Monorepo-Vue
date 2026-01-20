@@ -38,43 +38,34 @@
                   label="Nombre *"
                   outlined
                   dense
-                  :rules="[val => !!val || 'Requerido']"
+                  :rules="[val => !!val || 'El nombre es requerido']"
                   class="uppercase"
                 />
               </div>
 
               <div class="col-6">
-                <q-select
+                <ListaEspecie
                   v-model="mascota.id_especie"
-                  :options="especiesOpciones"
                   label="Especie *"
                   outlined
                   dense
-                  emit-value
-                  map-options
-                  :rules="[val => !!val || 'Requerido']"
+                  
                 />
               </div>
 
               <div class="col-6">
-                <q-input
-                  v-model="mascota.raza"
-                  label="Raza"
+                <ListaRazaMascota
+                  v-model="mascota.id_raza"
                   outlined
                   dense
-                  class="uppercase"
                 />
               </div>
 
               <div class="col-6">
-                <q-select
+                <ListaSexo
                   v-model="mascota.id_sexo"
-                  :options="sexoOpciones"
-                  label="Sexo"
                   outlined
                   dense
-                  emit-value
-                  map-options
                 />
               </div>
 
@@ -166,6 +157,12 @@ import { QForm, useQuasar } from 'quasar'
 import PeticionService from 'src/services/peticion.service'
 import NdAlertasControl from 'src/controles/alertas.control'
 import { obtenerIDValue } from '../../../../../libs/shared/src/helper/FuncionesGenericas'
+import { useDialogStore } from 'src/stores/DialogoUbicacion'
+import ListaRazaMascota from "../../../../../libs/shared/src/components/listas/ListaRazaMascota.vue";
+import ListaSexo from "../../../../../libs/shared/src/components/listas/ListaSexo.vue";
+import ListaEspecie from "../../../../../libs/shared/src/components/listas/ListaEspecie.vue";
+
+const store = useDialogStore()
 
 const props = defineProps({
   propietario: {
@@ -179,7 +176,7 @@ const props = defineProps({
       id_propietario: null,
       nombre: '',
       id_especie: null,
-      raza: '',
+      id_raza: null,
       id_sexo: null,
       fechanacimiento: null,
       edad: null,
@@ -205,24 +202,9 @@ const formRef = ref(null)
 // Data
 const mascota = ref({
   ...props.mascotaData,
-  id_propietario: props.propietario?.id
+  id_propietario: props.propietario?.id,
+  id_sucursal: store.sucursalSeleccionada?.id || 2
 })
-
-// Options - Simple arrays for quick entry
-const especiesOpciones = ref([
-  { label: 'Perro', value: 1 },
-  { label: 'Gato', value: 2 },
-  { label: 'Ave', value: 3 },
-  { label: 'Conejo', value: 4 },
-  { label: 'Hámster', value: 5 },
-  { label: 'Reptil', value: 6 },
-  { label: 'Otro', value: 7 }
-])
-
-const sexoOpciones = ref([
-  { label: 'Macho', value: 1 },
-  { label: 'Hembra', value: 2 }
-])
 
 // Methods
 const calcularEdad = () => {
@@ -264,12 +246,13 @@ const guardar = async () => {
       id_propietario: props.propietario.id,
       activo: 'S',
       id_sitio: 1, // TODO: get from global context
-      id_sucursal: 2 // TODO: get from global context
+      id_sucursal: store.sucursalSeleccionada?.id || 2
     }
 
     // Transform ID fields from list components
     payload.id_especie = obtenerIDValue(payload.id_especie)
     payload.id_sexo = obtenerIDValue(payload.id_sexo)
+    payload.id_raza = obtenerIDValue(payload.id_raza)
 
     let resultado
     if (payload.id) {
