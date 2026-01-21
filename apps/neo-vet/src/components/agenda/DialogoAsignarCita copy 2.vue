@@ -194,80 +194,14 @@
               </q-card-section>
             </q-card>
 
-            <!-- Selector de Motivo (Obligatorio) -->
-            <q-select
-              v-model="motivoSeleccionado"
-              :options="motivosDisponibles"
-              option-value="id"
-              option-label="nombre"
-              outlined
-              label="Motivo de la consulta *"
-              class="mt-4"
-              :rules="[val => !!val || 'El motivo es obligatorio']"
-              emit-value
-              map-options
-            >
-              <template v-slot:prepend>
-                <q-icon name="assignment" color="primary" />
-              </template>
-              <template v-slot:no-option>
-                <q-item>
-                  <q-item-section class="text-grey">
-                    No hay motivos disponibles
-                  </q-item-section>
-                </q-item>
-              </template>
-            </q-select>
-
-            <!-- Selector de Profesional (Opcional) -->
-            <q-select
-              v-model="profesionalAsignado"
-              :options="profesionalesDisponibles"
-              option-value="id"
-              outlined
-              label="Profesional asignado (Opcional)"
-              class="mt-3"
-              clearable
-              emit-value
-              map-options
-            >
-              <template v-slot:prepend>
-                <q-icon name="badge" color="secondary" />
-              </template>
-              <template v-slot:option="scope">
-                <q-item v-bind="scope.itemProps">
-                  <q-item-section avatar>
-                    <q-avatar color="secondary" text-color="white" size="32px">
-                      <q-icon name="person" />
-                    </q-avatar>
-                  </q-item-section>
-                  <q-item-section>
-                    <q-item-label>{{ scope.opt.nombre_completo }}</q-item-label>
-                    <q-item-label caption v-if="scope.opt.especialidad">{{ scope.opt.especialidad }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-              </template>
-              <template v-slot:selected-item="scope">
-                <span>{{ scope.opt.nombre_completo }}</span>
-              </template>
-              <template v-slot:no-option>
-                <q-item>
-                  <q-item-section class="text-grey">
-                    No hay profesionales disponibles
-                  </q-item-section>
-                </q-item>
-              </template>
-            </q-select>
-
-            <!-- Campo de Observaciones -->
+            <!-- Campo de motivo/observaciones -->
             <q-input
-              v-model="observaciones"
+              v-model="motivoCita"
               outlined
-              label="Observaciones adicionales"
+              label="Motivo de la consulta"
               type="textarea"
               rows="3"
-              class="mt-3"
-              hint="Información adicional sobre la cita"
+              class="mt-4"
             >
               <template v-slot:prepend>
                 <q-icon name="description" />
@@ -360,11 +294,7 @@ const propietariosBuscados = ref([])
 const propietarioSeleccionado = ref(null)
 const mascotasPropietario = ref([])
 const mascotaSeleccionada = ref(null)
-const motivosDisponibles = ref([])
-const motivoSeleccionado = ref(null)
-const profesionalesDisponibles = ref([])
-const profesionalAsignado = ref(null)
-const observaciones = ref('')
+const motivoCita = ref('')
 const cargandoPropietarios = ref(false)
 const guardandoCita = ref(false)
 
@@ -462,48 +392,9 @@ const cargarMascotasPropietario = async (idPropietario) => {
   }
 }
 
-const cargarMotivos = async () => {
-  try {
-    const peticion = new NdPeticionControl()
-    const response = await peticion.invocarMetodo('citamotivo', 'get')
-    const motivos = Array.isArray(response) ? response : (response?.data || [])
-    motivosDisponibles.value = motivos.filter(m => m.activo !== false)
-  } catch (error) {
-    console.error('Error al cargar motivos:', error)
-    $q.notify({ type: 'warning', message: 'No se pudieron cargar los motivos', caption: error.message })
-    motivosDisponibles.value = []
-  }
-}
-
-const cargarProfesionales = async () => {
-  try {
-    const peticion = new NdPeticionControl()
-    const response = await peticion.invocarMetodo('profesional', 'get')
-    let profesionales = Array.isArray(response) ? response : (response?.data || [])
-    
-    // Filtrar solo activos y agregar nombre completo
-    profesionales = profesionales
-      .filter(p => p.activo !== false)
-      .map(p => ({
-        ...p,
-        nombre_completo: `${p.nombre || ''} ${p.apellido || ''}`.trim() || 'Sin nombre'
-      }))
-    
-    profesionalesDisponibles.value = profesionales
-  } catch (error) {
-    console.error('Error al cargar profesionales:', error)
-    $q.notify({ type: 'warning', message: 'No se pudieron cargar los profesionales', caption: error.message })
-    profesionalesDisponibles.value = []
-  }
-}
-
 const seleccionarMascota = (mascota) => {
   mascotaSeleccionada.value = mascota
   pasoActual.value = 'confirmar_cita'
-  
-  // Cargar motivos y profesionales solo cuando llega al paso de confirmación
-  cargarMotivos()
-  cargarProfesionales()
 }
 
 // Navegación entre pasos - Updated for dialogs
@@ -559,12 +450,6 @@ const volverASeleccionMascota = () => {
 
 
 const confirmarCita = async () => {
-  // Validar que el motivo esté seleccionado
-  if (!motivoSeleccionado.value) {
-    $q.notify({ type: 'warning', message: 'Debes seleccionar un motivo para la consulta' })
-    return
-  }
-  
   guardandoCita.value = true
   try {
     const peticion = new NdPeticionControl()
@@ -575,9 +460,7 @@ const confirmarCita = async () => {
       id_slot: props.slotInfo.id_slot,
       fecha: props.slotInfo.fullDate.toISOString().split('T')[0],
       hora: props.slotInfo.time,
-      id_motivo: motivoSeleccionado.value,
-      id_profesional: profesionalAsignado.value || null,
-      observaciones: observaciones.value,
+      motivo: motivoCita.value,
       id_sucursal: store.sucursalSeleccionada.id,
     }
     
@@ -607,9 +490,7 @@ const resetearFormulario = () => {
   propietarioSeleccionado.value = null
   mascotasPropietario.value = []
   mascotaSeleccionada.value = null
-  motivoSeleccionado.value = null
-  profesionalAsignado.value = null
-  observaciones.value = ''
+  motivoCita.value = ''
 }
 
 // Watchers

@@ -103,7 +103,13 @@ export default {
           specialties: 'Especialidades',
           workHours: 'Horarios de Trabajo',
           permissions: 'Permisos'
-        }
+        },
+        profesional: {
+          title: 'Profesional',
+          profesional: 'Profesional',
+          tipoprofesional: 'Tipo Profesional'
+
+        },
       },
       pet: {
         title: 'Mascota',

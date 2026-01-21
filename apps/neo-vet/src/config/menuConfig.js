@@ -3,7 +3,7 @@ export const menuConfig = [
   {
     labelKey: "mainMenu.home.title",
     icon: "home",
-    defaultopened: false,
+    defaultopened: true,
     items: [
       {
         labelKey: "mainMenu.home.dashboard",
@@ -34,7 +34,7 @@ export const menuConfig = [
   },
   {
     labelKey: "mainMenu.boarding.title",
-    icon: "inventory",
+    icon: "bedroom_baby",
     to: "/pension",
   },
   {
@@ -126,6 +126,15 @@ export const menuConfig = [
               { labelKey: "mainMenu.settings.general.staff.specialties", icon: "star", to: "/config/especialidades" },
               { labelKey: "mainMenu.settings.general.staff.workHours", icon: "access_time", to: "/config/horarios-personal" },
               { labelKey: "mainMenu.settings.general.staff.permissions", icon: "security", to: "/config/permisos" },
+            ]
+          },
+          {
+            labelKey: "mainMenu.settings.general.profesional.title",
+            icon: "person",
+            subItems: [
+              { labelKey: "mainMenu.settings.general.profesional.profesional", icon: "person", to: "/profesional" },
+              { labelKey: "mainMenu.settings.general.profesional.tipoprofesional", icon: "person", to: "/tipoprofesional" },
+
             ]
           },
         ],

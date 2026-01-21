@@ -243,8 +243,8 @@ export function useAgenda() {
                         ].filter(Boolean).join(' ') || horario.nombre_propietario || 'Sin nombre',
                         ownerPhone: horario.propietario_poblador_telefono || horario.telefono_propietario || '',
                         petName: horario.nombre_mascota || 'Sin nombre',
-                        //petName: horario.cita?.mascota?.nombre || horario.mascota_nombre || 'Sin nombre',
-                        petType: horario.cita?.mascota?.especie || horario.mascota_especie || 'Mascota'
+                        petType: horario.cita?.mascota?.especie || horario.mascota_especie || 'Mascota',
+                        professionalName: horario.profesional_nombre || 'No asignado'
                     } : null
                 }
             }) || []
@@ -273,9 +273,9 @@ export function useAgenda() {
                         horario.propietario_poblador_segundoapellido
                     ].filter(Boolean).join(' ') || horario.nombre_propietario || 'Sin nombre',
                     ownerPhone: horario.propietario_poblador_telefono || horario.telefono_propietario || '',
-                    //petName: horario.cita?.mascota?.nombre || horario.mascota_nombre || 'Sin nombre',
                     petName: horario.nombre_mascota || 'Sin nombre',
-                    petType: horario.cita?.mascota?.especie || horario.mascota_especie || 'Mascota'
+                    petType: horario.cita?.mascota?.especie || horario.mascota_especie || 'Mascota',
+                    professionalName: horario.profesional_nombre || 'No asignado'
                 } : null
             }
         }) || []

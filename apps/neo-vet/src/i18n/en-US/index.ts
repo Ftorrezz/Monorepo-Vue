@@ -102,7 +102,14 @@ export default {
           specialties: 'Specialties',
           workHours: 'Work Hours',
           permissions: 'Permissions'
-        }
+        },
+        profesional: {
+          title: 'Professional',
+          profesional: 'Professional',
+          tipoprofesional: 'Type Professional'
+
+        },
+
       },
       pet: {
         title: 'Pet',
