@@ -182,8 +182,7 @@ const props = defineProps({
       edad: null,
       observaciones: '',
       activo: 'S',
-      id_sitio: 1,
-      id_sucursal: 2
+      historiaclinica: ''
     })
   }
 })
@@ -203,7 +202,7 @@ const formRef = ref(null)
 const mascota = ref({
   ...props.mascotaData,
   id_propietario: props.propietario?.id,
-  id_sucursal: store.sucursalSeleccionada?.id || 2
+  id_sucursal: store.sucursalSeleccionada.id
 })
 
 // Methods

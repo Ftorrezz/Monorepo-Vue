@@ -320,14 +320,12 @@
   <!-- Simplified Dialogs -->
   <DialogPropietarioRapido
     v-if="mostrarDialogoPropietario"
-    :key="dialogPropietarioKey"
     @propietario-guardado="manejarPropietarioGuardado"
     @cerrar="cerrarDialogoPropietario"
   />
 
   <DialogMascotaRapido
     v-if="mostrarDialogoMascota"
-    :key="dialogMascotaKey"
     :propietario="propietarioSeleccionado"
     @mascota-guardada="manejarMascotaGuardada"
     @cerrar="cerrarDialogoMascota"
@@ -373,8 +371,6 @@ const guardandoCita = ref(false)
 // Dialog controls for simplified components
 const mostrarDialogoPropietario = ref(false)
 const mostrarDialogoMascota = ref(false)
-const dialogPropietarioKey = ref(0)
-const dialogMascotaKey = ref(0)
 
 // Computeds
 const fechaFormateada = computed(() => {
@@ -512,7 +508,6 @@ const seleccionarMascota = (mascota) => {
 
 // Navegación entre pasos - Updated for dialogs
 const abrirDialogoPropietario = () => {
-  dialogPropietarioKey.value++
   mostrarDialogoPropietario.value = true
 }
 
@@ -529,7 +524,6 @@ const manejarPropietarioGuardado = async (propietario) => {
 }
 
 const abrirDialogoMascota = () => {
-  dialogMascotaKey.value++
   mostrarDialogoMascota.value = true
 }
 

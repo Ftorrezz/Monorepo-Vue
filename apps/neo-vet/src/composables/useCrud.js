@@ -39,7 +39,7 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
     // Lista de modelos que usan la configuración de columnas genérica
     const genericoModels = [
       "color", "especie", "razamascota", "caracter", "dieta", "habitat",
-      "especialidad", "escolaridad", "estadocivil", "religion", "raza",
+      "especialidad", "escolaridad", "estadocivil", "religion", "razapoblador",
       "ocupacion", "servicio", "tipoprofesional", "perfilconfiguracion"
     ];
 
@@ -52,59 +52,59 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
     return columnsConfig[modelName] || [];
   };
 
-   /* let columnsConfig = [
-      {
-        name: "id",
-        required: true,
-        label: "Id",
-        align: "left",
-        field: (row) => row.id,
-        format: (val) => `${val}`,
-        sortable: true,
-      },
-      // Otras columnas comunes a todos los modelos...
-    ];
+  /* let columnsConfig = [
+     {
+       name: "id",
+       required: true,
+       label: "Id",
+       align: "left",
+       field: (row) => row.id,
+       format: (val) => `${val}`,
+       sortable: true,
+     },
+     // Otras columnas comunes a todos los modelos...
+   ];
 
-    // Agregar columnas específicas de cada modelo
-    if (modelName === "color") {
-      columnsConfig = columnsConfig.concat([
-        {
-          name: "descripcion",
-          align: "left",
-          label: "Descripción",
-          field: "descripcion",
-          sortable: true,
-        },
-        {
-          name: "paridad",
-          align: "left",
-          label: "Paridad",
-          field: "paridad",
-          sortable: true,
-        },
-        {
-          name: "activo",
-          label: "Activo",
-          field: "activo",
-          sortable: true,
-          align: "center",
-        },
-      ]);
-    }
+   // Agregar columnas específicas de cada modelo
+   if (modelName === "color") {
+     columnsConfig = columnsConfig.concat([
+       {
+         name: "descripcion",
+         align: "left",
+         label: "Descripción",
+         field: "descripcion",
+         sortable: true,
+       },
+       {
+         name: "paridad",
+         align: "left",
+         label: "Paridad",
+         field: "paridad",
+         sortable: true,
+       },
+       {
+         name: "activo",
+         label: "Activo",
+         field: "activo",
+         sortable: true,
+         align: "center",
+       },
+     ]);
+   }
 
-    columnsConfig = columnsConfig.concat([
-      {
-        name: "action",
-        align: "center",
-        field: "action",
-        sortable: false,
-      },
-    ]);
+   columnsConfig = columnsConfig.concat([
+     {
+       name: "action",
+       align: "center",
+       field: "action",
+       sortable: false,
+     },
+   ]);
 
-    // Agregar más casos según tus modelos y sus columnas específicas...
+   // Agregar más casos según tus modelos y sus columnas específicas...
 
-    return columnsConfig;
-  };*/
+   return columnsConfig;
+ };*/
 
   /*const formConfig = {
     genericodescripcion: [
@@ -353,7 +353,7 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
       modelName === "escolaridad" ||
       modelName === "estadocivil" ||
       modelName === "religion" ||
-      modelName === "raza" ||
+      modelName === "razapoblador" ||
       modelName === "ocupacion" ||
       modelName === "servicio" ||
       modelName === "tipoprofesional" ||
@@ -362,19 +362,21 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
       modelName === "sucursal" ||
       modelName === "configuracion" ||
       modelName === "tipositioubicacion" ||
-      modelName === "sitioubicacion"
+      modelName === "sitioubicacion" ||
+      modelName === "generoconfiguracion"
     ) {
       mostrarFormIntegrado.value = true;
 
       // Utilizar el formulario genérico de observación
 
       if (modelName === "sexo" ||
-          modelName === "diagnostico" ||
-         modelName === "sitio" ||
-         modelName === "sucursal" ||
-         modelName === "configuracion" ||
-         modelName === "tipositioubicacion" ||
-         modelName === "sitioubicacion") {
+        modelName === "diagnostico" ||
+        modelName === "sitio" ||
+        modelName === "sucursal" ||
+        modelName === "configuracion" ||
+        modelName === "tipositioubicacion" ||
+        modelName === "sitioubicacion" ||
+        modelName === "generoconfiguracion") {
         return formConfig[modelName] || [];
       } else return formConfig["genericoDescripcion"] || [];
     } else {
@@ -389,7 +391,7 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
     await getSitios();
     await getTipoSitioUbicacion();
     formFields.value = generateFormConfig();
-    if (modelName === "sucursal"  || modelName === "configuracion" || modelName === "sitioubicacion") {
+    if (modelName === "sucursal" || modelName === "configuracion" || modelName === "sitioubicacion") {
       formFields.value.find((field) => field.name === "id_sitio").options =
         sitios.value;
     }
@@ -578,9 +580,9 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
     const peticionService = new PeticionService();
 
     // Verificar si id_sitio es null y asignar el valor del store
-  if (editedItem.value.id_sitio === null) {
-    editedItem.value.id_sitio = ubicacionStore.id_sitio;
-  }
+    if (editedItem.value.id_sitio === null) {
+      editedItem.value.id_sitio = ubicacionStore.id_sitio;
+    }
 
     let dataToSend = { ...editedItem.value };
     if (dataToSend.descripcion) {

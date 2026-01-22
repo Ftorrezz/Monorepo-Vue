@@ -143,42 +143,14 @@ export const menuConfig = [
         labelKey: "mainMenu.settings.pet.title",
         icon: "pets",
         subItems: [
-          {
-            labelKey: "mainMenu.settings.pet.physical.title",
-            icon: "palette",
-            subItems: [
-              { labelKey: "mainMenu.settings.pet.physical.color", icon: "color_lens", to: "/config/color" },
-              { labelKey: "mainMenu.settings.pet.physical.breed", icon: "pets", to: "/config/raza" },
-              { labelKey: "mainMenu.settings.pet.physical.size", icon: "straighten", to: "/config/tamaño" },
-            ]
-          },
-          {
-            labelKey: "mainMenu.settings.pet.biological.title",
-            icon: "biotech",
-            subItems: [
-              { labelKey: "mainMenu.settings.pet.biological.species", icon: "category", to: "/config/especie" },
-              { labelKey: "mainMenu.settings.pet.biological.sex", icon: "wc", to: "/config/sexo" },
-              { labelKey: "mainMenu.settings.pet.biological.age", icon: "cake", to: "/config/edad" },
-            ]
-          },
-          {
-            labelKey: "mainMenu.settings.pet.behavior.title",
-            icon: "psychology",
-            subItems: [
-              { labelKey: "mainMenu.settings.pet.behavior.character", icon: "sentiment_satisfied", to: "/config/caracter" },
-              { labelKey: "mainMenu.settings.pet.behavior.activityLevel", icon: "fitness_center", to: "/config/actividad" },
-              { labelKey: "mainMenu.settings.pet.behavior.socialization", icon: "groups", to: "/config/socializacion" },
-            ]
-          },
-          {
-            labelKey: "mainMenu.settings.pet.care.title",
-            icon: "health_and_safety",
-            subItems: [
-              { labelKey: "mainMenu.settings.pet.care.diet", icon: "restaurant", to: "/config/dieta" },
-              { labelKey: "mainMenu.settings.pet.care.habitat", icon: "home", to: "/config/habitat" },
-              { labelKey: "mainMenu.settings.pet.care.exercise", icon: "directions_run", to: "/config/ejercicio" },
-            ]
-          },
+
+          { labelKey: "mainMenu.settings.pet.physical.color", icon: "color_lens", to: "/config/mascota/color" },
+          { labelKey: "mainMenu.settings.pet.physical.breed", icon: "pets", to: "/config/mascota/razamascota" },
+          { labelKey: "mainMenu.settings.pet.biological.species", icon: "category", to: "/config/mascota/especie" },
+          { labelKey: "mainMenu.settings.pet.biological.sex", icon: "wc", to: "/config/mascota/sexo" },
+          { labelKey: "mainMenu.settings.pet.behavior.character", icon: "sentiment_satisfied", to: "/config/mascota/caracter" },
+          { labelKey: "mainMenu.settings.pet.care.diet", icon: "restaurant", to: "/config/mascota/dieta" },
+          { labelKey: "mainMenu.settings.pet.care.habitat", icon: "home", to: "/config/mascota/habitat" },
         ],
       },
       {
@@ -189,29 +161,15 @@ export const menuConfig = [
             labelKey: "mainMenu.settings.owner.personal.title",
             icon: "account_circle",
             subItems: [
-              { labelKey: "mainMenu.settings.owner.personal.gender", icon: "wc", to: "/config/genero" },
-              { labelKey: "mainMenu.settings.owner.personal.maritalStatus", icon: "favorite", to: "/config/estado-civil" },
-              { labelKey: "mainMenu.settings.owner.personal.age", icon: "cake", to: "/config/edad-propietario" },
+              { labelKey: "mainMenu.settings.owner.personal.gender", icon: "wc", to: "/config/propietario/genero" },
+              { labelKey: "mainMenu.settings.owner.personal.maritalStatus", icon: "favorite", to: "/config/propietario/estadocivil" },
+              { labelKey: "mainMenu.settings.owner.academic.education", icon: "menu_book", to: "/config/propietario/escolaridad" },
+              { labelKey: "mainMenu.settings.owner.academic.profession", icon: "work", to: "/config/propietario/ocupacion" },
+              { labelKey: "mainMenu.settings.owner.cultural.religion", icon: "church", to: "/config/propietario/religion" },
+              { labelKey: "mainMenu.settings.owner.cultural.raza", icon: "wc", to: "/config/propietario/raza" },
+
             ]
-          },
-          {
-            labelKey: "mainMenu.settings.owner.academic.title",
-            icon: "school",
-            subItems: [
-              { labelKey: "mainMenu.settings.owner.academic.education", icon: "menu_book", to: "/config/escolaridad" },
-              { labelKey: "mainMenu.settings.owner.academic.profession", icon: "work", to: "/config/profesion" },
-              { labelKey: "mainMenu.settings.owner.academic.workArea", icon: "business", to: "/config/area-trabajo" },
-            ]
-          },
-          {
-            labelKey: "mainMenu.settings.owner.cultural.title",
-            icon: "public",
-            subItems: [
-              { labelKey: "mainMenu.settings.owner.cultural.religion", icon: "church", to: "/config/religion" },
-              { labelKey: "mainMenu.settings.owner.cultural.language", icon: "translate", to: "/config/idioma" },
-              { labelKey: "mainMenu.settings.owner.cultural.nationality", icon: "flag", to: "/config/nacionalidad" },
-            ]
-          },
+          }
         ],
       },
       {

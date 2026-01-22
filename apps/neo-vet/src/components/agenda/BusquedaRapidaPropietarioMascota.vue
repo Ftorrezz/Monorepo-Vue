@@ -227,6 +227,14 @@
     <div v-else-if="tieneAlgunCampoLleno && !cargando" class="empty-state">
       <q-icon name="search_off" size="64px" color="grey-5" />
       <p class="text-grey-7 q-mt-md">No se encontraron propietarios con los criterios especificados</p>
+      <q-btn
+        unelevated
+        color="primary"
+        icon="person_add"
+        label="Agregar Nuevo Propietario"
+        @click="emit('nuevo-propietario')"
+        class="q-mt-md"
+      />
     </div>
 
     <!-- Initial State -->

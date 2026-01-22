@@ -13,49 +13,49 @@ const routes: RouteRecordRaw[] = [
       },
 
       {
-        path: '/color',
+        path: '/config/mascota/color',
         name: 'color',
         component: () => import('../../../neo-vet/src/pages/configuration/mascota/color.vue'),
         meta: { requireAuth: false },
 
       },
       {
-        path: '/sexo',
+        path: '/config/mascota/sexo',
         name: 'sexo',
         component: () => import('../../../neo-vet/src/pages/configuration/mascota/sexo.vue'),
         meta: { requireAuth: false },
 
       },
       {
-        path: '/habitat',
+        path: '/config/mascota/habitat',
         name: 'habitat',
         component: () => import('../../../neo-vet/src/pages/configuration/mascota/habitat.vue'),
         meta: { requireAuth: false },
 
       },
       {
-        path: '/especie',
+        path: '/config/mascota/especie',
         name: 'especie',
         component: () => import('../../../neo-vet/src/pages/configuration/mascota/especie.vue'),
         meta: { requireAuth: false },
 
       },
       {
-        path: '/razamascota',
+        path: '/config/mascota/razamascota',
         name: 'razamascota',
         component: () => import('../../../neo-vet/src/pages/configuration/mascota/raza.vue'),
         meta: { requireAuth: false },
 
       },
       {
-        path: '/caracter',
+        path: '/config/mascota/caracter',
         name: 'caracter',
         component: () => import('../../../neo-vet/src/pages/configuration/mascota/caracter.vue'),
         meta: { requireAuth: false },
 
       },
       {
-        path: '/dieta',
+        path: '/config/mascota/dieta',
         name: 'dieta',
         component: () => import('../../../neo-vet/src/pages/configuration/mascota/dieta.vue'),
         meta: { requireAuth: false },
@@ -76,32 +76,38 @@ const routes: RouteRecordRaw[] = [
 
       },
       {
-        path: '/escolaridad',
+        path: '/config/propietario/genero',
+        name: 'genero',
+        component: () => import('../../../neo-vet/src/pages/configuration/propietario/genero.vue'),
+        meta: { requireAuth: false },
+      },
+      {
+        path: '/config/propietario/escolaridad',
         name: 'escolaridad',
         component: () => import('../../../neo-vet/src/pages/configuration/propietario/escolaridad.vue'),
         meta: { requireAuth: false },
 
       },
       {
-        path: '/estadocivil',
+        path: '/config/propietario/estadocivil',
         name: 'estadocivil',
         component: () => import('../../../neo-vet/src/pages/configuration/propietario/estadocivil.vue'),
         meta: { requireAuth: false },
       },
       {
-        path: '/ocupacion',
+        path: '/config/propietario/ocupacion',
         name: 'ocupacion',
         component: () => import('../../../neo-vet/src/pages/configuration/propietario/ocupacion.vue'),
         meta: { requireAuth: false },
       },
       {
-        path: '/raza',
+        path: '/config/propietario/raza',
         name: 'raza',
         component: () => import('../../../neo-vet/src/pages/configuration/propietario/raza.vue'),
         meta: { requireAuth: false },
       },
       {
-        path: '/religion',
+        path: '/config/propietario/religion',
         name: 'religion',
         component: () => import('../../../neo-vet/src/pages/configuration/propietario/religion.vue'),
         meta: { requireAuth: false },
@@ -122,6 +128,12 @@ const routes: RouteRecordRaw[] = [
         path: '/tipoprofesional',
         name: 'tipoprofesional',
         component: () => import('pages/configuration/general/tipoprofesional.vue'),
+        meta: { requireAuth: false },
+      },
+      {
+        path: '/profesional',
+        name: 'profesional',
+        component: () => import('pages/configuration/general/profesional.vue'),
         meta: { requireAuth: false },
       },
       {

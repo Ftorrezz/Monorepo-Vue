@@ -400,9 +400,8 @@ const props = defineProps({
       observaciones: "",
       pedigri: "N",
       esterilizado: "N",
-      activo: "S",
-      //id_sitio: 1,
-      id_sucursal: 2
+      activo: "S"
+      
     }),
   },
 });
