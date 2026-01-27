@@ -8,9 +8,22 @@
               <q-icon name="person" size="sm" class="q-mr-sm" />
               Búsqueda de Propietario
             </div>
-            <q-btn flat round dense icon="refresh" @click="limpiarFiltros" color="white">
-              <q-tooltip>Limpiar Filtros</q-tooltip>
-            </q-btn>
+            <div class="row items-center q-gutter-sm">
+              <q-toggle
+                v-model="busquedaAutomatica"
+                color="white"
+                icon="auto_mode"
+                dense
+                class="text-white"
+              >
+                <q-tooltip>
+                  {{ busquedaAutomatica ? 'Búsqueda automática activada' : 'Búsqueda manual' }}
+                </q-tooltip>
+              </q-toggle>
+              <q-btn flat round dense icon="refresh" @click="limpiarFiltros" color="white">
+                <q-tooltip>Limpiar Filtros</q-tooltip>
+              </q-btn>
+            </div>
           </div>
         </q-card-section>
 
@@ -22,6 +35,8 @@
                   v-model="formData.propietario.primerapellido"
                   label="Primer Apellido"
                   class="custom-input uppercase"
+                  @update:model-value="busquedaAutomatica ? realizarBusqueda() : null"
+                  @keyup.enter="buscar"
                 />
               </q-item-section>
             </q-item>
@@ -31,6 +46,8 @@
                   v-model="formData.propietario.segundoapellido"
                   label="Segundo Apellido"
                   class="custom-input uppercase"
+                  @update:model-value="busquedaAutomatica ? realizarBusqueda() : null"
+                  @keyup.enter="buscar"
                 />
               </q-item-section>
             </q-item>
@@ -40,6 +57,8 @@
                   v-model="formData.propietario.nombre"
                   label="Nombres"
                   class="custom-input uppercase"
+                  @update:model-value="busquedaAutomatica ? realizarBusqueda() : null"
+                  @keyup.enter="buscar"
                 />
               </q-item-section>
             </q-item>
@@ -49,6 +68,8 @@
                   v-model="formData.propietario.email"
                   label="Correo electronico"
                   type="email"
+                  @update:model-value="busquedaAutomatica ? realizarBusqueda() : null"
+                  @keyup.enter="buscar"
                 >
                   <template v-slot:prepend>
                     <q-icon name="mail" />
@@ -62,6 +83,8 @@
                   v-model="formData.propietario.telefono1"
                   label="Teléfono móvil"
                   class="custom-input"
+                  @update:model-value="busquedaAutomatica ? realizarBusqueda() : null"
+                  @keyup.enter="buscar"
                 >
                   <template v-slot:prepend>
                     <q-icon name="phone_android" />
@@ -95,6 +118,8 @@
                   v-model="formData.mascota.nombre"
                   label="Nombre"
                   class="custom-input"
+                  @update:model-value="busquedaAutomatica ? realizarBusqueda() : null"
+                  @keyup.enter="buscar"
                 />
               </q-item-section>
             </q-item>
@@ -104,6 +129,8 @@
                   v-model="formData.mascota.historia_clinica"
                   label="Historia Clínica"
                   class="custom-input"
+                  @update:model-value="busquedaAutomatica ? realizarBusqueda() : null"
+                  @keyup.enter="buscar"
                 />
               </q-item-section>
             </q-item>
@@ -141,7 +168,12 @@
       </div>
     </div>
 
-    <CardBusquedaPropietarioMascota :rows="listaPropietarios"  @refresh-data="buscar" />
+    <CardBusquedaPropietarioMascota 
+      :rows="listaPropietarios"  
+      @refresh-data="buscar" 
+      @limpiar-filtro="limpiarFiltros"
+      @llenar-filtro-y-buscar="llenarFiltroYBuscar"
+    />
   </div>
 </template>
 
@@ -159,6 +191,9 @@ const $q = useQuasar();
 const listaPropietarios = ref([]);
 const { showLoading, hideLoading } = useLoading();
 
+const busquedaAutomatica = ref(true);
+let timeoutBusqueda: any = null;
+
 const formData = ref({
   propietario: {
     primerapellido: '',
@@ -172,6 +207,18 @@ const formData = ref({
     historia_clinica: ''
   }
 });
+
+const realizarBusqueda = () => {
+  if (!tieneAlgunCampoLleno.value) {
+    listaPropietarios.value = [];
+    return;
+  }
+
+  clearTimeout(timeoutBusqueda);
+  timeoutBusqueda = setTimeout(async () => {
+    await buscar();
+  }, 400);
+};
 
 const buscar = async () => {
   try {
@@ -259,6 +306,24 @@ const limpiarFiltros = () => {
     }
   };
   listaPropietarios.value = []; // También limpiar la lista de resultados
+};
+
+const llenarFiltroYBuscar = (propietario: any) => {
+  formData.value.propietario = {
+    primerapellido: propietario.primerapellido || '',
+    segundoapellido: propietario.segundoapellido || '',
+    nombre: propietario.nombre || '',
+    email: propietario.email || '',
+    telefono1: propietario.telefono1 || ''
+  };
+  
+  // Limpiar filtro de mascota para asegurar que el propietario aparezca
+  formData.value.mascota = {
+    nombre: '',
+    historia_clinica: ''
+  };
+  
+  buscar();
 };
 </script>
 

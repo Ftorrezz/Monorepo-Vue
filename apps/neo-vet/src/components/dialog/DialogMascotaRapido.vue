@@ -1,6 +1,6 @@
 <template>
   <div>
-    <q-dialog v-model="mostrarDialogo" persistent>
+    <q-dialog v-model="mostrarDialogo" persistent @hide="cerrar">
       <q-card class="dialog-mascota-rapido" style="min-width: 500px; max-width: 700px">
         <!-- Header -->
         <q-bar class="bg-secondary text-white">
@@ -162,6 +162,7 @@ import ListaRazaMascota from "../../../../../libs/shared/src/components/listas/L
 import ListaSexo from "../../../../../libs/shared/src/components/listas/ListaSexo.vue";
 import ListaEspecie from "../../../../../libs/shared/src/components/listas/ListaEspecie.vue";
 
+
 const store = useDialogStore()
 
 const props = defineProps({
@@ -280,9 +281,6 @@ const guardar = async () => {
 
 const cerrar = () => {
   mostrarDialogo.value = false
-  setTimeout(() => {
-    emit('cerrar')
-  }, 300)
 }
 
 // Watchers

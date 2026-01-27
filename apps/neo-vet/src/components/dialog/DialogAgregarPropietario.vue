@@ -1,6 +1,6 @@
 <template>
   <div>
-    <q-dialog v-model="mostrarDialogo" persistent>
+    <q-dialog v-model="mostrarDialogo" persistent @hide="emit('cerrar')">
       <q-card class="modern-dialog">
         <!-- Encabezado moderno -->
         <q-bar class="bg-primary text-white modern-header">
@@ -431,7 +431,7 @@ const close = () => {
   mostrarDialogo.value = false;
 };
 
-const emit = defineEmits(["update:propietario", "propietario-guardado"]);
+const emit = defineEmits(["update:propietario", "propietario-guardado", "cerrar"]);
 
 // Cámara
 const video = ref<HTMLVideoElement | null>(null);

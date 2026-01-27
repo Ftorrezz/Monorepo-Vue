@@ -2,7 +2,7 @@
   <div class="busqueda-rapida-container">
     <!-- Search Fields -->
     <div class="row q-col-gutter-sm q-mb-md items-center">
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+      <div class="col-12 col-sm-6 col-md-2">
         <q-input
           v-model="formData.primerapellido"
           outlined
@@ -15,7 +15,7 @@
         />
       </div>
 
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+      <div class="col-12 col-sm-6 col-md-2">
         <q-input
           v-model="formData.segundoapellido"
           outlined
@@ -28,7 +28,7 @@
         />
       </div>
 
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+      <div class="col-12 col-sm-6 col-md-2">
         <q-input
           v-model="formData.nombre"
           outlined
@@ -41,7 +41,7 @@
         />
       </div>
 
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+      <div class="col-12 col-sm-6 col-md-3">
         <q-input
           v-model="formData.email"
           outlined
@@ -58,7 +58,7 @@
         </q-input>
       </div>
 
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+      <div class="col-12 col-sm-6 col-md-2">
         <q-input
           v-model="formData.telefono1"
           outlined
@@ -74,29 +74,31 @@
         </q-input>
       </div>
 
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <div class="row items-center no-wrap q-gutter-sm">
+      <div class="col-12 col-sm-6 col-md-1">
+        <div class="row items-center no-wrap q-gutter-xs">
           <q-btn
             v-if="!busquedaAutomatica"
+            flat
+            round
+            dense
             color="primary"
             icon="search"
-            label="Buscar"
             @click="buscar"
             :disable="!tieneMinimoCaracteres"
-            class="col"
-          />
+          >
+            <q-tooltip>Buscar</q-tooltip>
+          </q-btn>
           
           <q-btn
             flat
+            round
             dense
             color="grey-7"
             icon="restart_alt"
-            label="Limpiar"
             @click="limpiarBusqueda"
             :disable="!tieneAlgunCampoLleno"
-            class="q-px-sm"
           >
-            <q-tooltip>Reiniciar filtros</q-tooltip>
+            <q-tooltip>Limpiar filtros</q-tooltip>
           </q-btn>
 
           <q-toggle
@@ -104,6 +106,7 @@
             color="primary"
             icon="auto_mode"
             size="sm"
+            dense
           >
             <q-tooltip>
               {{ busquedaAutomatica ? 'Búsqueda automática' : 'Búsqueda manual' }}

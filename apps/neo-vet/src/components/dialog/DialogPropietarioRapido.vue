@@ -1,6 +1,6 @@
 <template>
   <div>
-    <q-dialog v-model="mostrarDialogo" persistent>
+    <q-dialog v-model="mostrarDialogo" persistent @hide="cerrar">
       <q-card class="dialog-propietario-rapido" style="min-width: 500px; max-width: 700px">
         <!-- Header -->
         <q-bar class="bg-primary text-white">
@@ -220,9 +220,6 @@ const guardar = async () => {
 
 const cerrar = () => {
   mostrarDialogo.value = false
-  setTimeout(() => {
-    emit('cerrar')
-  }, 300)
 }
 </script>
 

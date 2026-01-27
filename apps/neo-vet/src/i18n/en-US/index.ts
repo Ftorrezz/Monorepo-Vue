@@ -85,7 +85,8 @@ export default {
         title: 'Schedule',
         configureHours: 'Configure Hours',
         holidays: 'Holidays',
-        reminders: 'Reminders'
+        reminders: 'Reminders',
+        citaMotivo: 'Cita Motivo'
       },
       general: {
         title: 'General',

@@ -40,7 +40,7 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
     const genericoModels = [
       "color", "especie", "razamascota", "caracter", "dieta", "habitat",
       "especialidad", "escolaridad", "estadocivil", "religion", "razapoblador",
-      "ocupacion", "servicio", "tipoprofesional", "perfilconfiguracion"
+      "ocupacion", "servicio", "tipoprofesional", "perfilconfiguracion", "citamotivo"
     ];
 
     if (genericoModels.includes(modelName)) {
@@ -363,7 +363,8 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
       modelName === "configuracion" ||
       modelName === "tipositioubicacion" ||
       modelName === "sitioubicacion" ||
-      modelName === "generoconfiguracion"
+      modelName === "generoconfiguracion" ||
+      modelName === "citamotivo"
     ) {
       mostrarFormIntegrado.value = true;
 
@@ -597,7 +598,9 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
         delete dataToSend.clave;
       }
       if (modelName === "sitio" ||
-        modelName === "tipositioubicacion") {
+        modelName === "tipositioubicacion" ||
+        modelName === "color" ||
+        modelName === "citamotivo") {
         delete dataToSend.id_sitio;
       }
 
@@ -620,7 +623,9 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
       //CREAR NUEVO REGISTRO
 
       if (modelName === "sitio" ||
-        modelName === "tipositioubicacion") {
+        modelName === "tipositioubicacion" ||
+        modelName === "color" ||
+        modelName === "citamotivo") {
         delete dataToSend.id_sitio;
       }
 

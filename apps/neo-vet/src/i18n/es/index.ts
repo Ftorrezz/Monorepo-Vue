@@ -86,7 +86,8 @@ export default {
         service: 'Servicio',
         configureHours: 'Horarios de Atención',
         holidays: 'Días Festivos',
-        reminders: 'Recordatorios'
+        reminders: 'Recordatorios',
+        citaMotivo: 'Motivo de Cita'
       },
       general: {
         title: 'General',

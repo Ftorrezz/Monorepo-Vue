@@ -1,6 +1,6 @@
 <template>
   <div>
-    <q-dialog v-model="mostrarDialogo" persistent>
+    <q-dialog v-model="mostrarDialogo" persistent @hide="closeDialog">
     <q-card class="modern-dialog">
       <q-bar class="bg-primary text-white modern-header">
           <div class="row items-center full-width">
@@ -328,7 +328,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, defineEmits, watch } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { QForm, useQuasar } from "quasar";
 import OpcionCancelarGuardar from "../OpcionCancelarGuardar.vue";
 import PeticionService from "src/services/peticion.service";
@@ -592,7 +592,9 @@ if (mascota.value.fechanacimiento) {
 });*/
 
 const closeDialog = () => {
-  mostrarDialogo.value = false;
+  if (mostrarDialogo.value) {
+    mostrarDialogo.value = false;
+  }
   emit("cerrar");
 };
 

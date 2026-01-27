@@ -211,7 +211,8 @@ const routes: RouteRecordRaw[] = [
     children: [
       { path: '', name: 'agenda', component: () => import('pages/agenda/Agenda.vue') },
       { path: '/agendaservicio', name: 'agendaservicio', component: () => import('pages/configuration/agenda/Servicio.vue') },
-      { path: '/generar-agenda', name: 'generar-agenda', component: () => import('pages/configuration/agenda/GenerarAgenda.vue') }
+      { path: '/generar-agenda', name: 'generar-agenda', component: () => import('pages/configuration/agenda/GenerarAgenda.vue') },
+      { path: '/config/citamotivo', name: 'citamotivo', component: () => import('pages/configuration/agenda/CitaMotivo.vue') },
     ],
     meta: { requireAuth: false },
 

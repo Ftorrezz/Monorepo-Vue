@@ -99,6 +99,7 @@ export const menuConfig = [
         subItems: [
           { labelKey: "mainMenu.settings.schedule.service", icon: "schedule", to: "/agendaservicio" },
           { labelKey: "Generar Agenda", icon: "autorenew", to: "/generar-agenda" },
+          { labelKey: "mainMenu.settings.schedule.citaMotivo", icon: "schedule", to: "/config/citamotivo" },
           //{ labelKey: "mainMenu.settings.schedule.configureHours", icon: "schedule", to: "/config/horarios" },
           //{ labelKey: "mainMenu.settings.schedule.holidays", icon: "event", to: "/config/festivos" },
           { labelKey: "mainMenu.settings.schedule.reminders", icon: "notification_important", to: "/config/recordatorios" },
