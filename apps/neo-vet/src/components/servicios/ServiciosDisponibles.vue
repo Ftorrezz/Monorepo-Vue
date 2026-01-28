@@ -1,131 +1,120 @@
 <template>
   <div class="servicios-disponibles">
-    <!-- Grid de Cards de Servicios optimizado -->
-    <div class="services-grid">
+    <!-- Lista de Servicios compacta y en dos columnas -->
+    <div class="services-list">
       <q-card
         v-for="servicio in serviciosDisponibles"
         :key="servicio.id"
-        class="service-card cursor-pointer transition-all"
+        class="service-item cursor-pointer transition-all"
         :class="[
-          `service-card--${servicio.tipo}`,
-          { 'service-card--disabled': isServicioYaAgregado(servicio.tipo) }
+          `service-item--${servicio.tipo}`,
+          { 'service-item--disabled': isServicioYaAgregado(servicio.tipo) }
         ]"
         @click="seleccionarServicio(servicio)"
         flat
         bordered
       >
-        <q-card-section class="text-center q-pa-sm">
-          <!-- Icono del servicio -->
-          <div class="service-icon-container q-mb-sm">
+        <q-card-section class="row items-center no-wrap q-pa-sm">
+          <!-- Icono del servicio (Izquierda) -->
+          <div class="service-icon-container q-mr-md">
             <q-avatar 
               :color="isServicioYaAgregado(servicio.tipo) ? 'grey-4' : servicio.color" 
               text-color="white" 
-              size="40px"
+              size="44px"
               :icon="servicio.icono"
-              class="service-icon"
+              class="service-icon shadow-2"
             />
-            <!-- Badge de servicio premium si aplica -->
+            <!-- Badges compactos -->
             <q-badge
               v-if="servicio.premium"
               floating
               color="amber"
               text-color="white"
-              class="service-premium-badge"
+              class="service-badge-mini"
             >
-              <q-icon name="star" size="xs" />
+              <q-icon name="star" size="10px" />
             </q-badge>
-            <!-- Badge de servicio integrable -->
             <q-badge
               v-if="servicio.integrable"
               floating
               color="blue"
               text-color="white"
-              class="service-integrable-badge"
-              style="top: -8px; right: 16px;"
+              class="service-badge-mini service-badge-mini--left"
             >
-              <q-icon name="link" size="xs" />
+              <q-icon name="link" size="10px" />
             </q-badge>
           </div>
           
-          <!-- Información del servicio -->
-          <div class="service-name text-weight-bold q-mb-xs" 
-               :class="{ 'text-grey-6': isServicioYaAgregado(servicio.tipo) }">
-            {{ servicio.nombre }}
-          </div>
-          <div class="service-description text-caption text-grey-7 q-mb-xs">
-            {{ servicio.descripcion }}
+          <!-- Información del servicio (Centro) -->
+          <div class="col column justify-center overflow-hidden">
+            <div class="service-name text-subtitle2 text-weight-bold no-wrap ellipsis" 
+                 :class="{ 'text-grey-6': isServicioYaAgregado(servicio.tipo) }">
+              {{ servicio.nombre }}
+            </div>
+            <div class="service-description text-caption text-grey-7 ellipsis" style="max-width: 100%;">
+              {{ servicio.descripcion }}
+            </div>
+            
+            <div class="row items-center q-gutter-x-sm q-mt-xs">
+              <!-- Indicadores especiales compactos -->
+              <div v-if="servicio.duracion" class="service-info-mini text-caption text-grey-6">
+                <q-icon name="schedule" size="12px" />
+                {{ servicio.duracion }}
+              </div>
+              
+              <!-- Precio si existe -->
+              <div v-if="servicio.precio" class="service-price-mini text-caption text-primary text-weight-medium">
+                <q-icon name="attach_money" size="12px" />
+                {{ servicio.precio }}
+              </div>
+            </div>
           </div>
           
-          <!-- Indicadores especiales -->
-          <div v-if="servicio.duracion" class="service-info text-caption text-grey-6 q-mb-xs">
-            <q-icon name="schedule" size="xs" class="q-mr-xs" />
-            {{ servicio.duracion }}
+          <!-- Acción / Estado (Derecha) -->
+          <div class="q-ml-md">
+            <q-btn
+              v-if="!isServicioYaAgregado(servicio.tipo)"
+              round
+              flat
+              dense
+              :color="servicio.color"
+              icon="add_circle"
+              size="14px"
+              class="service-action-btn"
+            >
+              <q-tooltip>Agregar servicio</q-tooltip>
+            </q-btn>
+            <q-icon
+              v-else
+              name="check_circle"
+              color="positive"
+              size="24px"
+              class="q-ma-xs"
+            >
+              <q-tooltip>Ya agregado</q-tooltip>
+            </q-icon>
           </div>
-          
-          <!-- Precio estimado si existe -->
-          <div v-if="servicio.precio" class="service-price text-caption text-primary q-mb-xs">
-            <q-icon name="attach_money" size="xs" />
-            {{ servicio.precio }}
-          </div>
-          
-          <!-- Estado del servicio -->
-          <q-chip
-            v-if="isServicioYaAgregado(servicio.tipo)"
-            color="positive"
-            text-color="white"
-            icon="check_circle"
-            label="Agregado"
-            size="sm"
-            class="service-status-chip"
-          />
-          <q-chip
-            v-else
-            outline
-            :color="servicio.color"
-            icon="add_circle"
-            label="Agregar"
-            size="sm"
-            class="service-status-chip"
-          />
         </q-card-section>
-
-        <!-- Ripple effect -->
-        <q-inner-loading :showing="false" />
       </q-card>
     </div>
     
-    <!-- Información adicional -->
-    <div class="text-center q-mt-lg">
-      <div class="text-body2 text-grey-6 q-mb-xs">
-        <q-icon name="info" size="sm" class="q-mr-xs" />
-        Servicios disponibles: {{ serviciosDisponibles.length }}
-      </div>
-      <div class="text-caption text-grey-5 q-mb-sm">
-        Los servicios marcados como "Ya agregado" no se pueden seleccionar nuevamente
-      </div>
-      
-      <!-- Leyenda de badges -->
-      <div class="legend-badges q-mt-sm q-mb-md">
-        <q-chip
-          size="sm"
-          color="amber"
-          text-color="white"
-          icon="star"
-          label="Premium"
-          class="q-mr-sm"
-        />
-        <q-chip
-          size="sm"
-          color="blue"
-          text-color="white"
-          icon="link"
-          label="Integrable con otros servicios"
-        />
+    <!-- Información adicional y botones de cierre -->
+    <div class="row items-center justify-between q-mt-md q-px-sm border-top-divider">
+      <div class="column">
+        <div class="text-caption text-grey-6">
+          <q-icon name="info" size="xs" color="grey-5" class="q-mr-xs" />
+          {{ serviciosDisponibles.length }} servicios disponibles
+        </div>
       </div>
       
-      <q-card-actions align="right" class="q-pt-none">
-        <q-btn flat label="Cerrar" color="primary" @click="$emit('close')" />
-      </q-card-actions>
+      <div class="row q-gutter-x-md">
+        <!-- Leyenda compacta -->
+        <div class="row q-gutter-x-sm items-center">
+          <q-icon name="star" color="amber" size="14px"><q-tooltip>Premium</q-tooltip></q-icon>
+          <q-icon name="link" color="blue" size="14px"><q-tooltip>Integrable</q-tooltip></q-icon>
+        </div>
+        <q-btn flat dense label="Cerrar" color="grey-7" @click="$emit('close')" />
+      </div>
     </div>
   </div>
 </template>
@@ -165,222 +154,51 @@ export default defineComponent({
   setup(props, { emit }) {
     const $q = useQuasar()
     
-    // Lista extendida de servicios disponibles con Administración de Medicamentos
+    // Lista de servicios disponibles
     const serviciosDisponiblesPredeterminados = [
-      {
-        id: 'vacunacion',
-        nombre: 'Vacunación',
-        descripcion: 'Aplicación de vacunas preventivas y refuerzos',
-        icono: 'vaccines',
-        color: 'green',
-        tipo: 'vacunacion',
-        //duracion: '15-20 min'
-        // precio: 'Desde $25'
-      },
-      {
-        id: 'desparacitacion',
-        nombre: 'Desparacitación',
-        descripcion: 'Tratamiento antiparasitario interno y externo',
-        icono: 'medication',
-        color: 'orange',
-        tipo: 'desparacitacion',
-        //duracion: '10-15 min'
-        //precio: 'Desde $15'
-      },
-      {
-        id: 'exploracion',
-        nombre: 'Exploración Física',
-        descripcion: 'Examen clínico general completo del paciente',
-        icono: 'health_and_safety',
-        color: 'blue',
-        tipo: 'exploracion',
-        //duracion: '20-30 min'
-        //precio: 'Desde $30'
-      },
-      {
-        id: 'certificado',
-        nombre: 'Certificado Médico',
-        descripcion: 'Emisión de certificados y constancias médicas',
-        icono: 'description',
-        color: 'purple',
-        tipo: 'certificado',
-        //duracion: '5-10 min'
-        //precio: 'Desde $10'
-      },
-      // ✨ NUEVO: Administración de Medicamentos
-      {
-        id: 'medicamentos',
-        nombre: 'Administración de Medicamentos',
-        descripcion: 'Gestión y control de prescripciones y administración de medicamentos',
-        icono: 'medication',
-        color: 'blue',
-        tipo: 'medicamentos',
-        //duracion: 'Continuo',
-        integrable: true // Se puede integrar con otros servicios
-        //precio: 'Según tratamiento'
-      },
-      {
-        id: 'cirugia',
-        nombre: 'Cirugía',
-        descripcion: 'Procedimientos quirúrgicos menores y mayores',
-        icono: 'local_hospital',
-        color: 'red',
-        tipo: 'cirugia',
-        //duracion: '30min - 3hrs',
-        integrable: true, // Se integra con medicamentos y hospitalización
-        //precio: 'Consultar',
-        //premium: true
-      },
-      {
-        id: 'laboratorio',
-        nombre: 'Análisis de Laboratorio',
-        descripcion: 'Pruebas diagnósticas y análisis clínicos',
-        icono: 'biotech',
-        color: 'teal',
-        tipo: 'laboratorio',
-        //duracion: '24-48 hrs'
-        //precio: 'Desde $40'
-      },
-      {
-        id: 'rayosx',
-        nombre: 'Rayos X',
-        descripcion: 'Estudios rayos X, diagnóstico por imagen',
-        icono: 'medical_information',
-        color: 'indigo',
-        tipo: 'rayosx',
-        //duracion: '15-30 min'
-        //precio: 'Desde $80',
-        //premium: true
-      },
-      {
-        id: 'hospitalizacion',
-        nombre: 'Hospitalización',
-        descripcion: 'Internamiento, cuidados intensivos y monitoreo 24/7',
-        icono: 'local_hotel',
-        color: 'pink',
-        tipo: 'hospitalizacion',
-        //duracion: '1+ días',
-        integrable: true, // Se integra con medicamentos
-        //precio: 'Por día',
-        //premium: true
-      },
-      {
-        id: 'estetica',
-        nombre: 'Estética y Belleza',
-        descripcion: 'Corte de pelo, baño, limpieza dental y cuidado estético',
-        icono: 'content_cut',
-        color: 'cyan',
-        tipo: 'estetica',
-        //duracion: '45-90 min'
-        //precio: 'Desde $35'
-      },
-      {
-        id: 'ultrasonido',
-        nombre: 'Ultrasonido',
-        descripcion: 'Ultrasonido diagnóstico por imagen',
-        icono: 'ultrasound',
-        color: 'lime',
-        tipo: 'ultrasonido',
-        //duracion: '20-30 min'
-        //precio: 'Desde $25'
-      },
-      // Servicios adicionales que podrías agregar:
-      {
-        id: 'emergencia',
-        nombre: 'Atención de Emergencia',
-        descripcion: 'Atención veterinaria de urgencia las 24 horas',
-        icono: 'emergency',
-        color: 'deep-orange',
-        tipo: 'emergencia',
-        //duracion: 'Inmediato',
-        integrable: true,
-        //precio: 'Consultar',
-        premium: true
-      },
-      {
-        id: 'rehabilitacion',
-        nombre: 'Rehabilitación',
-        descripcion: 'Fisioterapia y rehabilitación post-operatoria',
-        icono: 'accessibility_new',
-        color: 'brown',
-        tipo: 'rehabilitacion',
-        //duracion: '30-45 min',
-        integrable: true
-        //precio: 'Por sesión'
-      }
+      { id: 'vacunacion', nombre: 'Vacunación', descripcion: 'Aplicación de vacunas preventivas', icono: 'vaccines', color: 'green', tipo: 'vacunacion' },
+      { id: 'desparacitacion', nombre: 'Desparacitación', descripcion: 'Tratamiento antiparasitario', icono: 'medication', color: 'orange', tipo: 'desparacitacion' },
+      { id: 'exploracion', nombre: 'Exploración Física', descripcion: 'Examen clínico general', icono: 'health_and_safety', color: 'blue', tipo: 'exploracion' },
+      { id: 'certificado', nombre: 'Certificado Médico', descripcion: 'Constancias médicas', icono: 'description', color: 'purple', tipo: 'certificado' },
+      { id: 'medicamentos', nombre: 'Administración de Medicamentos', descripcion: 'Gestión de prescripciones', icono: 'medication', color: 'blue', tipo: 'medicamentos', integrable: true },
+      { id: 'cirugia', nombre: 'Cirugía', descripcion: 'Procedimientos quirúrgicos', icono: 'local_hospital', color: 'red', tipo: 'cirugia', integrable: true },
+      { id: 'laboratorio', nombre: 'Análisis de Laboratorio', descripcion: 'Pruebas diagnósticas', icono: 'biotech', color: 'teal', tipo: 'laboratorio' },
+      { id: 'rayosx', nombre: 'Rayos X', descripcion: 'Estudios por imagen', icono: 'medical_information', color: 'indigo', tipo: 'rayosx' },
+      { id: 'hospitalizacion', nombre: 'Hospitalización', descripcion: 'Cuidados intensivos', icono: 'local_hotel', color: 'pink', tipo: 'hospitalizacion', integrable: true },
+      { id: 'estetica', nombre: 'Estética y Belleza', descripcion: 'Corte y baño', icono: 'content_cut', color: 'cyan', tipo: 'estetica' },
+      { id: 'ultrasonido', nombre: 'Ultrasonido', descripcion: 'Diagnóstico por imagen', icono: 'ultrasound', color: 'lime', tipo: 'ultrasonido' },
+      { id: 'emergencia', nombre: 'Atención de Emergencia', descripcion: 'Urgencias 24 horas', icono: 'emergency', color: 'deep-orange', tipo: 'emergencia', integrable: true, premium: true },
+      { id: 'rehabilitacion', nombre: 'Rehabilitación', descripcion: 'Fisioterapia y recuperación', icono: 'accessibility_new', color: 'brown', tipo: 'rehabilitacion', integrable: true }
     ]
     
-    // Usar servicios custom si se proporcionan, sino usar los predeterminados
     const serviciosDisponibles = props.serviciosCustom || serviciosDisponiblesPredeterminados
     
-    // Verificar si un servicio ya está agregado
     const isServicioYaAgregado = (tipoServicio) => {
       return props.serviciosAplicados.some(servicio => servicio.tipo === tipoServicio)
     }
     
-    // Seleccionar un servicio
     const seleccionarServicio = (servicio) => {
-      // Verificar si la atención está finalizada
       if (props.atencionFinalizada) {
-        $q.notify({
-          type: 'warning',
-          message: 'No se pueden agregar servicios a una atención finalizada',
-          position: 'top',
-          timeout: 3000,
-          icon: 'warning'
-        })
+        $q.notify({ type: 'warning', message: 'Atención finalizada', position: 'top' })
         return
       }
       
-      // Verificar si ya está agregado
       if (isServicioYaAgregado(servicio.tipo)) {
-        $q.notify({
-          type: 'warning',
-          message: `El servicio "${servicio.nombre}" ya ha sido agregado a esta atención`,
-          position: 'top',
-          timeout: 2500,
-          icon: 'warning'
-        })
+        $q.notify({ type: 'warning', message: 'Servicio ya agregado', position: 'top' })
         return
       }
       
-      // Mensaje especial para servicios integrables
-      let mensaje = `${servicio.nombre} agregado exitosamente`
-      if (servicio.integrable) {
-        mensaje += '. Este servicio puede integrarse con otros servicios activos.'
-      }
-      
-      // Efecto visual temporal
-      const cardElement = document.querySelector(`.service-card--${servicio.tipo}`)
-      if (cardElement) {
-        cardElement.classList.add('selecting')
-        setTimeout(() => {
-          cardElement.classList.remove('selecting')
-        }, 300)
-      }
-      
-      // Emitir evento de selección
       emit('agregar-servicio', {
         ...servicio,
         timestamp: new Date().toLocaleString()
       })
       
-      // Mostrar feedback de éxito
       $q.notify({
         type: 'positive',
-        message: mensaje,
+        message: `${servicio.nombre} agregado`,
         position: 'top',
-        timeout: servicio.integrable ? 3500 : 2000,
-        icon: servicio.icono,
-        actions: [
-          {
-            label: 'Ver',
-            color: 'white',
-            handler: () => {
-              emit('close')
-            }
-          }
-        ]
+        timeout: 2000,
+        icon: servicio.icono
       })
     }
     
@@ -394,374 +212,90 @@ export default defineComponent({
 </script>
 
 <style scoped>
-/* Grid optimizado para más servicios con cards compactas */
-.services-grid {
+.services-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 16px;
-  margin-bottom: 20px;
-  padding: 4px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  max-height: 65vh;
+  overflow-y: auto;
+  padding: 8px;
 }
 
-/* Ajustes para diferentes tamaños de pantalla */
-@media (min-width: 1200px) {
-  .services-grid {
-    grid-template-columns: repeat(5, 1fr);
+@media (max-width: 800px) {
+  .services-list {
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
 }
 
-@media (min-width: 900px) and (max-width: 1199px) {
-  .services-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
+.services-list::-webkit-scrollbar { width: 6px; }
+.services-list::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.1); border-radius: 10px; }
 
-@media (min-width: 600px) and (max-width: 899px) {
-  .services-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-  }
-}
-
-@media (max-width: 599px) {
-  .services-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-}
-
-.service-card {
+.service-item {
   border-radius: 12px !important;
-  overflow: hidden;
-  position: relative;
-  transform: translateY(0);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 2px solid transparent !important;
-  min-height: 200px;
-  display: flex;
-  flex-direction: column;
-}
-
-.service-card .q-card-section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 12px !important;
-}
-
-.service-card:hover:not(.service-card--disabled) {
-  transform: translateY(-6px);
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15) !important;
-}
-
-.service-card--disabled {
-  background: rgba(76, 175, 80, 0.05) !important;
-  border-color: #4caf50 !important;
-  transform: scale(0.98);
-  cursor: not-allowed;
-}
-
-.service-card--disabled:hover {
-  transform: scale(0.98);
-  box-shadow: 0 8px 20px rgba(76, 175, 80, 0.2) !important;
-}
-
-/* Estados hover por tipo de servicio (incluyendo medicamentos) */
-.service-card--vacunacion:hover:not(.service-card--disabled) {
-  border-color: #4caf50 !important;
-  box-shadow: 0 16px 32px rgba(76, 175, 80, 0.25) !important;
-}
-
-.service-card--medicamentos:hover:not(.service-card--disabled) {
-  border-color: #2196f3 !important;
-  box-shadow: 0 16px 32px rgba(33, 150, 243, 0.25) !important;
-}
-
-.service-card--desparacitacion:hover:not(.service-card--disabled) {
-  border-color: #ff9800 !important;
-  box-shadow: 0 16px 32px rgba(255, 152, 0, 0.25) !important;
-}
-
-.service-card--exploracion:hover:not(.service-card--disabled) {
-  border-color: #2196f3 !important;
-  box-shadow: 0 16px 32px rgba(33, 150, 243, 0.25) !important;
-}
-
-.service-card--certificado:hover:not(.service-card--disabled) {
-  border-color: #9c27b0 !important;
-  box-shadow: 0 16px 32px rgba(156, 39, 176, 0.25) !important;
-}
-
-.service-card--cirugia:hover:not(.service-card--disabled) {
-  border-color: #f44336 !important;
-  box-shadow: 0 16px 32px rgba(244, 67, 54, 0.25) !important;
-}
-
-.service-card--laboratorio:hover:not(.service-card--disabled) {
-  border-color: #009688 !important;
-  box-shadow: 0 16px 32px rgba(0, 150, 136, 0.25) !important;
-}
-
-.service-card--rayosx:hover:not(.service-card--disabled) {
-  border-color: #3f51b5 !important;
-  box-shadow: 0 16px 32px rgba(63, 81, 181, 0.25) !important;
-}
-
-.service-card--hospitalizacion:hover:not(.service-card--disabled) {
-  border-color: #e91e63 !important;
-  box-shadow: 0 16px 32px rgba(233, 30, 99, 0.25) !important;
-}
-
-.service-card--estetica:hover:not(.service-card--disabled) {
-  border-color: #00bcd4 !important;
-  box-shadow: 0 16px 32px rgba(0, 188, 212, 0.25) !important;
-}
-
-.service-card--ultrasonido:hover:not(.service-card--disabled) {
-  border-color: #cddc39 !important;
-  box-shadow: 0 16px 32px rgba(205, 220, 57, 0.25) !important;
-}
-
-.service-card--emergencia:hover:not(.service-card--disabled) {
-  border-color: #ff5722 !important;
-  box-shadow: 0 16px 32px rgba(255, 87, 34, 0.25) !important;
-}
-
-.service-card--rehabilitacion:hover:not(.service-card--disabled) {
-  border-color: #795548 !important;
-  box-shadow: 0 16px 32px rgba(121, 85, 72, 0.25) !important;
-}
-
-/* Icono del servicio */
-.service-icon-container {
-  position: relative;
-  margin-bottom: 8px;
-}
-
-.service-icon {
   transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  background: white;
+  min-height: 70px;
 }
 
-.service-card:hover:not(.service-card--disabled) .service-icon {
-  transform: scale(1.1);
+.service-item:hover:not(.service-item--disabled) {
+  transform: translateX(4px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+  border-color: currentColor !important;
 }
 
-.service-card--disabled .service-icon {
-  transform: scale(0.9);
+.service-item--disabled {
+  background: #f9fdfa !important;
+  border-color: #4caf5020 !important;
+  opacity: 0.8;
+  cursor: default;
 }
 
-/* Badge premium */
-.service-premium-badge {
-  animation: premiumGlow 2s ease-in-out infinite alternate;
-}
+.service-icon-container { position: relative; display: flex; align-items: center; }
+.service-icon { transition: transform 0.3s ease; }
+.service-item:hover:not(.service-item--disabled) .service-icon { transform: scale(1.05) rotate(5deg); }
+.service-badge-mini { padding: 2px 4px; min-height: 14px; border-radius: 4px; border: 1px solid white; }
+.service-badge-mini--left { top: auto !important; bottom: -2px !important; right: -4px !important; left: auto !important; }
 
-/* Badge integrable - NUEVO */
-.service-integrable-badge {
-  animation: integrableGlow 3s ease-in-out infinite alternate;
-}
+.service-name { line-height: 1.2; }
+.service-description { font-size: 0.75rem; color: #777; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.service-info-mini, .service-price-mini { display: flex; align-items: center; gap: 3px; }
 
-@keyframes premiumGlow {
-  from {
-    box-shadow: 0 0 5px rgba(255, 193, 7, 0.5);
-  }
-  to {
-    box-shadow: 0 0 15px rgba(255, 193, 7, 0.8);
-  }
-}
+.service-action-btn { opacity: 0.6; transition: all 0.2s ease; }
+.service-item:hover .service-action-btn { opacity: 1; transform: scale(1.1); }
 
-@keyframes integrableGlow {
-  from {
-    box-shadow: 0 0 5px rgba(33, 150, 243, 0.5);
-  }
-  to {
-    box-shadow: 0 0 12px rgba(33, 150, 243, 0.7);
-  }
-}
+.service-item--vacunacion:hover { color: #4caf50; border-color: #4caf50 !important; }
+.service-item--desparacitacion:hover { color: #ff9800; border-color: #ff9800 !important; }
+.service-item--exploracion:hover { color: #2196f3; border-color: #2196f3 !important; }
+.service-item--certificado:hover { color: #9c27b0; border-color: #9c27b0 !important; }
+.service-item--medicamentos:hover { color: #2196f3; border-color: #2196f3 !important; }
+.service-item--cirugia:hover { color: #f44336; border-color: #f44336 !important; }
+.service-item--laboratorio:hover { color: #009688; border-color: #009688 !important; }
+.service-item--rayosx:hover { color: #3f51b5; border-color: #3f51b5 !important; }
+.service-item--hospitalizacion:hover { color: #e91e63; border-color: #e91e63 !important; }
+.service-item--estetica:hover { color: #00bcd4; border-color: #00bcd4 !important; }
+.service-item--ultrasonido:hover { color: #cddc39; border-color: #cddc39 !important; }
+.service-item--emergencia:hover { color: #ff5722; border-color: #ff5722 !important; }
+.service-item--rehabilitacion:hover { color: #795548; border-color: #795548 !important; }
 
-/* Texto del servicio */
-.service-name {
-  font-size: 0.875rem;
-  line-height: 1.2;
-  margin-bottom: 6px;
-}
+.service-item { animation: itemSlideIn 0.3s ease-out forwards; animation-fill-mode: both; }
+@keyframes itemSlideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
 
-.service-description {
-  font-size: 0.75rem;
-  line-height: 1.3;
-  min-height: 2.6em;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  flex: 1;
-}
+.service-item:nth-child(1) { animation-delay: 0.05s; }
+.service-item:nth-child(2) { animation-delay: 0.1s; }
+.service-item:nth-child(3) { animation-delay: 0.15s; }
+.service-item:nth-child(4) { animation-delay: 0.2s; }
+.service-item:nth-child(5) { animation-delay: 0.25s; }
+.service-item:nth-child(6) { animation-delay: 0.3s; }
 
-.service-info {
-  font-size: 0.7rem;
-  color: #666;
-  margin-bottom: 4px;
-}
+.border-top-divider { border-top: 1px solid rgba(0, 0, 0, 0.05); padding-top: 12px; }
 
-.service-price {
-  font-weight: 600;
-  margin-bottom: 6px;
-  font-size: 0.75rem;
-}
+.body--dark .service-item { background: #1e1e1e; border-color: rgba(255, 255, 255, 0.1) !important; }
+.body--dark .service-item:hover:not(.service-item--disabled) { background: #252525; }
+.body--dark .service-item--disabled { background: rgba(76, 175, 80, 0.05) !important; }
+.body--dark .border-top-divider { border-top-color: rgba(255, 255, 255, 0.1); }
 
-/* Chip de estado */
-.service-status-chip {
-  transition: all 0.2s ease;
-  font-weight: 500;
-  margin-top: auto;
-}
-
-/* Leyenda de badges */
-.legend-badges {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-/* Efecto de selección */
-.service-card.selecting {
-  transform: scale(0.95);
-  transition: transform 0.15s ease;
-}
-
-.service-card.selecting::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(25, 118, 210, 0.4) 0%, transparent 70%);
-  animation: selectPulse 0.4s ease-out;
-  pointer-events: none;
-  transform: translate(-50%, -50%);
-  z-index: 10;
-}
-
-@keyframes selectPulse {
-  0% {
-    width: 0;
-    height: 0;
-    opacity: 1;
-  }
-  100% {
-    width: 150px;
-    height: 150px;
-    opacity: 0;
-  }
-}
-
-/* Animación de entrada para las cards */
-.service-card {
-  animation: cardSlideIn 0.6s ease-out forwards;
-}
-
-.service-card:nth-child(1) { animation-delay: 0.05s; }
-.service-card:nth-child(2) { animation-delay: 0.1s; }
-.service-card:nth-child(3) { animation-delay: 0.15s; }
-.service-card:nth-child(4) { animation-delay: 0.2s; }
-.service-card:nth-child(5) { animation-delay: 0.25s; }
-.service-card:nth-child(6) { animation-delay: 0.3s; }
-.service-card:nth-child(7) { animation-delay: 0.35s; }
-.service-card:nth-child(8) { animation-delay: 0.4s; }
-.service-card:nth-child(9) { animation-delay: 0.45s; }
-.service-card:nth-child(10) { animation-delay: 0.5s; }
-.service-card:nth-child(11) { animation-delay: 0.55s; }
-.service-card:nth-child(12) { animation-delay: 0.6s; }
-.service-card:nth-child(13) { animation-delay: 0.65s; }
-.service-card:nth-child(14) { animation-delay: 0.7s; }
-
-@keyframes cardSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(30px) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* Mejoras para accesibilidad */
-.service-card:focus-visible {
-  outline: 3px solid #1976d2;
-  outline-offset: 2px;
-}
-
-.service-card[aria-disabled="true"] {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-/* Transición suave para cambios de estado */
-.service-card * {
-  transition: color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
-}
-
-/* Estilos para modo oscuro */
-.body--dark .service-card {
-  background: #1e1e1e !important;
-  border-color: #333 !important;
-}
-
-.body--dark .service-card:hover:not(.service-card--disabled) {
-  background: #2a2a2a !important;
-}
-
-.body--dark .service-card--disabled {
-  background: rgba(76, 175, 80, 0.1) !important;
-  border-color: #4caf50 !important;
-}
-
-/* Estilos adicionales */
-.transition-all {
-  transition: all 0.3s ease;
-}
-
-.cursor-pointer {
-  cursor: pointer;
-}
-
-.servicios-disponibles {
-  width: 100%;
-  max-width: 100%;
-}
-
-/* Responsive para móviles pequeños */
-@media (max-width: 480px) {
-  .service-card {
-    min-height: 180px;
-  }
-  
-  .service-name {
-    font-size: 0.8rem;
-  }
-  
-  .service-description {
-    font-size: 0.7rem;
-    min-height: 2.1em;
-  }
-  
-  .service-icon-container .q-avatar {
-    width: 36px !important;
-    height: 36px !important;
-    font-size: 18px !important;
-  }
-  
-  .service-price {
-    font-size: 0.7rem;
-  }
-  
-  .legend-badges {
-    flex-direction: column;
-    align-items: center;
-  }
-}
+.transition-all { transition: all 0.3s ease; }
+.cursor-pointer { cursor: pointer; }
 </style>

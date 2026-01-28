@@ -283,23 +283,9 @@
                       :name="servicio.id"
                       class="q-pa-md"
                     >
-                      <!-- 1. Componente Dinámico (EAV/Metadata PoC) - Prioridad Alta -->
-                      <ServicioDinamico
-                        v-if="esquemasActivos[servicio.tipo]"
-                        :schema="esquemasActivos[servicio.tipo]"
-                        :servicio-id="servicio.id"
-                        :atencion-id="String(atenciones[atencionActual].id)"
-                        :datos-iniciales="servicio.datos"
-                        :modo-lectura="servicio.completado || atenciones[atencionActual].estado === 'Finalizada'"
-                        :catalogos="catalogosSistemas"
-                        @servicio-actualizado="actualizarServicio"
-                        @servicio-completado="completarServicio"
-                        @servicio-eliminado="eliminarServicio"
-                      />
-
-                      <!-- 2. Componentes Especializados Hardcoded -->
+                      <!-- Componente de Vacunación -->
                       <ServicioVacunacion
-                        v-else-if="servicio.tipo === 'vacunacion'"
+                        v-if="servicio.tipo === 'vacunacion'"
                         :servicio-id="servicio.id"
                         :atencion-id="String(atenciones[atencionActual].id)"
                         :datos-iniciales="servicio.datos"
@@ -489,7 +475,7 @@
 </template>
 
 <script>
-import { ref, computed, onBeforeUnmount, watch, reactive } from 'vue'
+import { ref, computed, onBeforeUnmount, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useMascotaSeleccionadaStore } from 'src/stores/mascotaSeleccionadaStore';
 
@@ -507,7 +493,6 @@ import ServicioFisioterapia from 'src/components/servicios/ServicioFisioterapia.
 import ServicioUrgencia from 'src/components/servicios/ServicioUrgencia.vue';
  import ServicioEstetica from '../components/servicios/ServicioEstetica.vue'
 import ServicioResumen from '../components/servicios/ServicioResumen.vue'
-import ServicioDinamico from '../components/servicios/ServicioDinamico.vue'
 
 export default {
   name: 'AtencionPaciente',
@@ -524,8 +509,7 @@ export default {
     ServicioFisioterapia,
     ServicioUrgencia,
      ServicioEstetica,
-    ServicioResumen,
-    ServicioDinamico
+    ServicioResumen
   },
   setup() {
     const $q = useQuasar()
@@ -536,49 +520,6 @@ export default {
     const guardandoAtencion = ref(false)
     const servicioActivoTab = ref(null)
     const showAddServiceDialog = ref(false)
-
-    // Catálogos globales que se inyectan en servicios dinámicos
-    const catalogosSistemas = reactive({
-      VETERINARIOS: [
-        { label: 'Dr. Carlos Mendoza', value: 'dr_carlos' },
-        { label: 'Dra. Ana López', value: 'dra_ana' },
-        { label: 'Dr. Sergio Ramos', value: 'dr_sergio' }
-      ],
-      PRODUCTOS_ESTETICA: [
-        { label: 'Shampoo Avena Gold', value: 'sh_avena' },
-        { label: 'Shampoo Hipoalergénico', value: 'sh_hipo' },
-        { label: 'Acondicionador Sedoso', value: 'ac_sedoso' }
-      ]
-    })
-
-    // Esquemas para servicios dinámicos (esto vendría de DB en el futuro)
-    const esquemasActivos = {
-      estetica: {
-        servicio: 'Estética y Peluquería',
-        icono: 'content_cut',
-        descripcion: 'Registro de sesión de estética canina/felina',
-        secciones: [
-          {
-            titulo: 'Detalles del Servicio',
-            campos: [
-              { id: 'veterinario_id', label: 'Veterinario Responsable', tipo: 'select', datasource: 'VETERINARIOS', requerido: true, icono: 'person', cols: 12, orden: 1 },
-              { id: 'tipo_corte', label: 'Tipo de Corte', tipo: 'select', opciones: ['Raza', 'Higiénico', 'Cachorro', 'Deslanado'], requerido: true, icono: 'style', cols: 6, orden: 2 },
-              { id: 'nudos', label: 'Presencia de nudos', tipo: 'select', opciones: ['Ninguno', 'Leve', 'Moderado', 'Severo'], icono: 'texture', cols: 6, orden: 3 },
-              { id: 'producto_id', label: 'Producto a Utilizar', tipo: 'select', datasource: 'PRODUCTOS_ESTETICA', icono: 'shopping_bag', cols: 12, orden: 4 },
-              { id: 'baño', label: 'Incluye Baño', tipo: 'checkbox', default: true, hint: 'Limpieza profunda con shampoo especializado', cols: 12, orden: 5 }
-            ]
-          },
-          {
-            titulo: 'Salud de Piel y Manto',
-            campos: [
-              { id: 'irritacion', label: 'Zona con irritación', tipo: 'texto', placeholder: 'Dorso, vientre, patas...', icono: 'healing', cols: 6, orden: 1 },
-              { id: 'pulgas', label: 'Ectoparásitos', tipo: 'checkbox', hint: '¿Se detectaron pulgas o garrapatas?', cols: 6, orden: 2 },
-              { id: 'observaciones_piel', label: 'Observaciones de piel', tipo: 'textarea', placeholder: 'Describa cualquier hallazgo relevante...', cols: 12, orden: 3 }
-            ]
-          }
-        ]
-      }
-    }
 
     // Datos del paciente (ahora vienen del store)
     const paciente = computed(() => mascotaSeleccionadaStore.mascota || {
@@ -909,9 +850,7 @@ export default {
       eliminarServicio,
       guardarAtencion,
       finalizarAtencion,
-      showAddServiceDialog,
-      esquemasActivos,
-      catalogosSistemas
+      showAddServiceDialog 
     }
   }
 }
