@@ -113,8 +113,9 @@ export const menuConfig = [
             labelKey: "mainMenu.settings.general.services.title",
             icon: "medical_services",
             subItems: [
-              { labelKey: "Servicios Dinámicos", icon: "auto_awesome", to: "/config/servicios-dinamicos" },
-
+              { labelKey: "mainMenu.settings.general.services.types", icon: "category", to: "/config/tipos-servicio" },
+              { labelKey: "mainMenu.settings.general.services.prices", icon: "local_atm", to: "/config/precios" },
+              { labelKey: "mainMenu.settings.general.services.duration", icon: "timer", to: "/config/duracion" },
             ]
           },
           { labelKey: "mainMenu.settings.general.location", icon: "place", to: "/config/ubicacion" },
@@ -137,7 +138,6 @@ export const menuConfig = [
 
             ]
           },
-
         ],
       },
       {

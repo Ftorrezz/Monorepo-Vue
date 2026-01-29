@@ -282,6 +282,24 @@ const routes: RouteRecordRaw[] = [
   },
 
   {
+    path: '/config/servicios-dinamicos',
+    component: () => import('layouts/Layout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'configuracion-servicios',
+        component: () => import('pages/configuration/generico/ConfiguracionServicios.vue')
+      },
+      {
+        path: ':id/estructura',
+        name: 'configuracion-estructura-servicio',
+        component: () => import('pages/configuration/generico/ConfiguracionEstructuraServicio.vue')
+      }
+    ],
+    meta: { requireAuth: false },
+  },
+
+  {
     path: '/login',
     name: 'login',
     component: () => import('pages/Usuario/Login.vue'),
