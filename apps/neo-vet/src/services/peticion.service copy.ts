@@ -63,11 +63,11 @@ class PeticionService {
             }
           });
       } else {
-        return peticion.invocarMetodo(endPoint, 'delete', modelo);
+        return peticion.invocarMetodo('delete', modelo);
       }
 
     }
-    else return Promise.reject(new Error('Error: El endpoint no puede ser vacío.'));
+    else return throwError(() => new Error('Error: El endpoint no puede ser vacío.'));
 
   }
 
@@ -88,10 +88,10 @@ class PeticionService {
             }
           });
       } else {
-        return peticion.invocarMetodo(endPoint, 'delete', modelo);
+        return peticion.invocarMetodo('delete', modelo);
       }
     }
-    else return Promise.reject(new Error('Error: El endpoint no puede ser vacío.'));
+    else return throwError(() => new Error('Error: El endpoint no puede ser vacío.'));
 
   }
 }

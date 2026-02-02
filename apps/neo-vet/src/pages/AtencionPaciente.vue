@@ -156,6 +156,16 @@
           </div>
           
           <div class="header-actions">
+            <q-btn
+              color="secondary"
+              icon="print"
+              label="Imprimir Resumen"
+              @click="imprimirResumenAtencion"
+              no-caps
+              flat
+              dense
+              class="q-mr-sm"
+            />
 
 
             <q-btn
@@ -274,6 +284,7 @@
                       <ServicioResumen 
                         :servicios-aplicados="serviciosAplicados"
                         @seleccionar-pestaña="servicioActivoTab = $event"
+                        @imprimir-servicio="imprimirDocumentoServicio"
                       />
                     </q-tab-panel>
 
@@ -492,6 +503,7 @@
 import { ref, computed, onBeforeUnmount, watch, reactive } from 'vue'
 import { useQuasar } from 'quasar'
 import { useMascotaSeleccionadaStore } from 'src/stores/mascotaSeleccionadaStore';
+import { usePlantillas } from 'src/composables/usePlantillas'
 
 // Importación de los componentes de servicios
 import ServicioVacunacion from '../components/servicios/ServicioVacunacion.vue'
@@ -886,6 +898,75 @@ export default {
       })
     }
 
+    const { cargarPlantillaPorId, cargarPlantillaPorCodigo, procesarHtml, generarPDF } = usePlantillas()
+
+    const imprimirDocumentoServicio = async (servicio) => {
+      // Intentar obtener id_plantilla de la configuración del servicio
+      const idPlantilla = servicio.id_plantilla || (esquemasActivos[servicio.tipo]?.id_plantilla)
+      
+      if (!idPlantilla) {
+        $q.notify({ type: 'warning', message: 'Este servicio no tiene una plantilla asociada' })
+        return
+      }
+
+      $q.loading.show({ message: 'Preparando documento...' })
+      try {
+        const plantilla = await cargarPlantillaPorId(idPlantilla)
+        if (!plantilla) throw new Error('Plantilla no encontrada')
+
+        const datosVariables = {
+          ...servicio.datos,
+          paciente_nombre: paciente.value.nombre,
+          propietario_nombre: paciente.value.propietario?.nombre,
+          fecha_atencion: atenciones.value[atencionActual.value].fecha,
+          atencion_numero: atenciones.value[atencionActual.value].numero
+        }
+
+        const html = procesarHtml(plantilla.contenido_html, datosVariables)
+        await generarPDF(html, { 
+          filename: `${servicio.nombre}_${paciente.value.nombre}.pdf`,
+          paperSize: plantilla.tamano_papel,
+          orientation: plantilla.orientacion
+        })
+      } catch (error) {
+        console.error(error)
+        $q.notify({ type: 'negative', message: 'Error al generar documento' })
+      } finally {
+        $q.loading.hide()
+      }
+    }
+
+    const imprimirResumenAtencion = async () => {
+      $q.loading.show({ message: 'Generando resumen de atención...' })
+      try {
+        // Cargar plantilla por código predeterminado para resumen
+        const plantilla = await cargarPlantillaPorCodigo('RESUMEN_ATENCION')
+        if (!plantilla) {
+          $q.notify({ type: 'warning', message: 'No se encontró la plantilla "RESUMEN_ATENCION"' })
+          return
+        }
+
+        const datosVariables = {
+          atencion_numero: atenciones.value[atencionActual.value].numero,
+          atencion_fecha: atenciones.value[atencionActual.value].fecha,
+          paciente_nombre: paciente.value.nombre,
+          paciente_especie: paciente.value.especie,
+          paciente_raza: paciente.value.raza,
+          propietario_nombre: `${paciente.value.propietario?.nombre} ${paciente.value.propietario?.primerapellido}`,
+          servicios: serviciosAplicados.value.map(s => s.nombre).join(', '),
+          // En un sistema real, el resumen incluiría una tabla procesada de servicios
+        }
+
+        const html = procesarHtml(plantilla.contenido_html, datosVariables)
+        await generarPDF(html, { filename: `Resumen_${atenciones.value[atencionActual.value].numero}.pdf` })
+      } catch (error) {
+        console.error(error)
+        $q.notify({ type: 'negative', message: 'Error al generar resumen' })
+      } finally {
+        $q.loading.hide()
+      }
+    }
+
     onBeforeUnmount(() => {
       mascotaSeleccionadaStore.limpiarMascota()
     })
@@ -911,7 +992,9 @@ export default {
       finalizarAtencion,
       showAddServiceDialog,
       esquemasActivos,
-      catalogosSistemas
+      catalogosSistemas,
+      imprimirDocumentoServicio,
+      imprimirResumenAtencion
     }
   }
 }

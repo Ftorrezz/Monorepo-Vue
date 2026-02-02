@@ -216,6 +216,7 @@ export const menuConfig = [
               { labelKey: "mainMenu.settings.system.templates.consultation", icon: "note_add", to: "/config/plantillas-consulta" },
               { labelKey: "mainMenu.settings.system.templates.report", icon: "article", to: "/config/plantillas-reporte" },
               { labelKey: "mainMenu.settings.system.templates.certificates", icon: "verified", to: "/templatemanager" },
+              { labelKey: "mainMenu.settings.system.templates.management", icon: "settings_suggest", to: "/config/plantillas" },
             ]
           },
           {

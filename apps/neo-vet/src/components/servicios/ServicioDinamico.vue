@@ -8,6 +8,19 @@
           <div class="text-h6 leading-tight">{{ schema.servicio }}</div>
           <div class="text-caption opacity-80" v-if="schema.descripcion">{{ schema.descripcion }}</div>
         </div>
+        <q-btn 
+          v-if="schema.id_plantilla || schema.id_plantilla_asociada"
+          flat 
+          round 
+          dense 
+          icon="print" 
+          color="white" 
+          class="q-mr-sm"
+          @click="imprimirDocumento"
+          :loading="cargandoPlantilla"
+        >
+          <q-tooltip>Imprimir Documento</q-tooltip>
+        </q-btn>
         <q-btn-dropdown flat round dense icon="more_vert" color="white">
           <q-list style="min-width: 150px">
             <q-item clickable v-close-popup @click="emit('servicio-eliminado', props.servicioId)">
@@ -138,6 +151,8 @@
 
 <script setup>
 import { ref, reactive, watch, onMounted } from 'vue'
+import { usePlantillas } from 'src/composables/usePlantillas'
+import { useQuasar } from 'quasar'
 
 const props = defineProps({
   schema: {
@@ -170,6 +185,10 @@ const emit = defineEmits(['servicio-actualizado', 'servicio-completado', 'servic
 
 const formData = reactive({})
 const guardando = ref(false)
+const cargandoPlantilla = ref(false)
+
+const $q = useQuasar()
+const { cargarPlantillaPorId, procesarHtml, generarPDF } = usePlantillas()
 
 // Inicializar el formulario con valores del esquema o datos existentes
 const initForm = () => {
@@ -221,6 +240,45 @@ const completarServicio = async () => {
   await new Promise(resolve => setTimeout(resolve, 800))
   emit('servicio-completado', props.servicioId, { ...formData })
   guardando.value = false
+}
+
+const imprimirDocumento = async () => {
+  const idPlantilla = props.schema.id_plantilla || props.schema.id_plantilla_asociada
+  if (!idPlantilla) return
+
+  cargandoPlantilla.value = true
+  try {
+    const plantilla = await cargarPlantillaPorId(idPlantilla)
+    if (!plantilla) {
+      $q.notify({ type: 'negative', message: 'No se pudo cargar la plantilla' })
+      return
+    }
+
+    // Preparar datos para las variables
+    // En un escenario real, aquí mezclaríamos datos del paciente, propietario y los campos del servicio
+    const datosVariables = {
+      ...formData,
+      fecha_atencion: new Date().toLocaleDateString(),
+      // Estos datos deberían venir del padre idealmente o de un store
+      paciente_nombre: 'Mascota', 
+      propietario_nombre: 'Propietario'
+    }
+
+    const htmlProcesado = procesarHtml(plantilla.contenido_html, datosVariables)
+    
+    await generarPDF(htmlProcesado, {
+      filename: `${props.schema.servicio || 'Servicio'}_${Date.now()}.pdf`,
+      paperSize: plantilla.tamano_paper || 'A4',
+      orientation: plantilla.orientacion || 'portrait'
+    })
+
+    $q.notify({ type: 'positive', message: 'Documento generado correctamente' })
+  } catch (error) {
+    console.error('Error al generar PDF:', error)
+    $q.notify({ type: 'negative', message: 'Error al generar el documento' })
+  } finally {
+    cargandoPlantilla.value = false
+  }
 }
 
 // Watch para auto-guardar cambios (actualizar estado en padre)

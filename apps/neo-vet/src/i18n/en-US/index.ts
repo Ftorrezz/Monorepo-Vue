@@ -179,6 +179,7 @@ export default {
         },
         templates: {
           title: 'Templates',
+          management: 'Template Management',
           consultation: 'Consultation Templates',
           report: 'Report Templates',
           certificates: 'Certificates'
@@ -326,6 +327,23 @@ export default {
       cancel: 'Cancel',
       update: 'Update Password',
       finish: 'Finish'
+    }
+  },
+  plantillas: {
+    titulo: 'Template Management',
+    nueva: 'New Template',
+    editar: 'Edit Template',
+    guardar: 'Save Template',
+    variables: 'Dynamic Variables',
+    contenido: 'HTML Content',
+    configuracion: 'Page Configuration',
+    preview: 'Preview',
+    exportar: 'Export PDF',
+    mensajes: {
+      guardadoOk: 'Template saved successfully',
+      errorGuardar: 'Error saving template',
+      confirmarEliminar: 'Are you sure you want to delete this template?',
+      eliminadoOk: 'Template deleted successfully'
     }
   }
 };

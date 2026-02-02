@@ -107,6 +107,17 @@
                       >
                         <q-tooltip>Ir a pestaña</q-tooltip>
                       </q-btn>
+                      <q-btn
+                        v-if="servicio.completado"
+                        flat
+                        round
+                        dense
+                        icon="print"
+                        color="secondary"
+                        @click="$emit('imprimir-servicio', servicio)"
+                      >
+                        <q-tooltip>Imprimir Documento</q-tooltip>
+                      </q-btn>
                     </div>
                   </div>
 
@@ -146,7 +157,7 @@ const props = defineProps({
   }
 })
 
-defineEmits(['seleccionar-pestaña'])
+defineEmits(['seleccionar-pestaña', 'imprimir-servicio'])
 
 const serviciosCompletados = computed(() => props.serviciosAplicados.filter(s => s.completado))
 const serviciosPendientes = computed(() => props.serviciosAplicados.filter(s => !s.completado))

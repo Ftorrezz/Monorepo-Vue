@@ -181,7 +181,8 @@ export default {
           title: 'Plantillas',
           consultation: 'Plantillas de Consulta',
           report: 'Plantillas de Reporte',
-          certificates: 'Certificados'
+          certificates: 'Certificados',
+          management: 'Gestión de Plantillas'
         },
         backups: {
           title: 'Respaldos',
@@ -326,6 +327,23 @@ export default {
       cancel: 'Cancelar',
       update: 'Actualizar clave',
       finish: 'Finalizar'
+    }
+  },
+  plantillas: {
+    titulo: 'Gestión de Plantillas',
+    nueva: 'Nueva Plantilla',
+    editar: 'Editar Plantilla',
+    guardar: 'Guardar Plantilla',
+    variables: 'Variables Dinámicas',
+    contenido: 'Contenido HTML',
+    configuracion: 'Configuración de Página',
+    preview: 'Vista Previa',
+    exportar: 'Exportar PDF',
+    mensajes: {
+      guardadoOk: 'Plantilla guardada exitosamente',
+      errorGuardar: 'Error al guardar la plantilla',
+      confirmarEliminar: '¿Estás seguro de eliminar esta plantilla?',
+      eliminadoOk: 'Plantilla eliminada'
     }
   }
 };

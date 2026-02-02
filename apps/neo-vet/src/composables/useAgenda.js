@@ -2,10 +2,12 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import NdPeticionControl from 'src/controles/rest.control'
 import { useDialogStore } from 'neo-vet/src/stores/DialogoUbicacion'
+import { usePlantillas } from 'src/composables/usePlantillas'
 
 export function useAgenda() {
     const $q = useQuasar()
     const store = useDialogStore()
+    const { cargarPlantillaPorCodigo, generarPDF, procesarHtml } = usePlantillas()
 
     // Estados principales
     const currentDate = ref(new Date())
@@ -465,6 +467,44 @@ export function useAgenda() {
         })
     }
 
+    const imprimirCertificadoCita = async (slot) => {
+        if (!slot.appointment) return
+
+        try {
+            $q.loading.show({ message: 'Preparando certificado...' })
+
+            // 1. Cargar plantilla (por ahora una fija o buscar por servicio)
+            const plantilla = await cargarPlantillaPorCodigo('CERT_ASISTENCIA')
+
+            if (!plantilla) {
+                $q.notify({ type: 'warning', message: 'No se encontró una plantilla de certificado configurada' })
+                return
+            }
+
+            // 2. Preparar datos para las variables
+            const data = {
+                propietario: slot.appointment.ownerName,
+                mascota: slot.appointment.petName,
+                especie: slot.appointment.petType,
+                fecha: selectedDate.value.toLocaleDateString(),
+                hora: slot.time,
+                servicio: selectedService.value.name,
+                profesional: slot.appointment.professionalName || 'Médico Veterinario'
+            }
+
+            // 3. Procesar y generar PDF
+            const htmlProcesado = procesarHtml(plantilla.contenido, data)
+            await generarPDF(htmlProcesado, `Certificado_${slot.appointment.petName}_${formatDateKey(selectedDate.value)}.pdf`)
+
+            $q.notify({ type: 'positive', message: 'Certificado generado con éxito' })
+        } catch (error) {
+            console.error('Error al generar certificado:', error)
+            $q.notify({ type: 'negative', message: 'Error al generar el certificado' })
+        } finally {
+            $q.loading.hide()
+        }
+    }
+
     const cancelAppointment = async (slot) => {
         if (!slot.appointment?.id) {
             $q.notify({ type: 'warning', message: 'No hay cita para cancelar' })
@@ -603,6 +643,6 @@ export function useAgenda() {
         getStatusLabel, viewAppointment, cancelAppointment, previousMonth, nextMonth,
         previousDay, nextDay, goToToday, selectDayForDayView, updateSelectedDate,
         selectTimeSlot, refrescarDisponibilidad, mostrarDialogoAsignarCita,
-        slotSeleccionado, onCitaCreada
+        slotSeleccionado, onCitaCreada, imprimirCertificadoCita
     }
 }

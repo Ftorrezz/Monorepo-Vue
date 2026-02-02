@@ -1,13 +1,16 @@
-import { api } from 'src/boot/axios'
+import PeticionService from 'src/services/peticion.service'
+
+const peticionService = new PeticionService()
 
 export interface ServicioDefinicion {
-    id_servicio_def?: number
-    codigo: string
-    nombre: string
+    id?: number
+    identificador: string
     descripcion?: string
+    nombre?: string
     icono?: string
-    activo: boolean
-    id_sitio: number
+    activo: string // 'S' o 'N'
+    id_configuracion: number
+    id_plantilla?: number
 }
 
 export interface ServicioSeccion {
@@ -37,61 +40,55 @@ export interface ServicioCampo {
 export const servicioDinamicoService = {
     // --- SERVICIOS DEFINICION ---
     async getServicios() {
-        const { data } = await api.get<ServicioDefinicion[]>('/servicios-definicion')
-        return data
+        const response = await peticionService.obtenerGet('servicio')
+        return Array.isArray(response) ? response : (response?.data || [])
     },
 
     async createServicio(servicio: ServicioDefinicion) {
-        const { data } = await api.post<ServicioDefinicion>('/servicios-definicion', servicio)
-        return data
+        return await peticionService.crear('servicio', servicio)
     },
 
     async updateServicio(id: number, servicio: ServicioDefinicion) {
-        const { data } = await api.put<ServicioDefinicion>(`/servicios-definicion/${id}`, servicio)
-        return data
+        return await peticionService.actualizar('servicio', { ...servicio, id })
     },
 
     async deleteServicio(id: number) {
-        await api.delete(`/servicios-definicion/${id}`)
+        await peticionService.eliminar('servicio', { id }, false)
     },
 
     // --- SECCIONES ---
     async getSecciones(idServicio: number) {
-        const { data } = await api.get<ServicioSeccion[]>(`/servicios-definicion/${idServicio}/secciones`)
-        return data
+        const response = await peticionService.obtenerGet(`servicio/${idServicio}/secciones`)
+        return Array.isArray(response) ? response : (response?.data || [])
     },
 
     async createSeccion(seccion: ServicioSeccion) {
-        const { data } = await api.post<ServicioSeccion>('/servicios-secciones', seccion)
-        return data
+        return await peticionService.crear('servicios-secciones', seccion)
     },
 
     async updateSeccion(id: number, seccion: ServicioSeccion) {
-        const { data } = await api.put<ServicioSeccion>(`/servicios-secciones/${id}`, seccion)
-        return data
+        return await peticionService.actualizar('servicios-secciones', { ...seccion, id })
     },
 
     async deleteSeccion(id: number) {
-        await api.delete(`/servicios-secciones/${id}`)
+        await peticionService.eliminar('servicios-secciones', { id }, false)
     },
 
     // --- CAMPOS ---
     async getCampos(idSeccion: number) {
-        const { data } = await api.get<ServicioCampo[]>(`/servicios-secciones/${idSeccion}/campos`)
-        return data
+        const response = await peticionService.obtenerGet(`servicios-secciones/${idSeccion}/campos`)
+        return Array.isArray(response) ? response : (response?.data || [])
     },
 
     async createCampo(campo: ServicioCampo) {
-        const { data } = await api.post<ServicioCampo>('/servicios-campos', campo)
-        return data
+        return await peticionService.crear('servicios-campos', campo)
     },
 
     async updateCampo(id: number, campo: ServicioCampo) {
-        const { data } = await api.put<ServicioCampo>(`/servicios-campos/${id}`, campo)
-        return data
+        return await peticionService.actualizar('servicios-campos', { ...campo, id })
     },
 
     async deleteCampo(id: number) {
-        await api.delete(`/servicios-campos/${id}`)
+        await peticionService.eliminar('servicios-campos', { id }, false)
     }
 }

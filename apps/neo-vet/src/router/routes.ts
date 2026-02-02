@@ -137,6 +137,12 @@ const routes: RouteRecordRaw[] = [
         meta: { requireAuth: false },
       },
       {
+        path: '/config/plantillas',
+        name: 'configuracion-plantillas',
+        component: () => import('pages/configuration/plantillas/ConfiguracionPlantillas.vue'),
+        meta: { requireAuth: false },
+      },
+      {
         path: '/templatemanager',
         name: 'templatemanager',
         component: () => import('pages/configuration/template/TemplateManager.vue'),

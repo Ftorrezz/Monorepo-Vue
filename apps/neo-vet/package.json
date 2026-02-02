@@ -11,9 +11,10 @@
     "build": "quasar build"
   },
   "dependencies": {
+    "html2canvas": "^1.4.1",
+    "vue-signature-pad": "^3.0.2"
   },
-  "devDependencies": {
-  },
+  "devDependencies": {},
   "engines": {
     "node": "^20 || ^18 || ^16",
     "npm": ">= 6.13.4",

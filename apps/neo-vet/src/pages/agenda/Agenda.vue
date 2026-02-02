@@ -396,6 +396,9 @@
                     <span>{{ selectedService.name }}</span>
                   </div>
                   <div class="action-btns">
+                    <q-btn flat round dense icon="print" color="secondary" @click.stop="imprimirCertificadoCita(slot)">
+                      <q-tooltip>Imprimir Certificado</q-tooltip>
+                    </q-btn>
                     <q-btn flat round dense icon="visibility" color="primary" @click.stop="viewAppointment(slot)" />
                     <q-btn flat round dense icon="delete_outline" color="negative" @click.stop="cancelAppointment(slot)" />
                   </div>
@@ -536,6 +539,18 @@
                         <q-btn
                           v-if="props.row.status === 'booked' || props.row.status === 'confirmed'"
                           size="sm"
+                          color="secondary"
+                          icon="print"
+                          round
+                          flat
+                          @click.stop="imprimirCertificadoCita(props.row)"
+                          class="action-btn"
+                        >
+                          <q-tooltip>Imprimir Certificado</q-tooltip>
+                        </q-btn>
+                        <q-btn
+                          v-if="props.row.status === 'booked' || props.row.status === 'confirmed'"
+                          size="sm"
                           color="info"
                           icon="visibility"
                           round
@@ -650,7 +665,7 @@ const {
   getStatusLabel, viewAppointment, cancelAppointment, previousMonth, nextMonth,
   previousDay, nextDay, goToToday, selectDayForDayView, updateSelectedDate,
   selectTimeSlot, refrescarDisponibilidad, mostrarDialogoAsignarCita,
-  slotSeleccionado, onCitaCreada
+  slotSeleccionado, onCitaCreada, imprimirCertificadoCita
 } = useAgenda()
 </script>
 
