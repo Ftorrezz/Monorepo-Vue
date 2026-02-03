@@ -58,7 +58,7 @@ export const servicioDinamicoService = {
 
     // --- SECCIONES ---
     async getSecciones(idServicio: number) {
-        const response = await peticionService.obtenerGet(`servicio/${idServicio}/secciones`)
+        const response = await peticionService.obtenerGet(`servicioseccion/${idServicio}/secciones`)
         return Array.isArray(response) ? response : (response?.data || [])
     },
 
