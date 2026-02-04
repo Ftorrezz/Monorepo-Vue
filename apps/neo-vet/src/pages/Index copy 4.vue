@@ -1,505 +1,525 @@
 <template>
-  <q-page class="bg-gradient-to-br from-blue-50 to-green-50 min-h-screen">
-    <!-- Header moderno y responsivo -->
-    <!--<div :class="['q-pa-md q-mb-md', $q.dark.isActive ? 'bg-dark text-white' : 'bg-primary text-white']" style="border-radius: 18px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
-      <div class="row items-center justify-between">
-        <div class="row items-center q-gutter-md">
-          <q-avatar size="48px" color="white" text-color="primary" icon="pets" />
-          <div>
-            <h1 class="text-h5 text-weight-bold q-ma-none">VetCare Dashboard</h1>
-            <p class="text-body2 q-ma-none">Sistema de Gestión Veterinaria</p>
+  <q-page class="able-dashboard">
+    <!-- Header / Brand Area -->
+    <div class="dashboard-header-bg"></div>
+    
+    <div class="dashboard-container">
+      
+      <!-- Top Header Content + Shortcuts -->
+      <div class="row items-center justify-between q-mb-md text-white header-content relative-position">
+        <div class="col-12 col-md-5">
+          <h1 class="text-h5 text-weight-bold q-my-none">Dashboard Analytics</h1>
+          <div class="breadcrumbs text-grey-4 text-caption q-mt-xs">
+            <q-icon name="home" /> / Dashboard Analytics
           </div>
         </div>
-        <div class="text-right">
-          <p class="text-body2 text-weight-medium q-ma-none">
-            {{ formatDate(currentTime) }}
-          </p>
-          <p class="text-body2 q-ma-none">
-            {{ formatTime(currentTime) }}
-          </p>
+        
+        <!-- Shortcuts / Quick Access -->
+        <div class="col-12 col-md-7 row justify-end q-gutter-x-sm module-shortcuts">
+          <q-btn 
+             push 
+             color="white" 
+             text-color="primary" 
+             label="Nueva Cita" 
+             icon="add_circle" 
+             class="shortcut-btn"
+             no-caps
+          />
+           <q-btn 
+             push 
+             color="white" 
+             text-color="primary" 
+             label="Paciente" 
+             icon="person_add" 
+             class="shortcut-btn"
+             no-caps
+          />
+           <q-btn 
+             push 
+             color="white" 
+             text-color="primary" 
+             label="Venta" 
+             icon="point_of_sale" 
+             class="shortcut-btn"
+             no-caps
+          />
+           <q-btn 
+             push 
+             color="white" 
+             text-color="primary" 
+             label="Agenda" 
+             icon="calendar_month" 
+             class="shortcut-btn"
+             no-caps
+          />
         </div>
       </div>
-    </div>-->
 
-    <div class="container-fluid q-pt-lg q-px-md">
-      <div class="row q-col-gutter-xl items-start">
-        <!-- Columna Principal (Izquierda) -->
+      <!-- Main Content Grid -->
+      <div class="row q-col-gutter-md">
+        
+        <!-- LEFT COLUMN: Large Analytics Cards (Wave) -->
         <div class="col-12 col-md-8">
-            <!-- Estadísticas principales -->
-            <div class="row q-gutter-md">
-              <div class="col-12 col-sm-6 col-md-3" v-for="stat in mainStats" :key="stat.id">
-                <stat-card v-bind="stat" />
-              </div>
-            </div>
-
-            <!-- Estadísticas adicionales -->
-            <!--<div class="row q-gutter-md">
-              <div class="col-12 col-md-4" v-for="stat in additionalStats" :key="stat.id">
-                <stat-card v-bind="stat" />
-              </div>
-            </div>-->
+          <div class="row q-col-gutter-md">
             
-            <!-- Gráfico de citas -->
-            <!--<div class="q-mt-md">
-              <q-card class="full-height">
-                <q-card-section>
-                  <div class="text-h6 text-weight-medium">Citas por Hora - Hoy</div>
+            <!-- Card 1: Mascotas -->
+            <div class="col-12 col-md-6">
+              <q-card class="able-card wave-card">
+                <q-card-section class="q-pa-sm">
+                  <div class="text-h4 text-weight-bold text-grey-9">{{ mainStats[0].value }}</div>
+                  <div class="text-subtitle2 text-primary">{{ mainStats[0].title }}</div>
                 </q-card-section>
-                <q-card-section>
-                  <canvas ref="appointmentsChart" height="300"></canvas>
-                </q-card-section>
-              </q-card>
-            </div>-->
-
-            <!-- Gráficos adicionales -->
-            <div class="row q-gutter-lg q-mt-xs">
-              <!-- Distribución de servicios -->
-              <!--<div>
-              <q-card class="full-height">
-                <q-card-section>
-                  <div class="text-h6 text-weight-medium">Citas por Hora - Hoy</div>
-                </q-card-section>
-                <q-card-section>
-                  <canvas ref="appointmentsChart" height="300"></canvas>
-                </q-card-section>
-              </q-card>
-            </div>-->
-              
-              
-              <div class="col-12 col-md-6">
-                <q-card>
-                  <q-card-section>
-                    <div class="text-h6 text-weight-medium">Citas por Hora - Hoy</div>
-                  </q-card-section>
-                  <q-card-section>
-                    <canvas ref="appointmentsChart" height="300"></canvas>
-                  </q-card-section>
-                </q-card>
-              </div>
-              <div class="col-12 col-md-5">
-                <q-card>
-                  <q-card-section>
-                    <div class="text-h6 text-weight-medium">Distribución de Servicios</div>
-                  </q-card-section>
-                  <q-card-section>
-                    <canvas ref="servicesChart" height="300"></canvas>
-                  </q-card-section>
-                </q-card>
-              </div>
-
-              <!-- Tendencia mensual -->
-              <!--<div class="col-12 col-md-6">
-                <q-card>
-                  <q-card-section>
-                    <div class="text-h6 text-weight-medium">Tendencia Mensual</div>
-                  </q-card-section>
-                  <q-card-section>
-                    <canvas ref="monthlyChart" height="300"></canvas>
-                  </q-card-section>
-                </q-card>
-              </div>-->
-            </div>
-
-            
-        </div>
-        <!-- Columna de Alertas (Derecha) -->
-        <div class="col-12 col-md-4">
-          <div style="position: sticky; top: 32px;">
-            <q-card>
-              <q-card-section>
-                <div class="text-h6 text-weight-medium">Alertas y Notificaciones</div>
-              </q-card-section>
-              <q-card-section class="q-pt-none">
-                <div v-for="alert in alerts" :key="alert.id" class="q-mb-sm">
-                  <alert-card v-bind="alert" />
+                
+                <!-- Mini Chart Container -->
+                <div class="wave-chart-container">
+                  <canvas ref="waveChart1"></canvas>
                 </div>
-              </q-card-section>
-            </q-card>
+
+                <q-card-section class="bg-primary text-white row text-center q-py-xs footer-stats">
+                  <div class="col">
+                    <div class="text-subtitle1 text-weight-bold">10</div>
+                    <div class="text-caption-xs">Nuevos</div>
+                  </div>
+                  <div class="col border-left-white">
+                    <div class="text-subtitle1 text-weight-bold">5</div>
+                    <div class="text-caption-xs">Proceso</div>
+                  </div>
+                  <div class="col border-left-white">
+                    <div class="text-subtitle1 text-weight-bold">3</div>
+                    <div class="text-caption-xs">Alta</div>
+                  </div>
+                </q-card-section>
+              </q-card>
+            </div>
+
+            <!-- Card 2: Vacunas -->
+            <div class="col-12 col-md-6">
+              <q-card class="able-card wave-card">
+                <q-card-section class="q-pa-sm">
+                  <div class="text-h4 text-weight-bold text-grey-9">{{ mainStats[2].value }}</div>
+                  <div class="text-subtitle2 text-positive">{{ mainStats[2].title }}</div>
+                </q-card-section>
+                
+                <!-- Mini Chart Container -->
+                <div class="wave-chart-container">
+                  <canvas ref="waveChart2"></canvas>
+                </div>
+
+                <q-card-section class="bg-positive text-white row text-center q-py-xs footer-stats">
+                  <div class="col">
+                    <div class="text-subtitle1 text-weight-bold">15</div>
+                    <div class="text-caption-xs">Perros</div>
+                  </div>
+                  <div class="col border-left-white">
+                    <div class="text-subtitle1 text-weight-bold">8</div>
+                    <div class="text-caption-xs">Gatos</div>
+                  </div>
+                  <div class="col border-left-white">
+                    <div class="text-subtitle1 text-weight-bold">2</div>
+                    <div class="text-caption-xs">Otros</div>
+                  </div>
+                </q-card-section>
+              </q-card>
+            </div>
+
           </div>
         </div>
+
+        <!-- RIGHT COLUMN: Small Stats Cards (2x2) -->
+        <div class="col-12 col-md-4">
+          <div class="row q-col-gutter-sm">
+            
+            <!-- Card Small 1: Earnings (Yellow) -->
+            <div class="col-12 col-sm-6">
+              <q-card class="able-card small-stat-card q-pa-sm">
+                <div class="row items-center justify-between no-wrap">
+                  <div>
+                    <div class="text-h6 text-warning text-weight-bold">${{ stats.ingresos_mes }}</div>
+                    <div class="text-caption text-grey-7 line-height-tight">Ingresos</div>
+                  </div>
+                  <q-icon name="bar_chart" color="grey-4" size="md" />
+                </div>
+                <div class="q-mt-sm">
+                  <div class="bg-warning text-white q-px-sm q-py-xs rounded-borders text-caption-xs text-weight-bold d-inline-block" style="border-radius: 4px;">
+                    +15%
+                  </div>
+                </div>
+              </q-card>
+            </div>
+
+            <!-- Card Small 2: Page Views (Green) -->
+            <div class="col-12 col-sm-6">
+              <q-card class="able-card small-stat-card q-pa-sm">
+                <div class="row items-center justify-between no-wrap">
+                  <div>
+                    <div class="text-h6 text-positive text-weight-bold">290+</div>
+                    <div class="text-caption text-grey-7 line-height-tight">Citas</div>
+                  </div>
+                  <q-icon name="description" color="grey-4" size="md" />
+                </div>
+                <div class="q-mt-sm">
+                  <div class="bg-positive text-white q-px-sm q-py-xs rounded-borders text-caption-xs text-weight-bold d-inline-block" style="border-radius: 4px;">
+                    +20%
+                  </div>
+                </div>
+              </q-card>
+            </div>
+
+            <!-- Card Small 3: Task (Red) -->
+            <div class="col-12 col-sm-6">
+              <q-card class="able-card small-stat-card q-pa-sm">
+                <div class="row items-center justify-between no-wrap">
+                  <div>
+                    <div class="text-h6 text-negative text-weight-bold">{{ tasks.length }}</div>
+                    <div class="text-caption text-grey-7 line-height-tight">Tareas</div>
+                  </div>
+                  <q-icon name="calendar_today" color="grey-4" size="md" />
+                </div>
+                <div class="q-mt-sm">
+                  <div class="bg-negative text-white q-px-sm q-py-xs rounded-borders text-caption-xs text-weight-bold d-inline-block" style="border-radius: 4px;">
+                    +5%
+                  </div>
+                </div>
+              </q-card>
+            </div>
+
+            <!-- Card Small 4: Clients (Blue) -->
+            <div class="col-12 col-sm-6">
+              <q-card class="able-card small-stat-card q-pa-sm">
+                <div class="row items-center justify-between no-wrap">
+                  <div>
+                    <div class="text-h6 text-primary text-weight-bold">500</div>
+                    <div class="text-caption text-grey-7 line-height-tight">Clientes</div>
+                  </div>
+                  <q-icon name="thumb_up" color="grey-4" size="md" />
+                </div>
+                <div class="q-mt-sm">
+                  <div class="bg-primary text-white q-px-sm q-py-xs rounded-borders text-caption-xs text-weight-bold d-inline-block" style="border-radius: 4px;">
+                    +10%
+                  </div>
+                </div>
+              </q-card>
+            </div>
+
+          </div>
+        </div>
+
+      </div> <!-- End Top Row -->
+
+      <!-- Bottom Row: Projects & Updates -->
+      <div class="row q-col-gutter-md q-mt-xs">
+        
+        <!-- Projects Table (Tasks) -->
+        <div class="col-12 col-md-8">
+          <q-card class="able-card">
+            <q-card-section class="row items-center justify-between border-bottom q-py-sm">
+              <div class="text-subtitle1 text-weight-bold text-grey-9">Tareas Pendientes</div>
+              <q-btn flat round dense icon="more_horiz" color="grey" size="sm" />
+            </q-card-section>
+            
+            <q-card-section class="q-pa-none">
+              <div class="custom-table">
+                <!-- Header -->
+                <div class="row q-px-md q-py-xs bg-grey-1 text-grey-7 text-caption text-weight-bold text-uppercase">
+                  <div class="col-1"></div>
+                  <div class="col-6">Tarea / Responsable</div>
+                  <div class="col-3">Fecha</div>
+                  <div class="col-2 text-right">Prioridad</div>
+                </div>
+                
+                <!-- Rows -->
+                <div 
+                  v-for="task in tasks.slice(0, 5)" 
+                  :key="task.id" 
+                  class="row items-center q-px-md q-py-sm border-bottom hover-bg"
+                  @click="toggleTask(task.id)"
+                >
+                  <div class="col-1">
+                    <q-checkbox :model-value="task.completed" @update:model-value="toggleTask(task.id)" size="xs" color="grey-6" />
+                  </div>
+                  <div class="col-6">
+                    <div class="row items-center">
+                      <q-avatar size="28px" class="q-mr-sm">
+                        <img :src="`https://i.pravatar.cc/150?u=${task.id}`">
+                      </q-avatar>
+                      <div>
+                        <div class="text-body2 text-grey-9 lh-tight" :class="{ 'text-strike text-grey': task.completed }">{{ task.text }}</div>
+                        <div class="text-caption text-grey-6 lh-tight">{{ task.category }}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-3 text-grey-8 text-caption">
+                    {{ formatDate(new Date()) }}
+                  </div>
+                  <div class="col-2 text-right">
+                    <q-badge 
+                      :color="getPriorityColor(task.priority)" 
+                      rounded 
+                      class="q-px-sm"
+                    />
+                  </div>
+                </div>
+
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
+
+        <!-- Latest Updates (Feed) -->
+        <div class="col-12 col-md-4">
+          <q-card class="able-card full-height">
+            <q-card-section class="row items-center justify-between border-bottom q-py-sm">
+              <div class="text-subtitle1 text-weight-bold text-grey-9">Últimas Actualizaciones</div>
+              <q-btn flat round dense icon="more_horiz" color="grey" size="sm" />
+            </q-card-section>
+
+            <q-card-section class="q-pa-md">
+              <div class="feed-list">
+                
+                <div v-for="(alert, index) in alerts" :key="alert.id" class="row q-mb-md no-wrap">
+                  <div class="col-auto q-mr-md column items-center">
+                    <div class="text-caption-xs text-grey-6 q-mb-xs">{{ alert.time.split(' ')[0] }}</div>
+                    <q-avatar 
+                      size="32px" 
+                      :color="getAlertColor(alert.type)" 
+                      text-color="white" 
+                      :icon="alert.icon" 
+                      font-size="14px"
+                    />
+                  </div>
+                  <div class="col">
+                     <div class="text-body2 text-grey-9 text-weight-bold lh-tight">{{ alert.title }}</div>
+                     <div class="text-caption text-grey-7 lh-tight">{{ alert.message }}</div>
+                  </div>
+                </div>
+
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
+
       </div>
     </div>
   </q-page>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
-import StatCard from './../components/card/StatCard.vue'
-import AlertCard from './../components/card/AlertCard.vue'
+import { useDashboard } from '../composables/useDashboard'
 
 Chart.register(...registerables)
 
-// Refs reactivos
-const currentTime = ref(new Date())
-const appointmentsChart = ref(null)
-const servicesChart = ref(null)
-const monthlyChart = ref(null)
+const {
+  mainStats,
+  upcomingAppointments,
+  alerts,
+  tasks,
+  stats,
+  toggleTask
+} = useDashboard()
 
-// Timer para actualizar hora
-let timeInterval = null
+const waveChart1 = ref(null)
+const waveChart2 = ref(null)
+let chartInstance1 = null
+let chartInstance2 = null
 
-// Instancias de los gráficos para poder destruirlas
-let appointmentsChartInstance = null
-let servicesChartInstance = null
-let monthlyChartInstance = null
+const getPriorityColor = (p) => {
+  if (p === 'high') return 'negative'
+  if (p === 'medium') return 'primary'
+  return 'positive'
+}
 
-// Datos de estadísticas
-const stats = ref({
-  mascotas_atendidas: 847,
-  citas_asignadas: 34,
-  vacunas_aplicadas: 156,
-  desparasitaciones: 89,
-  hospitalizaciones: 12,
-  cirugias_realizadas: 23,
-  consultas_emergencia: 18,
-  ingresos_mes: 45750,
-  clientes_nuevos: 67,
-  medicamentos_dispensados: 234
-})
+const getAlertColor = (type) => {
+  if (type === 'urgent') return 'negative'
+  if (type === 'info') return 'primary'
+  if (type === 'success') return 'positive'
+  return 'warning'
+}
 
-// Datos para gráficos
-const appointmentsData = [
-  { time: '08:00', citas: 3 },
-  { time: '09:00', citas: 5 },
-  { time: '10:00', citas: 8 },
-  { time: '11:00', citas: 6 },
-  { time: '12:00', citas: 4 },
-  { time: '13:00', citas: 2 },
-  { time: '14:00', citas: 7 },
-  { time: '15:00', citas: 9 },
-  { time: '16:00', citas: 6 },
-  { time: '17:00', citas: 4 },
-  { time: '18:00', citas: 3 }
-]
-
-const servicesData = [
-  { name: 'Consultas', value: 45, color: '#1976d2' },
-  { name: 'Vacunación', value: 25, color: '#388e3c' },
-  { name: 'Cirugías', value: 15, color: '#d32f2f' },
-  { name: 'Emergencias', value: 10, color: '#f57c00' },
-  { name: 'Otros', value: 5, color: '#7b1fa2' }
-]
-
-const monthlyData = [
-  { mes: 'Ene', mascotas: 720, ingresos: 38000 },
-  { mes: 'Feb', mascotas: 680, ingresos: 35000 },
-  { mes: 'Mar', mascotas: 790, ingresos: 42000 },
-  { mes: 'Abr', mascotas: 847, ingresos: 45750 }
-]
-
-// Computed properties para las estadísticas organizadas
-const mainStats = computed(() => [
-  {
-    id: 'mascotas',
-    title: 'Mascotas Atendidas',
-    value: stats.value.mascotas_atendidas,
-    icon: 'pets',
-    color: 'primary',
-    subtitle: 'Este mes',
-    trend: '+12%'
-  },
-  {
-    id: 'citas',
-    title: 'Citas Asignadas',
-    value: stats.value.citas_asignadas,
-    icon: 'event',
-    color: 'positive',
-    subtitle: 'Hoy',
-    trend: '+5%'
-  },
-  {
-    id: 'vacunas',
-    title: 'Vacunas Aplicadas',
-    value: stats.value.vacunas_aplicadas,
-    icon: 'medical_services',
-    color: 'secondary',
-    subtitle: 'Este mes',
-    trend: '+18%'
-  },
-  {
-    id: 'ingresos',
-    title: 'Ingresos del Mes',
-    value: stats.value.ingresos_mes,
-    icon: 'attach_money',
-    color: 'teal',
-    subtitle: 'Pesos mexicanos',
-    trend: '+8%'
-  }
-])
-
-const secondaryStats = computed(() => [
-  {
-    id: 'desparasitaciones',
-    title: 'Desparasitaciones',
-    value: stats.value.desparasitaciones,
-    icon: 'shield',
-    color: 'orange',
-    subtitle: 'Este mes'
-  },
-  {
-    id: 'hospitalizaciones',
-    title: 'Hospitalizaciones',
-    value: stats.value.hospitalizaciones,
-    icon: 'local_hospital',
-    color: 'negative',
-    subtitle: 'Activas'
-  },
-  {
-    id: 'cirugias',
-    title: 'Cirugías Realizadas',
-    value: stats.value.cirugias_realizadas,
-    icon: 'healing',
-    color: 'deep-purple',
-    subtitle: 'Este mes'
-  }
-])
-
-const additionalStats = computed(() => [
-  {
-    id: 'emergencias',
-    title: 'Emergencias Atendidas',
-    value: stats.value.consultas_emergencia,
-    icon: 'emergency',
-    color: 'red',
-    subtitle: 'Este mes'
-  },
-  {
-    id: 'clientes',
-    title: 'Clientes Nuevos',
-    value: stats.value.clientes_nuevos,
-    icon: 'group_add',
-    color: 'cyan',
-    subtitle: 'Este mes'
-  },
-  {
-    id: 'medicamentos',
-    title: 'Medicamentos Dispensados',
-    value: stats.value.medicamentos_dispensados,
-    icon: 'medication',
-    color: 'pink',
-    subtitle: 'Este mes'
-  }
-])
-
-const alerts = ref([
-  {
-    id: 1,
-    type: 'negative',
-    icon: 'warning',
-    message: 'Paciente Rex requiere atención inmediata',
-    time: 'Hace 5 minutos'
-  },
-  {
-    id: 2,
-    type: 'info',
-    icon: 'schedule',
-    message: 'Recordatorio: Vacunación de Luna mañana',
-    time: 'Hace 15 minutos'
-  },
-  {
-    id: 3,
-    type: 'positive',
-    icon: 'check_circle',
-    message: 'Cirugía de Max completada exitosamente',
-    time: 'Hace 1 hora'
-  },
-  {
-    id: 4,
-    type: 'warning',
-    icon: 'inventory',
-    message: 'Stock bajo de vacuna antirrábica',
-    time: 'Hace 2 horas'
-  }
-])
-
-// Métodos
 const formatDate = (date) => {
-  return date.toLocaleDateString('es-ES', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-const formatTime = (date) => {
-  return date.toLocaleTimeString('es-ES')
-}
+const initCharts = () => {
+  const commonOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+    scales: {
+      x: { display: false },
+      y: { display: false, min: 0 }
+    },
+    elements: {
+      point: { radius: 0 },
+      line: { tension: 0.4, borderWidth: 2 }
+    },
+    layout: { padding: 0 }
+  }
 
-const createAppointmentsChart = () => {
-  if (appointmentsChart.value) {
-    if (appointmentsChartInstance) {
-      appointmentsChartInstance.destroy()
-    }
-    const ctx = appointmentsChart.value.getContext('2d')
-    appointmentsChartInstance = new Chart(ctx, {
+  // Wave Chart 1 (Blue)
+  if (waveChart1.value) {
+    const ctx = waveChart1.value.getContext('2d')
+    const gradient = ctx.createLinearGradient(0, 0, 0, 100)
+    gradient.addColorStop(0, 'rgba(68, 138, 255, 0.4)')
+    gradient.addColorStop(1, 'rgba(68, 138, 255, 0)')
+
+    chartInstance1 = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: appointmentsData.map((d) => d.time),
-        datasets: [
-          {
-            label: 'Citas',
-            data: appointmentsData.map((d) => d.citas),
-            borderColor: '#1976d2',
-            backgroundColor: 'rgba(25, 118, 210, 0.1)',
-            tension: 0.4,
-            fill: true
-          }
-        ]
+        labels: [1,2,3,4,5,6,7],
+        datasets: [{
+          data: [10, 25, 15, 30, 20, 45, 30],
+          borderColor: '#448aff',
+          backgroundColor: gradient,
+          fill: true
+        }]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true
-          }
-        }
-      }
+      options: commonOptions
     })
   }
-}
 
-const createServicesChart = () => {
-  if (servicesChart.value) {
-    if (servicesChartInstance) {
-      servicesChartInstance.destroy()
-    }
-    const ctx = servicesChart.value.getContext('2d')
-    servicesChartInstance = new Chart(ctx, {
-      type: 'doughnut',
+  // Wave Chart 2 (Green)
+  if (waveChart2.value) {
+    const ctx = waveChart2.value.getContext('2d')
+    const gradient = ctx.createLinearGradient(0, 0, 0, 100)
+    gradient.addColorStop(0, 'rgba(0, 200, 83, 0.4)')
+    gradient.addColorStop(1, 'rgba(0, 200, 83, 0)')
+
+    chartInstance2 = new Chart(ctx, {
+      type: 'line',
       data: {
-        labels: servicesData.map((d) => d.name),
-        datasets: [
-          {
-            data: servicesData.map((d) => d.value),
-            backgroundColor: servicesData.map((d) => d.color),
-            borderWidth: 0
-          }
-        ]
+        labels: [1,2,3,4,5,6,7],
+        datasets: [{
+          data: [15, 20, 25, 10, 30, 20, 40],
+          borderColor: '#00e676',
+          backgroundColor: gradient,
+          fill: true
+        }]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'bottom'
-          }
-        }
-      }
+      options: commonOptions
     })
   }
 }
 
-const createMonthlyChart = () => {
-  if (monthlyChart.value) {
-    if (monthlyChartInstance) {
-      monthlyChartInstance.destroy()
-    }
-    const ctx = monthlyChart.value.getContext('2d')
-    monthlyChartInstance = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: monthlyData.map((d) => d.mes),
-        datasets: [
-          {
-            label: 'Mascotas Atendidas',
-            data: monthlyData.map((d) => d.mascotas),
-            backgroundColor: 'rgba(25, 118, 210, 0.8)',
-            yAxisID: 'y'
-          },
-          {
-            label: 'Ingresos (Miles)',
-            data: monthlyData.map((d) => d.ingresos / 1000),
-            type: 'line',
-            borderColor: '#388e3c',
-            backgroundColor: 'transparent',
-            tension: 0.4,
-            yAxisID: 'y1'
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: {
-            type: 'linear',
-            display: true,
-            position: 'left'
-          },
-          y1: {
-            type: 'linear',
-            display: true,
-            position: 'right',
-            grid: {
-              drawOnChartArea: false
-            }
-          }
-        }
-      }
-    })
-  }
-}
-
-// Lifecycle hooks
 onMounted(async () => {
-  // Actualizar hora cada segundo
-  timeInterval = setInterval(() => {
-    currentTime.value = new Date()
-  }, 1000)
-
-  // Esperar a que el DOM se actualice para asegurar que los <canvas> existan
   await nextTick()
-
-  // Crear gráficos
-  createAppointmentsChart()
-  createServicesChart()
-  createMonthlyChart()
+  initCharts()
 })
 
 onUnmounted(() => {
-  if (timeInterval) {
-    clearInterval(timeInterval)
-  }
-  // Destruir instancias de los gráficos para evitar fugas de memoria
-  if (appointmentsChartInstance) {
-    appointmentsChartInstance.destroy()
-  }
-  if (servicesChartInstance) {
-    servicesChartInstance.destroy()
-  }
-  if (monthlyChartInstance) {
-    monthlyChartInstance.destroy()
-  }
+  if (chartInstance1) chartInstance1.destroy()
+  if (chartInstance2) chartInstance2.destroy()
 })
 </script>
 
 <style scoped>
-.bg-gradient-to-br {
-  background: linear-gradient(to bottom right, #eff6ff, #f0fdf4);
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+.able-dashboard {
+  background-color: #f4f7fa;
+  min-height: 100vh;
+  font-family: 'Roboto', sans-serif;
+  position: relative;
 }
 
-.max-w-7xl {
-  max-width: 80rem;
+.dashboard-header-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 140px; /* Reduced from 200px */
+  background: #448aff; /* Able Pro Blue */
+  z-index: 0;
 }
 
-.mx-auto {
-  margin-left: auto;
-  margin-right: auto;
+.dashboard-container {
+  position: relative;
+  z-index: 1;
+  padding: 15px 20px; /* Reduced padding */
 }
 
-.shadow-sm {
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+.able-card {
+  border-radius: 4px;
+  box-shadow: 0 1px 10px 0 rgba(69,90,100,0.08);
+  background: white;
+  transition: all 0.3s ease-in-out;
+  border: none;
 }
 
-.border-b {
-  border-bottom: 1px solid #e5e7eb;
+.able-card:hover {
+  box-shadow: 0 5px 15px 0 rgba(69,90,100,0.1);
 }
+
+/* Shortcuts */
+.module-shortcuts {
+  margin-top: -5px;
+}
+.shortcut-btn {
+  font-weight: 500;
+  font-size: 0.85rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Wave Charts Section */
+.wave-card {
+  overflow: hidden;
+  position: relative;
+  min-height: 200px; /* Reduced from 280px */
+  display: flex;
+  flex-direction: column;
+}
+
+.wave-chart-container {
+  height: 70px; /* Reduced from 100px */
+  width: 100%;
+  margin-top: auto;
+  padding-bottom: 0;
+}
+
+.footer-stats {
+  z-index: 2;
+  position: relative;
+}
+
+.border-left-white {
+  border-left: 1px solid rgba(255,255,255,0.3);
+}
+
+/* Small Stats Cards */
+.small-stat-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Table Styles */
+.custom-table {
+  width: 100%;
+}
+
+.border-bottom {
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.hover-bg:hover {
+  background-color: #fafafa;
+  cursor: pointer;
+}
+
+.line-height-tight { line-height: 1.2; }
+.lh-tight { line-height: 1.2; }
+.text-caption-xs { font-size: 0.70rem; }
+
+/* Colors helpers matching Able Pro */
+.text-primary { color: #448aff !important; }
+.bg-primary { background-color: #448aff !important; }
+.text-positive { color: #00e676 !important; }
+.bg-positive { background-color: #00e676 !important; }
+.text-warning { color: #ffb300 !important; }
+.bg-warning { background-color: #ffb300 !important; }
+.text-negative { color: #ff5252 !important; }
+.bg-negative { background-color: #ff5252 !important; }
+.text-grey-9 { color: #37474f !important; }
 </style>

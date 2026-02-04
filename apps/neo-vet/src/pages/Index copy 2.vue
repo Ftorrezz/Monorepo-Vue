@@ -1,507 +1,383 @@
 <template>
-  <q-page class="bg-gradient-to-br from-blue-50 to-green-50 min-h-screen">
-    <!-- Header -->
-    <div class="bg-white shadow-sm border-b">
-      <div class="max-w-7xl mx-auto px-6 py-4">
-        <div class="row items-center justify-between">
-          <div class="row items-center q-gutter-md">
-            <q-avatar size="48px" color="primary" text-color="white" icon="favorite" />
-            <div>
-              <h1 class="text-h4 text-weight-bold text-grey-9 q-ma-none">VetCare Dashboard</h1>
-              <p class="text-body2 text-grey-6 q-ma-none">Sistema de Gestión Veterinaria</p>
-            </div>
-          </div>
-          <div class="text-right">
-            <p class="text-body2 text-weight-medium text-grey-9 q-ma-none">
-              {{ formatDate(currentTime) }}
-            </p>
-            <p class="text-body2 text-grey-6 q-ma-none">
-              {{ formatTime(currentTime) }}
-            </p>
-          </div>
+  <q-page class="dashboard-page">
+    <!-- Top Global Header - Very Discrete -->
+    <header class="dashboard-header">
+      <div class="header-left">
+        <h1 class="text-h6 text-weight-bold">Dashboard</h1>
+        <span class="text-caption text-grey-7">{{ formatDate(currentTime) }}</span>
+      </div>
+      <div class="header-right">
+        <div class="server-status">
+          <q-badge rounded color="positive" class="q-mr-xs" />
+          <span class="text-caption text-grey-7">Sincronizado</span>
+        </div>
+        <div class="clock q-ml-md">
+          <span class="text-weight-medium">{{ formatTime(currentTime) }}</span>
         </div>
       </div>
-    </div>
+    </header>
 
-    <div class="container-fluid q-pt-lg">
-      <div class="row q-col-gutter-xl items-start">
-        <!-- Columna Principal (Izquierda) -->
-        <div class="col-12 col-md-8">
-            <!-- Estadísticas principales -->
-            <div class="row q-gutter-md">
-              <div class="col-12 col-sm-6 col-md-3" v-for="stat in mainStats" :key="stat.id">
-                <stat-card v-bind="stat" />
-              </div>
+    <div class="dashboard-grid">
+      <!-- Main Content Area -->
+      <main class="main-content">
+        <!-- Key Stats Section -->
+        <section class="stats-overview">
+          <div v-for="stat in mainStats" :key="stat.id" class="stat-item">
+            <modern-stat-card v-bind="stat" />
+          </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section class="charts-area">
+          <div class="chart-wrapper">
+            <div class="chart-header">
+              <span class="text-subtitle2 text-weight-bold">Actividad de Citas</span>
+              <q-btn flat round dense icon="more_vert" size="sm" color="grey-7" />
             </div>
-
-            <!-- Estadísticas adicionales -->
-            <!--<div class="row q-gutter-md">
-              <div class="col-12 col-md-4" v-for="stat in additionalStats" :key="stat.id">
-                <stat-card v-bind="stat" />
-              </div>
-            </div>-->
-            
-            <!-- Gráfico de citas -->
-            <!--<div>
-              <q-card class="full-height">
-                <q-card-section>
-                  <div class="text-h6 text-weight-medium">Citas por Hora - Hoy</div>
-                </q-card-section>
-                <q-card-section>
-                  <canvas ref="appointmentsChart" height="300"></canvas>
-                </q-card-section>
-              </q-card>
-            </div>-->
-
-            <!-- Gráficos adicionales -->
-            <div class="row q-gutter-lg">
-              <!-- Distribución de servicios -->
-              <!--<div>
-              <q-card class="full-height">
-                <q-card-section>
-                  <div class="text-h6 text-weight-medium">Citas por Hora - Hoy</div>
-                </q-card-section>
-                <q-card-section>
-                  <canvas ref="appointmentsChart" height="300"></canvas>
-                </q-card-section>
-              </q-card>
-            </div>-->
-              
-              
-              <div class="col-12 col-md-6">
-                <q-card>
-                  <q-card-section>
-                    <div class="text-h6 text-weight-medium">Citas por Hora - Hoy</div>
-                  </q-card-section>
-                  <q-card-section>
-                    <canvas ref="appointmentsChart" height="300"></canvas>
-                  </q-card-section>
-                </q-card>
-              </div>
-              <div class="col-12 col-md-5">
-                <q-card>
-                  <q-card-section>
-                    <div class="text-h6 text-weight-medium">Distribución de Servicios</div>
-                  </q-card-section>
-                  <q-card-section>
-                    <canvas ref="servicesChart" height="300"></canvas>
-                  </q-card-section>
-                </q-card>
-              </div>
-
-              <!-- Tendencia mensual -->
-              <!--<div class="col-12 col-md-6">
-                <q-card>
-                  <q-card-section>
-                    <div class="text-h6 text-weight-medium">Tendencia Mensual</div>
-                  </q-card-section>
-                  <q-card-section>
-                    <canvas ref="monthlyChart" height="300"></canvas>
-                  </q-card-section>
-                </q-card>
-              </div>-->
+            <div class="chart-body">
+              <canvas ref="appointmentsChart"></canvas>
             </div>
+          </div>
+          
+          <div class="chart-wrapper">
+            <div class="chart-header">
+              <span class="text-subtitle2 text-weight-bold">Servicios Populares</span>
+              <q-btn flat round dense icon="more_vert" size="sm" color="grey-7" />
+            </div>
+            <div class="chart-body doughnut">
+              <canvas ref="servicesChart"></canvas>
+            </div>
+          </div>
+        </section>
 
-            
-        </div>
-        <!-- Columna de Alertas (Derecha) -->
-        <div class="col-12 col-md-4">
-          <div style="position: sticky; top: 32px;">
-            <q-card>
-              <q-card-section>
-                <div class="text-h6 text-weight-medium">Alertas y Notificaciones</div>
-              </q-card-section>
-              <q-card-section class="q-pt-none">
-                <div v-for="alert in alerts" :key="alert.id" class="q-mb-sm">
-                  <alert-card v-bind="alert" />
-                </div>
-              </q-card-section>
-            </q-card>
+        <!-- Secondary Stats - Discrete Grid -->
+        <section class="secondary-stats">
+          <div v-for="stat in secondaryStats" :key="stat.id">
+            <compact-stat-card v-bind="stat" />
+          </div>
+        </section>
+      </main>
+
+      <!-- Sidebar / Right Column -->
+      <aside class="dashboard-sidebar">
+        <!-- Upcoming Appointments -->
+        <div class="sidebar-section">
+          <div class="section-header">
+            <span class="text-subtitle2 text-weight-bold">Próximas Citas</span>
+            <q-badge outline color="primary" :label="upcomingAppointments.length" />
+          </div>
+          <div class="appointments-list">
+            <div v-for="apt in upcomingAppointments" :key="apt.id" class="apt-card">
+              <div class="apt-time">{{ apt.time }}</div>
+              <div class="apt-details">
+                <div class="apt-pet">{{ apt.pet }}</div>
+                <div class="apt-owner">{{ apt.owner }}</div>
+              </div>
+              <q-icon :name="getAptIcon(apt.type)" color="grey-5" size="xs" />
+            </div>
           </div>
         </div>
-      </div>
+
+        <!-- Real-time Alerts -->
+        <div class="sidebar-section alerts-section">
+          <div class="section-header">
+            <span class="text-subtitle2 text-weight-bold">Actividad Reciente</span>
+            <q-btn flat dense no-caps label="Ver todo" color="primary" size="sm" />
+          </div>
+          <div class="alerts-list">
+            <modern-alert-card
+              v-for="alert in alerts"
+              :key="alert.id"
+              v-bind="alert"
+            />
+          </div>
+        </div>
+      </aside>
     </div>
   </q-page>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
-import StatCard from './../components/card/StatCard.vue'
-import AlertCard from './../components/card/AlertCard.vue'
+import { useDashboard } from '../composables/useDashboard'
+import ModernStatCard from './../components/card/ModernStatCard.vue'
+import ModernAlertCard from './../components/card/ModernAlertCard.vue'
+import CompactStatCard from './../components/card/CompactStatCard.vue'
 
 Chart.register(...registerables)
 
-// Refs reactivos
-const currentTime = ref(new Date())
-const appointmentsChart = ref(null)
-const servicesChart = ref(null)
-const monthlyChart = ref(null)
+const {
+  mainStats,
+  secondaryStats,
+  upcomingAppointments,
+  alerts
+} = useDashboard()
 
-// Timer para actualizar hora
+// Time logic
+const currentTime = ref(new Date())
 let timeInterval = null
 
-// Instancias de los gráficos para poder destruirlas
+// Charts refs & instances
+const appointmentsChart = ref(null)
+const servicesChart = ref(null)
 let appointmentsChartInstance = null
 let servicesChartInstance = null
-let monthlyChartInstance = null
 
-// Datos de estadísticas
-const stats = ref({
-  mascotas_atendidas: 847,
-  citas_asignadas: 34,
-  vacunas_aplicadas: 156,
-  desparasitaciones: 89,
-  hospitalizaciones: 12,
-  cirugias_realizadas: 23,
-  consultas_emergencia: 18,
-  ingresos_mes: 45750,
-  clientes_nuevos: 67,
-  medicamentos_dispensados: 234
-})
-
-// Datos para gráficos
 const appointmentsData = [
-  { time: '08:00', citas: 3 },
-  { time: '09:00', citas: 5 },
-  { time: '10:00', citas: 8 },
-  { time: '11:00', citas: 6 },
-  { time: '12:00', citas: 4 },
-  { time: '13:00', citas: 2 },
-  { time: '14:00', citas: 7 },
-  { time: '15:00', citas: 9 },
-  { time: '16:00', citas: 6 },
-  { time: '17:00', citas: 4 },
-  { time: '18:00', citas: 3 }
+  { time: '08:00', citas: 3 }, { time: '10:00', citas: 8 },
+  { time: '12:00', citas: 4 }, { time: '14:00', citas: 7 },
+  { time: '16:00', citas: 6 }, { time: '18:00', citas: 3 }
 ]
 
 const servicesData = [
-  { name: 'Consultas', value: 45, color: '#1976d2' },
-  { name: 'Vacunación', value: 25, color: '#388e3c' },
-  { name: 'Cirugías', value: 15, color: '#d32f2f' },
-  { name: 'Emergencias', value: 10, color: '#f57c00' },
-  { name: 'Otros', value: 5, color: '#7b1fa2' }
+  { name: 'Consultas', value: 45, color: '#6366f1' },
+  { name: 'Vacunas', value: 25, color: '#10b981' },
+  { name: 'Cirugías', value: 15, color: '#f59e0b' },
+  { name: 'Otros', value: 15, color: '#94a3b8' }
 ]
 
-const monthlyData = [
-  { mes: 'Ene', mascotas: 720, ingresos: 38000 },
-  { mes: 'Feb', mascotas: 680, ingresos: 35000 },
-  { mes: 'Mar', mascotas: 790, ingresos: 42000 },
-  { mes: 'Abr', mascotas: 847, ingresos: 45750 }
-]
-
-// Computed properties para las estadísticas organizadas
-const mainStats = computed(() => [
-  {
-    id: 'mascotas',
-    title: 'Mascotas Atendidas',
-    value: stats.value.mascotas_atendidas,
-    icon: 'pets',
-    color: 'primary',
-    subtitle: 'Este mes',
-    trend: '+12%'
-  },
-  {
-    id: 'citas',
-    title: 'Citas Asignadas',
-    value: stats.value.citas_asignadas,
-    icon: 'event',
-    color: 'positive',
-    subtitle: 'Hoy',
-    trend: '+5%'
-  },
-  {
-    id: 'vacunas',
-    title: 'Vacunas Aplicadas',
-    value: stats.value.vacunas_aplicadas,
-    icon: 'medical_services',
-    color: 'secondary',
-    subtitle: 'Este mes',
-    trend: '+18%'
-  },
-  {
-    id: 'ingresos',
-    title: 'Ingresos del Mes',
-    value: stats.value.ingresos_mes,
-    icon: 'attach_money',
-    color: 'teal',
-    subtitle: 'Pesos mexicanos',
-    trend: '+8%'
-  }
-])
-
-const secondaryStats = computed(() => [
-  {
-    id: 'desparasitaciones',
-    title: 'Desparasitaciones',
-    value: stats.value.desparasitaciones,
-    icon: 'shield',
-    color: 'orange',
-    subtitle: 'Este mes'
-  },
-  {
-    id: 'hospitalizaciones',
-    title: 'Hospitalizaciones',
-    value: stats.value.hospitalizaciones,
-    icon: 'local_hospital',
-    color: 'negative',
-    subtitle: 'Activas'
-  },
-  {
-    id: 'cirugias',
-    title: 'Cirugías Realizadas',
-    value: stats.value.cirugias_realizadas,
-    icon: 'healing',
-    color: 'deep-purple',
-    subtitle: 'Este mes'
-  }
-])
-
-const additionalStats = computed(() => [
-  {
-    id: 'emergencias',
-    title: 'Emergencias Atendidas',
-    value: stats.value.consultas_emergencia,
-    icon: 'emergency',
-    color: 'red',
-    subtitle: 'Este mes'
-  },
-  {
-    id: 'clientes',
-    title: 'Clientes Nuevos',
-    value: stats.value.clientes_nuevos,
-    icon: 'group_add',
-    color: 'cyan',
-    subtitle: 'Este mes'
-  },
-  {
-    id: 'medicamentos',
-    title: 'Medicamentos Dispensados',
-    value: stats.value.medicamentos_dispensados,
-    icon: 'medication',
-    color: 'pink',
-    subtitle: 'Este mes'
-  }
-])
-
-const alerts = ref([
-  {
-    id: 1,
-    type: 'negative',
-    icon: 'warning',
-    message: 'Paciente Rex requiere atención inmediata',
-    time: 'Hace 5 minutos'
-  },
-  {
-    id: 2,
-    type: 'info',
-    icon: 'schedule',
-    message: 'Recordatorio: Vacunación de Luna mañana',
-    time: 'Hace 15 minutos'
-  },
-  {
-    id: 3,
-    type: 'positive',
-    icon: 'check_circle',
-    message: 'Cirugía de Max completada exitosamente',
-    time: 'Hace 1 hora'
-  },
-  {
-    id: 4,
-    type: 'warning',
-    icon: 'inventory',
-    message: 'Stock bajo de vacuna antirrábica',
-    time: 'Hace 2 horas'
-  }
-])
-
-// Métodos
 const formatDate = (date) => {
   return date.toLocaleDateString('es-ES', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
+    weekday: 'long', day: 'numeric', month: 'long'
   })
 }
 
 const formatTime = (date) => {
-  return date.toLocaleTimeString('es-ES')
+  return date.toLocaleTimeString('es-ES', {
+    hour: '2-digit', minute: '2-digit'
+  })
 }
 
-const createAppointmentsChart = () => {
+const getAptIcon = (type) => {
+  switch(type) {
+    case 'Cirugía': return 'healing'
+    case 'Vacuna': return 'medical_services'
+    default: return 'pets'
+  }
+}
+
+const initCharts = () => {
   if (appointmentsChart.value) {
-    if (appointmentsChartInstance) {
-      appointmentsChartInstance.destroy()
-    }
     const ctx = appointmentsChart.value.getContext('2d')
     appointmentsChartInstance = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: appointmentsData.map((d) => d.time),
-        datasets: [
-          {
-            label: 'Citas',
-            data: appointmentsData.map((d) => d.citas),
-            borderColor: '#1976d2',
-            backgroundColor: 'rgba(25, 118, 210, 0.1)',
-            tension: 0.4,
-            fill: true
-          }
-        ]
+        labels: appointmentsData.map(d => d.time),
+        datasets: [{
+          data: appointmentsData.map(d => d.citas),
+          borderColor: '#6366f1',
+          borderWidth: 2,
+          tension: 0.4,
+          pointRadius: 0,
+          fill: true,
+          backgroundColor: 'rgba(99, 102, 241, 0.05)'
+        }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false
-          }
-        },
+        plugins: { legend: { display: false } },
         scales: {
-          y: {
-            beginAtZero: true
-          }
+          x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+          y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } } }
         }
       }
     })
   }
-}
 
-const createServicesChart = () => {
   if (servicesChart.value) {
-    if (servicesChartInstance) {
-      servicesChartInstance.destroy()
-    }
     const ctx = servicesChart.value.getContext('2d')
     servicesChartInstance = new Chart(ctx, {
       type: 'doughnut',
       data: {
-        labels: servicesData.map((d) => d.name),
-        datasets: [
-          {
-            data: servicesData.map((d) => d.value),
-            backgroundColor: servicesData.map((d) => d.color),
-            borderWidth: 0
-          }
-        ]
+        labels: servicesData.map(d => d.name),
+        datasets: [{
+          data: servicesData.map(d => d.value),
+          backgroundColor: servicesData.map(d => d.color),
+          borderWidth: 2,
+          borderColor: '#fff',
+          hoverOffset: 4
+        }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        cutout: '75%',
         plugins: {
-          legend: {
-            position: 'bottom'
-          }
+          legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 10 }, padding: 10 } }
         }
       }
     })
   }
 }
 
-const createMonthlyChart = () => {
-  if (monthlyChart.value) {
-    if (monthlyChartInstance) {
-      monthlyChartInstance.destroy()
-    }
-    const ctx = monthlyChart.value.getContext('2d')
-    monthlyChartInstance = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: monthlyData.map((d) => d.mes),
-        datasets: [
-          {
-            label: 'Mascotas Atendidas',
-            data: monthlyData.map((d) => d.mascotas),
-            backgroundColor: 'rgba(25, 118, 210, 0.8)',
-            yAxisID: 'y'
-          },
-          {
-            label: 'Ingresos (Miles)',
-            data: monthlyData.map((d) => d.ingresos / 1000),
-            type: 'line',
-            borderColor: '#388e3c',
-            backgroundColor: 'transparent',
-            tension: 0.4,
-            yAxisID: 'y1'
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: {
-            type: 'linear',
-            display: true,
-            position: 'left'
-          },
-          y1: {
-            type: 'linear',
-            display: true,
-            position: 'right',
-            grid: {
-              drawOnChartArea: false
-            }
-          }
-        }
-      }
-    })
-  }
-}
-
-// Lifecycle hooks
 onMounted(async () => {
-  // Actualizar hora cada segundo
-  timeInterval = setInterval(() => {
-    currentTime.value = new Date()
-  }, 1000)
-
-  // Esperar a que el DOM se actualice para asegurar que los <canvas> existan
+  timeInterval = setInterval(() => { currentTime.value = new Date() }, 1000)
   await nextTick()
-
-  // Crear gráficos
-  createAppointmentsChart()
-  createServicesChart()
-  createMonthlyChart()
+  initCharts()
 })
 
 onUnmounted(() => {
-  if (timeInterval) {
-    clearInterval(timeInterval)
-  }
-  // Destruir instancias de los gráficos para evitar fugas de memoria
-  if (appointmentsChartInstance) {
-    appointmentsChartInstance.destroy()
-  }
-  if (servicesChartInstance) {
-    servicesChartInstance.destroy()
-  }
-  if (monthlyChartInstance) {
-    monthlyChartInstance.destroy()
-  }
+  if (timeInterval) clearInterval(timeInterval)
+  if (appointmentsChartInstance) appointmentsChartInstance.destroy()
+  if (servicesChartInstance) servicesChartInstance.destroy()
 })
 </script>
 
 <style scoped>
-.bg-gradient-to-br {
-  background: linear-gradient(to bottom right, #eff6ff, #f0fdf4);
+.dashboard-page {
+  background-color: #f8fafc;
+  color: #1e293b;
+  padding: 1rem 1.5rem;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-.max-w-7xl {
-  max-width: 80rem;
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
 }
 
-.mx-auto {
-  margin-left: auto;
-  margin-right: auto;
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 1.5rem;
 }
 
-.shadow-sm {
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+/* Stats Overview */
+.stats-overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-.border-b {
-  border-bottom: 1px solid #e5e7eb;
+/* Charts Section */
+.charts-area {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.chart-wrapper {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.chart-body {
+  height: 240px;
+}
+
+.chart-body.doughnut {
+  height: 260px;
+}
+
+/* Secondary Stats */
+.secondary-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.75rem;
+}
+
+/* Sidebar */
+.dashboard-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.sidebar-section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  border: 1px solid #e2e8f0;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.appointments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.apt-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  transition: transform 0.2s ease;
+}
+
+.apt-card:hover {
+  transform: translateX(4px);
+}
+
+.apt-time {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #6366f1;
+  min-width: 45px;
+}
+
+.apt-details {
+  flex: 1;
+}
+
+.apt-pet {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.apt-owner {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  .charts-area {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard-page {
+    padding: 0.75rem;
+  }
+  .stats-overview {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 </style>

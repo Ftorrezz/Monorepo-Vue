@@ -1,103 +1,95 @@
 <template>
-  <q-page class="bg-gradient-to-br from-blue-50 to-green-50 min-h-screen">
-    <!-- Header -->
-    <div class="bg-white shadow-sm border-b">
-      <div class="max-w-7xl mx-auto px-6 py-4">
-        <div class="row items-center justify-between">
-          <div class="row items-center q-gutter-md">
-            <q-avatar size="48px" color="primary" text-color="white" icon="favorite" />
-            <div>
-              <h1 class="text-h4 text-weight-bold text-grey-9 q-ma-none">VetCare Dashboard</h1>
-              <p class="text-body2 text-grey-6 q-ma-none">Sistema de Gestión Veterinaria</p>
-            </div>
+  <q-page class="vet-dashboard">
+    <!-- Header Compacto -->
+    <div class="dashboard-header">
+      <div class="header-content">
+        <div class="header-left">
+          <q-icon name="pets" size="32px" color="primary" class="header-icon" />
+          <div class="header-info">
+            <h1 class="dashboard-title">VetCare Dashboard</h1>
+            <p class="dashboard-subtitle">Sistema de Gestión Veterinaria</p>
           </div>
-          <div class="text-right">
-            <p class="text-body2 text-weight-medium text-grey-9 q-ma-none">
-              {{ formatDate(currentTime) }}
-            </p>
-            <p class="text-body2 text-grey-6 q-ma-none">
-              {{ formatTime(currentTime) }}
-            </p>
+        </div>
+        <div class="header-right">
+          <div class="time-display">
+            <div class="current-time">{{ formatTime(currentTime) }}</div>
+            <div class="current-date">{{ formatDate(currentTime) }}</div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="max-w-7xl mx-auto px-6 py-8">
-      <!-- Estadísticas principales -->
-      <div class="row q-gutter-md q-mb-lg">
-        <div class="col-12 col-md-6 col-lg-3" v-for="stat in mainStats" :key="stat.id">
-          <stat-card v-bind="stat" />
+    <div class="dashboard-content">
+      <!-- Stats Grid Principal - 4 columnas compactas -->
+      <div class="stats-grid-main">
+        <div v-for="stat in mainStats" :key="stat.id">
+          <modern-stat-card v-bind="stat" />
         </div>
       </div>
 
-      <!-- Segunda fila de estadísticas -->
-      <div class="row q-gutter-md q-mb-lg">
-        <div class="col-12 col-md-4" v-for="stat in secondaryStats" :key="stat.id">
-          <stat-card v-bind="stat" />
-        </div>
-      </div>
+      <!-- Contenido en Grid: Gráficos + Alertas -->
+      <div class="content-grid">
+        <!-- Columna Izquierda: Gráficos -->
+        <div class="charts-column">
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3>Citas por Hora</h3>
+              <span class="chart-badge">Hoy</span>
+            </div>
+            <div class="chart-container">
+              <canvas ref="appointmentsChart"></canvas>
+            </div>
+          </div>
 
-      <!-- Gráficos y alertas -->
-      <div class="row q-gutter-lg q-mb-lg">
-        <!-- Gráfico de citas -->
-        <div class="col-12 col-lg-8">
-          <q-card class="full-height">
-            <q-card-section>
-              <div class="text-h6 text-weight-medium">Citas por Hora - Hoy</div>
-            </q-card-section>
-            <q-card-section>
-              <canvas ref="appointmentsChart" height="300"></canvas>
-            </q-card-section>
-          </q-card>
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3>Distribución de Servicios</h3>
+              <span class="chart-badge">Este mes</span>
+            </div>
+            <div class="chart-container">
+              <canvas ref="servicesChart"></canvas>
+            </div>
+          </div>
         </div>
 
-        <!-- Alertas -->
-        <div class="col-12 col-lg-4">
-          <q-card class="full-height">
-            <q-card-section>
-              <div class="text-h6 text-weight-medium">Alertas y Notificaciones</div>
-            </q-card-section>
-            <q-card-section class="q-pt-none">
-              <div v-for="alert in alerts" :key="alert.id" class="q-mb-sm">
-                <alert-card v-bind="alert" />
+        <!-- Columna Derecha: Alertas + Próximas Citas -->
+        <div class="sidebar-column">
+          <div class="alerts-panel">
+            <div class="panel-header">
+              <h3>Alertas</h3>
+              <q-badge color="negative" :label="alerts.length" />
+            </div>
+            <div class="alerts-container">
+              <modern-alert-card
+                v-for="alert in alerts"
+                :key="alert.id"
+                v-bind="alert"
+              />
+            </div>
+          </div>
+
+          <div class="upcoming-panel">
+            <div class="panel-header">
+              <h3>Próximas Citas</h3>
+              <q-badge color="primary" label="5" />
+            </div>
+            <div class="upcoming-list">
+              <div v-for="appointment in upcomingAppointments" :key="appointment.id" class="appointment-item">
+                <div class="appointment-time">{{ appointment.time }}</div>
+                <div class="appointment-info">
+                  <div class="appointment-pet">{{ appointment.pet }}</div>
+                  <div class="appointment-owner">{{ appointment.owner }}</div>
+                </div>
               </div>
-            </q-card-section>
-          </q-card>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Gráficos adicionales -->
-      <div class="row q-gutter-lg q-mb-lg">
-        <!-- Distribución de servicios -->
-        <div class="col-12 col-lg-6">
-          <q-card>
-            <q-card-section>
-              <div class="text-h6 text-weight-medium">Distribución de Servicios</div>
-            </q-card-section>
-            <q-card-section>
-              <canvas ref="servicesChart" height="300"></canvas>
-            </q-card-section>
-          </q-card>
-        </div>
-
-        <!-- Tendencia mensual -->
-        <div class="col-12 col-lg-6">
-          <q-card>
-            <q-card-section>
-              <div class="text-h6 text-weight-medium">Tendencia Mensual</div>
-            </q-card-section>
-            <q-card-section>
-              <canvas ref="monthlyChart" height="300"></canvas>
-            </q-card-section>
-          </q-card>
-        </div>
-      </div>
-
-      <!-- Estadísticas adicionales -->
-      <div class="row q-gutter-md">
-        <div class="col-12 col-md-4" v-for="stat in additionalStats" :key="stat.id">
-          <stat-card v-bind="stat" />
+      <!-- Stats Secundarias - Grid compacto 6 columnas -->
+      <div class="stats-grid-secondary">
+        <div v-for="stat in secondaryStats" :key="stat.id">
+          <compact-stat-card v-bind="stat" />
         </div>
       </div>
     </div>
@@ -105,10 +97,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
-import StatCard from './../components/card/StatCard.vue'
-import AlertCard from './../components/card/AlertCard.vue'
+import ModernStatCard from './../components/card/ModernStatCard.vue'
+import ModernAlertCard from './../components/card/ModernAlertCard.vue'
+import CompactStatCard from './../components/card/CompactStatCard.vue'
 
 Chart.register(...registerables)
 
@@ -116,10 +109,11 @@ Chart.register(...registerables)
 const currentTime = ref(new Date())
 const appointmentsChart = ref(null)
 const servicesChart = ref(null)
-const monthlyChart = ref(null)
 
 // Timer para actualizar hora
 let timeInterval = null
+let appointmentsChartInstance = null
+let servicesChartInstance = null
 
 // Datos de estadísticas
 const stats = ref({
@@ -134,6 +128,15 @@ const stats = ref({
   clientes_nuevos: 67,
   medicamentos_dispensados: 234
 })
+
+// Próximas citas
+const upcomingAppointments = ref([
+  { id: 1, time: '09:00', pet: 'Max', owner: 'Juan Pérez' },
+  { id: 2, time: '10:30', pet: 'Luna', owner: 'María García' },
+  { id: 3, time: '11:00', pet: 'Rocky', owner: 'Carlos López' },
+  { id: 4, time: '14:00', pet: 'Bella', owner: 'Ana Martínez' },
+  { id: 5, time: '15:30', pet: 'Coco', owner: 'Luis Rodríguez' }
+])
 
 // Datos para gráficos
 const appointmentsData = [
@@ -151,18 +154,11 @@ const appointmentsData = [
 ]
 
 const servicesData = [
-  { name: 'Consultas', value: 45, color: '#1976d2' },
-  { name: 'Vacunación', value: 25, color: '#388e3c' },
-  { name: 'Cirugías', value: 15, color: '#d32f2f' },
-  { name: 'Emergencias', value: 10, color: '#f57c00' },
-  { name: 'Otros', value: 5, color: '#7b1fa2' }
-]
-
-const monthlyData = [
-  { mes: 'Ene', mascotas: 720, ingresos: 38000 },
-  { mes: 'Feb', mascotas: 680, ingresos: 35000 },
-  { mes: 'Mar', mascotas: 790, ingresos: 42000 },
-  { mes: 'Abr', mascotas: 847, ingresos: 45750 }
+  { name: 'Consultas', value: 45, color: '#10b981' },
+  { name: 'Vacunación', value: 25, color: '#3b82f6' },
+  { name: 'Cirugías', value: 15, color: '#8b5cf6' },
+  { name: 'Emergencias', value: 10, color: '#ef4444' },
+  { name: 'Otros', value: 5, color: '#f59e0b' }
 ]
 
 // Computed properties para las estadísticas organizadas
@@ -172,7 +168,7 @@ const mainStats = computed(() => [
     title: 'Mascotas Atendidas',
     value: stats.value.mascotas_atendidas,
     icon: 'pets',
-    color: 'primary',
+    gradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
     subtitle: 'Este mes',
     trend: '+12%'
   },
@@ -181,7 +177,7 @@ const mainStats = computed(() => [
     title: 'Citas Asignadas',
     value: stats.value.citas_asignadas,
     icon: 'event',
-    color: 'positive',
+    gradient: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
     subtitle: 'Hoy',
     trend: '+5%'
   },
@@ -190,7 +186,7 @@ const mainStats = computed(() => [
     title: 'Vacunas Aplicadas',
     value: stats.value.vacunas_aplicadas,
     icon: 'medical_services',
-    color: 'secondary',
+    gradient: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
     subtitle: 'Este mes',
     trend: '+18%'
   },
@@ -199,9 +195,10 @@ const mainStats = computed(() => [
     title: 'Ingresos del Mes',
     value: stats.value.ingresos_mes,
     icon: 'attach_money',
-    color: 'teal',
+    gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
     subtitle: 'Pesos mexicanos',
-    trend: '+8%'
+    trend: '+8%',
+    prefix: '$'
   }
 ])
 
@@ -211,72 +208,63 @@ const secondaryStats = computed(() => [
     title: 'Desparasitaciones',
     value: stats.value.desparasitaciones,
     icon: 'shield',
-    color: 'orange',
-    subtitle: 'Este mes'
+    color: '#10b981'
   },
   {
     id: 'hospitalizaciones',
     title: 'Hospitalizaciones',
     value: stats.value.hospitalizaciones,
     icon: 'local_hospital',
-    color: 'negative',
-    subtitle: 'Activas'
+    color: '#ef4444'
   },
   {
     id: 'cirugias',
-    title: 'Cirugías Realizadas',
+    title: 'Cirugías',
     value: stats.value.cirugias_realizadas,
     icon: 'healing',
-    color: 'deep-purple',
-    subtitle: 'Este mes'
-  }
-])
-
-const additionalStats = computed(() => [
+    color: '#8b5cf6'
+  },
   {
     id: 'emergencias',
-    title: 'Emergencias Atendidas',
+    title: 'Emergencias',
     value: stats.value.consultas_emergencia,
     icon: 'emergency',
-    color: 'red',
-    subtitle: 'Este mes'
+    color: '#f59e0b'
   },
   {
     id: 'clientes',
     title: 'Clientes Nuevos',
     value: stats.value.clientes_nuevos,
     icon: 'group_add',
-    color: 'cyan',
-    subtitle: 'Este mes'
+    color: '#3b82f6'
   },
   {
     id: 'medicamentos',
-    title: 'Medicamentos Dispensados',
+    title: 'Medicamentos',
     value: stats.value.medicamentos_dispensados,
     icon: 'medication',
-    color: 'pink',
-    subtitle: 'Este mes'
+    color: '#ec4899'
   }
 ])
 
 const alerts = ref([
   {
     id: 1,
-    type: 'negative',
-    icon: 'warning',
+    type: 'urgent',
+    icon: 'emergency',
     message: 'Paciente Rex requiere atención inmediata',
-    time: 'Hace 5 minutos'
+    time: 'Hace 5 min'
   },
   {
     id: 2,
     type: 'info',
     icon: 'schedule',
     message: 'Recordatorio: Vacunación de Luna mañana',
-    time: 'Hace 15 minutos'
+    time: 'Hace 15 min'
   },
   {
     id: 3,
-    type: 'positive',
+    type: 'success',
     icon: 'check_circle',
     message: 'Cirugía de Max completada exitosamente',
     time: 'Hace 1 hora'
@@ -284,7 +272,7 @@ const alerts = ref([
   {
     id: 4,
     type: 'warning',
-    icon: 'inventory',
+    icon: 'inventory_2',
     message: 'Stock bajo de vacuna antirrábica',
     time: 'Hace 2 horas'
   }
@@ -294,159 +282,429 @@ const alerts = ref([
 const formatDate = (date) => {
   return date.toLocaleDateString('es-ES', {
     weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
+    day: 'numeric',
+    month: 'long'
   })
 }
 
 const formatTime = (date) => {
-  return date.toLocaleTimeString('es-ES')
+  return date.toLocaleTimeString('es-ES', {
+    hour: '2-digit',
+    minute: '2-digit'
+  })
 }
 
 const createAppointmentsChart = () => {
-  const ctx = appointmentsChart.value.getContext('2d')
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: appointmentsData.map(d => d.time),
-      datasets: [{
-        label: 'Citas',
-        data: appointmentsData.map(d => d.citas),
-        borderColor: '#1976d2',
-        backgroundColor: 'rgba(25, 118, 210, 0.1)',
-        tension: 0.4,
-        fill: true
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: false
-        }
+  if (appointmentsChart.value) {
+    if (appointmentsChartInstance) {
+      appointmentsChartInstance.destroy()
+    }
+    const ctx = appointmentsChart.value.getContext('2d')
+    appointmentsChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: appointmentsData.map((d) => d.time),
+        datasets: [
+          {
+            label: 'Citas',
+            data: appointmentsData.map((d) => d.citas),
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            tension: 0.4,
+            fill: true,
+            pointBackgroundColor: '#10b981',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 5
+          }
+        ]
       },
-      scales: {
-        y: {
-          beginAtZero: true
-        }
-      }
-    }
-  })
-}
-
-const createServicesChart = () => {
-  const ctx = servicesChart.value.getContext('2d')
-  new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: servicesData.map(d => d.name),
-      datasets: [{
-        data: servicesData.map(d => d.value),
-        backgroundColor: servicesData.map(d => d.color),
-        borderWidth: 0
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'bottom'
-        }
-      }
-    }
-  })
-}
-
-const createMonthlyChart = () => {
-  const ctx = monthlyChart.value.getContext('2d')
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: monthlyData.map(d => d.mes),
-      datasets: [
-        {
-          label: 'Mascotas Atendidas',
-          data: monthlyData.map(d => d.mascotas),
-          backgroundColor: 'rgba(25, 118, 210, 0.8)',
-          yAxisID: 'y'
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
         },
-        {
-          label: 'Ingresos (Miles)',
-          data: monthlyData.map(d => d.ingresos / 1000),
-          type: 'line',
-          borderColor: '#388e3c',
-          backgroundColor: 'transparent',
-          tension: 0.4,
-          yAxisID: 'y1'
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          type: 'linear',
-          display: true,
-          position: 'left'
-        },
-        y1: {
-          type: 'linear',
-          display: true,
-          position: 'right',
-          grid: {
-            drawOnChartArea: false
+        scales: {
+          x: {
+            grid: {
+              display: false
+            }
+          },
+          y: {
+            beginAtZero: true,
+            grid: {
+              borderDash: [2, 2],
+              color: 'rgba(0, 0, 0, 0.05)'
+            }
           }
         }
       }
+    })
+  }
+}
+
+const createServicesChart = () => {
+  if (servicesChart.value) {
+    if (servicesChartInstance) {
+      servicesChartInstance.destroy()
     }
-  })
+    const ctx = servicesChart.value.getContext('2d')
+    servicesChartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: servicesData.map((d) => d.name),
+        datasets: [
+          {
+            data: servicesData.map((d) => d.value),
+            backgroundColor: servicesData.map((d) => d.color),
+            borderWidth: 0,
+            cutout: '70%'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: {
+              usePointStyle: true,
+              padding: 15,
+              font: {
+                size: 11
+              }
+            }
+          }
+        }
+      }
+    })
+  }
 }
 
 // Lifecycle hooks
-onMounted(() => {
-  // Actualizar hora cada segundo
+onMounted(async () => {
   timeInterval = setInterval(() => {
     currentTime.value = new Date()
   }, 1000)
 
-  // Crear gráficos después de que el DOM esté listo
-  setTimeout(() => {
-    createAppointmentsChart()
-    createServicesChart()
-    createMonthlyChart()
-  }, 100)
+  await nextTick()
+  createAppointmentsChart()
+  createServicesChart()
 })
 
 onUnmounted(() => {
   if (timeInterval) {
     clearInterval(timeInterval)
   }
+  if (appointmentsChartInstance) {
+    appointmentsChartInstance.destroy()
+  }
+  if (servicesChartInstance) {
+    servicesChartInstance.destroy()
+  }
 })
 </script>
 
 <style scoped>
-.bg-gradient-to-br {
-  background: linear-gradient(to bottom right, #eff6ff, #f0fdf4);
+/* Variables de colores veterinarios */
+:root {
+  --vet-primary: #10b981;
+  --vet-secondary: #3b82f6;
+  --vet-accent: #f59e0b;
+  --vet-danger: #ef4444;
+  --vet-purple: #8b5cf6;
 }
 
-.max-w-7xl {
-  max-width: 80rem;
+.vet-dashboard {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dbeafe 50%, #fef3c7 100%);
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  padding: 0.5rem;
 }
 
-.mx-auto {
-  margin-left: auto;
-  margin-right: auto;
+/* Header Compacto */
+.dashboard-header {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 12px;
+  padding: 0.625rem 1rem;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-.shadow-sm {
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.border-b {
-  border-bottom: 1px solid #e5e7eb;
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-icon {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white !important;
+  padding: 0.5rem;
+  border-radius: 12px;
+}
+
+.header-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+  line-height: 1.2;
+  background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.dashboard-subtitle {
+  color: #6b7280;
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+
+.time-display {
+  text-align: right;
+}
+
+.current-time {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  line-height: 1.2;
+}
+
+.current-date {
+  color: #6b7280;
+  font-size: 0.65rem;
+  text-transform: capitalize;
+}
+
+/* Dashboard Content */
+.dashboard-content {
+  max-width: 100%;
+  margin: 0;
+}
+
+/* Stats Grid Principal - 4 columnas */
+.stats-grid-main {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Content Grid: 2 columnas (gráficos + sidebar) */
+.content-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.charts-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sidebar-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Chart Cards */
+.chart-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 12px;
+  padding: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.625rem;
+}
+
+.chart-header h3 {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.chart-badge {
+  font-size: 0.7rem;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.chart-container {
+  height: 200px;
+}
+
+/* Alerts Panel */
+.alerts-panel,
+.upcoming-panel {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 12px;
+  padding: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.625rem;
+}
+
+.panel-header h3 {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.alerts-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+/* Upcoming Appointments */
+.upcoming-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.appointment-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem;
+  background: rgba(16, 185, 129, 0.05);
+  border-radius: 8px;
+  border-left: 3px solid #10b981;
+  transition: all 0.2s ease;
+}
+
+.appointment-item:hover {
+  background: rgba(16, 185, 129, 0.1);
+  transform: translateX(2px);
+}
+
+.appointment-time {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #10b981;
+  min-width: 45px;
+}
+
+.appointment-info {
+  flex: 1;
+}
+
+.appointment-pet {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  line-height: 1.2;
+}
+
+.appointment-owner {
+  font-size: 0.65rem;
+  color: #6b7280;
+}
+
+/* Stats Secundarias - 6 columnas */
+.stats-grid-secondary {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 1400px) {
+  .stats-grid-main {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .stats-grid-secondary {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats-grid-secondary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .vet-dashboard {
+    padding: 0.375rem;
+  }
+
+  .dashboard-header {
+    padding: 0.75rem;
+  }
+
+  .header-content {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+
+  .header-right {
+    width: 100%;
+  }
+
+  .time-display {
+    text-align: left;
+  }
+
+  .stats-grid-main {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid-secondary {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-container {
+    height: 200px;
+  }
 }
 </style>
