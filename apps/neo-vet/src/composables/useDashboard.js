@@ -1,4 +1,6 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { io } from 'socket.io-client'
+import { useAuthStore } from 'src/stores/Auth'
 
 export function useDashboard() {
     // Estado reactivo centralizado
@@ -210,10 +212,55 @@ export function useDashboard() {
         }],
     }
 
-    // Lógica de Socket (Estructura)
+    // Lógica de Socket
+    let socket = null
+
     const initSockets = () => {
         console.log('Iniciando escucha de sockets para dashboard...')
-        // Aquí iría la lógica de socket.on('dashboard_update', ...)
+
+        const authStore = useAuthStore()
+        const token = authStore.token
+
+        // Conectar al socket server (Puerto 81 según configuración backend)
+        socket = io('http://localhost:81', {
+            transports: ['websocket'],
+            autoConnect: true,
+            auth: {
+                token: token
+            }
+        })
+
+        socket.on('connect', () => {
+            console.log('Socket conectado:', socket.id)
+            // Unirse a la sala 'dashboard'
+            socket.emit('event_join', 'dashboard')
+        })
+
+        socket.on('disconnect', () => {
+            console.log('Socket desconectado')
+        })
+
+        socket.on('connect_error', (err) => {
+            console.error('Error de conexión socket:', err)
+        })
+
+        // Escuchar actualizaciones del dashboard
+        // Asumimos que el evento es 'dashboard_update' y el payload trae { key, value } o un objeto completo
+        socket.on('dashboard_update', (payload) => {
+            console.log('Actualización recibida:', payload)
+
+            // Si payload es un objeto con actualizaciones masivas
+            if (typeof payload === 'object') {
+                Object.keys(payload).forEach(key => {
+                    updateStat(key, payload[key])
+                })
+            }
+
+            // Si el backend envía un mensaje específico para alertas
+            if (payload.type === 'alert') {
+                addAlert(payload.data)
+            }
+        })
     }
 
     onMounted(() => {
@@ -221,7 +268,10 @@ export function useDashboard() {
     })
 
     onUnmounted(() => {
-        // Limpiar sockets si es necesario
+        if (socket) {
+            socket.emit('event_leave', 'dashboard')
+            socket.disconnect()
+        }
     })
 
     return {
