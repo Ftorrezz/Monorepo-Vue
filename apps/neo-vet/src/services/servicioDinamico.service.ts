@@ -63,32 +63,32 @@ export const servicioDinamicoService = {
     },
 
     async createSeccion(seccion: ServicioSeccion) {
-        return await peticionService.crear('servicios-secciones', seccion)
+        return await peticionService.crear('servicioseccion', seccion)
     },
 
     async updateSeccion(id: number, seccion: ServicioSeccion) {
-        return await peticionService.actualizar('servicios-secciones', { ...seccion, id })
+        return await peticionService.actualizar('servicioseccion', { ...seccion, id })
     },
 
     async deleteSeccion(id: number) {
-        await peticionService.eliminar('servicios-secciones', { id }, false)
+        await peticionService.eliminar('servicioseccion', { id }, false)
     },
 
     // --- CAMPOS ---
     async getCampos(idSeccion: number) {
-        const response = await peticionService.obtenerGet(`servicios-secciones/${idSeccion}/campos`)
+        const response = await peticionService.obtenerGet(`serviciocampos/${idSeccion}/campos`)
         return Array.isArray(response) ? response : (response?.data || [])
     },
 
     async createCampo(campo: ServicioCampo) {
-        return await peticionService.crear('servicios-campos', campo)
+        return await peticionService.crear('serviciocampos', campo)
     },
 
     async updateCampo(id: number, campo: ServicioCampo) {
-        return await peticionService.actualizar('servicios-campos', { ...campo, id })
+        return await peticionService.actualizar('serviciocampos', { ...campo, id })
     },
 
     async deleteCampo(id: number) {
-        await peticionService.eliminar('servicios-campos', { id }, false)
+        await peticionService.eliminar('serviciocampos', { id }, false)
     }
 }

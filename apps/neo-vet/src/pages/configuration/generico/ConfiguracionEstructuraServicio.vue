@@ -98,8 +98,8 @@
     </q-dialog>
 
     <!-- Dialog Campo -->
-    <q-dialog v-model="mostrarFormCampo" persistent maximized>
-      <q-card>
+    <q-dialog v-model="mostrarFormCampo" persistent>
+      <q-card style="max-width: 800px; width: 100%">
         <q-card-section class="bg-positive text-white row items-center">
           <div class="text-h6">{{ modoEdicionCampo ? 'Editar Campo' : 'Nuevo Campo' }}</div>
           <q-space />
@@ -163,12 +163,12 @@ const camposPorSeccion = reactive({})
 // Formularios
 const mostrarFormSeccion = ref(false)
 const modoEdicionSeccion = ref(false)
-const formSeccion = reactive({ id_seccion: null, id_servicio_def: null, titulo: '', orden: 0 })
+const formSeccion = reactive({ id: null, id_servicio: null, titulo: '', orden: 0 })
 
 const mostrarFormCampo = ref(false)
 const modoEdicionCampo = ref(false)
 const formCampo = reactive({
-  id_campo: null, id_seccion: null, nombre_interno: '', label: '', tipo_dato: 'texto',
+  id: null, id_seccion: null, nombre_interno: '', label: '', tipo_dato: 'texto',
   placeholder: '', hint: '', requerido: false, cols: 6, orden: 0, icono: '',
   datasource: '', opciones_json: '', configuracion_extra_json: ''
 })
@@ -188,14 +188,14 @@ const cargarEstructura = async () => {
     const idServicio = parseInt(route.params.id)
     // Cargar definición del servicio
     const todos = await servicioDinamicoService.getServicios()
-    servicio.value = todos.find(s => s.id_servicio_def === idServicio)
+    servicio.value = todos.find(s => s.id === idServicio)
     
     // Cargar secciones
     secciones.value = await servicioDinamicoService.getSecciones(idServicio)
     
     // Cargar campos para cada sección
     for (const sec of secciones.value) {
-      camposPorSeccion[sec.id_seccion] = await servicioDinamicoService.getCampos(sec.id_seccion)
+      camposPorSeccion[sec.id_seccion] = await servicioDinamicoService.getCampos(sec.id)
     }
   } catch (error) {
     $q.notify({ type: 'negative', message: 'Error al cargar estructura' })
@@ -210,7 +210,7 @@ const abrirFormularioSeccion = (sec = null) => {
   if (sec) {
     Object.assign(formSeccion, sec)
   } else {
-    Object.assign(formSeccion, { id_seccion: null, id_servicio_def: parseInt(route.params.id), titulo: '', orden: secciones.value.length + 1 })
+    Object.assign(formSeccion, { id: null, id_servicio: parseInt(route.params.id), titulo: '', orden: secciones.value.length + 1 })
   }
   mostrarFormSeccion.value = true
 }
@@ -218,7 +218,7 @@ const abrirFormularioSeccion = (sec = null) => {
 const guardarSeccion = async () => {
   try {
     if (modoEdicionSeccion.value) {
-      await servicioDinamicoService.updateSeccion(formSeccion.id_seccion, formSeccion)
+      await servicioDinamicoService.updateSeccion(formSeccion.id, formSeccion)
     } else {
       await servicioDinamicoService.createSeccion(formSeccion)
     }
@@ -231,7 +231,7 @@ const guardarSeccion = async () => {
 
 const eliminarSeccion = (sec) => {
   $q.dialog({ title: 'Eliminar Sección', message: '¿Eliminar esta sección y todos sus campos?', cancel: true }).onOk(async () => {
-    await servicioDinamicoService.deleteSeccion(sec.id_seccion)
+    await servicioDinamicoService.deleteSeccion(sec.id)
     cargarEstructura()
   })
 }
@@ -243,7 +243,7 @@ const abrirFormularioCampo = (sec, campo = null) => {
     Object.assign(formCampo, campo)
   } else {
     Object.assign(formCampo, {
-      id_campo: null, id_seccion: sec.id_seccion, nombre_interno: '', label: '', tipo_dato: 'texto',
+      id: null, id_seccion: sec.id_seccion, nombre_interno: '', label: '', tipo_dato: 'texto',
       placeholder: '', hint: '', requerido: false, cols: 6, orden: (camposPorSeccion[sec.id_seccion]?.length || 0) + 1,
       icono: '', datasource: '', opciones_json: '', configuracion_extra_json: ''
     })
@@ -254,7 +254,7 @@ const abrirFormularioCampo = (sec, campo = null) => {
 const guardarCampo = async () => {
   try {
     if (modoEdicionCampo.value) {
-      await servicioDinamicoService.updateCampo(formCampo.id_campo, formCampo)
+      await servicioDinamicoService.updateCampo(formCampo.id, formCampo)
     } else {
       await servicioDinamicoService.createCampo(formCampo)
     }
