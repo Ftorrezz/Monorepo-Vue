@@ -1,6 +1,6 @@
 export default {
   descripcionsistema: 'Comprehensive veterinary management system',
-  descripcionsistemalargo: 'NeoVET : : Comprehensive veterinary management system',
+  descripcionsistemalargo: 'VetDimio : : Comprehensive veterinary management system',
   login: 'Start session',
   forgotPassword: "Forgot your password?",
   cerrarsesion: 'Log out',

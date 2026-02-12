@@ -55,7 +55,7 @@
         <q-card>
           <q-card-section class="q-pa-none">
             <q-table
-              :rows="camposPorSeccion[seccion.id_seccion] || []"
+              :rows="camposPorSeccion[seccion.id] || []"
               :columns="columnasCampos"
               row-key="id_campo"
               flat
@@ -65,13 +65,26 @@
             >
               <template v-slot:body-cell-tipo="props">
                 <q-td :props="props">
-                  <q-chip size="xs" color="blue-1" text-color="blue-9" label="props.value" />
+                  <q-chip size="sm" color="blue-1" text-color="blue-9" :label="formatTipoDato(props.value)" />
+                </q-td>
+              </template>
+              <template v-slot:body-cell-label="props">
+                <q-td :props="props">
+                  <div class="row items-center">
+                    <q-icon v-if="props.row.icono" :name="props.row.icono" size="xs" class="q-mr-xs text-grey-7" />
+                    <span>{{ props.row.label }}</span>
+                  </div>
+                  <div class="text-caption text-grey-6" v-if="props.row.hint">{{ props.row.hint }}</div>
                 </q-td>
               </template>
               <template v-slot:body-cell-acciones="props">
                 <q-td :props="props">
-                  <q-btn flat round dense icon="edit" color="primary" size="xs" @click="editarCampo(props.row)" />
-                  <q-btn flat round dense icon="delete" color="negative" size="xs" @click="eliminarCampo(props.row)" />
+                  <q-btn flat round dense icon="edit" color="primary" size="sm" @click="abrirFormularioCampo(seccion, props.row)">
+                    <q-tooltip>Editar Campo</q-tooltip>
+                  </q-btn>
+                  <q-btn flat round dense icon="delete" color="negative" size="sm" @click="eliminarCampo(props.row)">
+                    <q-tooltip>Eliminar Campo</q-tooltip>
+                  </q-btn>
                 </q-td>
               </template>
             </q-table>
@@ -195,7 +208,7 @@ const cargarEstructura = async () => {
     
     // Cargar campos para cada sección
     for (const sec of secciones.value) {
-      camposPorSeccion[sec.id_seccion] = await servicioDinamicoService.getCampos(sec.id)
+      camposPorSeccion[sec.id] = await servicioDinamicoService.getCampos(sec.id)
     }
   } catch (error) {
     $q.notify({ type: 'negative', message: 'Error al cargar estructura' })
@@ -243,8 +256,8 @@ const abrirFormularioCampo = (sec, campo = null) => {
     Object.assign(formCampo, campo)
   } else {
     Object.assign(formCampo, {
-      id: null, id_seccion: sec.id_seccion, nombre_interno: '', label: '', tipo_dato: 'texto',
-      placeholder: '', hint: '', requerido: false, cols: 6, orden: (camposPorSeccion[sec.id_seccion]?.length || 0) + 1,
+      id: null, id_seccion: sec.id, nombre_interno: '', label: '', tipo_dato: 'texto',
+      placeholder: '', hint: '', requerido: false, cols: 6, orden: (camposPorSeccion[sec.id]?.length || 0) + 1,
       icono: '', datasource: '', opciones_json: '', configuracion_extra_json: ''
     })
   }
@@ -267,9 +280,22 @@ const guardarCampo = async () => {
 
 const eliminarCampo = (campo) => {
   $q.dialog({ title: 'Eliminar Campo', message: '¿Eliminar este campo?', cancel: true }).onOk(async () => {
-    await servicioDinamicoService.deleteCampo(campo.id_campo)
+    await servicioDinamicoService.deleteCampo(campo.id_campo || campo.id) // Ensure ID fallback
     cargarEstructura()
   })
+}
+
+const formatTipoDato = (tipo) => {
+  const map = {
+    'texto': 'Texto',
+    'numerico': 'Numérico',
+    'select': 'Selección',
+    'checkbox': 'Casilla',
+    'textarea': 'Área de Texto',
+    'fecha': 'Fecha',
+    'hora': 'Hora'
+  }
+  return map[tipo] || tipo
 }
 
 onMounted(() => {

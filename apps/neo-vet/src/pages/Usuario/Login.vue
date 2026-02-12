@@ -49,8 +49,8 @@
                 <div class="logo-section-top">
                   <div class="logo-container-large">
                     <img
-                      src="/static/NeoVET.png"
-                      alt="NeoVET - Sistema de Gestión Veterinaria"
+                      src="/static/VetDimio.png"
+                      alt="VetDimio - Sistema Integral de Gestión Veterinaria"
                       class="logo-image"
                       @error="handleLogoError"
                     />
@@ -153,7 +153,7 @@
                 </q-form>
 
                 <div class="form-footer">
-                  <p> 'NeoVET v2.0 © 2025' </p>
+                  <p> 'VetDimio v1.0 © 2026' </p>
                 </div>
               </div>
 

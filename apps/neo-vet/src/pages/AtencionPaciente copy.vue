@@ -453,69 +453,6 @@
       </div>
     </div>
 
-    <!-- Dialog para Nueva Atención -->
-    <q-dialog v-model="showNuevaAtencionDialog" persistent>
-      <q-card style="min-width: 500px; max-width: 600px">
-        <q-card-section class="bg-primary text-white">
-          <div class="text-h6">Nueva Atención</div>
-          <div class="text-caption">Ingrese los datos principales de la atención</div>
-        </q-card-section>
-
-        <q-card-section class="q-gutter-md">
-          <q-select
-            v-model="formNuevaAtencion.veterinario_id"
-            :options="profesionalesOpciones"
-            label="Veterinario Asignado *"
-            outlined
-            dense
-            emit-value
-            map-options
-            :rules="[val => !!val || 'Campo obligatorio']"
-          >
-            <template v-slot:prepend>
-              <q-icon name="person" />
-            </template>
-          </q-select>
-
-          <q-select
-            v-model="formNuevaAtencion.motivo_id"
-            :options="motivosOpciones"
-            label="Motivo de la Atención *"
-            outlined
-            dense
-            emit-value
-            map-options
-            :rules="[val => !!val || 'Campo obligatorio']"
-          >
-            <template v-slot:prepend>
-              <q-icon name="event_note" />
-            </template>
-          </q-select>
-
-          <q-input
-            v-model="formNuevaAtencion.observaciones"
-            label="Observaciones Iniciales"
-            type="textarea"
-            rows="3"
-            outlined
-            dense
-            placeholder="Detalles adicionales (opcional)"
-          />
-        </q-card-section>
-
-        <q-card-actions align="right">
-          <q-btn flat label="Cancelar" color="grey-7" @click="showNuevaAtencionDialog = false" />
-          <q-btn 
-            unelevated 
-            label="Crear Atención" 
-            color="primary" 
-            @click="crearNuevaAtencion"
-            :disable="!formNuevaAtencion.veterinario_id || !formNuevaAtencion.motivo_id"
-          />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
     <!-- Dialogo para agregar servicios -->
     <q-dialog 
       v-model="showAddServiceDialog" 
@@ -563,13 +500,10 @@
 </template>
 
 <script>
-import { ref, computed, onBeforeUnmount, watch, reactive, onMounted } from 'vue'
+import { ref, computed, onBeforeUnmount, watch, reactive } from 'vue'
 import { useQuasar } from 'quasar'
 import { useMascotaSeleccionadaStore } from 'src/stores/mascotaSeleccionadaStore';
 import { usePlantillas } from 'src/composables/usePlantillas'
-import { servicioDinamicoService } from 'src/services/servicioDinamico.service'
-import { profesionalService } from 'src/services/profesional.service'
-import { citaMotivoService } from 'src/services/citaMotivo.service'
 
 // Importación de los componentes de servicios
 import ServicioVacunacion from '../components/servicios/ServicioVacunacion.vue'
@@ -614,14 +548,6 @@ export default {
     const guardandoAtencion = ref(false)
     const servicioActivoTab = ref(null)
     const showAddServiceDialog = ref(false)
-    const showNuevaAtencionDialog = ref(false)
-    
-    // Formulario para nueva atención
-    const formNuevaAtencion = reactive({
-      veterinario_id: null,
-      motivo_id: null,
-      observaciones: ''
-    })
 
     // Catálogos globales que se inyectan en servicios dinámicos
     const catalogosSistemas = reactive({
@@ -637,31 +563,38 @@ export default {
       ]
     })
 
-    // Esquemas para servicios dinámicos (se cargan de BD)
-    const esquemasActivos = ref({})
-    
-    // Estados para catálogos
-    const profesionalesDisponibles = ref([])
-    const motivosDisponibles = ref([])
+    // Esquemas para servicios dinámicos (esto vendría de DB en el futuro)
+    const esquemasActivos = {
+      estetica: {
+        servicio: 'Estética y Peluquería',
+        icono: 'content_cut',
+        descripcion: 'Registro de sesión de estética canina/felina',
+        secciones: [
+          {
+            titulo: 'Detalles del Servicio',
+            campos: [
+              { id: 'veterinario_id', label: 'Veterinario Responsable', tipo: 'select', datasource: 'VETERINARIOS', requerido: true, icono: 'person', cols: 12, orden: 1 },
+              { id: 'tipo_corte', label: 'Tipo de Corte', tipo: 'select', opciones: ['Raza', 'Higiénico', 'Cachorro', 'Deslanado'], requerido: true, icono: 'style', cols: 6, orden: 2 },
+              { id: 'nudos', label: 'Presencia de nudos', tipo: 'select', opciones: ['Ninguno', 'Leve', 'Moderado', 'Severo'], icono: 'texture', cols: 6, orden: 3 },
+              { id: 'producto_id', label: 'Producto a Utilizar', tipo: 'select', datasource: 'PRODUCTOS_ESTETICA', icono: 'shopping_bag', cols: 12, orden: 4 },
+              { id: 'baño', label: 'Incluye Baño', tipo: 'checkbox', default: true, hint: 'Limpieza profunda con shampoo especializado', cols: 12, orden: 5 }
+            ]
+          },
+          {
+            titulo: 'Salud de Piel y Manto',
+            campos: [
+              { id: 'irritacion', label: 'Zona con irritación', tipo: 'texto', placeholder: 'Dorso, vientre, patas...', icono: 'healing', cols: 6, orden: 1 },
+              { id: 'pulgas', label: 'Ectoparásitos', tipo: 'checkbox', hint: '¿Se detectaron pulgas o garrapatas?', cols: 6, orden: 2 },
+              { id: 'observaciones_piel', label: 'Observaciones de piel', tipo: 'textarea', placeholder: 'Describa cualquier hallazgo relevante...', cols: 12, orden: 3 }
+            ]
+          }
+        ]
+      }
+    }
 
     // Datos del paciente (ahora vienen del store)
     const paciente = computed(() => mascotaSeleccionadaStore.mascota || {
       id: '', nombre: '', especie: '', raza: '', edad: '', peso: '', propietario: '', telefono: ''
-    })
-
-    // Computed para opciones de selects
-    const profesionalesOpciones = computed(() => {
-      return profesionalesDisponibles.value.map(p => ({
-        label: `${p.nombre} ${p.primerapellido || ''} ${p.segundoapellido || ''}`.trim(),
-        value: p.id
-      }))
-    })
-
-    const motivosOpciones = computed(() => {
-      return motivosDisponibles.value.map(m => ({
-        label: m.nombre,
-        value: m.id
-      }))
     })
 
     // Lista de atenciones del paciente
@@ -785,46 +718,34 @@ export default {
     }
 
     const nuevaAtencion = () => {
-      // Resetear formulario
-      formNuevaAtencion.veterinario_id = null
-      formNuevaAtencion.motivo_id = null
-      formNuevaAtencion.observaciones = ''
-      
-      // Abrir diálogo
-      showNuevaAtencionDialog.value = true
-    }
+      $q.dialog({
+        title: 'Nueva Atención',
+        message: '¿Desea crear una nueva atención para este paciente?',
+        cancel: true,
+        persistent: true
+      }).onOk(() => {
+        const fecha = new Date()
+        const numeroAtencion = `A-${fecha.getFullYear()}-${String(atenciones.value.length + 1).padStart(3, '0')}`
 
-    const crearNuevaAtencion = () => {
-      const fecha = new Date()
-      const numeroAtencion = `A-${fecha.getFullYear()}-${String(atenciones.value.length + 1).padStart(3, '0')}`
-      
-      const veterinarioObj = profesionalesDisponibles.value.find(p => p.id === formNuevaAtencion.veterinario_id)
-      const motivoObj = motivosDisponibles.value.find(m => m.id === formNuevaAtencion.motivo_id)
+        const nuevaAtencionData = {
+           id: `at_${Date.now()}`,
+          numero: numeroAtencion,
+          fecha: fecha.toISOString().split('T')[0],
+          hora: fecha.toTimeString().split(' ')[0].substring(0, 5),
+          veterinario: 'Dr. Carlos Mendoza',
+          estado: 'En curso',
+          servicios: []
+        }
 
-      const nuevaAtencionData = {
-        id: `at_${Date.now()}`,
-        numero: numeroAtencion,
-        fecha: fecha.toISOString().split('T')[0],
-        hora: fecha.toTimeString().split(' ')[0].substring(0, 5),
-        veterinario: veterinarioObj ? `${veterinarioObj.nombre} ${veterinarioObj.primerapellido || ''}`.trim() : 'Sin asignar',
-        veterinario_id: formNuevaAtencion.veterinario_id,
-        motivo: motivoObj?.nombre || '',
-        motivo_id: formNuevaAtencion.motivo_id,
-        observaciones: formNuevaAtencion.observaciones,
-        estado: 'En curso',
-        servicios: []
-      }
+        atenciones.value.unshift(nuevaAtencionData)
+        atencionActual.value = 0
 
-      atenciones.value.unshift(nuevaAtencionData)
-      atencionActual.value = 0
-
-      $q.notify({
-        type: 'positive',
-        message: 'Nueva atención creada',
-        position: 'top-right'
+        $q.notify({
+          type: 'positive',
+          message: 'Nueva atención creada',
+          position: 'top-right'
+        })
       })
-      
-      showNuevaAtencionDialog.value = false
     }
 
     const mostrarAtenciones = () => {
@@ -1046,39 +967,6 @@ export default {
       }
     }
 
-    // Cargar catálogos y esquemas dinámicos al montar
-    onMounted(async () => {
-      try {
-        // Cargar profesionales
-        const profs = await profesionalService.getProfesionales()
-        profesionalesDisponibles.value = profs
-        
-        //Actualizar catálogo global
-        catalogosSistemas.VETERINARIOS = profs.map(p => ({
-          label: `${p.nombre} ${p.primerapellido || ''}`.trim(),
-          value: p.id
-        }))
-        
-        // Cargar motivos
-        const motivos = await citaMotivoService.getMotivos()
-        motivosDisponibles.value = motivos
-        
-        // Cargar servicios dinámicos
-        const serviciosDinamicos = await servicioDinamicoService.getServicios()
-        
-        // Cargar esquemas para servicios activos
-        for (const srv of serviciosDinamicos.filter(s => s.activo === 'S')) {
-          const esquema = await servicioDinamicoService.getEsquemaServicio(srv.id)
-          if (esquema && esquema.identificador) {
-            esquemasActivos.value[esquema.identificador] = esquema
-          }
-        }
-      } catch (error) {
-        console.error('Error al cargar catálogos:', error)
-        $q.notify({ type: 'warning', message: 'Algunos catálogos no se pudieron cargar' })
-      }
-    })
-
     onBeforeUnmount(() => {
       mascotaSeleccionadaStore.limpiarMascota()
     })
@@ -1095,7 +983,6 @@ export default {
       navigateCards,
       verDetallesAtencion,
       nuevaAtencion,
-      crearNuevaAtencion,
       mostrarAtenciones,
       agregarServicioEnDialogo, 
       actualizarServicio,
@@ -1104,10 +991,6 @@ export default {
       guardarAtencion,
       finalizarAtencion,
       showAddServiceDialog,
-      showNuevaAtencionDialog,
-      formNuevaAtencion,
-      profesionalesOpciones,
-      motivosOpciones,
       esquemasActivos,
       catalogosSistemas,
       imprimirDocumentoServicio,

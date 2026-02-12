@@ -361,7 +361,7 @@ const campos = ref([])
 // Formulario
 const formularioCampo = reactive({
   id: null,
-  modulo_id: null,
+  id_seccion: null,
   clave: '',
   etiqueta: '',
   descripcion: '',

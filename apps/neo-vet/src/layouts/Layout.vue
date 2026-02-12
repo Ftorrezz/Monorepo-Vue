@@ -41,8 +41,8 @@
             class="logo-expanded-container"
           >
             <img
-              src="/static/NeoVETMenu.png"
-              alt="NeoVET Logo"
+              src="/static/VetDimioMenu.png"
+              alt="VetDimio Logo"
               class="system-logo-expanded"
               @error="handleImageError"
             />
@@ -68,8 +68,8 @@
             class="logo-mini-container"
           >
             <img
-              src="/static/NeoVETMenuMini.png"
-              alt="NeoVET Logo Mini"
+              src="/static/VetDimioMenuMini.png"
+              alt="VetDimio Logo Mini"
               class="system-logo-mini"
               @error="handleMiniImageError"
             />
