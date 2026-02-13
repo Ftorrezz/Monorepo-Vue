@@ -101,7 +101,14 @@ export const servicioDinamicoService = {
     // --- ESQUEMA COMPLETO ---
     async getEsquemaServicio(idServicio: number) {
         try {
-            const servicio = await peticionService.obtenerGet(`servicio/${idServicio}`)
+            const response = await peticionService.obtenerGet(`servicio/${idServicio}`)
+            // El servicio puede venir como { data: servicio } o directamente
+            let servicio = response?.data || response
+            // Si es un array, tomar el primer elemento
+            if (Array.isArray(servicio)) {
+                servicio = servicio[0]
+            }
+
             const secciones = await this.getSecciones(idServicio)
 
             // Cargar campos para cada sección
@@ -109,7 +116,7 @@ export const servicioDinamicoService = {
                 seccion.campos = await this.getCampos(seccion.id)
             }
 
-            return {
+            const esquema = {
                 id: servicio.id,
                 servicio: servicio.nombre,
                 icono: servicio.icono || 'auto_awesome',
@@ -135,6 +142,9 @@ export const servicioDinamicoService = {
                     }))
                 }))
             }
+
+            console.log('✅ Esquema final construido:', esquema)
+            return esquema
         } catch (error) {
             console.error('Error al obtener esquema de servicio:', error)
             return null

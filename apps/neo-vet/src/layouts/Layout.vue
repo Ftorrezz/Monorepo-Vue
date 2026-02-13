@@ -250,7 +250,7 @@ async function toggleLeftDrawer() {
   object-fit: contain;
   border-radius: 8px;
   background-color: rgba(255, 255, 255, 0.1);
-  padding: 4px;
+  padding: 8px;
   flex-shrink: 0;
   transition: all 0.3s ease;
 }

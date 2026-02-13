@@ -107,10 +107,7 @@
                   <q-icon name="pets" size="32px" color="primary" />
                 </div>
                 <div class="info-content">
-                  <div class="row items-center">
-                    <div class="info-title">{{ paciente.nombre }}</div>
-<!-- Search button moved -->
-                  </div>
+                  <div class="info-title">{{ paciente.nombre }}</div>
                   <div class="info-subtitle">
                     <span v-if="paciente.especie">{{ paciente.especie }}</span>
                     <span v-if="paciente.raza" class="q-ml-xs">| {{ paciente.raza }}</span>
@@ -159,16 +156,6 @@
           </div>
           
           <div class="header-actions">
-            <q-btn
-              color="primary"
-              icon="search"
-              label="Buscar Paciente"
-              @click="showSearchDialog = true"
-              no-caps
-              flat
-              dense
-              class="q-mr-sm"
-            />
             <q-btn
               color="secondary"
               icon="print"
@@ -573,41 +560,6 @@
         </q-btn>
       </div>
     </q-page-sticky>
-    <q-dialog v-model="showSearchDialog" full-width full-height>
-      <q-card class="column full-height">
-        <q-card-section class="row items-center q-pb-none bg-primary text-white">
-          <div class="text-h6">Buscar Paciente</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup text-color="white" />
-        </q-card-section>
-
-        <q-card-section class="col q-pa-md scroll">
-          <!-- Filtros de búsqueda (Simplificado del original) -->
-          <div class="row q-col-gutter-md q-mb-md">
-            <div class="col-12 col-md-3">
-              <q-input v-model="busquedaFormData.propietario.primerapellido" label="Primer Apellido" dense outlined @keyup.enter="buscarPacientes" class="uppercase" />
-            </div>
-             <div class="col-12 col-md-3">
-              <q-input v-model="busquedaFormData.propietario.nombre" label="Nombre Propietario" dense outlined @keyup.enter="buscarPacientes" class="uppercase" />
-            </div>
-            <div class="col-12 col-md-3">
-              <q-input v-model="busquedaFormData.mascota.nombre" label="Nombre Mascota" dense outlined @keyup.enter="buscarPacientes" />
-            </div>
-            <div class="col-12 col-md-3 flex items-center">
-              <q-btn color="primary" icon="search" label="Buscar" @click="buscarPacientes" class="full-width" />
-            </div>
-          </div>
-
-          <!-- Componente de resultados -->
-          <CardBusquedaPropietarioMascota 
-            :rows="listaPropietariosBusqueda"  
-            @refresh-data="buscarPacientes" 
-            @limpiar-filtro="limpiarFiltrosBusqueda"
-            @mascota-seleccionada="onMascotaSeleccionada"
-          />
-        </q-card-section>
-      </q-card>
-    </q-dialog>
   </div>
 </template>
 
@@ -619,9 +571,6 @@ import { usePlantillas } from 'src/composables/usePlantillas'
 import { servicioDinamicoService } from 'src/services/servicioDinamico.service'
 import { profesionalService } from 'src/services/profesional.service'
 import { citaMotivoService } from 'src/services/citaMotivo.service'
-import atencionService from 'src/services/atencion.service'
-import NdPeticionControl from 'src/controles/rest.control'
-import { DtoParametros } from 'src/controles/dto.parametros'
 
 // Importación de los componentes de servicios
 import ServicioVacunacion from '../components/servicios/ServicioVacunacion.vue'
@@ -635,10 +584,9 @@ import ServicioHospitalizacion from 'src/components/servicios/ServicioHospitaliz
 import ServicioMedicamento from 'src/components/servicios/ServicioMedicamento.vue';
 import ServicioFisioterapia from 'src/components/servicios/ServicioFisioterapia.vue';
 import ServicioUrgencia from 'src/components/servicios/ServicioUrgencia.vue';
-import ServicioEstetica from '../components/servicios/ServicioEstetica.vue'
+ import ServicioEstetica from '../components/servicios/ServicioEstetica.vue'
 import ServicioResumen from '../components/servicios/ServicioResumen.vue'
 import ServicioDinamico from '../components/servicios/ServicioDinamico.vue'
-import CardBusquedaPropietarioMascota from 'src/components/card/CardBusquedaPropietarioMascota.vue'
 
 export default {
   name: 'AtencionPaciente',
@@ -654,10 +602,9 @@ export default {
     ServicioMedicamento,
     ServicioFisioterapia,
     ServicioUrgencia,
-    ServicioEstetica,
+     ServicioEstetica,
     ServicioResumen,
-    ServicioDinamico,
-    CardBusquedaPropietarioMascota,
+    ServicioDinamico
   },
   setup() {
     const $q = useQuasar()
@@ -702,58 +649,6 @@ export default {
     const paciente = computed(() => mascotaSeleccionadaStore.mascota || {
       id: '', nombre: '', especie: '', raza: '', edad: '', peso: '', propietario: '', telefono: ''
     })
-
-    // Variables de Buscador (Faltantes restauradas)
-    const showSearchDialog = ref(false)
-    const listaPropietariosBusqueda = ref([])
-    const busquedaFormData = reactive({
-      propietario: { nombre: '', primerapellido: '' },
-      mascota: { nombre: '' }
-    })
-
-    const buscarPacientes = async () => {
-      try {
-        $q.loading.show()
-        // Importación dinámica para evitar problemas circulares si los hubiera, o usar services existentes
-        // Usando fetch directo o servicio genérico por simplicidad y consistencia con lo previo
-        const _peticion = new NdPeticionControl()
-        const _unDtoParametros = new DtoParametros()
-        
-        _unDtoParametros.filtro = {
-            id_sitio: 1, // Valor por defecto
-            nombre: busquedaFormData.propietario.nombre,
-            primerapellido: busquedaFormData.propietario.primerapellido,
-            nombre_mascota: busquedaFormData.mascota.nombre
-        }
-
-        const respuesta = await _peticion.invocarMetodo('filtropropietariomascota/filtro', 'post', _unDtoParametros)
-        listaPropietariosBusqueda.value = respuesta || []
-        
-        if (listaPropietariosBusqueda.value.length === 0) {
-            $q.notify({ type: 'info', message: 'No se encontraron resultados' })
-        }
-      } catch (error) {
-        console.error(error)
-        $q.notify({ type: 'negative', message: 'Error al buscar pacientes' })
-      } finally {
-        $q.loading.hide()
-      }
-    }
-
-    const limpiarFiltrosBusqueda = () => {
-      busquedaFormData.propietario.nombre = ''
-      busquedaFormData.propietario.primerapellido = ''
-      busquedaFormData.mascota.nombre = ''
-      listaPropietariosBusqueda.value = []
-    }
-
-    const onMascotaSeleccionada = async (evento) => {
-        showSearchDialog.value = false
-        // El store ya se actualizó en el componente hijo, pero aseguramos la recarga de datos
-        if (paciente.value && paciente.value.id) {
-            await cargarAtencionesDesdeBackend(paciente.value.id)
-        }
-    }
 
     // Computed para opciones de selects
     const profesionalesOpciones = computed(() => {
@@ -844,13 +739,15 @@ export default {
 
     // Convertir esquemas activos a formato de lista de servicios
     const serviciosDinamicosParaLista = computed(() => {
-      return Object.values(esquemasActivos.value).map(esquema => ({
+      const lista = Object.values(esquemasActivos.value).map(esquema => ({
         id: esquema.id,
         nombre: esquema.servicio,
         descripcion: esquema.descripcion || 'Servicio configurable',
         icono: esquema.icono || 'auto_awesome',
         identificador: esquema.identificador
       }))
+      console.log('🎯 serviciosDinamicosParaLista computed:', lista)
+      return lista
     })
 
     // Servicios aplicados en esta atención
@@ -911,32 +808,37 @@ export default {
       showNuevaAtencionDialog.value = true
     }
 
-    // Función asíncrona para crear atención
-    const crearNuevaAtencion = async () => {
-      try {
-        $q.loading.show()
-        
-        const datosNuevaAtencion = {
-          id_mascota: paciente.value.id,
-          id_veterinario: formNuevaAtencion.veterinario_id,
-          motivo: formNuevaAtencion.motivo_id, 
-          observaciones: formNuevaAtencion.observaciones,
-          estado: 'En curso'
-        }
+    const crearNuevaAtencion = () => {
+      const fecha = new Date()
+      const numeroAtencion = `A-${fecha.getFullYear()}-${String(atenciones.value.length + 1).padStart(3, '0')}`
+      
+      const veterinarioObj = profesionalesDisponibles.value.find(p => p.id === formNuevaAtencion.veterinario_id)
+      const motivoObj = motivosDisponibles.value.find(m => m.id === formNuevaAtencion.motivo_id)
 
-        const respuesta = await atencionService.crearAtencion(datosNuevaAtencion)
-        
-        if (respuesta) {
-            await cargarAtencionesDesdeBackend(paciente.value.id)
-            $q.notify({ type: 'positive', message: 'Atención creada exitosamente' })
-            showNuevaAtencionDialog.value = false
-        }
-      } catch (error) {
-        console.error('Error al crear atención:', error)
-        $q.notify({ type: 'negative', message: 'Error al crear la atención' })
-      } finally {
-        $q.loading.hide()
+      const nuevaAtencionData = {
+        id: `at_${Date.now()}`,
+        numero: numeroAtencion,
+        fecha: fecha.toISOString().split('T')[0],
+        hora: fecha.toTimeString().split(' ')[0].substring(0, 5),
+        veterinario: veterinarioObj ? `${veterinarioObj.nombre} ${veterinarioObj.primerapellido || ''}`.trim() : 'Sin asignar',
+        veterinario_id: formNuevaAtencion.veterinario_id,
+        motivo: motivoObj?.nombre || '',
+        motivo_id: formNuevaAtencion.motivo_id,
+        observaciones: formNuevaAtencion.observaciones,
+        estado: 'En curso',
+        servicios: []
       }
+
+      atenciones.value.unshift(nuevaAtencionData)
+      atencionActual.value = 0
+
+      $q.notify({
+        type: 'positive',
+        message: 'Nueva atención creada',
+        position: 'top-right'
+      })
+      
+      showNuevaAtencionDialog.value = false
     }
 
     const mostrarAtenciones = () => {
@@ -947,66 +849,51 @@ export default {
       })
     }
 
-    const agregarServicioEnDialogo = async (servicio) => {
-      if (atenciones.value.length === 0) {
-        $q.notify({ type: 'warning', message: 'Debe crear una atención primero' })
-        return
-      }
-
+    const agregarServicioEnDialogo = (servicio) => {
       if (atenciones.value[atencionActual.value].estado === 'Finalizada') {
         $q.notify({
           type: 'negative',
-          message: 'No se pueden agregar servicios a una atención finalizada'
+          message: 'No se pueden agregar servicios a una atención finalizada',
+          position: 'top-right'
         })
         return
       }
 
-      try {
-        $q.loading.show()
-        
-        const datosServicio = {
-          id_atencion: atenciones.value[atencionActual.value].id,
-          tipo_servicio: servicio.identificador || servicio.tipo, 
-          datos: servicio.datos_iniciales || {},
-          observaciones: '',
-          estado: 'pendiente'
-        }
-        
-        const respuesta = await atencionService.agregarServicio(datosServicio)
-        
-        if (respuesta) {
-            // Actualizar vista local
-            const nuevoServicio = {
-              id: `${servicio.tipo}_${Date.now()}`,
-              tipo: servicio.tipo,
-              nombre: servicio.nombre,
-              icono: servicio.icono,
-              color: servicio.color,
-              completado: false,
-              timestamp: new Date().toLocaleString(),
-              datos: servicio.datos_iniciales || {}
-            }
-            
-            if (!atenciones.value[atencionActual.value].servicios) {
-                atenciones.value[atencionActual.value].servicios = []
-            }
-            
-            atenciones.value[atencionActual.value].servicios.push(nuevoServicio)
-            servicioActivoTab.value = nuevoServicio.id
-            
-            $q.notify({
-                type: 'positive',
-                message: `Servicio ${servicio.nombre} agregado`,
-                icon: 'check_circle'
-            })
-            showAddServiceDialog.value = false
-        }
-      } catch (error) {
-        console.error('Error al agregar servicio:', error)
-        $q.notify({ type: 'negative', message: 'Error al agregar el servicio' })
-      } finally {
-        $q.loading.hide()
+      const serviciosActuales = atenciones.value[atencionActual.value].servicios
+      const yaExiste = serviciosActuales.some(s => s.tipo === servicio.tipo)
+
+      if (yaExiste) {
+        $q.notify({
+          type: 'negative',
+          message: `El servicio "${servicio.nombre}" ya ha sido agregado a esta atención`,
+          position: 'top-right',
+          timeout: 3000
+        })
+        return
       }
+
+      const nuevoServicio = {
+        id: `${servicio.tipo}_${Date.now()}`,
+        tipo: servicio.tipo,
+        nombre: servicio.nombre,
+        icono: servicio.icono,
+        color: servicio.color,
+        completado: false,
+        timestamp: new Date().toLocaleString(),
+        datos: {}
+      }
+
+      serviciosActuales.push(nuevoServicio)
+      servicioActivoTab.value = nuevoServicio.id
+
+      $q.notify({
+        type: 'positive',
+        message: `${servicio.nombre} agregado exitosamente`,
+        position: 'top-right',
+        icon: servicio.icono,
+        timeout: 2500
+      })
+      showAddServiceDialog.value = false
     }
 
     const actualizarServicio = (servicioId, nuevosDatos) => {
@@ -1089,38 +976,18 @@ export default {
         message: '¿Está seguro de que desea finalizar esta atención? Una vez finalizada no se podrá modificar.',
         cancel: true,
         persistent: true
-      }).onOk(async () => {
-        try {
-            $q.loading.show()
-            const atencion = atenciones.value[atencionActual.value]
-            
-            const fechaFin = new Date()
-            const datosUpdate = {
-                estado: 'Finalizada',
-                fecha_finalizacion: fechaFin.toISOString().split('T')[0],
-                hora_finalizacion: fechaFin.toTimeString().split(' ')[0].substring(0, 5)
-            }
-            
-            const respuesta = await atencionService.actualizarAtencion(atencion.id, datosUpdate)
-            
-            if (respuesta) {
-                atencion.estado = 'Finalizada'
-                atencion.fechaFinalizacion = datosUpdate.fecha_finalizacion
-                atencion.horaFinalizacion = datosUpdate.hora_finalizacion
-    
-                $q.notify({
-                  type: 'positive',
-                  message: 'Atención finalizada correctamente',
-                  position: 'top-right',
-                  icon: 'check_circle'
-                })
-            }
-        } catch (error) {
-            console.error('Error al finalizar atención:', error)
-            $q.notify({ type: 'negative', message: 'Error al finalizar la atención' })
-        } finally {
-            $q.loading.hide()
-        }
+      }).onOk(() => {
+        const atencion = atenciones.value[atencionActual.value]
+        atencion.estado = 'Finalizada'
+        atencion.fechaFinalizacion = new Date().toISOString().split('T')[0]
+        atencion.horaFinalizacion = new Date().toTimeString().split(' ')[0].substring(0, 5)
+
+        $q.notify({
+          type: 'positive',
+          message: 'Atención finalizada correctamente',
+          position: 'top-right',
+          icon: 'check_circle'
+        })
       })
     }
 
@@ -1212,19 +1079,17 @@ export default {
         
         // Cargar servicios dinámicos
         const serviciosDinamicos = await servicioDinamicoService.getServicios()
+        console.log('📋 Servicios dinámicos cargados:', serviciosDinamicos)
         
         // Cargar esquemas para servicios activos
         for (const srv of serviciosDinamicos.filter(s => s.activo === 'S')) {
           const esquema = await servicioDinamicoService.getEsquemaServicio(srv.id)
+          console.log(`📦 Esquema cargado para ${srv.nombre}:`, esquema)
           if (esquema && esquema.identificador) {
             esquemasActivos.value[esquema.identificador] = esquema
           }
         }
-        
-        // Si ya hay mascota seleccionada, cargar sus atenciones
-        if (paciente.value && paciente.value.id) {
-            await cargarAtencionesDesdeBackend(paciente.value.id)
-        }
+        console.log('✅ Esquemas activos finales:', esquemasActivos.value)
       } catch (error) {
         console.error('Error al cargar catálogos:', error)
         $q.notify({ type: 'warning', message: 'Algunos catálogos no se pudieron cargar' })
@@ -1264,14 +1129,7 @@ export default {
       esquemasActivos,
       catalogosSistemas,
       imprimirDocumentoServicio,
-      imprimirResumenAtencion,
-      // Buscador
-      showSearchDialog,
-      listaPropietariosBusqueda,
-      busquedaFormData,
-      buscarPacientes,
-      limpiarFiltrosBusqueda,
-      onMascotaSeleccionada
+      imprimirResumenAtencion
     }
   }
 }

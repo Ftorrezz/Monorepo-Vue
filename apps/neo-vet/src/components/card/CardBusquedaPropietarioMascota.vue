@@ -270,7 +270,7 @@ const propietarioStore = usePropietarioStore();
 const router = useRouter();
 const mascotaSeleccionadaStore = useMascotaSeleccionadaStore();
 
-const emit = defineEmits(['update:rows', 'refresh-data', 'limpiar-filtro', 'llenar-filtro-y-buscar']);
+const emit = defineEmits(['update:rows', 'refresh-data', 'limpiar-filtro', 'llenar-filtro-y-buscar', 'mascota-seleccionada']);
 
 const abrirDialogoPropietario = () => {
   // Limpiar el filtro antes de abrir el diálogo
@@ -477,6 +477,13 @@ const seleccionarMascota = async (props) => {
       ...props.row,
       propietario: propietarioSeleccionado.value
     });
+    
+    // Emitir evento para que el componente padre pueda reaccionar (ej. cerrar diálogo)
+    emit('mascota-seleccionada', { 
+        mascota: props.row, 
+        propietario: propietarioSeleccionado.value 
+    });
+
     router.push({ name: "atencionpaciente" });
   } catch (error) {
     // Manejo de error opcional
