@@ -158,8 +158,6 @@
             rows-per-page-label="Registros por página"
             :pagination="{ rowsPerPage: 10 }"
             class="modern-table"
-            :class="{ 'cursor-pointer': mostrarFormIntegrado }"
-            @row-click="onRowClick"
           >
             <template v-slot:top>
               <div class="row full-width items-center q-gutter-md">
@@ -197,7 +195,6 @@
               <q-td :props="props">
                 <div class="q-gutter-xs">
                   <q-btn
-                    v-if="!mostrarFormIntegrado"
                     flat
                     dense
                     round
@@ -205,7 +202,7 @@
                     icon="edit"
                     @click="updateItem(props)"
                     size="sm"
-                  >
+                  >apps/neo-vet/src/components/BaseCrud.vue
                     <q-tooltip>Editar</q-tooltip>
                   </q-btn>
                   <q-btn
@@ -333,12 +330,6 @@ const getIconForModel = () => {
   };
   
   return iconMap[props.modelName] || iconMap['default'];
-};
-
-const onRowClick = (evt, row, index) => {
-  if (mostrarFormIntegrado.value) {
-    updateItem({ row, rowIndex: index });
-  }
 };
 </script>
 

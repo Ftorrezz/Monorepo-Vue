@@ -9,6 +9,22 @@ export interface Profesional {
     segundoapellido?: string
     especialidad?: string
     cedula?: string
+    id_tipoprofesional?: number | any
+    tipoprofesional?: any
+    email?: string
+    telefono1?: string
+    telefono2?: string
+    observaciones?: string
+    // Dirección
+    id_pais?: number | any
+    id_estado?: number | any
+    id_municipio?: number | any
+    id_colonia?: number | any
+    calle?: string
+    exterior?: string
+    interior?: string
+    codigopostal?: string
+
     activo?: string
 }
 

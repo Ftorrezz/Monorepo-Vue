@@ -137,6 +137,7 @@ export const menuConfig = [
 
             ]
           },
+          { labelKey: "mainMenu.settings.general.configuracionparametros", icon: "settings", to: "/config/general/configuracionparametros" },
 
         ],
       },

@@ -219,9 +219,7 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
     editedItem.value = Object.assign({}, item.row);
 
     //mostrarContrasenia.value = false;
-    if (!mostrarFormIntegrado.value) {
-      formDialogModal.value = true;
-    }
+    formDialogModal.value = true;
   };
 
   const agregarRegistro = () => {

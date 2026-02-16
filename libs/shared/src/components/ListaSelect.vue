@@ -43,7 +43,7 @@ const props = defineProps({
   },
   filtro: {
     type: Object,
-    default: null
+    default: () => ({ activo: "S" })
   },
   cargarAlIniciar: {
     type: Boolean,
