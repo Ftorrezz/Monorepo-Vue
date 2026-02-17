@@ -15,9 +15,7 @@ export default function useConfiguracionParametros() {
     const fetchModulos = async () => {
         try {
             cargando.value = true;
-            const data = await configuracionModulosService.getModulos();
-            console.log('DEBUG: Modulos recibidos:', data.map(m => ({ id: m.identificador, desc: m.descripcion })));
-            modulos.value = data;
+            modulos.value = await configuracionModulosService.getModulos();
         } catch (error) {
             console.error("Error al cargar módulos:", error);
         } finally {

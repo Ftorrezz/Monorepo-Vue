@@ -22,7 +22,7 @@ const { authStatus, checkAuthStatus } = useAuth();
 checkAuthStatus();
 
 // Define el tiempo de inactividad en milisegundos (por ejemplo, 5 minutos)
-const INACTIVITY_TIMEOUT = 1 * 60 * 10000;
+const INACTIVITY_TIMEOUT = 1 * 60 * 2000000;//10000;
 
 // Variable reactiva para controlar si se muestra la pantalla de bloqueo de sesión
 const showSessionLock = ref(false);

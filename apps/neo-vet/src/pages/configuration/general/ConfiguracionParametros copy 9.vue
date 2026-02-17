@@ -18,26 +18,19 @@
         </q-card>
 
         <div class="row q-col-gutter-lg justify-center items-stretch module-grid-compact">
-          <!-- Tarjetas de Módulos (Híbridas: Base de Datos + Estáticas) -->
-          <div v-for="modulo in todosLosModulos" :key="modulo.identificador" class="col-12 col-sm-6 col-md-3 col-xl-2">
-              <q-card 
-                flat 
-                bordered
-                class="portal-card-light full-height cursor-pointer transition-all relative-position"
-                @click="seleccionarModulo(modulo)"
-              >
-                <!-- Indicador de Navegación Externa -->
-                <div v-if="modulo.ruta || getAccionesAvanzadas(modulo.identificador).length > 0" class="absolute-top-right q-pa-sm">
-                  <q-icon :name="getAccionesAvanzadas(modulo.identificador).length > 0 ? 'auto_awesome' : 'open_in_new'" size="14px" :color="getAccionesAvanzadas(modulo.identificador).length > 0 ? 'orange-4' : 'blue-3'" />
-                  <q-tooltip>{{ getAccionesAvanzadas(modulo.identificador).length > 0 ? 'Incluye Módulo Avanzado' : 'Navegar a sección' }}</q-tooltip>
-                </div>
-
+          <div v-for="modulo in modulos" :key="modulo.id" class="col-12 col-sm-6 col-md-3 col-xl-2">
+            <q-card 
+              flat 
+              bordered
+              class="portal-card-light full-height cursor-pointer transition-all"
+              @click="seleccionarModulo(modulo)"
+            >
               <q-card-section class="q-pa-lg flex flex-center column">
                 <div class="icon-discrete-wrapper q-mb-md flex flex-center transition-all" :style="{ color: getModuleRawColor(modulo.identificador) }">
                   <q-icon :name="getModuleIcon(modulo.identificador)" size="2rem" />
                 </div>
-                <div class="text-subtitle2 text-weight-bold text-uppercase letter-spacing-1 text-center items-center flex justify-center full-width text-blue-grey-8" style="min-height: 40px">
-                  {{ formatDescription(modulo) }}
+                <div class="text-subtitle2 text-weight-bold text-uppercase letter-spacing-1 text-center ellipsis full-width text-blue-grey-8">
+                  {{ modulo.descripcion }}
                 </div>
               </q-card-section>
             </q-card>
@@ -66,7 +59,7 @@
                    <q-icon :name="getModuleIcon(moduloSeleccionado.identificador)" size="sm" color="white" />
                  </div>
                  <div>
-                   <div class="text-h6 text-weight-bold text-uppercase letter-spacing-1">{{ formatDescription(moduloSeleccionado) }}</div>
+                   <div class="text-h6 text-weight-bold text-uppercase letter-spacing-1">{{ moduloSeleccionado.descripcion }}</div>
                    <div class="text-caption text-white opacity-80 uppercase letter-spacing-1 font-weight-bold">Espacio de Trabajo</div>
                  </div>
               </div>
@@ -100,10 +93,6 @@
               
               <q-scroll-area class="full-height" style="height: calc(85vh - 180px)">
                 <q-list padding class="q-px-sm">
-                  <!-- SECCIÓN 1: Tablas Genéricas (DB) -->
-                  <div class="q-px-sm q-pb-xs">
-                    <div class="text-caption text-weight-bold text-blue-grey-3 uppercase letter-spacing-1">Parámetros Simples</div>
-                  </div>
                   <q-item
                     v-for="tabla in tablas"
                     :key="tabla.id"
@@ -124,33 +113,6 @@
                       <div class="dot-active" />
                     </q-item-section>
                   </q-item>
-
-                  <!-- SECCIÓN 2: Acciones Avanzadas (Módulos Especializados) -->
-                  <template v-if="getAccionesAvanzadas(moduloSeleccionado.identificador).length > 0">
-                    <q-separator class="q-my-md opacity-10" />
-                    <div class="q-px-sm q-pb-xs">
-                      <div class="text-caption text-weight-bold text-orange-8 uppercase letter-spacing-1">Gestión Avanzada</div>
-                    </div>
-                    <q-item
-                      v-for="accion in getAccionesAvanzadas(moduloSeleccionado.identificador)"
-                      :key="accion.descripcion"
-                      clickable
-                      v-ripple
-                      class="advanced-action-item q-mb-xs transition-all"
-                      @click="ejecutarAccionAvanzada(accion)"
-                    >
-                      <q-item-section avatar class="min-width-0 q-pr-sm">
-                        <q-icon :name="accion.icon || 'settings'" size="20px" color="orange-8" />
-                      </q-item-section>
-                      <q-item-section>
-                        <q-item-label class="text-weight-bold text-blue-grey-9">{{ accion.descripcion }}</q-item-label>
-                        <q-item-label caption>Configurador robusto</q-item-label>
-                      </q-item-section>
-                      <q-item-section side>
-                        <q-icon name="chevron_right" size="xs" color="orange-3" />
-                      </q-item-section>
-                    </q-item>
-                  </template>
                   
                   <div v-if="tablas.length === 0 && !cargando" class="text-center q-pa-xl opacity-20">
                     <q-icon name="folder_open" size="40px" />
@@ -305,43 +267,15 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
-
-    <!-- HUB V2: HOST DE MÓDULOS ESPECIALIZADOS (Overlay Integrado) -->
-    <q-dialog v-model="hubOverlay.visible" maximized persistent transition-show="slide-up" transition-hide="slide-down">
-      <q-card class="column no-wrap bg-slate-50">
-        <q-btn 
-          round 
-          unelevated 
-          color="primary" 
-          icon="close" 
-          v-close-popup 
-          class="absolute-top-right q-ma-lg z-top shadow-primary"
-          @click="cerrarOverlay"
-        >
-          <q-tooltip>Volver al Centro de Control</q-tooltip>
-        </q-btn>
-        
-        <q-card-section class="col q-pa-none scroll">
-          <component 
-            v-if="hubOverlay.componente" 
-            :is="hubOverlay.componente" 
-            @close="cerrarOverlay"
-            v-bind="hubOverlay.props"
-          />
-        </q-card-section>
-      </q-card>
-    </q-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, watch, computed, defineAsyncComponent } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, watch } from 'vue';
 import useConfiguracionParametros from '../../../composables/useConfiguracionParametros';
 import { useQuasar, exportFile } from 'quasar';
 
 const $q = useQuasar();
-const router = useRouter();
 const { 
   modulos, 
   tablas, 
@@ -363,17 +297,6 @@ const itemEditando = ref({
 });
 const formRef = ref(null);
 
-// HUB V2: Estado para el Overlay de Módulos
-const hubOverlay = ref({
-  visible: false,
-  componente: null,
-  props: {}
-});
-
-// ComponentesAsync para el Hub V2
-const ModuloServiciosDinamicos = defineAsyncComponent(() => import('../generico/ConfiguracionServicios.vue'));
-const ModuloProfesionales = defineAsyncComponent(() => import('./profesional.vue'));
-
 const columnas = [
   { name: 'id', label: 'ID', field: 'id', align: 'left', sortable: true },
   { name: 'descripcion', label: 'Descripción', field: 'descripcion', align: 'left', sortable: true },
@@ -382,52 +305,6 @@ const columnas = [
   { name: 'activo', label: 'Vigencia', field: 'activo', align: 'center', sortable: true },
   { name: 'acciones', label: 'Acciones', align: 'right' }
 ];
-
-// Módulos adicionales que apuntan a rutas específicas (Catálogos Puros)
-const modulosEstaticos = [
-  { identificador: 'USUARIOS_SISTEMA', descripcion: 'Usuarios', ruta: '/usuario' },
-  { identificador: 'PROVEEDORES_CATALOGO', descripcion: 'Proveedores', ruta: '/proveedor' },
-  { identificador: 'TIPOS_PRODUCTO', descripcion: 'Tipos de Producto', ruta: '/productotipo' },
-  { identificador: 'SERVICIOS_CATALOGO', descripcion: 'Servicios', ruta: '/servicio' }
-];
-
-// HUB V3: Mapa de Acciones Avanzadas por Módulo
-const configuracionEspecializada = {
-  'PROFE': [ { descripcion: 'Gestión de Profesionales', icon: 'badge', componente: ModuloProfesionales } ],
-  'SERV': [ { descripcion: 'Gestión de Servicios', icon: 'auto_awesome', componente: ModuloServiciosDinamicos } ],
-  'ATENC': [ { descripcion: 'Gestión de Servicios', icon: 'auto_awesome', componente: ModuloServiciosDinamicos } ],
-  'GENERAL': [ { descripcion: 'Gestión de Profesionales', icon: 'badge', componente: ModuloProfesionales } ],
-  'PERSONAL': [ { descripcion: 'Gestión de Profesionales', icon: 'badge', componente: ModuloProfesionales } ],
-  'RRHH': [ { descripcion: 'Gestión de Profesionales', icon: 'badge', componente: ModuloProfesionales } ]
-};
-
-const getAccionesAvanzadas = (identificador) => {
-  if (!identificador) return [];
-  const id = String(identificador).toUpperCase();
-  
-  // Búsqueda por patrón para ser ultra-resiliente
-  if (id.includes('PROFE') || id.includes('PERSONAL') || id.includes('RRHH') || id.includes('GENERAL') || id.includes('STAFF')) {
-    return configuracionEspecializada['PROFE'];
-  }
-  if (id.includes('SERV') || id.includes('ATENC')) {
-    return configuracionEspecializada['SERV'];
-  }
-  
-  return configuracionEspecializada[id] || [];
-};
-
-const ejecutarAccionAvanzada = (accion) => {
-  if (accion.componente) {
-    hubOverlay.value.componente = accion.componente;
-    hubOverlay.value.visible = true;
-  } else if (accion.ruta) {
-    router.push(accion.ruta);
-  }
-};
-
-const todosLosModulos = computed(() => {
-  return [...modulos.value, ...modulosEstaticos];
-});
 
 const getModuleIcon = (identificador) => {
   const icons = {
@@ -439,13 +316,7 @@ const getModuleIcon = (identificador) => {
     'INVENTARIO': 'inventory_2',
     'LABORATORIO': 'biotech',
     'ESTETICA': 'spa',
-    'HOSPITALIZACION': 'hotel',
-    // Iconos para módulos estáticos
-    'SERVICIOS_DINAMICOS': 'auto_awesome',
-    'SERVICIOS_CATALOGO': 'room_service',
-    'USUARIOS_SISTEMA': 'badge',
-    'PROVEEDORES_CATALOGO': 'local_shipping',
-    'TIPOS_PRODUCTO': 'category'
+    'HOSPITALIZACION': 'hotel'
   };
   return icons[identificador] || 'auto_awesome';
 };
@@ -460,13 +331,7 @@ const getModuleRawColor = (identificador) => {
     'INVENTARIO': '#455A64',
     'LABORATORIO': '#6A1B9A',
     'ESTETICA': '#E91E63',
-    'HOSPITALIZACION': '#009688',
-    // Colores para módulos estáticos
-    'SERVICIOS_DINAMICOS': '#FF9800',
-    'SERVICIOS_CATALOGO': '#027BE3',
-    'USUARIOS_SISTEMA': '#1976D2',
-    'PROVEEDORES_CATALOGO': '#f2c037',
-    'TIPOS_PRODUCTO': '#26A69A'
+    'HOSPITALIZACION': '#009688'
   };
   return colors[identificador] || '#1976D2';
 };
@@ -477,48 +342,7 @@ const getModuleColor = (identificador) => {
 };
 
 const seleccionarModulo = (modulo) => {
-  if (modulo.componente) {
-    hubOverlay.value.componente = modulo.componente;
-    hubOverlay.value.visible = true;
-  } else if (modulo.ruta) {
-    router.push(modulo.ruta);
-  } else {
-    moduloSeleccionado.value = modulo;
-  }
-};
-
-const cerrarOverlay = () => {
-  hubOverlay.value.visible = false;
-  setTimeout(() => {
-    hubOverlay.value.componente = null;
-  }, 300);
-};
-
-const formatDescription = (modulo) => {
-  if (!modulo) return '';
-  const id = String(modulo.identificador || '').toUpperCase().trim();
-  const desc = String(modulo.descripcion || '').toUpperCase();
-  
-  // Prioridad 1: Patrones de Profesionales (incluye GENERAL como fallback común)
-  if (id.includes('PROFE') || id.includes('PERSONAL') || id.includes('STAFF') || id.includes('RRHH') || id === 'GENERAL' || desc.includes('PROFE')) {
-    return 'Profesionales';
-  }
-  
-  // Prioridad 2: Patrones de Servicios
-  if (id.includes('SERV') || id.includes('ATENC') || desc.includes('SERV') || desc.includes('ATENC')) {
-    // Evitar renombrar el catálogo estático a algo genérico
-    if (id === 'SERVICIOS_CATALOGO') return 'Catálogo de Servicios';
-    return 'Servicios';
-  }
-
-  // Mappings específicos restantes
-  const mapping = {
-    'USUARIOS_SISTEMA': 'Usuarios',
-    'PROVEEDORES_CATALOGO': 'Proveedores',
-    'TIPOS_PRODUCTO': 'Tipos de Producto'
-  };
-  
-  return mapping[id] || modulo.descripcion;
+  moduloSeleccionado.value = modulo;
 };
 
 const volverAlPortal = () => {
@@ -716,18 +540,6 @@ const exportarDatos = () => {
   }
   :deep(tbody tr td) { padding: 14px 32px; color: #475569; border-bottom: 1px solid #f8fafc; }
   :deep(tbody tr:hover) { background: #f8faff !important; }
-}
-
-.advanced-action-item {
-  border-radius: 12px;
-  margin: 0 4px;
-  background: rgba(255, 152, 0, 0.03);
-  border: 1px dashed rgba(255, 152, 0, 0.2);
-  &:hover { 
-    background: rgba(255, 152, 0, 0.08); 
-    border-style: solid;
-    border-color: rgba(255, 152, 0, 0.4);
-  }
 }
 
 .search-input-light { width: 280px; }
