@@ -10,11 +10,8 @@
         <q-card flat class="bg-gradient-primary text-white q-mb-md animated fadeInDown shadow-2">
           <q-card-section class="q-pa-sm text-center">
             <div class="row items-center justify-center">
-              <div class="glass-chip-light inline-block q-px-sm q-py-xs q-mr-md">
-                <span class="text-overline text-primary text-weight-bolder letter-spacing-2" style="font-size: 0.6rem">SISTEMA CENTRAL</span>
-              </div>
               <h1 class="text-h5 text-weight-black q-ma-none">Panel de Configuraciones Generales</h1>
-              <q-badge color="white" text-color="primary" class="q-ml-sm text-weight-bold" outline>V3</q-badge>
+              
             </div>
           </q-card-section>
         </q-card>
