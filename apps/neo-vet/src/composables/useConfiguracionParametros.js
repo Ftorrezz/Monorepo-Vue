@@ -75,7 +75,8 @@ export default function useConfiguracionParametros() {
             const data = {
                 ...item,
                 id_modulo: moduloSeleccionado.value.id,
-                id_tabla: tablaSeleccionada.value.id
+                id_tabla: tablaSeleccionada.value.id,
+                id_configuracion: 1,
             };
 
             let res;

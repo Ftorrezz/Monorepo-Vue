@@ -210,22 +210,22 @@
                     :filter="filtroTabla"
                   >
                     <template v-slot:top>
-                      <div class="row full-width items-center q-px-lg q-py-sm bg-blue-1 border-bottom-light">
-                        <div class="text-subtitle1 text-weight-bolder text-primary flex items-center letter-spacing-1">
-                          <q-icon name="table_chart" class="q-mr-sm" size="18px" />
-                          <span class="text-uppercase">{{ tablaSeleccionada.descripcion }}</span>
+                      <div class="row full-width items-center q-px-lg q-py-md bg-blue-1 border-bottom">
+                        <div class="text-subtitle1 text-weight-bolder text-primary uppercase letter-spacing-1">
+                          <q-icon name="table_chart" class="q-mr-sm" />
+                          {{ tablaSeleccionada.descripcion }}
                         </div>
                         <q-space />
                         <div class="row q-gutter-md items-center">
                           <q-input 
                             outlined
                             dense 
+                            rounded
                             bg-color="white"
                             debounce="300" 
                             v-model="filtroTabla" 
-                            placeholder="Buscar en la tabla..."
-                            class="search-input-clean"
-                            style="width: 250px"
+                            placeholder="Buscar en tabla..."
+                            class="search-input-light shadow-1"
                           >
                             <template v-slot:append>
                               <q-icon name="search" size="xs" color="primary" />
@@ -240,21 +240,21 @@
                     </template>
 
                     <template v-slot:body-cell-activo="props">
-                      <q-td :props="props" class="text-center">
+                      <q-td :props="props">
                         <q-chip
                           dense
-                          :color="props.row.activo === 'S' ? 'green-5' : 'grey-4'"
-                          text-color="white"
+                          :color="props.row.activo === 'S' ? 'green-1' : 'grey-1'"
+                          :text-color="props.row.activo === 'S' ? 'green-9' : 'grey-7'"
                           class="text-weight-bold"
                           size="sm"
                         >
-                          {{ props.row.activo === 'S' ? 'Activo' : 'Inactivo' }}
+                          {{ props.row.activo === 'S' ? 'ACTIVO' : 'INACTIVO' }}
                         </q-chip>
                       </q-td>
                     </template>
 
                     <template v-slot:body-cell-acciones="props">
-                      <q-td :props="props" class="text-center">
+                      <q-td :props="props" class="text-right">
                         <q-btn flat round color="primary" icon="edit" size="sm" class="q-mr-xs" @click="editarParametro(props.row)" />
                         <q-btn flat round color="negative" icon="delete" size="sm" @click="confirmarEliminar(props.row)" />
                       </q-td>
@@ -462,7 +462,7 @@ const ModuloServiciosCatalogo = defineAsyncComponent(() => import('./servicio.vu
 const columnas = [
   { name: 'id', label: 'ID', field: 'id', align: 'left', sortable: true },
   { name: 'descripcion', label: 'Descripción', field: 'descripcion', align: 'left', sortable: true },
-  { name: 'identificador', label: 'Identificador', field: 'identificador', align: 'left', sortable: true },
+  { name: 'identificador', label: 'Lógica', field: 'identificador', align: 'left', sortable: true },
   { name: 'paridad', label: 'Paridad', field: 'paridad', align: 'left' },
   { name: 'activo', label: 'Vigencia', field: 'activo', align: 'center', sortable: true },
   { name: 'acciones', label: 'Acciones', align: 'right' }
@@ -812,38 +812,18 @@ const exportarDatos = () => {
 }
 
 .modern-table {
-  background: white;
-  :deep(.q-table__top) { padding: 0; border-bottom: none; }
+  :deep(.q-table__top) { padding: 20px 32px; border-bottom: 1px solid #f8fafc; }
   :deep(thead tr th) { 
-    background-color: #1976d2;
+    background-color: var(--q-primary);
     color: white; 
     font-weight: 700; 
     text-transform: uppercase; 
     font-size: 0.75rem; 
-    padding: 12px 16px;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
+    padding: 16px 32px;
   }
-  :deep(tbody tr:nth-child(even)) {
-    background-color: #fbfbfb;
-  }
-  :deep(tbody td) {
-    font-size: 0.85rem;
-    color: #444;
-    padding: 8px 16px;
-    border-bottom: 1px solid #f0f0f0;
-  }
-}
-
-.border-bottom-light { border-bottom: 1px solid rgba(25, 118, 210, 0.08); }
-
-.search-input-clean {
-  :deep(.q-field__control) {
-    border-radius: 4px;
-    background: white !important;
-  }
-  :deep(.q-field__marginal) {
-    height: 32px;
-  }
+  :deep(tbody tr td) { padding: 14px 32px; color: #475569; border-bottom: 1px solid #f8fafc; }
+  :deep(tbody tr:hover) { background: #f8faff !important; }
 }
 
 .advanced-action-item {

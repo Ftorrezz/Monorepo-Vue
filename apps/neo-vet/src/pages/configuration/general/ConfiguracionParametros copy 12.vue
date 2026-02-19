@@ -1,5 +1,5 @@
 <template>
-  <div class="q-pa-lg bg-slate-50 min-height-screen font-outfit text-blue-grey-10 overflow-hidden relative-position">
+  <div class="q-pa-xl bg-slate-50 min-height-screen font-outfit text-blue-grey-10 overflow-hidden relative-position">
     <!-- Fondo Decorativo Sutil -->
     <div class="light-blob absolute-top-right transition-all" :class="{ 'portal-active': !moduloSeleccionado }" />
     
@@ -7,21 +7,19 @@
       <!-- ETAPA 1: EL PORTAL (Dashboard de Módulos - Versión Compacta) -->
       <div v-if="!moduloSeleccionado" key="portal" class="full-width q-px-lg">
         <!-- Header del Portal (Estilo BaseCrud Compacto) -->
-        <q-card flat class="bg-gradient-primary text-white q-mb-md animated fadeInDown shadow-2">
-          <q-card-section class="q-pa-sm text-center">
-            <div class="row items-center justify-center">
-              <div class="glass-chip-light inline-block q-px-sm q-py-xs q-mr-md">
-                <span class="text-overline text-primary text-weight-bolder letter-spacing-2" style="font-size: 0.6rem">SISTEMA CENTRAL</span>
-              </div>
-              <h1 class="text-h5 text-weight-black q-ma-none">Panel de Configuraciones Generales</h1>
-              <q-badge color="white" text-color="primary" class="q-ml-sm text-weight-bold" outline>V3</q-badge>
+        <q-card flat class="bg-gradient-primary text-white q-mb-lg animated fadeInDown shadow-2">
+          <q-card-section class="q-pa-md text-center">
+            <div class="glass-chip-light inline-block q-px-md q-py-xs q-mb-sm">
+              <span class="text-overline text-primary text-weight-bolder letter-spacing-2">SISTEMA CENTRAL DE PARÁMETROS</span>
             </div>
+            <h1 class="text-h4 text-weight-black q-mt-none q-mb-xs">Centro de Control</h1>
+            <p class="text-caption opacity-80 text-weight-medium q-mb-none">Gestione las configuraciones maestras del ecosistema</p>
           </q-card-section>
         </q-card>
 
-        <div class="row q-col-gutter-sm justify-center items-stretch module-grid-compact">
+        <div class="row q-col-gutter-lg justify-center items-stretch module-grid-compact">
           <!-- Tarjetas de Módulos (Híbridas: Base de Datos + Estáticas) -->
-          <div v-for="modulo in todosLosModulos" :key="modulo.identificador" class="col-6 col-sm-4 col-md-2 col-xl-2">
+          <div v-for="modulo in todosLosModulos" :key="modulo.identificador" class="col-12 col-sm-6 col-md-3 col-xl-2">
               <q-card 
                 flat 
                 bordered
@@ -34,11 +32,11 @@
                   <q-tooltip>{{ getAccionesAvanzadas(modulo.identificador).length > 0 || modulo.componente ? 'Módulo Especializado' : 'Navegar a sección' }}</q-tooltip>
                 </div>
 
-              <q-card-section class="q-pa-md flex flex-center column">
-                <div class="icon-discrete-wrapper q-mb-sm flex flex-center transition-all" :style="{ color: getModuleRawColor(modulo.identificador) }">
-                  <q-icon :name="getModuleIcon(modulo.identificador)" size="1.5rem" />
+              <q-card-section class="q-pa-lg flex flex-center column">
+                <div class="icon-discrete-wrapper q-mb-md flex flex-center transition-all" :style="{ color: getModuleRawColor(modulo.identificador) }">
+                  <q-icon :name="getModuleIcon(modulo.identificador)" size="2rem" />
                 </div>
-                <div class="text-caption text-weight-bold text-uppercase letter-spacing-1 text-center items-center flex justify-center full-width text-blue-grey-8" style="min-height: 32px; line-height: 1.1">
+                <div class="text-subtitle2 text-weight-bold text-uppercase letter-spacing-1 text-center items-center flex justify-center full-width text-blue-grey-8" style="min-height: 40px">
                   {{ formatDescription(modulo) }}
                 </div>
               </q-card-section>
@@ -50,8 +48,8 @@
       <!-- ETAPA 2: EL ESPACIO DE TRABAJO (Panel Light de Gestión) -->
       <div v-else key="workspace" class="full-width animated zoomIn">
         <!-- Header del Workspace (Estilo BaseCrud) -->
-        <q-card flat class="bg-gradient-primary text-white q-mb-md shadow-2">
-          <q-card-section class="q-pa-sm">
+        <q-card flat class="bg-gradient-primary text-white q-mb-lg shadow-2">
+          <q-card-section class="q-pa-md">
             <div class="row items-center no-wrap">
               <q-btn 
                 flat 
@@ -90,8 +88,21 @@
         </q-card>
 
         <div class="row q-col-gutter-lg no-wrap items-stretch" style="height: calc(85vh - 120px)">
-          <!-- VISTA GENÉRICA (Sidebar + Contenido) -->
-          <template v-if="!componenteModuloEspecializado">
+          <!-- VISTA ESPECIALIZADA (Componente Directo) -->
+          <div v-if="componenteEspecializadoActivo" class="col-12 animated fadeIn">
+            <q-card flat class="data-workspace-card-light full-height shadow-minimal overflow-hidden bordered bg-white">
+              <q-scroll-area class="full-height">
+                <component 
+                  :is="componenteEspecializadoActivo" 
+                  @close="volverAlPortal"
+                  v-bind="hubOverlay.props"
+                />
+              </q-scroll-area>
+            </q-card>
+          </div>
+
+          <!-- VISTA GENÉRICA (Sidebar + Tabla) -->
+          <template v-else>
             <!-- Panel Lateral de Tablas (Estilo Listado Moderno) -->
             <div class="col-auto" style="width: 300px">
               <q-card flat class="table-list-card full-height shadow-minimal overflow-hidden bordered">
@@ -104,9 +115,9 @@
               
               <q-scroll-area class="full-height" style="height: calc(85vh - 180px)">
                 <q-list padding class="q-px-sm">
-                  <!-- SECCIÓN 1: Tablas Dinámicas (DB) -->
+                  <!-- SECCIÓN 1: Tablas Genéricas (DB) -->
                   <div class="q-px-sm q-pb-xs">
-                    <div class="text-caption text-weight-bold text-blue-grey-3 uppercase letter-spacing-1">Configuraciones</div>
+                    <div class="text-caption text-weight-bold text-blue-grey-3 uppercase letter-spacing-1">Parámetros Simples</div>
                   </div>
                   <q-item
                     v-for="tabla in tablas"
@@ -119,26 +130,21 @@
                     @click="seleccionarTabla(tabla)"
                   >
                     <q-item-section avatar class="min-width-0 q-pr-sm">
-                      <q-icon 
-                        :name="(!tabla.esGenerica && tabla.esGenerica !== undefined) ? 'auto_awesome' : 'subdirectory_arrow_right'" 
-                        size="14px" 
-                        :color="tablaSeleccionada?.id === tabla.id ? 'primary' : ( (!tabla.esGenerica && tabla.esGenerica !== undefined) ? 'orange-4' : 'grey-4')" 
-                      />
+                      <q-icon name="subdirectory_arrow_right" size="14px" :color="tablaSeleccionada?.id === tabla.id ? 'primary' : 'grey-4'" />
                     </q-item-section>
                     <q-item-section>
                       <q-item-label class="text-weight-bold text-blue-grey-8">{{ tabla.descripcion }}</q-item-label>
-                      <q-item-label v-if="!tabla.esGenerica && tabla.esGenerica !== undefined" caption class="text-orange-8">Módulo Avanzado</q-item-label>
                     </q-item-section>
                     <q-item-section side v-if="tablaSeleccionada?.id === tabla.id">
                       <div class="dot-active" />
                     </q-item-section>
                   </q-item>
 
-                  <!-- SECCIÓN 2: Acciones Avanzadas (Módulos Especializados Estáticos) -->
+                  <!-- SECCIÓN 2: Acciones Avanzadas (Módulos Especializados) -->
                   <template v-if="getAccionesAvanzadas(moduloSeleccionado.identificador).length > 0">
                     <q-separator class="q-my-md opacity-10" />
                     <div class="q-px-sm q-pb-xs">
-                      <div class="text-caption text-weight-bold text-orange-8 uppercase letter-spacing-1">Gestión Especializada</div>
+                      <div class="text-caption text-weight-bold text-orange-8 uppercase letter-spacing-1">Gestión Avanzada</div>
                     </div>
                     <q-item
                       v-for="accion in getAccionesAvanzadas(moduloSeleccionado.identificador)"
@@ -170,62 +176,39 @@
             </q-card>
           </div>
 
-          <!-- Panel Central de Datos / Componente Especializado -->
-          <div class="col grow h-full">
-            <q-card flat class="data-workspace-card-light full-height shadow-minimal overflow-hidden relative-position bordered column no-wrap">
+          <!-- Panel Central de Datos (Estilo Aireado) -->
+          <div class="col grow">
+            <q-card flat class="data-workspace-card-light full-height shadow-minimal overflow-hidden relative-position bordered">
               <q-inner-loading :showing="cargando" color="primary" />
               
               <transition name="fade-slide" mode="out-in">
-                <!-- CASO A: Tabla con Componente Especializado -->
-                <div v-if="tablaSeleccionada && (!tablaSeleccionada.esGenerica && tablaSeleccionada.esGenerica !== undefined)" :key="'spec-' + tablaSeleccionada.id" class="col column no-wrap">
-                   <!-- Barra de Título del Componente (Frame Look) -->
-                  <div class="q-pa-sm bg-grey-1 border-bottom row items-center no-wrap">
-                    <div class="row q-gutter-x-xs q-mx-sm">
-                      <div class="dot-deco bg-negative" />
-                      <div class="dot-deco bg-warning" />
-                      <div class="dot-deco bg-positive" />
-                    </div>
-                    <div class="text-caption text-weight-bold text-grey-6 uppercase letter-spacing-1 q-ml-md">Vista de Configuración Avanzada</div>
-                  </div>
-                  <q-scroll-area class="col">
-                    <div class="q-pa-sm">
-                      <component 
-                        :is="getComponenteEspecializado(tablaSeleccionada.identificador)" 
-                        @close="volverAlPortal"
-                        v-bind="hubOverlay.props"
-                      />
-                    </div>
-                  </q-scroll-area>
-                </div>
-
-                <!-- CASO B: Tabla Genérica Estándar -->
-                <div v-else-if="tablaSeleccionada" :key="'gen-' + tablaSeleccionada.id" class="col column no-wrap">
+                <div v-if="tablaSeleccionada" :key="tablaSeleccionada.id">
                    <q-table
                     :rows="parametros"
                     :columns="columnas"
                     row-key="id"
                     flat
-                    class="modern-table col"
+                    class="modern-table"
                     :pagination="{ rowsPerPage: 15 }"
                     :filter="filtroTabla"
                   >
                     <template v-slot:top>
-                      <div class="row full-width items-center q-px-lg q-py-sm bg-blue-1 border-bottom-light">
-                        <div class="text-subtitle1 text-weight-bolder text-primary flex items-center letter-spacing-1">
-                          <q-icon name="table_chart" class="q-mr-sm" size="18px" />
-                          <span class="text-uppercase">{{ tablaSeleccionada.descripcion }}</span>
+                      <div class="row full-width items-center q-px-lg q-py-md bg-blue-1 border-bottom">
+                        <div class="text-subtitle1 text-weight-bolder text-primary uppercase letter-spacing-1">
+                          <q-icon name="table_chart" class="q-mr-sm" />
+                          {{ tablaSeleccionada.descripcion }}
                         </div>
                         <q-space />
                         <div class="row q-gutter-md items-center">
                           <q-input 
                             outlined
                             dense 
+                            rounded
                             bg-color="white"
                             debounce="300" 
                             v-model="filtroTabla" 
-                            placeholder="Buscar en la tabla..."
-                            class="search-input-clean"
-                            style="width: 250px"
+                            placeholder="Buscar en tabla..."
+                            class="search-input-light shadow-1"
                           >
                             <template v-slot:append>
                               <q-icon name="search" size="xs" color="primary" />
@@ -240,21 +223,21 @@
                     </template>
 
                     <template v-slot:body-cell-activo="props">
-                      <q-td :props="props" class="text-center">
+                      <q-td :props="props">
                         <q-chip
                           dense
-                          :color="props.row.activo === 'S' ? 'green-5' : 'grey-4'"
-                          text-color="white"
+                          :color="props.row.activo === 'S' ? 'green-1' : 'grey-1'"
+                          :text-color="props.row.activo === 'S' ? 'green-9' : 'grey-7'"
                           class="text-weight-bold"
                           size="sm"
                         >
-                          {{ props.row.activo === 'S' ? 'Activo' : 'Inactivo' }}
+                          {{ props.row.activo === 'S' ? 'ACTIVO' : 'INACTIVO' }}
                         </q-chip>
                       </q-td>
                     </template>
 
                     <template v-slot:body-cell-acciones="props">
-                      <q-td :props="props" class="text-center">
+                      <q-td :props="props" class="text-right">
                         <q-btn flat round color="primary" icon="edit" size="sm" class="q-mr-xs" @click="editarParametro(props.row)" />
                         <q-btn flat round color="negative" icon="delete" size="sm" @click="confirmarEliminar(props.row)" />
                       </q-td>
@@ -262,8 +245,7 @@
                   </q-table>
                 </div>
                 
-                <!-- CASO C: Estado Vacío -->
-                <div v-else class="flex flex-center full-height bg-white col">
+                <div v-else class="flex flex-center full-height bg-white">
                   <div class="text-center opacity-30">
                     <q-icon name="keyboard_backspace" size="60px" class="animated infinite bounce-left-light" color="primary" />
                     <div class="text-h6 q-mt-md text-weight-bold text-blue-grey-9">Seleccione una tabla lateral</div>
@@ -273,134 +255,69 @@
             </q-card>
           </div>
           </template>
-
-          <!-- VISTA MODULO ESPECIALIZADO FULL (Legacy/Estaticos) -->
-          <div v-else class="col-12 animated fadeIn">
-            <q-card flat class="data-workspace-card-light full-height shadow-3 overflow-hidden bordered bg-white column no-wrap">
-              <!-- Barra de Título del Componente (Frame Look) -->
-              <div class="q-pa-sm bg-grey-1 border-bottom row items-center no-wrap">
-                <div class="row q-gutter-x-xs q-mx-sm">
-                  <div class="dot-deco bg-negative" />
-                  <div class="dot-deco bg-warning" />
-                  <div class="dot-deco bg-positive" />
-                </div>
-                <div class="text-caption text-weight-bold text-grey-6 uppercase letter-spacing-1 q-ml-md">Vista de Configuración de Sistema</div>
-                <q-space />
-                <q-btn flat round dense icon="close" color="grey-6" @click="volverAlPortal">
-                  <q-tooltip>Cerrar vista</q-tooltip>
-                </q-btn>
-              </div>
-
-              <q-scroll-area class="col">
-                <div class="q-pa-sm">
-                  <component 
-                    :is="componenteModuloEspecializado" 
-                    @close="volverAlPortal"
-                    v-bind="hubOverlay.props"
-                  />
-                </div>
-              </q-scroll-area>
-            </q-card>
-          </div>
         </div>
       </div>
     </transition>
 
-    <!-- Diálogo de Edición Lateral Moderno (Side-Sheet) -->
-    <q-dialog v-model="dialogoVisible" persistent position="right" full-height transition-show="slide-left" transition-hide="slide-right" backdrop-filter="blur(4px)">
-      <q-card style="width: 480px; max-width: 90vw" class="bg-slate-50 flex column no-wrap shadow-24 overflow-hidden">
-        <!-- Header del Dialogo con Degradado -->
-        <q-card-section class="q-pa-none">
-          <div class="bg-gradient-primary text-white q-pa-lg relative-position shadow-2">
-            <div class="row items-center no-wrap">
-              <div class="icon-circle q-mr-md" style="background: rgba(255,255,255,0.2)">
-                <q-icon :name="itemEditando.id ? 'edit' : 'add_circle'" size="sm" color="white" />
-              </div>
-              <div class="col-grow">
-                <div class="text-overline text-white opacity-70 text-weight-bold letter-spacing-1">Editor de Parámetros</div>
-                <div class="text-h5 text-weight-black">{{ itemEditando.id ? 'Modificar Registro' : 'Nuevo Registro' }}</div>
-              </div>
-              <q-btn flat round dense icon="close" color="white" v-close-popup class="opacity-80" />
-            </div>
-          </div>
-        </q-card-section>
-        
-        <q-card-section class="col q-pa-lg scroll">
-          <div class="text-subtitle2 text-grey-7 q-mb-lg flex items-center">
-            <q-icon name="info" class="q-mr-xs" color="grey-5" />
-            Complete los campos para {{ tablaSeleccionada?.descripcion || 'el registro' }}
-          </div>
+    <!-- Diálogo de Edición Profesional -->
+    <q-dialog v-model="dialogoVisible" persistent position="right" full-height>
+      <q-card style="width: 450px" class="bg-white text-blue-grey-10 flex column no-wrap shadow-2xl">
+        <q-card-section class="q-pa-xl">
+          <div class="text-overline text-primary text-weight-bold q-mb-xs">MÓDULO DE EDICIÓN</div>
+          <div class="text-h4 text-weight-black q-mb-xl text-blue-grey-10">{{ itemEditando.id ? 'Modificar' : 'Crear' }}</div>
           
-          <q-form @submit="guardar" ref="formRef" class="q-gutter-y-md">
-            <!-- Sección: Información Principal -->
-            <q-card flat bordered class="bg-white q-pa-md border-radius-16 shadow-minimal-light">
-              <div class="text-caption text-weight-bold text-primary q-mb-md uppercase letter-spacing-1">Identidad</div>
-              <q-input 
-                v-model="itemEditando.descripcion" 
-                label="Nombre / Descripción" 
-                outlined
-                dense
-                bg-color="white"
-                color="primary"
-                stack-label
-                autofocus 
-                :rules="[val => !!val || 'La descripción es obligatoria']" 
-                class="q-mb-sm"
-              >
-                <template v-slot:prepend><q-icon name="description" color="primary" size="xs" /></template>
-              </q-input>
-              
-              <q-input 
-                v-model="itemEditando.identificador" 
-                label="ID de Lógica (Sistema)" 
-                outlined
-                dense
-                bg-color="white"
-                color="primary"
-                stack-label
-                placeholder="EJ: COD_INTERNO"
-                hint="Nombre técnico usado en la lógica interna"
-              >
-                <template v-slot:prepend><q-icon name="terminal" color="primary" size="xs" /></template>
-              </q-input>
-            </q-card>
+          <q-form @submit="guardar" ref="formRef" class="q-gutter-y-lg">
+            <q-input 
+              v-model="itemEditando.descripcion" 
+              label="Descripción" 
+              outlined
+              rounded
+              bg-color="grey-1"
+              color="primary"
+              stack-label
+              autofocus 
+              :rules="[val => !!val || 'El campo es requerido']" 
+            />
             
-            <!-- Sección: Integración / Valor -->
-            <q-card flat bordered class="bg-white q-pa-md border-radius-16 shadow-minimal-light">
-              <div class="text-caption text-weight-bold text-orange-8 q-mb-md uppercase letter-spacing-1">Paridad Técnica</div>
-              <q-input 
-                v-model="itemEditando.paridad" 
-                label="Valor de Paridad / Mapeo" 
-                outlined
-                dense
-                bg-color="white"
-                color="orange-8"
-                stack-label
-                placeholder="Ej: VAL_101"
-                hint="Valor de cruce para integración externa"
-              >
-                <template v-slot:prepend><q-icon name="sync_alt" color="orange-8" size="xs" /></template>
-              </q-input>
-            </q-card>
+            <q-input 
+              v-model="itemEditando.identificador" 
+              label="Identificador del Sistema" 
+              outlined
+              rounded
+              bg-color="grey-1"
+              color="primary"
+              stack-label
+              placeholder="Ej: COD_SYS"
+              hint="Clave interna para funciones lógicas"
+            />
 
-            <!-- Sección: Estado -->
-            <q-card flat bordered class="bg-white q-pa-md border-radius-16 shadow-minimal-light">
-              <div class="row items-center justify-between">
-                <div>
-                  <div class="text-subtitle2 text-weight-bold">Visibilidad del Registro</div>
-                  <div class="text-caption text-grey-6">Habilitar para uso en el sistema</div>
-                </div>
-                <q-toggle v-model="itemEditando.activo" true-value="S" false-value="N" color="positive" size="lg" keep-color />
+            <q-input 
+              v-model="itemEditando.paridad" 
+              label="Valor de Paridad" 
+              outlined
+              rounded
+              bg-color="grey-1"
+              color="primary"
+              stack-label
+              placeholder="Ej: 101"
+              hint="Mapeo con servicios externos"
+            />
+
+            <div class="flex items-center justify-between q-mt-xl bg-blue-grey-1 q-pa-lg rounded-xl">
+              <div>
+                <div class="text-subtitle2 text-weight-bold">Registro Vigente</div>
+                <div class="text-caption text-blue-grey-6">Habilita/Deshabilita el registro en todo el sistema</div>
               </div>
-            </q-card>
+              <q-toggle v-model="itemEditando.activo" true-value="S" false-value="N" color="positive" size="lg" />
+            </div>
           </q-form>
         </q-card-section>
 
-        <q-separator />
+        <q-space />
 
-        <q-card-actions align="center" class="q-pa-lg bg-white">
+        <q-card-actions align="right" class="q-pa-xl border-top bg-grey-1">
            <q-btn flat rounded label="Cancelar" color="blue-grey-6" class="q-px-lg" v-close-popup />
-           <q-btn unelevated rounded label="Sincronizar Datos" color="primary" class="q-px-xl shadow-primary text-weight-bold" @click="guardar" />
+           <q-btn unelevated rounded label="Sincronizar" color="primary" class="q-px-xl shadow-primary" @click="guardar" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -444,12 +361,7 @@ const hubOverlay = ref({
   props: {}
 });
 
-const componenteModuloEspecializado = computed(() => hubOverlay.value.componente);
-
-const getComponenteEspecializado = (identificador) => {
-  const acciones = getAccionesAvanzadas(identificador);
-  return acciones.length > 0 ? acciones[0].componente : null;
-};
+const componenteEspecializadoActivo = computed(() => hubOverlay.value.componente);
 
 // ComponentesAsync para el Hub V2
 const ModuloServiciosDinamicos = defineAsyncComponent(() => import('../generico/ConfiguracionServicios.vue'));
@@ -462,7 +374,7 @@ const ModuloServiciosCatalogo = defineAsyncComponent(() => import('./servicio.vu
 const columnas = [
   { name: 'id', label: 'ID', field: 'id', align: 'left', sortable: true },
   { name: 'descripcion', label: 'Descripción', field: 'descripcion', align: 'left', sortable: true },
-  { name: 'identificador', label: 'Identificador', field: 'identificador', align: 'left', sortable: true },
+  { name: 'identificador', label: 'Lógica', field: 'identificador', align: 'left', sortable: true },
   { name: 'paridad', label: 'Paridad', field: 'paridad', align: 'left' },
   { name: 'activo', label: 'Vigencia', field: 'activo', align: 'center', sortable: true },
   { name: 'acciones', label: 'Acciones', align: 'right' }
@@ -564,6 +476,13 @@ const getModuleColor = (identificador) => {
 };
 
 const seleccionarTabla = (tabla) => {
+  if (tabla.esGenerica === false || tabla.esGenerica === 0) {
+    const acciones = getAccionesAvanzadas(tabla.identificador);
+    if (acciones.length > 0) {
+      ejecutarAccionAvanzada(acciones[0]);
+      return;
+    }
+  }
   tablaSeleccionada.value = tabla;
 };
 
@@ -574,8 +493,12 @@ const seleccionarModulo = (modulo) => {
   } else if (modulo.ruta) {
     router.push(modulo.ruta);
   } else {
-    // Si llegamos aquí es un módulo de la base de datos
-    hubOverlay.value.componente = null;
+    const acciones = getAccionesAvanzadas(modulo.identificador);
+    if (acciones.length === 1 && (tablas.value.length === 0 || modulo.identificador.includes('ATENC') || modulo.identificador.includes('PROFE'))) {
+       hubOverlay.value.componente = acciones[0].componente;
+       moduloSeleccionado.value = modulo;
+       return;
+    }
     moduloSeleccionado.value = modulo;
   }
 };
@@ -622,8 +545,10 @@ const formatDescription = (modulo) => {
 // Auto-seleccionar primera tabla al entrar a un modulo
 watch(tablas, (newTablas) => {
   if (moduloSeleccionado.value && newTablas.length > 0 && !tablaSeleccionada.value) {
-    // Intentamos seleccionar la primera, sea genérica o no, para que el usuario vea algo
-    tablaSeleccionada.value = newTablas[0];
+    const primeraGenerica = newTablas.find(t => t.esGenerica !== false && t.esGenerica !== 0);
+    if (primeraGenerica) {
+      tablaSeleccionada.value = primeraGenerica;
+    }
   }
 });
 
@@ -725,24 +650,18 @@ const exportarDatos = () => {
 }
 
 .portal-card-light {
-  background: #ffffff;
-  border-radius: 16px;
-  border: 1.5px solid rgba(0, 0, 0, 0.12);
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  background: white;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
   
   &:hover {
-    transform: translateY(-5px);
+    transform: translateY(-4px);
     border-color: var(--q-primary);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
-    background: #ffffff;
-    z-index: 10;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    background: #f8fafc;
   }
 }
-
-.border-radius-16 { border-radius: 16px; }
-.shadow-minimal-light { box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
-.bg-slate-50 { background-color: #f8fafc; }
 
 .icon-discrete-wrapper {
   width: 65px;
@@ -790,17 +709,9 @@ const exportarDatos = () => {
   border-radius: 50%;
 }
 
-.dot-deco {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  opacity: 0.6;
-}
-
 .data-workspace-card-light {
   background: white;
-  border-radius: 20px;
-  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 30px;
 }
 
 .bg-gradient-primary {
@@ -812,38 +723,18 @@ const exportarDatos = () => {
 }
 
 .modern-table {
-  background: white;
-  :deep(.q-table__top) { padding: 0; border-bottom: none; }
+  :deep(.q-table__top) { padding: 20px 32px; border-bottom: 1px solid #f8fafc; }
   :deep(thead tr th) { 
-    background-color: #1976d2;
+    background-color: var(--q-primary);
     color: white; 
     font-weight: 700; 
     text-transform: uppercase; 
     font-size: 0.75rem; 
-    padding: 12px 16px;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
+    padding: 16px 32px;
   }
-  :deep(tbody tr:nth-child(even)) {
-    background-color: #fbfbfb;
-  }
-  :deep(tbody td) {
-    font-size: 0.85rem;
-    color: #444;
-    padding: 8px 16px;
-    border-bottom: 1px solid #f0f0f0;
-  }
-}
-
-.border-bottom-light { border-bottom: 1px solid rgba(25, 118, 210, 0.08); }
-
-.search-input-clean {
-  :deep(.q-field__control) {
-    border-radius: 4px;
-    background: white !important;
-  }
-  :deep(.q-field__marginal) {
-    height: 32px;
-  }
+  :deep(tbody tr td) { padding: 14px 32px; color: #475569; border-bottom: 1px solid #f8fafc; }
+  :deep(tbody tr:hover) { background: #f8faff !important; }
 }
 
 .advanced-action-item {
