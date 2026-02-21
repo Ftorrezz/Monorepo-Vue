@@ -110,6 +110,7 @@ export default {
           tipoprofesional: 'Type Professional'
 
         },
+        configuracionparametros: 'Configuration Panel',
 
       },
       pet: {

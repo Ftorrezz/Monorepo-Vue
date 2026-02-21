@@ -161,9 +161,23 @@
                             <q-input
                               v-model="profesional.cedula"
                               label="Cédula *"
-                              :rules="[
-                                (val) => !!val || 'La cédula es requerida',
-                              ]"
+                              dense
+                            />
+                          </div>
+
+                          <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                            <ListaGenero
+                              v-model="profesional.id_genero"
+                              dense
+                            />
+                          </div>
+
+                          <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                            <q-input
+                              v-model="profesional.fechanacimiento"
+                              label="Fecha de Nacimiento"
+                              type="date"
+                              class="full-width"
                               dense
                             />
                           </div>
@@ -176,7 +190,7 @@
                             />
                           </div>
 
-                          <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                          <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                             <q-input
                               v-model="profesional.telefono1"
                               label="Teléfono móvil *"
@@ -191,9 +205,21 @@
                               </template>
                             </q-input>
                           </div>
+
+                          <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                            <q-input
+                              v-model="profesional.telefono2"
+                              label="Teléfono adicional"
+                              dense
+                            >
+                              <template v-slot:prepend>
+                                <q-icon name="phone" />
+                              </template>
+                            </q-input>
+                          </div>
                         
                           <!-- Correo y teléfono alineados -->
-                          <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                          <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                             <q-input
                               v-model="profesional.email"
                               label="Correo electrónico"
@@ -204,6 +230,20 @@
                                 <q-icon name="mail" />
                               </template>
                             </q-input>
+                          </div>
+
+                          <!-- Campo Activo -->
+                          <div class="col-lg-1 col-md-1 col-sm-12 col-xs-12 flex items-center justify-center">
+                            <q-toggle
+                              v-model="profesional.activo"
+                              true-value="S"
+                              false-value="N"
+                              color="positive"
+                              dense
+                              keep-color
+                            >
+                              <q-tooltip>Estado: {{ profesional.activo === 'S' ? 'Activo' : 'Inactivo' }}</q-tooltip>
+                            </q-toggle>
                           </div>
                         </div>
                       </q-card-section>
@@ -285,32 +325,7 @@
                 </q-card>
               </div>
 
-              <!-- Observaciones -->
-              <div class="col-12">
-                <q-card flat bordered class="modern-notes-card">
-                  <q-card-section>
-                    <div class="row items-center q-mb-md">
-                      <q-icon
-                        name="notes"
-                        color="primary"
-                        size="sm"
-                        class="q-mr-sm"
-                      />
-                      <div class="text-subtitle1 text-primary">
-                        Observaciones
-                      </div>
-                    </div>
-                    <q-input
-                      v-model="profesional.observaciones"
-                      type="textarea"
-                      label="Observaciones"
-                      rows="3"
-                      class="full-width"
-                      dense
-                    />
-                  </q-card-section>
-                </q-card>
-              </div>
+              
             </div>
           </q-form>
         </q-card-section>
@@ -331,6 +346,7 @@
 import { ref, onBeforeUnmount, watch } from "vue";
 import { QForm, useQuasar } from "quasar";
 import ListaTipoProfesional from "../../../../../libs/shared/src/components/listas/ListaTipoProfesional.vue";
+import ListaGenero from "../../../../../libs/shared/src/components/listas/ListaGenero.vue";
 import ListaPais from "../../../../../libs/shared/src/components/listas/ListaPais.vue";
 import ListaEstado from "../../../../../libs/shared/src/components/listas/ListaEstado.vue";
 import ListaMunicipio from "../../../../../libs/shared/src/components/listas/ListaMunicipio.vue";
@@ -339,8 +355,9 @@ import OpcionCancelarGuardar from "../OpcionCancelarGuardar.vue";
 import PeticionService from "src/services/peticion.service";
 import NdAlertasControl from "src/controles/alertas.control";
 import { obtenerIDValue } from "../../../../../libs/shared/src/helper/FuncionesGenericas";
+import { useDialogStore } from "src/stores/DialogoUbicacion";
 
-
+const store = useDialogStore()
 let alertas = new NdAlertasControl();
 
 const props = defineProps({
@@ -355,8 +372,11 @@ const props = defineProps({
       telefono1: "",
       telefono2: "",
       cedula: "",
+      id_genero: null,
+      id_estadocivil: null,
+      
+      fechanacimiento: null,
       id_tipoprofesional: null,
-      observaciones: "",
       // Campos para el domicilio
       id_pais: null,
       id_estado: null,
@@ -367,7 +387,8 @@ const props = defineProps({
       interior: "",
       codigopostal: "",
       activo: "S",
-      id_sitio: 1
+      id_sitio: 1,
+      id_sucursal: 1,
     }),
   },
 });
@@ -474,10 +495,25 @@ const guardarProfesional = async () => {
 
     // Transformar los campos de ID que podrían ser objetos
     datosProfesionalPayload.id_tipoprofesional = obtenerIDValue(datosProfesionalPayload.id_tipoprofesional);
+    datosProfesionalPayload.id_genero = obtenerIDValue(datosProfesionalPayload.id_genero);
+    
+    
     datosProfesionalPayload.id_pais = obtenerIDValue(datosProfesionalPayload.id_pais);
     datosProfesionalPayload.id_estado = obtenerIDValue(datosProfesionalPayload.id_estado);
     datosProfesionalPayload.id_municipio = obtenerIDValue(datosProfesionalPayload.id_municipio);
     datosProfesionalPayload.id_colonia = obtenerIDValue(datosProfesionalPayload.id_colonia);
+    
+    // Garantizar que todos los campos requeridos por el backend se envíen
+    // incluso si están vacíos.
+    datosProfesionalPayload.id_sucursal = store.id_sucursal;
+    datosProfesionalPayload.activo = profesional.value.activo || 'S';
+    // Campos de texto que deben ir como strings (vacíos si es necesario)
+    datosProfesionalPayload.calle = profesional.value.calle || "";
+    datosProfesionalPayload.exterior = profesional.value.exterior || "";
+    datosProfesionalPayload.interior = profesional.value.interior || "";
+    datosProfesionalPayload.codigopostal = profesional.value.codigopostal || "";
+    datosProfesionalPayload.telefono2 = profesional.value.telefono2 || "";
+    datosProfesionalPayload.email = profesional.value.email || "";
 
     if (datosProfesionalPayload.id) {
       // Actualizar profesional existente

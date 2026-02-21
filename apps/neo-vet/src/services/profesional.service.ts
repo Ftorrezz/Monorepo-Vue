@@ -9,11 +9,10 @@ export interface Profesional {
     segundoapellido?: string
     especialidad?: string
     cedula?: string
-    id_tipoprofesional?: number | any
-    tipoprofesional?: any
-    email?: string
-    telefono1?: string
-    telefono2?: string
+    id_genero?: number | any
+    id_estadocivil?: number | any
+    id_escolaridad?: number | any
+    fechanacimiento?: string | null
     observaciones?: string
     // Dirección
     id_pais?: number | any
@@ -26,6 +25,8 @@ export interface Profesional {
     codigopostal?: string
 
     activo?: string
+    id_sitio?: number | any
+    id_sucursal?: number | any
 }
 
 export const profesionalService = {

@@ -100,8 +100,6 @@ export const menuConfig = [
           { labelKey: "mainMenu.settings.schedule.service", icon: "schedule", to: "/agendaservicio" },
           { labelKey: "Generar Agenda", icon: "autorenew", to: "/generar-agenda" },
           { labelKey: "mainMenu.settings.schedule.citaMotivo", icon: "schedule", to: "/config/citamotivo" },
-          //{ labelKey: "mainMenu.settings.schedule.configureHours", icon: "schedule", to: "/config/horarios" },
-          //{ labelKey: "mainMenu.settings.schedule.holidays", icon: "event", to: "/config/festivos" },
           { labelKey: "mainMenu.settings.schedule.reminders", icon: "notification_important", to: "/config/recordatorios" },
         ],
       },
@@ -109,16 +107,12 @@ export const menuConfig = [
         labelKey: "mainMenu.settings.general.title",
         icon: "tune",
         subItems: [
-          {
-            labelKey: "mainMenu.settings.general.services.title",
-            icon: "medical_services",
-            subItems: [
-              { labelKey: "Servicios Dinámicos", icon: "auto_awesome", to: "/config/servicios-dinamicos" },
 
-            ]
-          },
-          { labelKey: "mainMenu.settings.general.location", icon: "place", to: "/config/ubicacion" },
-          {
+
+          { labelKey: "Servicios Dinámicos", icon: "auto_awesome", to: "/config/servicios-dinamicos" },
+
+          //{ labelKey: "mainMenu.settings.general.location", icon: "place", to: "/config/ubicacion" },
+          /*{
             labelKey: "mainMenu.settings.general.staff.title",
             icon: "group",
             subItems: [
@@ -127,7 +121,7 @@ export const menuConfig = [
               { labelKey: "mainMenu.settings.general.staff.workHours", icon: "access_time", to: "/config/horarios-personal" },
               { labelKey: "mainMenu.settings.general.staff.permissions", icon: "security", to: "/config/permisos" },
             ]
-          },
+          },*/
           {
             labelKey: "mainMenu.settings.general.profesional.title",
             icon: "person",
@@ -146,20 +140,21 @@ export const menuConfig = [
         icon: "pets",
         subItems: [
 
-          { labelKey: "mainMenu.settings.pet.physical.color", icon: "color_lens", to: "/config/mascota/color" },
+          /*{ labelKey: "mainMenu.settings.pet.physical.color", icon: "color_lens", to: "/config/mascota/color" },
           { labelKey: "mainMenu.settings.pet.physical.breed", icon: "pets", to: "/config/mascota/razamascota" },
           { labelKey: "mainMenu.settings.pet.biological.species", icon: "category", to: "/config/mascota/especie" },
           { labelKey: "mainMenu.settings.pet.biological.sex", icon: "wc", to: "/config/mascota/sexo" },
           { labelKey: "mainMenu.settings.pet.behavior.character", icon: "sentiment_satisfied", to: "/config/mascota/caracter" },
           { labelKey: "mainMenu.settings.pet.care.diet", icon: "restaurant", to: "/config/mascota/dieta" },
           { labelKey: "mainMenu.settings.pet.care.habitat", icon: "home", to: "/config/mascota/habitat" },
+           */
         ],
       },
       {
         labelKey: "mainMenu.settings.owner.title",
         icon: "person",
         subItems: [
-          {
+          /*{
             labelKey: "mainMenu.settings.owner.personal.title",
             icon: "account_circle",
             subItems: [
@@ -171,7 +166,7 @@ export const menuConfig = [
               { labelKey: "mainMenu.settings.owner.cultural.raza", icon: "wc", to: "/config/propietario/raza" },
 
             ]
-          }
+          }*/
         ],
       },
       {

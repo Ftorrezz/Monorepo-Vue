@@ -111,6 +111,7 @@ export default {
           tipoprofesional: 'Tipo Profesional'
 
         },
+        configuracionparametros: 'Panel de Configuración',
       },
       pet: {
         title: 'Mascota',
