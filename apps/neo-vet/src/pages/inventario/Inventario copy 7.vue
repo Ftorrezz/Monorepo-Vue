@@ -47,28 +47,8 @@
       </q-card-section>
     </q-card>
 
-    <!-- Tabs de navegación -->
-    <q-card flat class="q-mb-sm">
-      <q-tabs
-        v-model="tabSeleccionada"
-        dense
-        class="text-grey-7"
-        active-color="primary"
-        indicator-color="primary"
-        align="left"
-        narrow-indicator
-      >
-        <q-tab name="productos" icon="inventory_2" label="Inventario" />
-        <q-tab name="proveedores" icon="local_shipping" label="Proveedores" />
-        <q-tab name="movimientos" icon="history" label="Movimientos" />
-      </q-tabs>
-    </q-card>
-
-    <q-tab-panels v-model="tabSeleccionada" animated class="bg-transparent">
-      <!-- PANEL DE PRODUCTOS -->
-      <q-tab-panel name="productos" class="q-pa-none">
-        <!-- Filtros y estadísticas -->
-        <q-card flat class="q-mb-md">
+    <!-- Filtros y estadísticas -->
+    <q-card flat class="q-mb-md">
       <q-card-section class="q-pa-md">
         <div class="row items-center q-gutter-md">
           <div class="col-12 col-md-3">
@@ -671,113 +651,11 @@
         </q-card-section>
       </q-card>
     </q-dialog>
-      </q-tab-panel>
-
-    <!-- PANEL DE PROVEEDORES -->
-    <q-tab-panel name="proveedores" class="q-pa-none">
-      <q-card flat class="q-mb-md">
-        <q-card-section class="q-pa-md">
-          <div class="row items-center q-gutter-md">
-            <div class="col-12 col-md-4">
-              <q-input v-model="filtroProveedor" label="Buscar proveedor..." outlined dense clearable>
-                <template v-slot:prepend><q-icon name="search" /></template>
-              </q-input>
-            </div>
-            <q-space />
-            <q-btn color="primary" icon="add" label="Nuevo Proveedor" @click="mostrarModalProveedor = true" unelevated />
-          </div>
-        </q-card-section>
-      </q-card>
-
-      <q-table
-        :rows="proveedoresFiltrados"
-        :columns="columnasProveedores"
-        row-key="id"
-        flat
-        bordered
-        :loading="cargando"
-      >
-        <template v-slot:body-cell-activo="props">
-          <q-td :props="props">
-            <q-chip :color="props.value ? 'positive' : 'grey'" text-color="white" dense>
-              {{ props.value ? 'Activo' : 'Inactivo' }}
-            </q-chip>
-          </q-td>
-        </template>
-        <template v-slot:body-cell-acciones="props">
-          <q-td :props="props" class="text-right q-gutter-xs">
-            <q-btn flat round dense color="primary" icon="edit" @click="editarProveedor(props.row)" />
-            <q-btn flat round dense color="negative" icon="delete" @click="eliminarProveedor(props.row.id)" />
-          </q-td>
-        </template>
-      </q-table>
-    </q-tab-panel>
-
-    <q-tab-panel name="movimientos" class="q-pa-none">
-      <q-card flat class="q-mb-md">
-        <q-card-section>
-          <div class="text-h6">Historial de Movimientos</div>
-          <div class="text-caption">Registro de todas las entradas, salidas y ventas</div>
-        </q-card-section>
-      </q-card>
-      
-      <q-table
-        :rows="historialMovimientos"
-        :columns="columnasHistorial"
-        row-key="id"
-        flat
-        bordered
-        dense
-        :loading="cargando"
-      >
-        <template v-slot:body-cell-tipo="props">
-          <q-td :props="props">
-            <q-chip 
-              :color="getTipoMovimientoColor(props.value)"
-              text-color="white"
-              :label="getTipoMovimientoLabel(props.value)"
-              size="sm"
-              dense
-            />
-          </q-td>
-        </template>
-      </q-table>
-    </q-tab-panel>
-    </q-tab-panels>
-
-    <!-- Modal para Proveedor -->
-    <q-dialog v-model="mostrarModalProveedor" persistent>
-      <q-card style="min-width: 400px">
-        <q-card-section class="bg-primary text-white">
-          <div class="text-h6">{{ proveedorEditando ? 'Editar Proveedor' : 'Nuevo Proveedor' }}</div>
-        </q-card-section>
-        <q-card-section class="q-gutter-sm">
-          <q-input v-model="proveedorTemporal.nombre" label="Nombre *" outlined dense />
-          <q-input v-model="proveedorTemporal.razonSocial" label="Razón Social" outlined dense />
-          <q-input v-model="proveedorTemporal.rfc" label="RFC" outlined dense />
-          <q-input v-model="proveedorTemporal.telefono" label="Teléfono" outlined dense />
-          <q-input v-model="proveedorTemporal.email" label="Email" outlined dense />
-          <q-input v-model="proveedorTemporal.contacto" label="Persona de Contacto" outlined dense />
-        </q-card-section>
-        <q-card-actions align="right">
-          <q-btn flat label="Cancelar" v-close-popup />
-          <q-btn color="primary" label="Guardar" @click="guardarProveedor" unelevated />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
-    <q-inner-loading :showing="cargando">
-      <q-spinner-gears size="50px" color="primary" />
-    </q-inner-loading>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, reactive } from 'vue'
-import { useQuasar } from 'quasar'
-import inventarioService from 'src/services/inventario.service'
-
-const $q = useQuasar()
+import { ref, computed, watch, onMounted } from 'vue'
 
 // Props
 const props = defineProps({
@@ -790,36 +668,21 @@ const props = defineProps({
 // Emits
 const emit = defineEmits(['inventario-actualizado', 'venta-procesada', 'movimiento-registrado'])
 
-// Estados de navegación
-const tabSeleccionada = ref('productos')
-
-// Estados principales poblados desde API
-const productos = ref([])
-const proveedores = ref([])
-const lotes = ref([])
-const ubicaciones = ref([])
-const categorias = ref([])
-const tiposProducto = ref([])
-const unidadesMedida = ref([])
-
-const configuracionInventario = ref({
-  diasAlertaVencimiento: 30,
-  monedaLocal: 'MXN'
+// Estados principales
+const inventario = ref({
+  productos: [],
+  configuracion: {
+    diasAlertaVencimiento: 30,
+    monedaLocal: 'MXN'
+  }
 })
-
-// Estados de carga
-const cargando = ref(false)
 
 // Estados de modales
 const mostrarModalProducto = ref(false)
-const mostrarModalProveedor = ref(false)
-const mostrarModalLote = ref(false)
 const mostrarModalVenta = ref(false)
 const mostrarModalAjusteStock = ref(false)
 const mostrarModalHistorial = ref(false)
 const productoEditando = ref(null)
-const proveedorEditando = ref(null)
-const loteEditando = ref(null)
 const productoParaAjustar = ref(null)
 
 // Estados de filtros
@@ -827,7 +690,6 @@ const filtroTexto = ref('')
 const filtroCategoria = ref('')
 const filtroTipo = ref('')
 const filtroEstado = ref('')
-const filtroProveedor = ref('')
 const filtroHistorial = ref('')
 const filtroTipoMovimiento = ref('')
 const filtroFechaDesde = ref('')
@@ -884,35 +746,6 @@ const productosDisponiblesParaVenta = ref([])
 // Historial de movimientos
 const movimientos = ref([])
 
-// Estados temporales para proveedores
-const proveedorTemporal = ref({
-  id: null,
-  nombre: '',
-  razonSocial: '',
-  rfc: '',
-  telefono: '',
-  email: '',
-  direccion: '',
-  contacto: '',
-  notas: '',
-  activo: true
-})
-
-// Estados temporales para lotes
-const loteTemporal = ref({
-  id: null,
-  productoId: null,
-  proveedorId: null,
-  numeroLote: '',
-  fechaVencimiento: '',
-  fechaIngreso: new Date().toISOString().substr(0, 10),
-  cantidad: 0,
-  cantidadDisponible: 0,
-  costoUnitario: 0,
-  ubicacionId: null,
-  activo: true
-})
-
 // Opciones para selects
 const categoriasDisponibles = [
   { label: 'Medicamentos', value: 'medicamentos' },
@@ -959,66 +792,48 @@ const pacientesDisponibles = ref([
   { id: 3, nombre: 'Rocky - Perro Bulldog' }
 ])
 
-const columnasProveedores = [
-  { name: 'nombre', label: 'Nombre', field: 'nombre', align: 'left', sortable: true },
-  { name: 'contacto', label: 'Contacto', field: 'contacto', align: 'left' },
-  { name: 'telefono', label: 'Teléfono', field: 'telefono', align: 'left' },
-  { name: 'email', label: 'Email', field: 'email', align: 'left' },
-  { name: 'activo', label: 'Estado', field: 'activo', align: 'center' },
-  { name: 'acciones', label: 'Acciones', field: 'acciones', align: 'right' }
-]
-
 // Computed properties
 const productosFiltrados = computed(() => {
-  let listado = productos.value.filter(p => p.activo)
+  let productos = inventario.value.productos.filter(p => p.activo)
   
   if (filtroTexto.value) {
     const texto = filtroTexto.value.toLowerCase()
-    listado = listado.filter(p => 
+    productos = productos.filter(p => 
       p.nombre.toLowerCase().includes(texto) ||
       p.descripcion?.toLowerCase().includes(texto) ||
-      p.codigo?.toLowerCase().includes(texto)
+      p.lote?.toLowerCase().includes(texto) ||
+      p.proveedor?.toLowerCase().includes(texto)
     )
   }
   
   if (filtroCategoria.value) {
-    listado = listado.filter(p => p.categoriaId === filtroCategoria.value.value)
+    productos = productos.filter(p => p.categoria === filtroCategoria.value.value)
   }
   
   if (filtroTipo.value) {
-    listado = listado.filter(p => p.tipoId === filtroTipo.value.value)
+    productos = productos.filter(p => p.tipo === filtroTipo.value.value)
   }
   
   if (filtroEstado.value) {
-    listado = listado.filter(p => {
+    productos = productos.filter(p => {
       const estadoProducto = getEstadoStock(p)
       return estadoProducto === filtroEstado.value.value
     })
   }
   
-  return listado
+  return productos
 })
 
 const estadisticasGenerales = computed(() => {
-  const activos = productos.value.filter(p => p.activo)
+  const productos = inventario.value.productos.filter(p => p.activo)
   
   return {
-    totalProductos: activos.length,
-    stockBajo: activos.filter(p => getEstadoStock(p) === 'stock_bajo').length,
-    sinStock: activos.filter(p => getEstadoStock(p) === 'sin_stock').length,
-    proximosVencer: activos.filter(p => getEstadoStock(p) === 'proximo_vencer').length,
-    valorTotal: activos.reduce((acc, p) => acc + ((p.stockActual || 0) * (p.costoPromedio || 0)), 0)
+    totalProductos: productos.length,
+    stockBajo: productos.filter(p => getEstadoStock(p) === 'stock_bajo').length,
+    sinStock: productos.filter(p => getEstadoStock(p) === 'sin_stock').length,
+    proximosVencer: productos.filter(p => getEstadoStock(p) === 'proximo_vencer').length,
+    valorTotal: productos.reduce((acc, p) => acc + (p.stockUnidades * p.costoUnitario), 0)
   }
-})
-
-const proveedoresFiltrados = computed(() => {
-  if (!filtroProveedor.value) return proveedores.value
-  const texto = filtroProveedor.value.toLowerCase()
-  return proveedores.value.filter(p => 
-    p.nombre.toLowerCase().includes(texto) || 
-    p.contacto?.toLowerCase().includes(texto) ||
-    p.rfc?.toLowerCase().includes(texto)
-  )
 })
 
 const historialMovimientos = computed(() => {
@@ -1210,7 +1025,7 @@ const isProximoVencer = (fechaVencimiento) => {
   const fecha = new Date(fechaVencimiento)
   const ahora = new Date()
   const diffDias = Math.floor((fecha - ahora) / (1000 * 60 * 60 * 24))
-  return diffDias <= configuracionInventario.value.diasAlertaVencimiento && diffDias >= 0
+  return diffDias <= inventario.value.configuracion.diasAlertaVencimiento && diffDias >= 0
 }
 
 const calcularDosisDisponibles = (producto) => {
@@ -1254,34 +1069,70 @@ const editarProducto = (producto) => {
   mostrarModalProducto.value = true
 }
 
-const guardarProducto = async () => {
+const guardarProducto = () => {
   if (!validarProducto()) return
   
-  cargando.value = true
-  try {
-    const payload = { ...productoTemporal.value }
-    // Mapear campos si es necesario
-    payload.categoriaId = payload.categoria?.value || payload.categoriaId
-    payload.tipoId = payload.tipo?.value || payload.tipoId
-    
-    if (productoEditando.value) {
-      await inventarioService.productos.update(productoEditando.value.id, payload)
-      $q.notify({ color: 'positive', message: 'Producto actualizado con éxito' })
-    } else {
-      await inventarioService.productos.create(payload)
-      $q.notify({ color: 'positive', message: 'Producto creado con éxito' })
+  const ahora = new Date().toISOString()
+  
+  if (productoEditando.value) {
+    // Editar producto existente
+    const index = inventario.value.productos.findIndex(p => p.id === productoEditando.value.id)
+    if (index !== -1) {
+      inventario.value.productos[index] = { 
+        ...productoTemporal.value,
+        fechaModificacion: ahora
+      }
+      
+      // Registrar movimiento si cambió el stock
+      if (inventario.value.productos[index].stockUnidades !== productoEditando.value.stockUnidades) {
+        const diferencia = inventario.value.productos[index].stockUnidades - productoEditando.value.stockUnidades
+        registrarMovimiento({
+          tipo: diferencia > 0 ? 'ajuste_positivo' : 'ajuste_negativo',
+          productoId: productoEditando.value.id,
+          producto: productoTemporal.value.nombre,
+          cantidad: Math.abs(diferencia),
+          motivo: 'Ajuste por edición de producto',
+          stockAnterior: productoEditando.value.stockUnidades,
+          stockNuevo: inventario.value.productos[index].stockUnidades
+        })
+      }
+    }
+  } else {
+    // Nuevo producto
+    const nuevoProducto = {
+      ...productoTemporal.value,
+      id: `prod_${Date.now()}`,
+      fechaCreacion: ahora,
+      fechaModificacion: ahora
     }
     
-    await cargarDatos()
-    mostrarModalProducto.value = false
-    productoEditando.value = null
-    limpiarProductoTemporal()
-  } catch (error) {
-    console.error('Error al guardar producto:', error)
-    $q.notify({ color: 'negative', message: 'Error al procesar la solicitud' })
-  } finally {
-    cargando.value = false
+    // Calcular dosisTotal si es medicamento fraccionado
+    if (nuevoProducto.manejoFraccionado) {
+      nuevoProducto.dosisTotal = Math.floor(
+        nuevoProducto.contenidoPorEnvase / nuevoProducto.dosisPorAplicacion
+      )
+    }
+    
+    inventario.value.productos.push(nuevoProducto)
+    
+    // Registrar movimiento inicial si hay stock
+    if (nuevoProducto.stockUnidades > 0) {
+      registrarMovimiento({
+        tipo: 'entrada',
+        productoId: nuevoProducto.id,
+        producto: nuevoProducto.nombre,
+        cantidad: nuevoProducto.stockUnidades,
+        motivo: 'Stock inicial del producto',
+        stockAnterior: 0,
+        stockNuevo: nuevoProducto.stockUnidades
+      })
+    }
   }
+  
+  mostrarModalProducto.value = false
+  productoEditando.value = null
+  limpiarProductoTemporal()
+  guardarDatos()
 }
 
 const validarProducto = () => {
@@ -1610,123 +1461,140 @@ const verMovimientos = (producto) => {
   mostrarModalHistorial.value = true
 }
 
-// Métodos para proveedores
-const editarProveedor = (proveedor) => {
-  proveedorEditando.value = proveedor
-  proveedorTemporal.value = { ...proveedor }
-  mostrarModalProveedor.value = true
-}
-
-const guardarProveedor = async () => {
-  if (!proveedorTemporal.value.nombre) return
-  
-  cargando.value = true
-  try {
-    if (proveedorEditando.value) {
-      await inventarioService.proveedores.update(proveedorEditando.value.id, proveedorTemporal.value)
-      $q.notify({ color: 'positive', message: 'Proveedor actualizado' })
-    } else {
-      await inventarioService.proveedores.create(proveedorTemporal.value)
-      $q.notify({ color: 'positive', message: 'Proveedor creado' })
-    }
-    await cargarDatos()
-    mostrarModalProveedor.value = false
-    proveedorEditando.value = null
-    limpiarProveedorTemporal()
-  } catch (error) {
-    $q.notify({ color: 'negative', message: 'Error al guardar proveedor' })
-  } finally {
-    cargando.value = false
-  }
-}
-
-const eliminarProveedor = async (id) => {
-  $q.dialog({
-    title: 'Eliminar Proveedor',
-    message: '¿Estás seguro de que deseas eliminar este proveedor?',
-    cancel: true,
-    persistent: true
-  }).onOk(async () => {
-    try {
-      await inventarioService.proveedores.delete(id)
-      $q.notify({ color: 'positive', message: 'Proveedor eliminado' })
-      await cargarDatos()
-    } catch (error) {
-      $q.notify({ color: 'negative', message: 'Error al eliminar proveedor' })
-    }
-  })
-}
-
-const limpiarProveedorTemporal = () => {
-  proveedorTemporal.value = {
-    id: null,
-    nombre: '',
-    razonSocial: '',
-    rfc: '',
-    telefono: '',
-    email: '',
-    direccion: '',
-    contacto: '',
-    notas: '',
-    activo: true
-  }
-}
-
 const verHistorialMovimientos = () => {
   filtroHistorial.value = ''
   mostrarModalHistorial.value = true
 }
 
 // Métodos de persistencia
-const cargarDatos = async () => {
-  cargando.value = true
-  try {
-    const [
-      resProd, 
-      resProv, 
-      resCat, 
-      resTip, 
-      resUni, 
-      resUbi
-    ] = await Promise.all([
-      inventarioService.productos.getAll(),
-      inventarioService.proveedores.getAll(),
-      inventarioService.categorias.getAll(),
-      inventarioService.tipos.getAll(),
-      inventarioService.unidades.getAll(),
-      inventarioService.ubicaciones.getActive()
-    ])
-
-    productos.value = resProd.data
-    proveedores.value = resProv.data
-    categorias.value = resCat.data
-    tiposProducto.value = resTip.data
-    unidadesMedida.value = resUni.data
-    ubicaciones.value = resUbi.data
-
-    // Si hay lotes por cargar para el producto seleccionado o general
-    // resLotes = await inventarioService.lotes.getAll()
-    // lotes.value = resLotes.data
-    
-  } catch (error) {
-    console.error('Error al cargar datos de inventario:', error)
-    $q.notify({
-      color: 'negative',
-      message: 'No se pudieron cargar los datos del inventario',
-      icon: 'error'
-    })
-  } finally {
-    cargando.value = false
-  }
-}
-
 const guardarDatos = () => {
-  // Ahora el guardado es individual por entidad, pero podemos emitir el estado actual
+  // Aquí se guardarían los datos en el backend o localStorage
   emit('inventario-actualizado', {
-    productos: productos.value,
-    proveedores: proveedores.value
+    inventario: inventario.value,
+    movimientos: movimientos.value
   })
 }
+
+const cargarDatos = () => {
+  // Cargar datos iniciales para demostración
+  inventario.value = {
+    productos: [
+      {
+        id: 'prod_001',
+        nombre: 'Amoxicilina 250mg - Frasco 100ml',
+        descripcion: 'Antibiótico de amplio espectro para uso veterinario',
+        categoria: 'medicamentos',
+        tipo: 'medicamento',
+        stockUnidades: 5,
+        stockMinimo: 2,
+        unidadMedida: 'frascos',
+        ubicacion: 'Refrigerador A-1',
+        costoUnitario: 85.00,
+        precioVenta: 120.00,
+        lote: 'AMX2024-001',
+        fechaVencimiento: '2025-12-31',
+        proveedor: 'Laboratorios Veterinarios SA',
+        manejoFraccionado: true,
+        contenidoPorEnvase: 100,
+        unidadEnvase: 'ml',
+        dosisPorAplicacion: 5,
+        unidadDosis: 'ml',
+        dosisTotal: 20,
+        fechaCreacion: '2024-01-15T08:00:00.000Z',
+        fechaModificacion: '2024-01-15T08:00:00.000Z',
+        activo: true
+      },
+      {
+        id: 'prod_002',
+        nombre: 'Alimento Premium Perro Adulto',
+        descripcion: 'Alimento balanceado para perros adultos de todas las razas',
+        categoria: 'alimentos',
+        tipo: 'alimento',
+        stockUnidades: 25,
+        stockMinimo: 5,
+        unidadMedida: 'sacos 15kg',
+        ubicacion: 'Almacén General B-3',
+        costoUnitario: 450.00,
+        precioVenta: 650.00,
+        lote: 'ALM2024-005',
+        fechaVencimiento: '2025-06-30',
+        proveedor: 'Nutrición Animal Plus',
+        manejoFraccionado: false,
+        fechaCreacion: '2024-01-20T10:30:00.000Z',
+        fechaModificacion: '2024-01-20T10:30:00.000Z',
+        activo: true
+      },
+      {
+        id: 'prod_003',
+        nombre: 'Meloxicam 0.5% - Frasco 50ml',
+        descripcion: 'Antiinflamatorio no esteroideo para perros y gatos',
+        categoria: 'medicamentos',
+        tipo: 'medicamento',
+        stockUnidades: 1,
+        stockMinimo: 3,
+        unidadMedida: 'frascos',
+        ubicacion: 'Farmacia A-2',
+        costoUnitario: 95.00,
+        precioVenta: 140.00,
+        lote: 'MEL2024-002',
+        fechaVencimiento: '2025-03-15',
+        proveedor: 'Farmacia Veterinaria Nacional',
+        manejoFraccionado: true,
+        contenidoPorEnvase: 50,
+        unidadEnvase: 'ml',
+        dosisPorAplicacion: 2.5,
+        unidadDosis: 'ml',
+        dosisTotal: 20,
+        fechaCreacion: '2024-02-01T14:15:00.000Z',
+        fechaModificacion: '2024-02-01T14:15:00.000Z',
+        activo: true
+      },
+      {
+        id: 'prod_004',
+        nombre: 'Shampoo Antipulgas 500ml',
+        descripcion: 'Shampoo medicado para control de pulgas y garrapatas',
+        categoria: 'higiene',
+        tipo: 'producto',
+        stockUnidades: 0,
+        stockMinimo: 3,
+        unidadMedida: 'botellas',
+        ubicacion: 'Estante C-1',
+        costoUnitario: 55.00,
+        precioVenta: 85.00,
+        lote: 'SHA2024-001',
+        fechaVencimiento: '2026-01-31',
+        proveedor: 'Productos de Higiene Pet',
+        manejoFraccionado: false,
+        fechaCreacion: '2024-01-10T09:45:00.000Z',
+        fechaModificacion: '2024-02-15T16:20:00.000Z',
+        activo: true
+      },
+      {
+        id: 'prod_005',
+        nombre: 'Suplemento Vitamínico Perros',
+        descripcion: 'Complejo vitamínico para perros de todas las edades',
+        categoria: 'suplementos',
+        tipo: 'producto',
+        stockUnidades: 8,
+        stockMinimo: 5,
+        unidadMedida: 'frascos',
+        ubicacion: 'Estante B-2',
+        costoUnitario: 75.00,
+        precioVenta: 115.00,
+        lote: 'VIT2024-003',
+        fechaVencimiento: '2025-04-20',
+        proveedor: 'Suplementos Nutricionales Vet',
+        manejoFraccionado: false,
+        fechaCreacion: '2024-01-25T11:30:00.000Z',
+        fechaModificacion: '2024-01-25T11:30:00.000Z',
+        activo: true
+      }
+    ],
+    configuracion: {
+      diasAlertaVencimiento: 30,
+      monedaLocal: 'MXN'
+    }
+  }
   
   // Movimientos de ejemplo
   movimientos.value = [

@@ -121,18 +121,13 @@ const peticionService = new PeticionService();
 const columns: any[] = [
   
   { name: 'nombre_completo', label: 'Nombre Completo', 
-    field: (row: any) => {
-      const nombre = row.nombre || row.poblador_nombre || '';
-      const apellido1 = row.primerapellido || row.poblador_primerapellido || '';
-      const apellido2 = row.segundoapellido || row.poblador_segundoapellido || '';
-      return `${nombre} ${apellido1} ${apellido2}`.trim();
-    }, 
+    field: (row: Profesional) => `${row.nombre} ${row.primerapellido || ''} ${row.segundoapellido || ''}`, 
     align: 'left', sortable: true 
   },
   { name: 'cedula', label: 'Cédula', field: 'cedula', align: 'left', sortable: true },
   { name: 'tipoprofesional', label: 'Tipo', field: (row: any) => row.tipoprofesional?.nombre || row.id_tipoprofesional, align: 'left', sortable: true },
-  { name: 'telefono1', label: 'Teléfono', field: (row: any) => row.telefono1 || row.poblador_contacto_telefono1, align: 'left' },
-  { name: 'email', label: 'Email', field: (row: any) => row.email || row.poblador_contacto_email, align: 'left' },
+  { name: 'telefono1', label: 'Teléfono', field: 'telefono1', align: 'left' },
+  { name: 'email', label: 'Email', field: 'email', align: 'left' },
   { name: 'activo', label: 'Estado', field: 'activo', align: 'center', sortable: true },
   { name: 'acciones', label: 'Acciones', field: 'acciones', align: 'left' },
 ];

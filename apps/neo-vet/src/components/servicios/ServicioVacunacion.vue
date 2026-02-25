@@ -32,7 +32,28 @@
       
       <q-card-section>
         <div class="row q-col-gutter-md">
-          <!-- Información básica de la vacuna -->
+          <div class="col-12 col-md-12">
+            <q-select
+              v-model="datosVacuna.producto"
+              :options="productosVacuna"
+              label="Buscar Vacuna en Inventario"
+              outlined
+              use-input
+              @filter="buscarVacunas"
+              hint="Selecciona para autocompletar lote y laboratorio"
+              :readonly="modoLectura"
+              @update:model-value="alSeleccionarProducto"
+            >
+              <template v-slot:no-option>
+                <q-item>
+                  <q-item-section class="text-grey">
+                    No se encontraron vacunas disponibles
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+          </div>
+
           <div class="col-12 col-md-6">
             <q-select
               v-model="datosVacuna.tipoVacuna"
@@ -60,12 +81,24 @@
           </div>
           
           <div class="col-12 col-md-4">
-            <q-input
-              v-model="datosVacuna.numeroLote"
-              label="Número de Lote *"
+            <q-select
+              v-model="datosVacuna.lote"
+              :options="lotesDisponibles"
+              label="Lote Seleccionado *"
               outlined
-              :readonly="modoLectura"
-            />
+              :readonly="modoLectura || !datosVacuna.producto"
+              @update:model-value="alSeleccionarLote"
+              option-label="numeroLote"
+            >
+              <template v-slot:option="scope">
+                <q-item v-bind="scope.itemProps">
+                  <q-item-section>
+                    <q-item-label>{{ scope.opt.numeroLote }}</q-item-label>
+                    <q-item-label caption>Vence: {{ scope.opt.fechaVencimiento }} | Stock: {{ scope.opt.cantidadDisponible }}</q-item-label>
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
           </div>
           
           <div class="col-12 col-md-4">
@@ -189,7 +222,11 @@
   </template>
   
   <script setup>
-  import { ref, computed, watch } from 'vue'
+  import { ref, computed, watch, onMounted } from 'vue'
+  import inventarioService from 'src/services/inventario.service'
+  import { useQuasar } from 'quasar'
+
+  const $q = useQuasar()
   
   // Props
   const props = defineProps({
@@ -212,6 +249,8 @@
   
   // Estados del formulario
   const datosVacuna = ref({
+    producto: null,
+    lote: null,
     tipoVacuna: '',
     laboratorio: '',
     numeroLote: '',
@@ -224,6 +263,9 @@
     descripcionReacciones: '',
     observaciones: ''
   })
+
+  const productosVacuna = ref([])
+  const lotesDisponibles = ref([])
   
   // Opciones para selects
   const tiposVacuna = [
@@ -251,7 +293,7 @@
   
   // Validaciones
   const formularioValido = computed(() => {
-    return datosVacuna.value.tipoVacuna && 
+    return (datosVacuna.value.tipoVacuna || datosVacuna.value.producto) && 
            datosVacuna.value.laboratorio && 
            datosVacuna.value.numeroLote &&
            datosVacuna.value.dosisAplicada
@@ -288,13 +330,79 @@
     }
   }
   
-  const completarVacunacion = () => {
-    if (formularioValido.value) {
-      emit('servicio-completado', props.servicioId, {
-        ...datosVacuna.value,
-        fechaAplicacion: new Date().toISOString(),
-        aplicadaPor: 'Dr. Usuario Actual' // Obtener del contexto
+  const buscarVacunas = async (val, update) => {
+    if (val.length < 2) {
+      update(() => { productosVacuna.value = [] })
+      return
+    }
+    try {
+      const res = await inventarioService.productos.search(val)
+      update(() => {
+        productosVacuna.value = res.data.map(p => ({
+          label: p.nombre,
+          value: p.id,
+          laboratorio: p.proveedor?.nombre || '',
+          ...p
+        }))
       })
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const alSeleccionarProducto = async (producto) => {
+    if (!producto) return
+    datosVacuna.value.laboratorio = producto.laboratorio
+    try {
+      const res = await inventarioService.lotes.getByProducto(producto.id)
+      lotesDisponibles.value = res.data.filter(l => l.cantidadDisponible > 0)
+      if (lotesDisponibles.value.length > 0) {
+        // Auto-seleccionar el que vence más pronto (FEFO)
+        const proximoVencer = [...lotesDisponibles.value].sort((a,b) => new Date(a.fechaVencimiento) - new Date(b.fechaVencimiento))[0]
+        datosVacuna.value.lote = proximoVencer
+        alSeleccionarLote(proximoVencer)
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const alSeleccionarLote = (lote) => {
+    if (!lote) return
+    datosVacuna.value.numeroLote = lote.numeroLote
+    datosVacuna.value.fechaVencimiento = lote.fechaVencimiento
+  }
+
+  const completarVacunacion = async () => {
+    if (formularioValido.value) {
+      try {
+        // Si hay un lote seleccionado, descontar del inventario
+        if (datosVacuna.value.lote) {
+          await inventarioService.lotes.ajustarCantidad(datosVacuna.value.lote.id, {
+            tipo: 'salida',
+            cantidad: 1, // En vacunas suele ser 1 unidad/frasco por defecto, o según dosis
+            motivo: `Consumo en atención #${props.atencionId} (Vacunación)`
+          })
+          $q.notify({
+            color: 'teal',
+            message: 'Inventario actualizado: 1 unidad descontada',
+            icon: 'inventory_2'
+          })
+        }
+
+        emit('servicio-completado', props.servicioId, {
+          ...datosVacuna.value,
+          fechaAplicacion: new Date().toISOString(),
+          aplicadaPor: 'Dr. Usuario Actual' // Obtener del contexto
+        })
+      } catch (error) {
+        console.error(error)
+        $q.notify({
+          color: 'negative',
+          message: 'Error al actualizar inventario, pero se registró la vacuna',
+          icon: 'warning'
+        })
+      }
     }
   }
   

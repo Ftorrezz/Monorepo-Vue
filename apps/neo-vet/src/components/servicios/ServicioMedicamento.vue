@@ -332,10 +332,27 @@
 
         <q-card-section>
           <div class="row q-col-gutter-md">
+            <div class="col-12 col-md-12">
+              <q-select
+                v-model="prescripcionTemporal.producto"
+                :options="productosMedicamento"
+                label="Buscar Medicamento en Inventario"
+                outlined
+                dense
+                use-input
+                @filter="buscarMedicamentos"
+                @update:model-value="alSeleccionarProducto"
+              >
+                <template v-slot:no-option>
+                  <q-item><q-item-section class="text-grey">No se encontraron resultados</q-item-section></q-item>
+                </template>
+              </q-select>
+            </div>
+
             <div class="col-12 col-md-6">
               <q-input
                 v-model="prescripcionTemporal.medicamento"
-                label="Medicamento *"
+                label="Nombre del Medicamento *"
                 outlined
                 dense
               />
@@ -428,6 +445,27 @@
 
         <q-card-section>
           <div class="row q-col-gutter-md">
+            <div class="col-12">
+              <q-select
+                v-model="administracionTemporal.lote"
+                :options="lotesDisponibles"
+                label="Seleccionar Lote de Inventario"
+                outlined
+                dense
+                option-label="numeroLote"
+                :hint="administracionTemporal.lote ? `Stock disponible: ${administracionTemporal.lote.cantidadDisponible}` : ''"
+              >
+                <template v-slot:option="scope">
+                  <q-item v-bind="scope.itemProps">
+                    <q-item-section>
+                      <q-item-label>{{ scope.opt.numeroLote }}</q-item-label>
+                      <q-item-label caption>Vence: {{ scope.opt.fechaVencimiento }} | Stock: {{ scope.opt.cantidadDisponible }}</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </template>
+              </q-select>
+            </div>
+
             <div class="col-12">
               <q-input
                 v-model="administracionTemporal.fechaAdministracion"
@@ -541,7 +579,11 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import inventarioService from 'src/services/inventario.service'
+import { useQuasar } from 'quasar'
+
+const $q = useQuasar()
 
 // Props
 const props = defineProps({
@@ -587,6 +629,8 @@ const administrando = ref(null)
 // Estados temporales
 const prescripcionTemporal = ref({
   id: '',
+  producto: null,
+  productoId: null,
   medicamento: '',
   dosificacion: '',
   frecuencia: '',
@@ -599,10 +643,14 @@ const prescripcionTemporal = ref({
   administraciones: []
 })
 
+const productosMedicamento = ref([])
+const lotesDisponibles = ref([])
+
 const administracionTemporal = ref({
   prescripcionId: '',
   medicamento: '',
   dosificacion: '',
+  lote: null,
   fechaAdministracion: new Date().toISOString().slice(0, 16),
   dosisCompleta: true,
   dosisAdministrada: '',
@@ -642,6 +690,42 @@ const estadosFiltro = [
   'suspendida',
   'completada'
 ]
+
+// Métodos de búsqueda e inventario
+const buscarMedicamentos = async (val, update) => {
+  if (val.length < 2) {
+    update(() => { productosMedicamento.value = [] })
+    return
+  }
+  try {
+    const res = await inventarioService.productos.search(val)
+    update(() => {
+      productosMedicamento.value = res.data.map(p => ({
+        label: p.nombre,
+        value: p.id,
+        ...p
+      }))
+    })
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+const alSeleccionarProducto = (producto) => {
+  if (!producto) return
+  prescripcionTemporal.value.medicamento = producto.nombre
+  prescripcionTemporal.value.productoId = producto.id
+}
+
+const buscarLotes = async (productoId) => {
+  if (!productoId) return
+  try {
+    const res = await inventarioService.lotes.getByProducto(productoId)
+    lotesDisponibles.value = res.data.filter(l => l.cantidadDisponible > 0)
+  } catch (error) {
+    console.error(error)
+  }
+}
 
 // Computed properties
 const prescripcionesFiltradas = computed(() => {
@@ -930,14 +1014,22 @@ const administrarAhora = (prescripcionId) => {
   administrarEspecifica(prescripcionId)
 }
 
-const administrarEspecifica = (prescripcionId, fechaProgramada = null) => {
+const administrarEspecifica = async (prescripcionId, fechaProgramada = null) => {
   const prescripcion = datosMedicamentos.value.prescripciones.find(p => p.id === prescripcionId)
   if (!prescripcion) return
   
+  // Buscar lotes si la prescripción está vinculada a un producto de inventario
+  if (prescripcion.productoId) {
+    await buscarLotes(prescripcion.productoId)
+  } else {
+    lotesDisponibles.value = []
+  }
+
   administracionTemporal.value = {
     prescripcionId: prescripcionId,
     medicamento: prescripcion.medicamento,
     dosificacion: prescripcion.dosificacion,
+    lote: null,
     fechaAdministracion: fechaProgramada || new Date().toISOString().slice(0, 16),
     dosisCompleta: true,
     dosisAdministrada: '',
@@ -949,7 +1041,7 @@ const administrarEspecifica = (prescripcionId, fechaProgramada = null) => {
   mostrarModalAdministracion.value = true
 }
 
-const confirmarAdministracion = () => {
+const confirmarAdministracion = async () => {
   const prescripcion = datosMedicamentos.value.prescripciones.find(
     p => p.id === administracionTemporal.value.prescripcionId
   )
@@ -957,13 +1049,39 @@ const confirmarAdministracion = () => {
   if (!prescripcion) return
   
   // Agregar administración al historial
-  prescripcion.administraciones.push({
+  const nuevaAdmin = {
     fechaAdministracion: administracionTemporal.value.fechaAdministracion,
     dosisCompleta: administracionTemporal.value.dosisCompleta,
     dosisAdministrada: administracionTemporal.value.dosisAdministrada,
     administradoPor: administracionTemporal.value.administradoPor,
-    observaciones: administracionTemporal.value.observaciones
-  })
+    observaciones: administracionTemporal.value.observaciones,
+    loteId: administracionTemporal.value.lote?.id
+  }
+
+  // Descontar del inventario si hay un lote seleccionado
+  if (administracionTemporal.value.lote) {
+    try {
+      await inventarioService.lotes.ajustarCantidad(administracionTemporal.value.lote.id, {
+        tipo: 'salida',
+        cantidad: 1, // Por ahora 1 unidad, idealmente calcular según dosis
+        motivo: `Administración de medicamento en atención #${props.atencionId}`
+      })
+      $q.notify({
+        color: 'teal',
+        message: 'Stock descontado del inventario',
+        icon: 'inventory_2'
+      })
+    } catch (error) {
+      console.error('Error al descontar stock:', error)
+      $q.notify({
+        color: 'negative',
+        message: 'No se pudo actualizar el inventario',
+        icon: 'warning'
+      })
+    }
+  }
+
+  prescripcion.administraciones.push(nuevaAdmin)
   
   mostrarModalAdministracion.value = false
   administrando.value = null

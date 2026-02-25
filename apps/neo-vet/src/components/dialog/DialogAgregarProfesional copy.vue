@@ -342,8 +342,25 @@
   </div>
 </template>
 
-<script lang="ts">
-export const defaultProfesional = {
+<script setup lang="ts">
+import { ref, onBeforeUnmount, watch } from "vue";
+import { QForm, useQuasar } from "quasar";
+import ListaTipoProfesional from "../../../../../libs/shared/src/components/listas/ListaTipoProfesional.vue";
+import ListaGenero from "../../../../../libs/shared/src/components/listas/ListaGenero.vue";
+import ListaPais from "../../../../../libs/shared/src/components/listas/ListaPais.vue";
+import ListaEstado from "../../../../../libs/shared/src/components/listas/ListaEstado.vue";
+import ListaMunicipio from "../../../../../libs/shared/src/components/listas/ListaMunicipio.vue";
+import ListaColonia from "../../../../../libs/shared/src/components/listas/ListaColonia.vue";
+import OpcionCancelarGuardar from "../OpcionCancelarGuardar.vue";
+import PeticionService from "src/services/peticion.service";
+import NdAlertasControl from "src/controles/alertas.control";
+import { obtenerIDValue } from "../../../../../libs/shared/src/helper/FuncionesGenericas";
+import { useDialogStore } from "src/stores/DialogoUbicacion";
+
+const store = useDialogStore()
+let alertas = new NdAlertasControl();
+
+const defaultProfesional = {
   id: null,
   primerapellido: "",
   segundoapellido: "",
@@ -369,29 +386,6 @@ export const defaultProfesional = {
   id_sitio: 1,
   id_sucursal: 1,
 };
-
-export default {
-  name: 'DialogAgregarProfesional'
-}
-</script>
-
-<script setup lang="ts">
-import { ref, onBeforeUnmount, watch } from "vue";
-import { QForm, useQuasar } from "quasar";
-import ListaTipoProfesional from "../../../../../libs/shared/src/components/listas/ListaTipoProfesional.vue";
-import ListaGenero from "../../../../../libs/shared/src/components/listas/ListaGenero.vue";
-import ListaPais from "../../../../../libs/shared/src/components/listas/ListaPais.vue";
-import ListaEstado from "../../../../../libs/shared/src/components/listas/ListaEstado.vue";
-import ListaMunicipio from "../../../../../libs/shared/src/components/listas/ListaMunicipio.vue";
-import ListaColonia from "../../../../../libs/shared/src/components/listas/ListaColonia.vue";
-import OpcionCancelarGuardar from "../OpcionCancelarGuardar.vue";
-import PeticionService from "src/services/peticion.service";
-import NdAlertasControl from "src/controles/alertas.control";
-import { obtenerIDValue } from "../../../../../libs/shared/src/helper/FuncionesGenericas";
-import { useDialogStore } from "src/stores/DialogoUbicacion";
-
-const store = useDialogStore()
-let alertas = new NdAlertasControl();
 
 const props = defineProps({
   profesionalData: {
@@ -419,20 +413,10 @@ const stream = ref(null);
 // Referencia al formulario
 const formProfesionalRef = ref<QForm | null>(null);
 
-// Función para normalizar los datos (manejar objetos anidados y campos prefijados de la API)
+// Función para normalizar los datos (manejar objetos anidados de la API)
 const normalizarDatos = (data: any) => {
   const normalized = { ...defaultProfesional, ...data };
   
-  // Mapear campos prefijados de 'poblador' y 'contacto' si existen
-  if (data.poblador_nombre) normalized.nombre = data.poblador_nombre;
-  if (data.poblador_primerapellido) normalized.primerapellido = data.poblador_primerapellido;
-  if (data.poblador_segundoapellido) normalized.segundoapellido = data.poblador_segundoapellido;
-  
-  if (data.poblador_contacto_email) normalized.email = data.poblador_contacto_email;
-  if (data.poblador_contacto_telefono1) normalized.telefono1 = data.poblador_contacto_telefono1;
-  if (data.poblador_contacto_telefono2) normalized.telefono2 = data.poblador_contacto_telefono2;
-  if (data.poblador_contacto_calle) normalized.calle = data.poblador_contacto_calle;
-
   // Si los campos de ID traen el objeto completo de la relación, extraemos el ID para el v-model
   if (data.tipoprofesional && data.tipoprofesional.id) normalized.id_tipoprofesional = data.tipoprofesional.id;
   if (data.genero && data.genero.id) normalized.id_genero = data.genero.id;
