@@ -34,8 +34,12 @@
               rounded
               unelevated
               @click="nuevaAtencion"
+              :disable="!paciente || !paciente.id"
               style="font-weight: 700; height: 48px;"
             />
+            <div v-if="!paciente || !paciente.id" class="text-caption text-white text-center q-mt-xs opacity-7">
+              Selecciona un paciente primero
+            </div>
           </div>
           <div class="attentions-header" v-show="!sidebarCollapsed">
             <span class="attentions-title">Atenciones</span>
@@ -478,7 +482,8 @@
           <q-select
             v-model="formNuevaAtencion.veterinario_id"
             :options="profesionalesOpciones"
-            label="Veterinario Asignado *"
+            :loading="cargandoCatalogos"
+            label="Profesional Asignado *"
             outlined
             dense
             emit-value
@@ -486,13 +491,53 @@
             :rules="[val => !!val || 'Campo obligatorio']"
           >
             <template v-slot:prepend>
-              <q-icon name="person" />
+              <q-icon name="badge" color="primary" />
+            </template>
+            <template v-slot:option="scope">
+              <q-item v-bind="scope.itemProps">
+                <q-item-section avatar>
+                  <q-avatar color="primary" text-color="white" size="38px" style="font-size:15px; font-weight:700;">
+                    {{ (scope.opt.label || '?')[0].toUpperCase() }}
+                  </q-avatar>
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label style="font-weight:600;">{{ scope.opt.label }}</q-item-label>
+                  <q-item-label caption v-if="scope.opt.especialidad">
+                    <q-icon name="medical_services" size="12px" /> {{ scope.opt.especialidad }}
+                  </q-item-label>
+                  <q-item-label caption v-if="scope.opt.cedula">
+                    <q-icon name="badge" size="12px" /> Céd. {{ scope.opt.cedula }}
+                  </q-item-label>
+                </q-item-section>
+                <q-item-section side>
+                  <q-chip dense color="positive" text-color="white" size="sm" v-if="scope.opt.activo === 'S'">
+                    Activo
+                  </q-chip>
+                </q-item-section>
+              </q-item>
+            </template>
+            <template v-slot:selected-item="scope">
+              <div class="row items-center no-wrap">
+                <q-avatar color="primary" text-color="white" size="24px" class="q-mr-sm" style="font-size:11px; font-weight:700;">
+                  {{ (scope.opt.label || '?')[0].toUpperCase() }}
+                </q-avatar>
+                <span>{{ scope.opt.label }}</span>
+                <q-badge v-if="scope.opt.cedula" color="grey-4" text-color="grey-8" class="q-ml-sm">
+                  Céd. {{ scope.opt.cedula }}
+                </q-badge>
+              </div>
+            </template>
+            <template v-slot:no-option>
+              <q-item>
+                <q-item-section class="text-grey">No hay profesionales disponibles</q-item-section>
+              </q-item>
             </template>
           </q-select>
 
           <q-select
             v-model="formNuevaAtencion.motivo_id"
             :options="motivosOpciones"
+            :loading="cargandoCatalogos"
             label="Motivo de la Atención *"
             outlined
             dense
@@ -676,6 +721,7 @@ export default {
       motivo_id: null,
       observaciones: ''
     })
+    const cargandoCatalogos = ref(false)
 
     // Catálogos globales que se inyectan en servicios dinámicos
     const catalogosSistemas = reactive({
@@ -755,17 +801,52 @@ export default {
         }
     }
 
+    // Funciones de carga de catálogos (mismo patrón que DialogoAsignarCita.vue)
+    const cargarProfesionalesParaAtencion = async () => {
+      try {
+        const profs = await profesionalService.getProfesionales()
+        profesionalesDisponibles.value = profs
+        // Actualizar catálogo global para servicios dinámicos
+        catalogosSistemas.VETERINARIOS = profs.map(p => ({
+          label: `${p.nombre || ''} ${p.primerapellido || ''} ${p.segundoapellido || ''}`.trim() || 'Sin nombre',
+          value: p.id
+        }))
+      } catch (error) {
+        console.error('Error al cargar profesionales:', error)
+        $q.notify({ type: 'warning', message: 'No se pudieron cargar los profesionales', caption: error.message })
+        profesionalesDisponibles.value = []
+      }
+    }
+
+    const cargarMotivosParaAtencion = async () => {
+      try {
+        const motivos = await citaMotivoService.getMotivos()
+        motivosDisponibles.value = Array.isArray(motivos) ? motivos.filter(m => m.activo !== false && m.activo !== 'N') : []
+      } catch (error) {
+        console.error('Error al cargar motivos:', error)
+        $q.notify({ type: 'warning', message: 'No se pudieron cargar los motivos', caption: error.message })
+        motivosDisponibles.value = []
+      }
+    }
+
     // Computed para opciones de selects
     const profesionalesOpciones = computed(() => {
       return profesionalesDisponibles.value.map(p => ({
-        label: `${p.nombre} ${p.primerapellido || ''} ${p.segundoapellido || ''}`.trim(),
-        value: p.id
+        label: (
+          p.nombre_completo ||
+          `${p.poblador_nombre || p.nombre || ''} ${p.poblador_primerapellido || p.primerapellido || ''} ${p.poblador_segundoapellido || p.segundoapellido || ''}`.trim() ||
+          'Sin nombre'
+        ),
+        value: p.id,
+        cedula: p.cedula || null,
+        especialidad: p.especialidad || null,
+        activo: p.activo
       }))
     })
 
     const motivosOpciones = computed(() => {
       return motivosDisponibles.value.map(m => ({
-        label: m.nombre,
+        label: m.descripcion || m.nombre || 'Sin descripción',
         value: m.id
       }))
     })
@@ -901,14 +982,36 @@ export default {
       })
     }
 
-    const nuevaAtencion = () => {
+    const nuevaAtencion = async () => {
+      // Validar que haya una mascota seleccionada
+      if (!paciente.value || !paciente.value.id) {
+        $q.notify({
+          type: 'warning',
+          message: 'Debes seleccionar un paciente primero',
+          caption: 'Usa el botón "Buscar Paciente" para seleccionar una mascota',
+          icon: 'pets',
+          position: 'top'
+        })
+        return
+      }
+
       // Resetear formulario
       formNuevaAtencion.veterinario_id = null
       formNuevaAtencion.motivo_id = null
       formNuevaAtencion.observaciones = ''
-      
-      // Abrir diálogo
+
+      // Abrir diálogo de inmediato y cargar catálogos en paralelo
       showNuevaAtencionDialog.value = true
+      cargandoCatalogos.value = true
+      try {
+        // Cargar catálogos desde el backend (igual que DialogoAsignarCita.vue)
+        await Promise.all([
+          cargarMotivosParaAtencion(),
+          cargarProfesionalesParaAtencion()
+        ])
+      } finally {
+        cargandoCatalogos.value = false
+      }
     }
 
     // Función asíncrona para crear atención
@@ -1196,20 +1299,12 @@ export default {
     // Cargar catálogos y esquemas dinámicos al montar
     onMounted(async () => {
       try {
-        // Cargar profesionales
-        const profs = await profesionalService.getProfesionales()
-        profesionalesDisponibles.value = profs
-        
-        //Actualizar catálogo global
-        catalogosSistemas.VETERINARIOS = profs.map(p => ({
-          label: `${p.nombre} ${p.primerapellido || ''}`.trim(),
-          value: p.id
-        }))
-        
-        // Cargar motivos
-        const motivos = await citaMotivoService.getMotivos()
-        motivosDisponibles.value = motivos
-        
+        // Cargar profesionales y motivos usando las funciones dedicadas
+        await Promise.all([
+          cargarProfesionalesParaAtencion(),
+          cargarMotivosParaAtencion()
+        ])
+
         // Cargar servicios dinámicos
         const serviciosDinamicos = await servicioDinamicoService.getServicios()
         
@@ -1259,6 +1354,7 @@ export default {
       showAddServiceDialog,
       showNuevaAtencionDialog,
       formNuevaAtencion,
+      cargandoCatalogos,
       profesionalesOpciones,
       motivosOpciones,
       esquemasActivos,

@@ -401,13 +401,6 @@ const columnsMascota = ref([
     field: "historiaclinica",
     sortable: true,
   },
-  /*{
-    name: "paciente_id",
-    align: "left",
-    label: "ID Paciente",
-    field: "paciente_id",
-    sortable: true,
-  },*/
   {
     name: "action",
     align: "center",
@@ -582,7 +575,6 @@ const mascotasRows = computed(() => {
       item.mascotas.forEach(mascota => {
         mascotas.push({
           id: mascota.id,
-          id_paciente: mascota.paciente_id || null,
           nombre: mascota.nombre || '',
           historiaclinica: mascota.historiaclinica || '',
           propietarioId: item.propietario?.id

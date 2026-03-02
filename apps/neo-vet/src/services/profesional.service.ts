@@ -32,6 +32,10 @@ export interface Profesional {
 export const profesionalService = {
     async getProfesionales() {
         const response = await peticionService.obtenerGet('profesional')
+        // El backend devuelve [{elemento: [...], mensajes: [], errores: []}]
+        if (Array.isArray(response) && response[0]?.elemento) {
+            return Array.isArray(response[0].elemento) ? response[0].elemento : []
+        }
         return Array.isArray(response) ? response : (response?.data || [])
     },
 
