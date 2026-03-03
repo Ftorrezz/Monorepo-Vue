@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 
 export interface MascotaSeleccionada {
   id: number | string | null
-  id_paciente: number | string | null
+  paciente_id: number | string | null
   nombre: string
   historiaclinica?: string
   propietarioId?: number | string | null
@@ -15,7 +15,7 @@ export const useMascotaSeleccionadaStore = defineStore('mascotaSeleccionada', {
     mascota: null as MascotaSeleccionada | null
   }),
   getters: {
-    idPaciente: (state): number | string | null => state.mascota?.id_paciente ?? null,
+    idPaciente: (state): number | string | null => state.mascota?.paciente_id ?? null,
     tieneMascotaSeleccionada: (state): boolean => state.mascota !== null
   },
   actions: {

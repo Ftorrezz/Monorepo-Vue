@@ -90,6 +90,7 @@ export const usePropietarioStore = defineStore('propietarioStore', {
             if (!mascotasMap.has(key)) {
               mascotasMap.set(key, {
                 id: mascota.id,
+                paciente_id: mascota.paciente_id || null,
                 nombre: mascota.nombre || '',
                 historiaclinica: mascota.historiaclinica || '',
                 propietarioId: item.id
@@ -114,7 +115,7 @@ export const usePropietarioStore = defineStore('propietarioStore', {
     setDatosOriginales(datos: any[]) {
       // Guardar el ID del propietario seleccionado actualmente
       const propietarioSeleccionadoActual = this.propietarioSeleccionadoId;
-      
+
       // Actualizar datos originales
       this.datosOriginales = datos;
 

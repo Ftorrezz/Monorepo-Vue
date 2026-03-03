@@ -520,8 +520,8 @@ const guardarMascota = async () => {
 
     const mascotaGuardada = {
       ...datosMascotaPayload,
-      id: resultadoOperacion?.id || resultadoOperacion?.elemento?.id || datosMascotaPayload.id,
-      // If backend returns full object, spread it: ...resultadoOperacion.elemento
+      ...(resultadoOperacion?.elemento || {}),
+      id: resultadoOperacion?.id || resultadoOperacion?.elemento?.id || datosMascotaPayload.id
     };
 
     emit('mascota-guardada', mascotaGuardada);

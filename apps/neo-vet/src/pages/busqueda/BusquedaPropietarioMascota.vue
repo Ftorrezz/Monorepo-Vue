@@ -250,8 +250,6 @@ const buscar = async () => {
     const _respuesta = await _peticion.invocarMetodo("filtropropietariomascota/filtro", "post", _unDtoParametros);
     listaPropietarios.value = _respuesta || [];
 
-    console.log(listaPropietarios.value);
-
     /*$q.notify({
       type: 'positive',
       message: 'Búsqueda realizada exitosamente'

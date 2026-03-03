@@ -582,7 +582,7 @@ const mascotasRows = computed(() => {
       item.mascotas.forEach(mascota => {
         mascotas.push({
           id: mascota.id,
-          id_paciente: mascota.paciente_id || null,
+          paciente_id: mascota.paciente_id || null,
           nombre: mascota.nombre || '',
           historiaclinica: mascota.historiaclinica || '',
           propietarioId: item.propietario?.id
