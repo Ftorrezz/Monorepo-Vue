@@ -217,7 +217,7 @@
                               </template>
                             </q-input>
                           </div>
-                        
+
                           <!-- Correo y teléfono alineados -->
                           <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                             <q-input
@@ -325,7 +325,7 @@
                 </q-card>
               </div>
 
-              
+
             </div>
           </q-form>
         </q-card-section>
@@ -353,7 +353,6 @@ export const defaultProfesional = {
   telefono2: "",
   cedula: "",
   id_genero: null,
-  id_estadocivil: null,
   fechanacimiento: null,
   id_tipoprofesional: null,
   // Campos para el domicilio
@@ -422,12 +421,12 @@ const formProfesionalRef = ref<QForm | null>(null);
 // Función para normalizar los datos (manejar objetos anidados y campos prefijados de la API)
 const normalizarDatos = (data: any) => {
   const normalized = { ...defaultProfesional, ...data };
-  
+
   // Mapear campos prefijados de 'poblador' y 'contacto' si existen
   if (data.poblador_nombre) normalized.nombre = data.poblador_nombre;
   if (data.poblador_primerapellido) normalized.primerapellido = data.poblador_primerapellido;
   if (data.poblador_segundoapellido) normalized.segundoapellido = data.poblador_segundoapellido;
-  
+
   if (data.poblador_contacto_email) normalized.email = data.poblador_contacto_email;
   if (data.poblador_contacto_telefono1) normalized.telefono1 = data.poblador_contacto_telefono1;
   if (data.poblador_contacto_telefono2) normalized.telefono2 = data.poblador_contacto_telefono2;
@@ -528,13 +527,13 @@ const guardarProfesional = async () => {
     // Transformar los campos de ID que podrían ser objetos
     datosProfesionalPayload.id_tipoprofesional = obtenerIDValue(datosProfesionalPayload.id_tipoprofesional);
     datosProfesionalPayload.id_genero = obtenerIDValue(datosProfesionalPayload.id_genero);
-    
-    
+
+
     datosProfesionalPayload.id_pais = obtenerIDValue(datosProfesionalPayload.id_pais);
     datosProfesionalPayload.id_estado = obtenerIDValue(datosProfesionalPayload.id_estado);
     datosProfesionalPayload.id_municipio = obtenerIDValue(datosProfesionalPayload.id_municipio);
     datosProfesionalPayload.id_colonia = obtenerIDValue(datosProfesionalPayload.id_colonia);
-    
+
     // Garantizar que todos los campos requeridos por el backend se envíen
     // incluso si están vacíos.
     datosProfesionalPayload.id_sucursal = store.id_sucursal;

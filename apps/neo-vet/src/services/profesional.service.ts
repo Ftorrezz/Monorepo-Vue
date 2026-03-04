@@ -10,8 +10,6 @@ export interface Profesional {
     especialidad?: string
     cedula?: string
     id_genero?: number | any
-    id_estadocivil?: number | any
-    id_escolaridad?: number | any
     fechanacimiento?: string | null
     observaciones?: string
     // Dirección
