@@ -206,7 +206,7 @@
               icon="add_circle"
               label="Servicio"
               @click="showAddServiceDialog = true"
-              :disable="atenciones.length === 0 || atencionActualData.estado === 'Finalizada'"
+              :disable="atencionActualData.estado === 'Finalizada'"
               no-caps
               unelevated
               rounded
@@ -214,7 +214,7 @@
           </div>
         </div>
 
-        <div class="content-scroll-area" v-if="atenciones.length > 0">
+        <div class="content-scroll-area">
           <!-- Banner de estado -->
           <div class="status-banner q-pa-md" :class="atencionActualData.estado === 'En curso' ? 'in-progress' : 'completed'">
             <div class="row items-center justify-between no-wrap">
@@ -473,29 +473,6 @@
             </q-card>
           </div>
         </div>
-
-        <!-- Estado vacío cuando no hay atenciones -->
-        <div class="content-scroll-area flex flex-center" v-else>
-          <div class="text-center q-pa-xl empty-atención-state">
-            <q-icon name="medical_services" size="100px" color="grey-4" class="q-mb-md" />
-            <div class="text-h5 text-grey-8 text-weight-bold">No hay atenciones registradas</div>
-            <p class="text-grey-6 text-h6 q-mt-sm">
-              Este paciente aún no registra ninguna atención clínica.<br>
-              Haga clic en el botón <span class="text-primary text-weight-bolder">Nueva Atención</span> para comenzar.
-            </p>
-            <q-btn
-              color="primary"
-              icon="add"
-              label="Crear Primera Atención"
-              @click="nuevaAtencion"
-              rounded
-              unelevated
-              size="lg"
-              class="q-mt-md"
-            />
-          </div>
-        </div>
-
       </div>
     </div>
 
@@ -883,7 +860,73 @@ export default {
     })
 
     // Lista de atenciones del paciente
-    const atenciones = ref([])
+    const atenciones = ref([
+      {
+         id: 'at_001',
+        numero: 'A-2024-001',
+        fecha: '2024-01-15',
+        hora: '10:30',
+        fechaFinalizacion: '',
+        horaFinalizacion: '',
+        veterinario: 'Dr. Carlos Mendoza',
+        estado: 'En curso',
+        servicios: []
+      },
+      {
+         id: 'at_002',
+        numero: 'A-2024-002',
+        fecha: '2024-01-10',
+        hora: '09:15',
+        fechaFinalizacion: '2024-01-10',
+        horaFinalizacion: '10:00',
+        veterinario: 'Dr. Ana Ruiz',
+        estado: 'Finalizada',
+        servicios: [
+          {
+            id: 'vac_001',
+            tipo: 'vacunacion',
+            nombre: 'Vacunación',
+            icono: 'vaccines',
+            color: 'green',
+            completado: true,
+            timestamp: '2024-01-10 09:30',
+            datos: { vacuna: 'Rabia', laboratorio: 'MSD', lote: 'L123' }
+          },
+          {
+            id: 'exp_001',
+            tipo: 'exploracion',
+            nombre: 'Exploración Física',
+            icono: 'health_and_safety',
+            color: 'blue',
+            completado: true,
+            timestamp: '2024-01-10 09:20',
+            datos: { temperatura: '38.5', peso: '25.3' }
+          }
+        ]
+      },
+      {
+         id: 'at_003',
+        numero: 'A-2024-003',
+        fecha: '2024-01-05',
+        hora: '11:45',
+        fechaFinalizacion: '2024-01-05',
+        horaFinalizacion: '12:20',
+        veterinario: 'Dr. Carlos Mendoza',
+        estado: 'Finalizada',
+        servicios: [
+          {
+            id: 'des_001',
+            tipo: 'desparacitacion',
+            nombre: 'Desparacitación',
+            icono: 'medication',
+            color: 'orange',
+            completado: true,
+            timestamp: '2024-01-05 12:00',
+            datos: { producto: 'Drontal', dosis: '2 ml' }
+          }
+        ]
+      }
+    ])
 
     // Atención actual seleccionada
     const atencionActual = ref(0)

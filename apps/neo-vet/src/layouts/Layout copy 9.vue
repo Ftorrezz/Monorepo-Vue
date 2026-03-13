@@ -2,10 +2,9 @@
   <div class="q-pa-md">
     <q-layout view="hHh Lpr lFf">
       <!-- HEADER -->
-      <q-header flat class="bg-primary shadow-2">
+      <q-header flat class="bg-primary">
         <q-toolbar>
           <q-btn
-            v-if="$q.screen.lt.md"
             flat
             dense
             round
@@ -13,49 +12,32 @@
             icon="menu"
             aria-label="Menu"
           />
-          
-          <q-toolbar-title v-if="$q.screen.gt.xs">{{title}}</q-toolbar-title>
-          
-          <q-space />
-          
+          <q-toolbar-title>{{title}}</q-toolbar-title>
           <DarkModeToggle />
           <MenuOpcionesUsuario />
         </q-toolbar>
-
-        <!-- SEGUNDA FILA: LOGO + MENÚ (Solo en Desktop) -->
-        <q-toolbar 
-          v-if="$q.screen.gt.sm" 
-          :class="[$q.dark.isActive ? 'bg-dark text-white' : 'bg-white text-primary', 'border-bottom-menu q-px-lg modern-sub-header']"
-        >
-          <img
-            src="/static/VetDimioMenuMini.png"
-            alt="Logo"
-            class="menu-logo-img cursor-pointer"
-            @click="router.push('/')"
-          />
-          <q-separator vertical inset class="q-mx-sm" />
-          <MenuHorizontal />
-        </q-toolbar>
       </q-header>
 
-      <!-- DRAWER (Solo en Mobile/Tablet) -->
+      <!-- DRAWER -->
       <q-drawer
         v-model="leftDrawerOpen"
-        :show-if-above="false"
-        :width="300"
-        :breakpoint="1023"
+        show-if-above
+        :width="400"
+        :breakpoint="400"
         elevated
         side="left"
-        v-if="$q.screen.lt.md"
+        :mini="miniState && !isPinned"
+        @mouseenter="handleMouseEnter"
+        @mouseleave="handleMouseLeave"
       >
         <!-- LOGO ADAPTATIVO: Cambia según el estado del menú -->
         <div
           class="adaptive-logo-section"
-          :class="{ 'mini-mode': miniState }"
+          :class="{ 'mini-mode': miniState && !isPinned }"
         >
           <!-- Logo grande cuando está expandido -->
           <div
-            v-show="!miniState"
+            v-show="!miniState || isPinned"
             class="logo-expanded-container"
           >
             <img
@@ -64,14 +46,26 @@
               class="system-logo-expanded"
               @error="handleImageError"
             />
-
+            <q-btn
+              flat
+              dense
+              round
+              :icon="isPinned ? 'push_pin' : 'push_pin'"
+              :color="isPinned ? 'primary' : 'grey-6'"
+              @click="togglePin"
+              @mouseenter="pinHovered = true"
+              @mouseleave="pinHovered = false"
+              size="sm"
+              class="pin-expanded"
+            >
+              <q-tooltip>{{ isPinned ? 'Desanclar menú' : 'Anclar menú' }}</q-tooltip>
+            </q-btn>
           </div>
 
           <!-- Logo pequeño cuando está minimizado -->
           <div
-            v-show="miniState"
+            v-show="miniState && !isPinned"
             class="logo-mini-container"
-            @click="expandMenuIfMini"
           >
             <img
               src="/static/VetDimioMenuMini.png"
@@ -87,7 +81,6 @@
         <!-- Área del menú -->
         <div
           class="menu-section"
-          @click="expandMenuIfMini"
           :class="[
             $q.dark.isActive ? 'drawer_dark' : 'drawer_normal',
             'menu-with-adaptive-logo'
@@ -136,26 +129,53 @@
 import DarkModeToggle from "../components/DarkModeToggle.vue";
 import MenuOpcionesUsuario from "../components/MenuOpcionesUsuario.vue";
 import MenuPrincipal from "../components/MenuPrincipal.vue";
-import MenuHorizontal from "../components/MenuHorizontal.vue";
 import { useI18n } from "vue-i18n";
 import { useQuasar } from "quasar";
 import { ref } from "vue";
-import { useRouter } from "vue-router";
 
 const $q = useQuasar();
-const router = useRouter();
 
 defineOptions({
   name: "Layout",
 });
 
 const leftDrawerOpen = ref(false);
-const miniState = ref(false);
+const miniState = ref(true);
+const isPinned = ref(false);
+const pinHovered = ref(false);
 const footerOpen = ref(false);
 const { t, locale } = useI18n({ useScope: "global" });
 const title = ref(t("descripcionsistemalargo"));
 
+// Manejadores del drawer
+function handleMouseEnter() {
+  if (!isPinned.value && !pinHovered.value) {
+    miniState.value = false;
+  }
+}
 
+function handleMouseLeave() {
+  if (!isPinned.value && !pinHovered.value) {
+    setTimeout(() => {
+      if (!pinHovered.value && !isPinned.value) {
+        miniState.value = true;
+      }
+    }, 100);
+  }
+}
+
+function togglePin() {
+  isPinned.value = !isPinned.value;
+  if (isPinned.value) {
+    miniState.value = false;
+  } else {
+    setTimeout(() => {
+      if (!pinHovered.value) {
+        miniState.value = true;
+      }
+    }, 100);
+  }
+}
 
 function handleImageError(event: Event) {
   console.warn('No se pudo cargar el logo del sistema completo');
@@ -192,14 +212,8 @@ function collapseFooter() {
   }, 150);
 }
 
-function toggleLeftDrawer() {
-  miniState.value = !miniState.value;
-}
-
-function expandMenuIfMini() {
-  if (miniState.value) {
-    miniState.value = false;
-  }
+async function toggleLeftDrawer() {
+  leftDrawerOpen.value = !leftDrawerOpen.value;
 }
 </script>
 
@@ -402,30 +416,5 @@ function expandMenuIfMini() {
 
 .icon-large {
   font-size: 36px;
-}
-
-.border-bottom-menu {
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  z-index: 10;
-}
-
-.modern-sub-header {
-  min-height: 56px; /* Altura reducida */
-  transition: all 0.3s ease;
-}
-
-.menu-logo-img {
-  height: 45px; /* Logo más grande */
-  transition: transform 0.3s ease;
-  &:hover {
-    transform: scale(1.05);
-  }
-}
-
-/* Soporte para modo oscuro en la barra de menú */
-:deep(.body--dark) .border-bottom-menu {
-  background-color: #1d1d1d !important;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 </style>

@@ -4,19 +4,24 @@ import { DtoParametros } from '../controles/dto.parametros';
 class AtencionService {
     constructor() { }
 
-    // Obtener atenciones de una mascota
+    // Obtener atenciones de una mascota por id_paciente
+    // Usa GET pacienteatencion (mismo patrón que citamotivo, profesional, etc.)
     async getAtencionesPorMascota(idMascota: number) {
         try {
-            const peticion = new NdPeticionControl();
             if (!idMascota) return [];
-
-            // Asumiendo endpoint GET atencion/mascota/:id
-            // Si no existe, habrá que ajustar según backend real
-            const response = await peticion.invocarMetodo(`atencion/mascota/${idMascota}`, 'get');
-            return response?.data || response || [];
+            const peticion = new NdPeticionControl();
+            const response = await peticion.invocarMetodo('pacienteatencion', 'get');
+            // El backend devuelve [{elemento: [...], mensajes: [], errores: []}]
+            let lista: any[] = [];
+            if (Array.isArray(response) && response[0]?.elemento) {
+                lista = Array.isArray(response[0].elemento) ? response[0].elemento : [];
+            } else {
+                lista = Array.isArray(response) ? response : (response?.data || []);
+            }
+            // Filtrar por id_paciente en el frontend
+            return lista.filter((a: any) => a.id_paciente === idMascota || a.paciente?.id === idMascota);
         } catch (error) {
             console.error('Error al obtener atenciones:', error);
-            // Retornar array vacío para no romper la UI si falla
             return [];
         }
     }
@@ -25,7 +30,7 @@ class AtencionService {
     async crearAtencion(datosAtencion: any) {
         try {
             const peticion = new NdPeticionControl();
-            return await peticion.invocarMetodo('atencion', 'post', datosAtencion);
+            return await peticion.invocarMetodo('pacienteatencion', 'post', datosAtencion);
         } catch (error) {
             console.error('Error al crear atención:', error);
             throw error;
@@ -36,7 +41,7 @@ class AtencionService {
     async actualizarAtencion(idAtencion: number, datos: any) {
         try {
             const peticion = new NdPeticionControl();
-            return await peticion.invocarMetodo(`atencion/${idAtencion}`, 'put', datos);
+            return await peticion.invocarMetodo(`pacienteatencion/${idAtencion}`, 'put', datos);
         } catch (error) {
             console.error('Error al actualizar atención:', error);
             throw error;

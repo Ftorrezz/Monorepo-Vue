@@ -25,7 +25,7 @@
         <!-- SEGUNDA FILA: LOGO + MENÚ (Solo en Desktop) -->
         <q-toolbar 
           v-if="$q.screen.gt.sm" 
-          :class="[$q.dark.isActive ? 'bg-dark text-white' : 'bg-white text-primary', 'border-bottom-menu q-px-lg modern-sub-header']"
+          class="bg-white text-primary border-bottom-menu q-px-lg modern-sub-header"
         >
           <img
             src="/static/VetDimioMenuMini.png"
@@ -33,7 +33,7 @@
             class="menu-logo-img cursor-pointer"
             @click="router.push('/')"
           />
-          <q-separator vertical inset class="q-mx-sm" />
+          <q-separator vertical inset class="q-mx-lg" />
           <MenuHorizontal />
         </q-toolbar>
       </q-header>
@@ -406,12 +406,12 @@ function expandMenuIfMini() {
 
 .border-bottom-menu {
   border-bottom: 1px solid rgba(0,0,0,0.05);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   z-index: 10;
 }
 
 .modern-sub-header {
-  min-height: 56px; /* Altura reducida */
+  min-height: 70px; /* Menú más alto */
   transition: all 0.3s ease;
 }
 
