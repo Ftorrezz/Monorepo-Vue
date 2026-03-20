@@ -5,11 +5,11 @@
       <q-header flat class="bg-primary shadow-2">
         <q-toolbar>
           <q-btn
-            v-if="uiStore.menuType === 'sidebar' || $q.screen.lt.md"
+            v-if="$q.screen.lt.md"
             flat
             dense
             round
-            @click="uiStore.toggleLeftDrawer"
+            @click="toggleLeftDrawer"
             icon="menu"
             aria-label="Menu"
           />
@@ -18,14 +18,13 @@
           
           <q-space />
           
-          <MenuStyleToggle />
           <DarkModeToggle />
           <MenuOpcionesUsuario />
         </q-toolbar>
 
-        <!-- SEGUNDA FILA: LOGO + MENÚ (Solo en Desktop y si el tipo es Horizontal) -->
+        <!-- SEGUNDA FILA: LOGO + MENÚ (Solo en Desktop) -->
         <q-toolbar 
-          v-if="$q.screen.gt.sm && uiStore.menuType === 'horizontal'" 
+          v-if="$q.screen.gt.sm" 
           :class="[$q.dark.isActive ? 'bg-dark text-white' : 'bg-white text-primary', 'border-bottom-menu q-px-lg modern-sub-header']"
         >
           <img
@@ -39,61 +38,62 @@
         </q-toolbar>
       </q-header>
 
-      <!-- DRAWER (Siempre en Mobile, en Desktop solo si es Sidebar) -->
+      <!-- DRAWER (Solo en Mobile/Tablet) -->
       <q-drawer
-        v-model="uiStore.leftDrawerOpen"
-        :show-if-above="uiStore.menuType === 'sidebar'"
-        :width="320"
-        :mini-width="80"
-        :mini="uiStore.miniState && uiStore.menuType === 'sidebar' && $q.screen.gt.sm"
+        v-model="leftDrawerOpen"
+        :show-if-above="false"
+        :width="300"
         :breakpoint="1023"
         elevated
         side="left"
-        class="modern-drawer"
-        @mouseover="uiStore.menuType === 'sidebar' && (uiStore.miniState = false)"
-        @mouseleave="uiStore.menuType === 'sidebar' && (uiStore.miniState = true)"
-        v-if="uiStore.menuType === 'sidebar' || $q.screen.lt.md"
+        v-if="$q.screen.lt.md"
       >
-        <!-- LOGO ADAPTATIVO -->
+        <!-- LOGO ADAPTATIVO: Cambia según el estado del menú -->
         <div
           class="adaptive-logo-section"
-          :class="{ 'mini-mode-active': uiStore.miniState && uiStore.menuType === 'sidebar' && $q.screen.gt.sm }"
+          :class="{ 'mini-mode': miniState }"
         >
-          <!-- Logo grande -->
+          <!-- Logo grande cuando está expandido -->
           <div
-            v-show="!(uiStore.miniState && uiStore.menuType === 'sidebar')"
-            class="logo-expanded-container flex flex-center"
+            v-show="!miniState"
+            class="logo-expanded-container"
           >
             <img
               src="/static/VetDimioMenu.png"
               alt="VetDimio Logo"
               class="system-logo-expanded"
+              @error="handleImageError"
             />
+
           </div>
 
-          <!-- Logo pequeño -->
+          <!-- Logo pequeño cuando está minimizado -->
           <div
-            v-show="uiStore.miniState && uiStore.menuType === 'sidebar'"
-            class="logo-mini-container flex flex-center"
+            v-show="miniState"
+            class="logo-mini-container"
+            @click="expandMenuIfMini"
           >
             <img
               src="/static/VetDimioMenuMini.png"
               alt="VetDimio Logo Mini"
               class="system-logo-mini"
+              @error="handleMiniImageError"
             />
           </div>
         </div>
 
-        <q-separator v-if="!$q.dark.isActive" />
+        <q-separator />
 
         <!-- Área del menú -->
         <div
           class="menu-section"
+          @click="expandMenuIfMini"
           :class="[
             $q.dark.isActive ? 'drawer_dark' : 'drawer_normal',
+            'menu-with-adaptive-logo'
           ]"
         >
-          <q-scroll-area style="height: calc(100vh - 120px)">
+          <q-scroll-area style="height: 100%">
             <MenuPrincipal />
           </q-scroll-area>
         </div>
@@ -137,24 +137,44 @@ import DarkModeToggle from "../components/DarkModeToggle.vue";
 import MenuOpcionesUsuario from "../components/MenuOpcionesUsuario.vue";
 import MenuPrincipal from "../components/MenuPrincipal.vue";
 import MenuHorizontal from "../components/MenuHorizontal.vue";
-import MenuStyleToggle from "../components/MenuStyleToggle.vue";
 import { useI18n } from "vue-i18n";
 import { useQuasar } from "quasar";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import { useUiStore } from "../stores/uiStore";
 
 const $q = useQuasar();
 const router = useRouter();
-const uiStore = useUiStore();
 
 defineOptions({
   name: "Layout",
 });
 
+const leftDrawerOpen = ref(false);
+const miniState = ref(false);
 const footerOpen = ref(false);
 const { t, locale } = useI18n({ useScope: "global" });
 const title = ref(t("descripcionsistemalargo"));
+
+
+
+function handleImageError(event: Event) {
+  console.warn('No se pudo cargar el logo del sistema completo');
+  const target = event.target as HTMLImageElement;
+  target.style.display = 'none';
+}
+
+function handleMiniImageError(event: Event) {
+  console.warn('No se pudo cargar el logo mini del sistema');
+  const target = event.target as HTMLImageElement;
+  // Fallback: mostrar solo las iniciales o un ícono
+  target.style.display = 'none';
+
+  // Opcional: crear un fallback con texto
+  const fallback = document.createElement('div');
+  fallback.className = 'logo-fallback';
+  fallback.textContent = 'NV';
+  target.parentNode?.appendChild(fallback);
+}
 
 let debounceTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -170,6 +190,16 @@ function collapseFooter() {
   debounceTimeout = setTimeout(() => {
     footerOpen.value = false;
   }, 150);
+}
+
+function toggleLeftDrawer() {
+  miniState.value = !miniState.value;
+}
+
+function expandMenuIfMini() {
+  if (miniState.value) {
+    miniState.value = false;
+  }
 }
 </script>
 
@@ -194,27 +224,32 @@ function collapseFooter() {
 .logo-expanded-container {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   width: 100%;
-  padding: 10px;
+  padding: 5px;
+  gap: 10px;
 }
 
 .system-logo-expanded {
-  max-width: 220px;
-  max-height: 80px;
+  width: 280px;
+  height: 80px;
   object-fit: contain;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 8px;
+  flex-shrink: 0;
   transition: all 0.3s ease;
 }
 
-.modern-drawer {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(15px);
-  border-right: 1px solid rgba(0, 0, 0, 0.05);
+.pin-expanded {
+  background-color: rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
-:deep(.body--dark) .modern-drawer {
-  background: rgba(30, 30, 30, 0.9);
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
+.pin-expanded:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
 }
 
 /* LOGO MINI (menú minimizado) */
@@ -392,28 +427,5 @@ function collapseFooter() {
 :deep(.body--dark) .border-bottom-menu {
   background-color: #1d1d1d !important;
   border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-/* Mini Mode Logo Adjustments */
-.adaptive-logo-section {
-  padding: 16px 0;
-  transition: all 0.3s ease;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.mini-mode-active {
-  padding: 12px 0;
-}
-
-.system-logo-expanded {
-  width: 180px;
-  max-width: 90%;
-  height: auto;
-}
-
-.system-logo-mini {
-  width: 44px;
-  height: auto;
 }
 </style>

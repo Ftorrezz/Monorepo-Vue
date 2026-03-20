@@ -334,6 +334,7 @@ import DialogPropietarioRapido from '../dialog/DialogPropietarioRapido.vue'
 import DialogMascotaRapido from '../dialog/DialogMascotaRapido.vue'
 import { useDialogStore } from 'src/stores/DialogoUbicacion'
 import ListaMotivoCita from "../../../../../libs/shared/src/components/listas/ListaMotivoCita.vue";
+import notificacionService from 'src/services/notificacion.service'
 const props = defineProps({
   visible: Boolean,
   slotInfo: Object,
@@ -476,13 +477,18 @@ const cargarProfesionales = async () => {
     const response = await peticion.invocarMetodo('profesional', 'get')
     let profesionales = Array.isArray(response) ? response : (response?.data || [])
     
-    // Filtrar solo activos y agregar nombre completo
+    // Filtrar solo activos y agregar nombre completo usando los campos correctos (poblador_)
     profesionales = profesionales
       .filter(p => p.activo !== false)
-      .map(p => ({
-        ...p,
-        nombre_completo: `${p.nombre || ''} ${p.apellido || ''}`.trim() || 'Sin nombre'
-      }))
+      .map(p => {
+        const nombre = p.nombre || p.poblador_nombre || '';
+        const primer = p.primerapellido || p.poblador_primerapellido || p.poblador_primer_apellido || '';
+        const segundo = p.segundoapellido || p.poblador_segundoapellido || p.poblador_segundo_apellido || '';
+        return {
+          ...p,
+          nombre_completo: `${nombre} ${primer} ${segundo}`.trim() || 'Sin nombre'
+        }
+      })
     
     profesionalesDisponibles.value = profesionales
   } catch (error) {
@@ -580,6 +586,26 @@ const confirmarCita = async () => {
     
     const response = await peticion.invocarMetodo('agenda/citas', 'post', datos)
     
+    // Encolar notificación de confirmación para n8n
+    try {
+      const idCita = response.id || (Array.isArray(response) ? response[0]?.id : null)
+      if (idCita) {
+        await notificacionService.queueNotificacion({
+          id_cita: idCita,
+          id_propietario: propietarioSeleccionado.value.id,
+          tipo: 'CONFIRMACION',
+          medio: 'WSP',
+          destino: propietarioSeleccionado.value.contacto?.telefono1 || propietarioSeleccionado.value.telefono || '',
+          mensaje: `Hola ${propietarioSeleccionado.value.nombre}, confirmamos tu cita para ${mascotaSeleccionada.value.nombre} el ${fechaFormateada.value} a las ${horario.value}.`,
+          fecha_programada: new Date().toISOString(), // Envío inmediato
+          estado: 'PEND',
+          id_sucursal: store.id_sucursal || store.sucursalSeleccionada.id,
+          id_sitio: store.id_sitio
+        })
+      }
+    } catch (notifError) {
+      console.warn('Error al encolar notificación:', notifError)
+    }
     
     emit('cita-creada', response?.data || response)
     cerrar()

@@ -1,34 +1,41 @@
 <template>
-  <div class="row no-wrap items-center horizontal-menu-container">
+  <div class="row no-wrap items-center toolbar-container">
     <div 
       v-for="(menu, index) in typedMenuConfig" 
       :key="index"
-      class="menu-wrapper"
+      class="toolbar-item-wrapper"
       @mouseenter="onMouseEnter(index)"
       @mouseleave="onMouseLeave(index)"
     >
-      <!-- Botón principal con menú -->
+      <!-- Separador sutil -->
+      <div v-if="index > 0" class="toolbar-divider"></div>
+
+      <!-- Botón con submenú -->
       <template v-if="menu.items && menu.items.length > 0">
         <q-btn
           flat
           no-caps
-          :icon="menu.icon"
-          :label="t(menu.labelKey)"
-          class="minimalist-btn"
+          class="toolbar-btn"
           :class="{ 'is-active': route.path.startsWith(menu.to || 'none') }"
         >
+          <div class="row items-center no-wrap gap-xs">
+            <q-icon :name="menu.icon" class="toolbar-icon" />
+            <span class="toolbar-label">{{ t(menu.labelKey) }}</span>
+            <q-icon name="arrow_drop_down" size="14px" class="dropdown-arrow-inline" />
+          </div>
+
           <q-menu
             v-model="hoverStates[index]"
-            anchor="bottom start"
-            self="top start"
+            anchor="bottom middle"
+            self="top middle"
             transition-show="jump-down"
             transition-hide="fade"
-            class="premium-dropdown glass-effect"
-            :offset="[0, 0]" 
+            class="premium-nav-menu"
+            :offset="[0, 4]" 
             @mouseenter="onMouseEnter(index)"
             @mouseleave="onMouseLeave(index)"
           >
-            <q-list dense padding style="min-width: 240px">
+            <q-list padding class="premium-nav-list">
               <template v-for="(item, subIndex) in menu.items" :key="subIndex">
                 <!-- Item simple (Nivel 2) -->
                 <q-item
@@ -36,12 +43,11 @@
                   clickable
                   v-ripple
                   :to="item.to"
-                  active-class="active-item"
-                  class="premium-item"
-                  @mouseenter="clearAllTimers()"
+                  active-class="active-nav-item"
+                  class="premium-nav-item"
                 >
                   <q-item-section avatar>
-                    <q-icon :name="item.icon" size="xs" />
+                    <q-icon :name="item.icon" size="20px" />
                   </q-item-section>
                   <q-item-section>
                     {{ t(item.labelKey) }}
@@ -53,12 +59,12 @@
                   v-else
                   clickable
                   v-ripple
-                  class="premium-item"
+                  class="premium-nav-item"
                   @mouseenter="onNestedMouseEnter(`${index}-${subIndex}`)"
                   @mouseleave="onNestedMouseLeave(`${index}-${subIndex}`)"
                 >
                   <q-item-section avatar>
-                    <q-icon :name="item.icon" size="xs" />
+                    <q-icon :name="item.icon" size="20px" />
                   </q-item-section>
                   <q-item-section>
                     {{ t(item.labelKey) }}
@@ -71,81 +77,28 @@
                     v-model="nestedHoverStates[`${index}-${subIndex}`]"
                     anchor="top end" 
                     self="top start" 
-                    class="premium-dropdown glass-effect"
+                    class="premium-nav-menu"
                     transition-show="fade"
                     transition-hide="fade"
-                    :offset="[-4, 0]"
+                    :offset="[4, 0]"
                     @mouseenter="onNestedMouseEnter(`${index}-${subIndex}`)"
                     @mouseleave="onNestedMouseLeave(`${index}-${subIndex}`)"
                   >
-                    <q-list dense padding style="min-width: 240px">
+                    <q-list padding class="premium-nav-list">
                       <template v-for="(subItem, subSubIdx) in item.subItems" :key="subSubIdx">
                         <q-item
-                          v-if="!subItem.subItems"
                           clickable
                           v-ripple
                           :to="subItem.to"
-                          active-class="active-item"
-                          class="premium-item"
-                          @mouseenter="clearAllTimers()"
+                          active-class="active-nav-item"
+                          class="premium-nav-item"
                         >
                           <q-item-section avatar>
-                            <q-icon :name="subItem.icon" size="xs" />
+                            <q-icon :name="subItem.icon" size="20px" />
                           </q-item-section>
                           <q-item-section>
                             {{ t(subItem.labelKey) }}
                           </q-item-section>
-                        </q-item>
-
-                        <!-- Nivel 4 -->
-                        <q-item
-                          v-else
-                          clickable
-                          v-ripple
-                          class="premium-item"
-                          @mouseenter="onDeepMouseEnter(`${index}-${subIndex}-${subSubIdx}`)"
-                          @mouseleave="onDeepMouseLeave(`${index}-${subIndex}-${subSubIdx}`)"
-                        >
-                          <q-item-section avatar>
-                            <q-icon :name="subItem.icon" size="xs" />
-                          </q-item-section>
-                          <q-item-section>
-                            {{ t(subItem.labelKey) }}
-                          </q-item-section>
-                          <q-item-section side>
-                            <q-icon name="chevron_right" size="xs" />
-                          </q-item-section>
-                          <q-menu 
-                            v-model="deepHoverStates[`${index}-${subIndex}-${subSubIdx}`]"
-                            anchor="top end" 
-                            self="top start" 
-                            class="premium-dropdown glass-effect"
-                            transition-show="fade"
-                            transition-hide="fade"
-                            :offset="[-4, 0]"
-                            @mouseenter="onDeepMouseEnter(`${index}-${subIndex}-${subSubIdx}`)"
-                            @mouseleave="onDeepMouseLeave(`${index}-${subIndex}-${subSubIdx}`)"
-                          >
-                            <q-list dense padding style="min-width: 240px">
-                              <q-item
-                                v-for="(deepItem, deepIdx) in subItem.subItems"
-                                :key="deepIdx"
-                                clickable
-                                v-ripple
-                                :to="deepItem.to"
-                                active-class="active-item"
-                                class="premium-item"
-                                @mouseenter="clearAllTimers()"
-                              >
-                                <q-item-section avatar>
-                                  <q-icon :name="deepItem.icon" size="xs" />
-                                </q-item-section>
-                                <q-item-section>
-                                  {{ t(deepItem.labelKey) }}
-                                </q-item-section>
-                              </q-item>
-                            </q-list>
-                          </q-menu>
                         </q-item>
                       </template>
                     </q-list>
@@ -157,17 +110,20 @@
         </q-btn>
       </template>
 
-      <!-- Botón directo sin menú -->
+      <!-- Botón directo -->
       <q-btn
         v-else
         flat
         no-caps
-        :icon="menu.icon"
-        :label="t(menu.labelKey)"
         :to="menu.to"
-        class="minimalist-btn"
+        class="toolbar-btn"
         active-class="is-active"
-      />
+      >
+        <div class="row items-center no-wrap gap-xs">
+          <q-icon :name="menu.icon" class="toolbar-icon" />
+          <span class="toolbar-label">{{ t(menu.labelKey) }}</span>
+        </div>
+      </q-btn>
     </div>
   </div>
 </template>
@@ -182,7 +138,6 @@ interface MenuItem {
   labelKey: string;
   icon: string;
   to?: string;
-  defaultopened?: boolean;
   items?: MenuItem[];
   subItems?: MenuItem[];
 }
@@ -191,29 +146,17 @@ const { t } = useI18n()
 const route = useRoute()
 const typedMenuConfig = menuConfig as unknown as MenuItem[]
 
-// Estados reactivos para controlar el hover
 const hoverStates = reactive<Record<number, boolean>>({})
 const nestedHoverStates = reactive<Record<string, boolean>>({})
-const deepHoverStates = reactive<Record<string, boolean>>({})
-
-// Timeouts para el cierre con retraso (debounce)
 const timers: Record<string, NodeJS.Timeout> = {}
-const NESTED_DELAY = 150 // ms
-
-const clearAllTimers = () => {
-  Object.keys(timers).forEach(key => {
-    clearTimeout(timers[key])
-    delete timers[key]
-  })
-}
 
 const onMouseEnter = (index: number) => {
   const key = `main-${index}`
   if (timers[key]) clearTimeout(timers[key])
   
-  // Cerrar otros menús principales solo si NO estamos en un submenú de este mismo
+  // Cerrar todos los demás menús principales inmediatamente para evitar solapamiento
   Object.keys(hoverStates).forEach(idx => {
-    if (Number(idx) !== index) hoverStates[Number(idx)] = false
+    if (parseInt(idx) !== index) hoverStates[parseInt(idx)] = false
   })
   
   hoverStates[index] = true
@@ -223,130 +166,126 @@ const onMouseLeave = (index: number) => {
   const key = `main-${index}`
   timers[key] = setTimeout(() => {
     hoverStates[index] = false
-  }, NESTED_DELAY)
+  }, 100)
 }
 
 const onNestedMouseEnter = (id: string) => {
   if (timers[id]) clearTimeout(timers[id])
-  // Al entrar en un submenú, cancelamos el timer del padre principal
-  const mainIdx = id.split('-')[0]
-  if (timers[`main-${mainIdx}`]) clearTimeout(timers[`main-${mainIdx}`])
-  
   nestedHoverStates[id] = true
 }
 
 const onNestedMouseLeave = (id: string) => {
   timers[id] = setTimeout(() => {
     nestedHoverStates[id] = false
-  }, NESTED_DELAY)
-}
-
-const onDeepMouseEnter = (id: string) => {
-  if (timers[id]) clearTimeout(timers[id])
-  // Cancelar timers de ancestros
-  const parts = id.split('-')
-  const mainKey = `main-${parts[0]}`
-  const nestedKey = `${parts[0]}-${parts[1]}`
-  if (timers[mainKey]) clearTimeout(timers[mainKey])
-  if (timers[nestedKey]) clearTimeout(timers[nestedKey])
-  
-  deepHoverStates[id] = true
-}
-
-const onDeepMouseLeave = (id: string) => {
-  timers[id] = setTimeout(() => {
-    deepHoverStates[id] = false
-  }, NESTED_DELAY)
+  }, 100)
 }
 </script>
 
 <style lang="scss" scoped>
-.horizontal-menu-container {
+.toolbar-container {
+  height: 52px;
   display: flex;
-  height: 100%;
   align-items: center;
-  gap: 2px; /* Espacio mínimo entre botones */
+  padding: 0 12px;
+  gap: 4px;
 }
 
-.menu-wrapper {
-  position: relative;
-  display: inline-block;
+.toolbar-item-wrapper {
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
 
-.minimalist-btn {
-  font-weight: 500;
-  color: #666;
-  border-radius: 8px; /* Diseño más cuadrado y moderno */
+.toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.08);
+  margin: 0 4px;
+}
+
+.toolbar-btn {
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 6px;
   transition: all 0.2s ease;
-  padding: 6px 14px;
-  min-height: 38px; /* Altura compacta para barra de 56px */
-  border: 1px solid transparent;
+  color: #444;
 
   &:hover {
-    background-color: rgba($primary, 0.05);
+    background: rgba(0,0,0,0.04);
     color: $primary;
-    border-color: rgba($primary, 0.1);
   }
 
   &.is-active {
-    background: transparent;
+    background: rgba($primary, 0.08);
     color: $primary;
-    font-weight: 700;
-    &::after {
-      content: '';
-      position: absolute;
-      bottom: 4px;
-      left: 14px;
-      right: 14px;
-      height: 2px;
-      background: $primary;
-      border-radius: 2px;
-    }
+    font-weight: bold;
+  }
+
+  .toolbar-icon {
+    font-size: 20px;
+    opacity: 0.85;
+  }
+
+  .toolbar-label {
+    font-size: 13px;
+    margin: 0 4px;
+  }
+
+  .dropdown-arrow-inline {
+    opacity: 0.5;
+    margin-left: -2px;
   }
 }
 
-.glass-effect {
-  background: rgba(255, 255, 255, 0.95) !important;
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+.gap-xs {
+  gap: 4px;
 }
 
-.premium-dropdown {
-  border-radius: 10px !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  overflow: visible !important;
+.premium-nav-menu {
+  border-radius: 12px !important;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.1) !important;
+  border: 1px solid rgba(0,0,0,0.06);
+  background: white;
 
-  .premium-item {
-    margin: 2px 6px;
-    border-radius: 6px;
-    padding: 8px 12px;
+  .premium-nav-list {
+    min-width: 260px;
+    padding: 6px;
+  }
+
+  .premium-nav-item {
+    margin: 2px 0;
+    border-radius: 8px;
+    color: #333;
+    padding: 10px 16px;
     transition: all 0.2s ease;
-    color: #444;
 
     &:hover {
-      background: rgba($primary, 0.08);
+      background: rgba($primary, 0.05);
       color: $primary;
-      transform: translateX(2px);
+      transform: translateX(4px);
     }
   }
 
-  .active-item {
-    background: rgba($primary, 0.1) !important;
+  .active-nav-item {
+    background: rgba($primary, 0.08) !important;
     color: $primary;
     font-weight: 700;
   }
 }
 
-/* Modo oscuro */
 :deep(.body--dark) {
-  .minimalist-btn {
-    color: rgba(255, 255, 255, 0.75);
+  .toolbar-divider {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .toolbar-btn {
+    color: rgba(255, 255, 255, 0.7);
     &:hover {
-      background-color: rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.08);
       color: #fff;
     }
     &.is-active {
+      background: rgba(255, 255, 255, 0.12);
       color: #fff;
       &::after {
         background: #fff;
@@ -354,23 +293,17 @@ const onDeepMouseLeave = (id: string) => {
     }
   }
 
-  .glass-effect {
-    background: rgba(30, 30, 30, 0.9) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
+  .premium-nav-menu {
+    background: #1e1e1e;
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 50px rgba(0,0,0,0.4) !important;
 
-  .premium-dropdown {
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-    .premium-item {
-      color: rgba(255, 255, 255, 0.9);
+    .premium-nav-item {
+      color: rgba(255, 255, 255, 0.85);
       &:hover {
         background: rgba(255, 255, 255, 0.1);
         color: #fff;
       }
-    }
-    .active-item {
-      background: rgba(255, 255, 255, 0.15) !important;
-      color: #fff;
     }
   }
 }

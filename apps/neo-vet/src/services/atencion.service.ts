@@ -53,7 +53,7 @@ class AtencionService {
         try {
             const peticion = new NdPeticionControl();
             // Endpoint para asociar servicio a atención
-            return await peticion.invocarMetodo('atencion/servicio', 'post', datosServicio);
+            return await peticion.invocarMetodo('atencionservicios', 'post', datosServicio);
         } catch (error) {
             console.error('Error al agregar servicio:', error);
             throw error;

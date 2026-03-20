@@ -101,123 +101,118 @@
 
       <!-- Contenido principal -->
       <div class="main-content" :class="{ 'expanded': sidebarCollapsed }">
-        <!-- Cabecera Premium Rediseñada -->
-        <div class="main-header-premium">
-          <div class="header-profile-section" v-if="paciente && paciente.id">
-            <!-- Bloque Paciente -->
-            <div class="patient-profile-card shadow-sm">
-              <div class="profile-avatar bg-primary-soft">
-                <q-icon name="pets" size="32px" color="primary" />
-              </div>
-              <div class="profile-details">
-                <div class="patient-name-container">
-                  <h1 class="patient-name text-weight-bolder">{{ paciente.nombre }}</h1>
-                  <q-badge rounded color="primary" class="q-ml-sm text-weight-bold" outline v-if="paciente.especie">
-                    {{ paciente.especie }}
-                  </q-badge>
+        <!-- Header principal -->
+        <div class="main-header">
+          <div class="header-left">
+            <div class="header-info-container" v-if="paciente">
+              <!-- Bloque Mascota -->
+              <div class="info-group pet-group">
+                <div class="info-icon">
+                  <q-icon name="pets" size="32px" color="primary" />
                 </div>
-                <div class="patient-brief row items-center no-wrap">
-                  <span class="brief-item" v-if="paciente.raza">{{ paciente.raza }}</span>
-                  <q-separator vertical class="q-mx-sm" v-if="paciente.edad" />
-                  <span class="brief-item" v-if="paciente.edad">{{ paciente.edad }} años</span>
-                  <q-separator vertical class="q-mx-sm" v-if="paciente.peso" />
-                  <span class="brief-item" v-if="paciente.peso">{{ paciente.peso }} kg</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="header-v-divider"></div>
-
-            <!-- Bloque Propietario -->
-            <div class="owner-profile-card" v-if="paciente.propietario">
-              <div class="row items-center no-wrap">
-                <q-avatar size="44px" class="q-mr-md shadow-1 bg-blue-1">
-                  <q-icon name="person" size="28px" color="primary" />
-                </q-avatar>
-                <div class="owner-info">
-                  <div class="label-tiny">PROPIETARIO</div>
-                  <div class="owner-fullname text-weight-bold">
-                    {{ paciente.propietario.nombre }} {{ paciente.propietario.primerapellido }}
+                <div class="info-content">
+                  <div class="row items-center">
+                    <div class="info-title">{{ paciente.nombre }}</div>
+<!-- Search button moved -->
                   </div>
-                  <div class="owner-contact text-caption text-grey-7 row items-center no-wrap">
-                    <q-icon name="phone" size="14px" class="q-mr-xs" />
-                    {{ paciente.propietario.telefono1 || 'Sin teléfono' }}
+                  <div class="info-subtitle">
+                    <span v-if="paciente.especie">{{ paciente.especie }}</span>
+                    <span v-if="paciente.raza" class="q-ml-xs">| {{ paciente.raza }}</span>
+                    <span v-if="paciente.edad" class="q-ml-xs">| {{ paciente.edad }} años</span>
+                    <span v-if="paciente.peso" class="q-ml-xs">| {{ paciente.peso }} kg</span>
+                    <span v-if="!paciente.especie && !paciente.raza && !paciente.edad && !paciente.peso" class="text-grey-5">Sin detalles registrados</span>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div class="header-v-divider"></div>
+              <div class="info-separator"></div>
 
-            <!-- Bloque ID Atención -->
-            <div class="attention-id-card">
-              <div class="label-tiny">ID ATENCIÓN ACTUAL</div>
-              <div class="attention-number text-primary text-weight-black" v-if="atenciones.length > 0">
-                {{ atenciones[atencionActual]?.numero }}
+              <!-- Bloque Propietario -->
+              <div class="info-group" v-if="paciente.propietario">
+                <div class="info-icon">
+                  <q-avatar size="38px" color="blue-1" text-color="primary">
+                    <q-icon name="person" size="24px" />
+                  </q-avatar>
+                </div>
+                <div class="info-content">
+                  <div class="info-label">PROPIETARIO</div>
+                  <div class="info-value">
+                    {{ paciente.propietario.nombre }} 
+                    {{ paciente.propietario.primerapellido }} 
+                    {{ paciente.propietario.segundoapellido }}
+                  </div>
+                  <div class="info-subtext" v-if="paciente.propietario.telefono1">
+                    <q-icon name="phone" size="14px" /> {{ paciente.propietario.telefono1 }}
+                  </div>
+                </div>
               </div>
-              <div class="attention-number text-grey-5" v-else>SN-0000</div>
-              <div class="text-caption text-grey-6" v-if="atenciones.length > 0">
-                {{ formatDate(atenciones[atencionActual]?.fecha) }}
+
+              <div class="info-separator"></div>
+
+              <!-- Bloque Atención -->
+              <div class="info-group" v-if="atenciones.length > 0">
+                <div class="info-content">
+                  <div class="info-label">IDENTIFICADOR DE ATENCIÓN</div>
+                  <div class="info-value accent-text">{{ atenciones[atencionActual]?.numero }}</div>
+                  <div class="info-subtext">
+                    <q-icon name="event" size="14px" /> {{ formatDate(atenciones[atencionActual]?.fecha) }}
+                  </div>
+                </div>
+              </div>
+              <div class="info-group" v-else>
+                <div class="info-content">
+                  <div class="info-label">IDENTIFICADOR DE ATENCIÓN</div>
+                  <div class="info-value accent-text text-grey-5">Sin atenciones</div>
+                </div>
               </div>
             </div>
           </div>
-
+          
           <div class="header-actions">
             <q-btn
               color="primary"
               icon="search"
-              label="Cambiar Paciente"
+              label="Buscar Paciente"
               @click="showSearchDialog = true"
               no-caps
-              rounded
               flat
-              class="search-btn-premium"
+              dense
+              class="q-mr-sm"
             />
-            
-            <q-separator vertical class="q-mx-sm" />
+            <q-btn
+              color="secondary"
+              icon="print"
+              label="Imprimir Resumen"
+              @click="imprimirResumenAtencion"
+              no-caps
+              flat
+              dense
+              class="q-mr-sm"
+            />
 
-            <div class="row q-gutter-sm no-wrap">
-              <q-btn 
-                round 
-                flat 
-                color="secondary" 
-                icon="print" 
-                @click="imprimirResumenAtencion"
-              >
-                <q-tooltip>Imprimir Resumen</q-tooltip>
-              </q-btn>
-              <q-btn 
-                round 
-                flat 
-                color="info" 
-                icon="info_outline" 
-                @click="verDetallesAtencion"
-              >
-                <q-tooltip>Detalles de Atención</q-tooltip>
-              </q-btn>
-              <q-btn
-                color="primary"
-                icon="add"
-                label="Nuevo Servicio"
-                @click="showAddServiceDialog = true"
-                :disable="atenciones.length === 0 || atencionActualData.estado === 'Finalizada'"
-                no-caps
-                unelevated
-                rounded
-                class="add-service-btn animate-pop"
-              />
-            </div>
+
+            <q-btn
+              color="info"
+              icon="visibility"
+              label="Detalles"
+              @click="verDetallesAtencion"
+              no-caps
+              flat
+              dense
+            />
+
+            <q-btn
+              color="primary"
+              icon="add_circle"
+              label="Servicio"
+              @click="showAddServiceDialog = true"
+              :disable="atenciones.length === 0 || atencionActualData.estado === 'Finalizada'"
+              no-caps
+              unelevated
+              rounded
+            />
           </div>
         </div>
-
-        <!-- Overlay de carga inicial -->
-        <q-inner-loading :showing="cargandoConfiguracion" class="bg-white" style="z-index: 2000;">
-          <q-spinner-cube color="primary" size="80px" />
-          <div class="text-h6 q-mt-md text-primary text-weight-bold animate-pulse">
-            Configurando entorno médico...
-          </div>
-          <div class="text-caption text-grey-6">Optimizando servicios y catálogos</div>
-        </q-inner-loading>
 
         <div class="content-scroll-area" v-if="atenciones.length > 0">
           <!-- Banner de estado -->
@@ -758,7 +753,6 @@ export default {
       observaciones: ''
     })
     const cargandoCatalogos = ref(false)
-    const cargandoConfiguracion = ref(true)
 
     // Catálogos globales que se inyectan en servicios dinámicos
     const catalogosSistemas = reactive({
@@ -1324,54 +1318,31 @@ export default {
 
     // Cargar catálogos y esquemas dinámicos al montar
     onMounted(async () => {
-      cargandoConfiguracion.value = true
       try {
-        // Cargar catálogos básicos y esquemas en paralelo para mayor velocidad
-        const [serviciosDinamicos, _] = await Promise.all([
-          servicioDinamicoService.getServicios(),
-          Promise.all([
-            cargarMotivosParaAtencion(),
-            cargarProfesionalesParaAtencion()
-          ])
+        // Cargar profesionales y motivos usando las funciones dedicadas
+        await Promise.all([
+          cargarProfesionalesParaAtencion(),
+          cargarMotivosParaAtencion()
         ])
+
+        // Cargar servicios dinámicos
+        const serviciosDinamicos = await servicioDinamicoService.getServicios()
         
-        // Cargar esquemas de servicios de forma paralela
-        const serviciosActivos = serviciosDinamicos.filter(s => s.activo === 'S')
-        const promesasEsquemas = serviciosActivos.map(srv => 
-          servicioDinamicoService.getEsquemaServicio(srv.id)
-            .then(esquema => {
-              if (esquema && esquema.identificador) {
-                esquemasActivos.value[esquema.identificador] = esquema
-              }
-            })
-        )
-        
-        await Promise.all(promesasEsquemas)
+        // Cargar esquemas para servicios activos
+        for (const srv of serviciosDinamicos.filter(s => s.activo === 'S')) {
+          const esquema = await servicioDinamicoService.getEsquemaServicio(srv.id)
+          if (esquema && esquema.identificador) {
+            esquemasActivos.value[esquema.identificador] = esquema
+          }
+        }
         
         // Si ya hay mascota seleccionada, cargar sus atenciones
-        const idPaciente = paciente.value.paciente_id || paciente.value.id
-        if (idPaciente) {
-            await cargarAtencionesDesdeBackend(idPaciente)
+        if (paciente.value && paciente.value.paciente_id) {
+            await cargarAtencionesDesdeBackend(paciente.value.paciente_id)
         }
       } catch (error) {
-        console.error('Error al cargar la configuración inicial:', error)
-        $q.notify({ 
-          type: 'warning', 
-          message: 'Error al iniciar el módulo', 
-          caption: 'Algunos componentes podrían no funcionar correctamente' 
-        })
-      } finally {
-        cargandoConfiguracion.value = false
-      }
-    })
-
-    // Watcher para cargar atenciones cuando cambia el paciente seleccionado (Buscador externo)
-    watch(() => paciente.value?.paciente_id || paciente.value?.id, async (newId) => {
-      if (newId) {
-        console.log('🔄 Detectado cambio de paciente:', newId)
-        await cargarAtencionesDesdeBackend(newId)
-      } else {
-        atenciones.value = []
+        console.error('Error al cargar catálogos:', error)
+        $q.notify({ type: 'warning', message: 'Algunos catálogos no se pudieron cargar' })
       }
     })
 
@@ -1417,8 +1388,7 @@ export default {
       busquedaFormData,
       buscarPacientes,
       limpiarFiltrosBusqueda,
-      onMascotaSeleccionada,
-      cargandoConfiguracion
+      onMascotaSeleccionada
     }
   }
 }
@@ -1578,130 +1548,97 @@ export default {
   background: white;
 }
 
-/* Header Premium Rediseñado */
-.main-header-premium {
-  height: auto;
-  min-height: 100px;
-  padding: 15px 30px;
+.main-header {
+  height: 80px;
+  padding: 0 30px;
   background: white;
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid #edf2f7;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
 }
 
-.header-profile-section {
+.header-left .breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-info-container {
   display: flex;
   align-items: center;
   gap: 0;
 }
 
-.patient-profile-card {
+.info-group {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 8px 16px;
-  border-radius: 16px;
-  transition: all 0.3s ease;
+  gap: 15px;
+  padding: 0 25px;
 }
 
-.profile-avatar {
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.pet-group {
+  padding-left: 0;
 }
 
-.bg-primary-soft {
-  background: rgba(25, 118, 210, 0.08);
-}
-
-.patient-name-container {
-  display: flex;
-  align-items: baseline;
-  margin-bottom: 2px;
-}
-
-.patient-name {
-  font-size: 1.6rem;
-  margin: 0;
-  color: #1a202c;
-  line-height: 1.2;
-}
-
-.patient-brief {
-  color: #718096;
-  font-size: 0.9rem;
-}
-
-.header-v-divider {
+.info-separator {
   width: 1px;
-  height: 50px;
+  height: 40px;
   background: #e2e8f0;
-  margin: 0 25px;
 }
 
-.owner-profile-card {
+.info-content {
   display: flex;
-  align-items: center;
+  flex-direction: column;
 }
 
-.label-tiny {
+.info-label {
   font-size: 10px;
   font-weight: 800;
   color: #a0aec0;
   text-transform: uppercase;
   letter-spacing: 1px;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
-.owner-fullname {
-  font-size: 1.05rem;
-  color: #2d3748;
-}
-
-.attention-id-card {
-  display: flex;
-  flex-direction: column;
-}
-
-.attention-number {
-  font-size: 1.4rem;
+.info-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1a202c;
   line-height: 1;
 }
 
-.search-btn-premium {
-  font-weight: 600;
-  border: 1px solid #e2e8f0;
-}
-
-.add-service-btn {
-  padding: 0 20px;
+.info-value {
+  font-size: 1.1rem;
   font-weight: 700;
-  box-shadow: 0 4px 15px rgba(25, 118, 210, 0.3);
+  color: #2d3748;
+  line-height: 1.2;
 }
 
-/* Animations */
-.animate-pop {
-  animation: pop 0.3s cubic-bezier(0.26, 0.53, 0.74, 1.48);
+.info-value.accent-text {
+  color: #1976D2;
 }
 
-@keyframes pop {
-  0% { transform: scale(0.9); }
-  100% { transform: scale(1); }
+.info-subtitle {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #718096;
+  margin-top: 4px;
 }
 
-.animate-pulse {
-  animation: pulse 2s infinite;
+.info-subtext {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #4a5568;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
 }
 
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.6; }
-  100% { opacity: 1; }
+.sidebar-action-container {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .header-actions {

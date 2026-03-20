@@ -207,31 +207,6 @@
                       <q-tooltip>Selección de Paciente</q-tooltip>
                     </q-btn>
 
-                    <!-- Acciones de Agenda -->
-                    <q-btn
-                      round
-                      color="primary"
-                      icon="event"
-                      @click="agendarCita(props.row)"
-                      size="sm"
-                      outline
-                      dense
-                    >
-                      <q-tooltip>Agendar Cita</q-tooltip>
-                    </q-btn>
-
-                    <q-btn
-                      round
-                      color="info"
-                      icon="history"
-                      @click="verCitas(props.row)"
-                      size="sm"
-                      outline
-                      dense
-                    >
-                      <q-tooltip>Ver Citas Agendadas</q-tooltip>
-                    </q-btn>
-
                   </div>
                 </template>
                 
@@ -271,19 +246,6 @@
     @cerrar="cerrarDialogoMascota"
   />
 
-  <DialogoCitasMascota
-    v-model="mostrarDialogoCitas"
-    :mascota="mascotaHistorial"
-    @agendar="agendarDesdeHistorial"
-  />
-
-  <DialogoAgendarCitaRapida
-    v-model="mostrarDialogoAgendarRapido"
-    :mascota="mascotaAgendar"
-    :propietario="propietarioSeleccionado"
-    @success="onAgendaSuccess"
-  />
-
 </template>
 
 <script setup>
@@ -293,8 +255,6 @@ import { useRouter } from "vue-router";
 import DialogAgregarMascotaPropietario from "../dialog/DialogAgregarMascotaPropietario.vue";
 import DialogAgregarPropietario from "../dialog/DialogAgregarPropietario.vue";
 import DialogAgregarMascota from "../dialog/DialogAgregarMascota.vue";
-import DialogoCitasMascota from "../dialog/DialogoCitasMascota.vue";
-import DialogoAgendarCitaRapida from "../dialog/DialogoAgendarCitaRapida.vue";
 import NdAlertasControl from "src/controles/alertas.control";
 import PeticionService from "src/services/peticion.service";
 import { usePropietarioStore } from 'src/stores/propietarioStore';
@@ -305,10 +265,6 @@ import { useMascotaSeleccionadaStore } from 'src/stores/mascotaSeleccionadaStore
 const $q = useQuasar();
 const mostrarDialogoPropietario = ref(false);
 const mostrarDialogoMascota = ref(false);
-const mostrarDialogoCitas = ref(false);
-const mostrarDialogoAgendarRapido = ref(false);
-const mascotaHistorial = ref(null);
-const mascotaAgendar = ref(null);
 let alertas = new NdAlertasControl()
 const propietarioStore = usePropietarioStore();
 const router = useRouter();
@@ -539,28 +495,6 @@ const seleccionarMascota = async (props) => {
   } catch (error) {
     // Manejo de error opcional
   }
-};
-
-const agendarCita = (mascota) => {
-  mascotaAgendar.value = mascota;
-  mostrarDialogoAgendarRapido.value = true;
-};
-
-const verCitas = (mascota) => {
-  mascotaHistorial.value = mascota;
-  mostrarDialogoCitas.value = true;
-};
-
-const agendarDesdeHistorial = () => {
-  mostrarDialogoCitas.value = false;
-  if (mascotaHistorial.value) {
-    agendarCita(mascotaHistorial.value);
-  }
-};
-
-const onAgendaSuccess = () => {
-  // Opcional: refrescar algo o simplemente cerrar
-  mostrarDialogoAgendarRapido.value = false;
 };
 
 // Función mejorada para manejar propietario agregado

@@ -50,9 +50,9 @@ export function useAgenda() {
     const formatDateKey = (date) => {
         if (!date) return ''
 
-        // 1. Si es un string, intentar extraer YYYY-MM-DD directamente
+        // 1. Si es un string, intentar extraer YYYY-MM-DD o YYYY/MM/DD
         if (typeof date === 'string') {
-            const match = date.match(/^(\d{4})-(\d{2})-(\d{2})/);
+            const match = date.match(/^(\d{4})[-/](\d{2})[-/](\d{2})/);
             if (match) return `${match[1]}-${match[2]}-${match[3]}`;
         }
 
@@ -99,7 +99,7 @@ export function useAgenda() {
             queryParams.append('filtro[id_servicio]', idServicio)
             queryParams.append('filtro[fecha_inicio]', formatDateKey(fechaInicio))
             queryParams.append('filtro[fecha_fin]', formatDateKey(fechaFin))
-            queryParams.append('filtro[id_sucursal]', store.sucursalSeleccionada.id)
+            queryParams.append('filtro[id_sucursal]', store.id_sucursal)
 
             const response = await peticion.invocarMetodo(`agenda/disponibilidad?${queryParams.toString()}`, 'get')
             return Array.isArray(response) ? response : []
@@ -115,7 +115,7 @@ export function useAgenda() {
             const queryParams = new URLSearchParams()
             queryParams.append('filtro[id_servicio]', idServicio)
             queryParams.append('filtro[fecha]', formatDateKey(fecha))
-            queryParams.append('filtro[id_sucursal]', store.sucursalSeleccionada.id)
+            queryParams.append('filtro[id_sucursal]', store.id_sucursal)
 
             const response = await peticion.invocarMetodo(`agenda/disponibilidad/dia?${queryParams.toString()}`, 'get')
             return Array.isArray(response) ? response : []
@@ -130,7 +130,7 @@ export function useAgenda() {
             const peticion = new NdPeticionControl()
             const queryParams = new URLSearchParams()
             queryParams.append('filtro[fecha]', formatDateKey(fecha))
-            queryParams.append('filtro[id_sucursal]', store.sucursalSeleccionada.id)
+            queryParams.append('filtro[id_sucursal]', store.id_sucursal)
 
             const response = await peticion.invocarMetodo(`agenda/citas/fecha?${queryParams.toString()}`, 'get')
             return Array.isArray(response) ? response : []
@@ -622,8 +622,38 @@ export function useAgenda() {
         const today = new Date()
         const isWeekend = targetDate.getDay() === 0 || targetDate.getDay() === 6
         const isPast = targetDate < today && !isSameDay(targetDate, today)
+
+        // Si hay un servicio seleccionado y caché, verificar si hay agenda
+        if (selectedService.value) {
+            const dateKey = formatDateKey(targetDate)
+            const cacheKey = `${selectedService.value.id}-${dateKey}`
+            const slots = disponibilidadCache.value[cacheKey]
+
+            // Si tenemos datos en caché para este día, solo permitir si tiene slots disponibles
+            if (slots !== undefined && slots !== null) {
+                return slots.some(s => s.status === 'available') && !isPast
+            }
+        }
+
         return !isPast && (selectedService.value?.id === 8 || !isWeekend)
     }
+
+    const agendaEvents = computed(() => {
+        if (!selectedService.value) return []
+        const events = []
+        const servicePrefix = `${selectedService.value.id}-`
+
+        for (const cacheKey in disponibilidadCache.value) {
+            if (cacheKey.startsWith(servicePrefix)) {
+                const slots = disponibilidadCache.value[cacheKey]
+                if (Array.isArray(slots) && slots.some(s => s.status === 'available')) {
+                    // Convertir YYYY-MM-DD a YYYY/MM/DD para q-date
+                    events.push(cacheKey.replace(servicePrefix, '').replace(/-/g, '/'))
+                }
+            }
+        }
+        return events
+    })
 
     watch(viewMode, (newMode) => {
         newMode === 'day' ? loadDisponibilidadDiaActual() : loadDisponibilidadMes()
@@ -638,11 +668,13 @@ export function useAgenda() {
         selectedDate, showDatePicker, sidebarCollapsed, disponibilidadCache, citasCache,
         isLoadingDisponibilidad, weekdays, dayColumns, services, serviceSearch,
         currentMonthName, selectedDateString, filteredServices, totalAppointmentsToday,
-        totalServicesActive, daySlots, calendarDays, currentStats, dateOptions,
+        totalServicesActive, daySlots, calendarDays, currentStats, dateOptions, agendaEvents,
+        loadServices,
         toggleSidebar, selectService, getServiceStats, getTimeIcon, getTimeIconColor,
         getStatusLabel, viewAppointment, cancelAppointment, previousMonth, nextMonth,
         previousDay, nextDay, goToToday, selectDayForDayView, updateSelectedDate,
         selectTimeSlot, refrescarDisponibilidad, mostrarDialogoAsignarCita,
-        slotSeleccionado, onCitaCreada, imprimirCertificadoCita
+        slotSeleccionado, onCitaCreada, imprimirCertificadoCita, loadDisponibilidadMes,
+        loadDisponibilidadDia, formatDateKey, formatTime
     }
 }
