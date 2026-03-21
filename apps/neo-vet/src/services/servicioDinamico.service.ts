@@ -11,6 +11,10 @@ export interface ServicioDefinicion {
     activo: string // 'S' o 'N'
     id_configuracion: number
     id_plantilla?: number
+    tipo_renderizado?: string   // 'dinamico' | 'especializado'
+    componente_clave?: string   // ej: 'vacunacion'
+    color?: string
+    categoria?: string
 }
 
 export interface ServicioSeccion {

@@ -1,0 +1,9 @@
+﻿yarn workspace v1.22.22
+yarn run v1.22.22
+$ "C:\Fuentes\Desarrollo web\Neodimio\Frontend-Neodimio-VueJs\Monorepo-Vue\node_modules\.bin\tsc" --noEmit
+src/composables/useAgenda copy 2.js(232,2): error TS1128: Declaration or statement expected.
+src/composables/useAgenda copy 2.js(233,5): error TS1128: Declaration or statement expected.
+src/composables/useAgenda copy 2.js(593,1): error TS1128: Declaration or statement expected.
+src/services/agenda.service.ts(1,78): error TS1005: ';' expected.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+info Visit https://yarnpkg.com/en/docs/cli/workspace for documentation about this command.

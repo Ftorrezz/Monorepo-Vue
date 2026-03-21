@@ -199,6 +199,11 @@ export default defineComponent({
       type: Array,
       default: () => []
     },
+    // Catálogo desde BD (GEN.SERVICIO con tipo_renderizado y componente_clave)
+    serviciosCatalogo: {
+      type: Array,
+      default: null
+    },
     atencionFinalizada: {
       type: Boolean,
       default: false
@@ -264,10 +269,30 @@ export default defineComponent({
     
     // Combinar servicios
     const serviciosDisponibles = computed(() => {
-      if (props.serviciosCustom) {
-        return props.serviciosCustom
+      // 1. Prioridad máxima: prop custom explícito
+      if (props.serviciosCustom) return props.serviciosCustom
+
+      // 2. Catálogo desde BD (GEN.SERVICIO con tipo_renderizado)
+      if (props.serviciosCatalogo && props.serviciosCatalogo.length > 0) {
+        return props.serviciosCatalogo.map(s => ({
+          // id numérico real de BD → se usa como id_servicio_def en ATENCION_SERVICIOS
+          id:              s.id,
+          id_servicio:     s.id,
+          nombre:          s.nombre,
+          descripcion:     s.descripcion || '',
+          icono:           s.icono || 'medical_services',
+          color:           s.color || 'primary',
+          categoria:       s.categoria || 'consultas',
+          tipo_renderizado: s.tipo_renderizado || 'dinamico',
+          // componente_clave: qué componente Vue cargar (ej: 'vacunacion')
+          componente_clave: s.componente_clave || null,
+          // tipo: para backward compat con isServicioYaAgregado
+          tipo:            s.componente_clave || s.identificador || String(s.id),
+          esDinamico:      s.tipo_renderizado !== 'especializado'
+        }))
       }
-      
+
+      // 3. Fallback: array hardcodeado + dinámicos (backward compat)
       return [
         ...serviciosDisponiblesPredeterminados,
         ...serviciosDinamicosMapeados.value

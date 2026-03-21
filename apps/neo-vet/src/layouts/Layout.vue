@@ -43,7 +43,7 @@
       <q-drawer
         v-model="uiStore.leftDrawerOpen"
         :show-if-above="uiStore.menuType === 'sidebar'"
-        :width="320"
+        :width="360"
         :mini-width="80"
         :mini="uiStore.miniState && uiStore.menuType === 'sidebar' && $q.screen.gt.sm"
         :breakpoint="1023"
@@ -93,7 +93,11 @@
             $q.dark.isActive ? 'drawer_dark' : 'drawer_normal',
           ]"
         >
-          <q-scroll-area style="height: calc(100vh - 120px)">
+          <q-scroll-area 
+            style="height: calc(100vh - 120px)"
+            :thumb-style="{ width: '0px' }"
+            :bar-style="{ width: '0px' }"
+          >
             <MenuPrincipal />
           </q-scroll-area>
         </div>
@@ -415,5 +419,10 @@ function collapseFooter() {
 .system-logo-mini {
   width: 44px;
   height: auto;
+}
+
+/* Ocultar barra de scroll nativa del Drawer para que no se encime al diseño */
+:deep(.q-drawer__content) {
+  overflow-y: hidden !important;
 }
 </style>

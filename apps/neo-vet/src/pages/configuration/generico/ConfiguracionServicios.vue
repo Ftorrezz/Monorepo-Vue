@@ -182,6 +182,93 @@
                   </template>
                 </q-select>
               </div>
+
+              <!-- Nuevos campos de renderizado -->
+              <div class="col-12">
+                <q-separator class="q-my-sm" />
+                <div class="text-subtitle2 q-mb-sm">Renderizado y Estética</div>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <q-select
+                  v-model="formularioServicio.tipo_renderizado"
+                  :options="[
+                    { label: 'Dinámico (EAV)', value: 'dinamico' },
+                    { label: 'Especializado (Componente)', value: 'especializado' }
+                  ]"
+                  label="Tipo de Renderizado"
+                  outlined
+                  dense
+                  emit-value
+                  map-options
+                  hint="Cómo se dibujará el formulario"
+                />
+              </div>
+
+              <div class="col-12 col-md-6">
+                <q-select
+                  v-model="formularioServicio.categoria"
+                  :options="[
+                    { label: 'Consultas', value: 'consultas' },
+                    { label: 'Procedimientos', value: 'procedimientos' },
+                    { label: 'Diagnóstico', value: 'diagnostico' },
+                    { label: 'Otros', value: 'otros' }
+                  ]"
+                  label="Categoría"
+                  outlined
+                  dense
+                  emit-value
+                  map-options
+                />
+              </div>
+
+              <div class="col-12" v-if="formularioServicio.tipo_renderizado === 'especializado'">
+                <q-select
+                  v-model="formularioServicio.componente_clave"
+                  :options="componentesEspecializados"
+                  option-value="value"
+                  option-label="label"
+                  emit-value
+                  map-options
+                  label="Componente Especializado *"
+                  outlined
+                  dense
+                  :rules="[val => !!val || 'Requerido para servicios especializados']"
+                  hint="Selecciona el componente técnico que procesará este servicio"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="extension" color="primary" />
+                  </template>
+                </q-select>
+              </div>
+
+              <div class="col-12">
+                <q-input
+                  v-model="formularioServicio.color"
+                  label="Color UI"
+                  outlined
+                  dense
+                  placeholder="ej: primary, positive, #ff0000"
+                >
+                  <template v-slot:append>
+                    <q-icon name="colorize" class="cursor-pointer">
+                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                        <q-color v-model="formularioServicio.color" />
+                      </q-popup-proxy>
+                    </q-icon>
+                  </template>
+                  <template v-slot:prepend>
+                    <div 
+                      class="q-mr-xs rounded-borders" 
+                      :style="{ 
+                        width: '20px', 
+                        height: '20px', 
+                        backgroundColor: formularioServicio.color?.startsWith('#') ? formularioServicio.color : `var(--q-${formularioServicio.color || 'primary'})` 
+                      }"
+                    ></div>
+                  </template>
+                </q-input>
+              </div>
             </div>
           </q-form>
         </q-card-section>
@@ -226,7 +313,11 @@ const formularioServicio = reactive({
   icono: 'auto_awesome',
   id_plantilla: null,
   activo: 'S',
-  id_configuracion: 1
+  id_configuracion: 1,
+  tipo_renderizado: 'dinamico',
+  componente_clave: '',
+  color: 'primary',
+  categoria: 'otros'
 })
 
 const columnas = [
@@ -265,6 +356,20 @@ const iconosBase = [
   { label: 'Cardiología', value: 'cardiology' },
   { label: 'Oftalmología', value: 'visibility' },
   { label: 'Dermatología', value: 'dermatology' }
+]
+
+const componentesEspecializados = [
+  { label: 'Vacunación', value: 'vacunacion' },
+  { label: 'Desparasitación', value: 'desparacitacion' },
+  { label: 'Laboratorio', value: 'laboratorio' },
+  { label: 'Rayos X', value: 'rayosx' },
+  { label: 'Ultrasonido', value: 'ultrasonido' },
+  { label: 'Exploración Física', value: 'exploracion' },
+  { label: 'Hospitalización', value: 'hospitalizacion' },
+  { label: 'Medicamentos y Tratamientos', value: 'medicamentos' },
+  { label: 'Rehabilitación / Fisioterapia', value: 'rehabilitacion' },
+  { label: 'Urgencias / Emergencias', value: 'emergencia' },
+  { label: 'Estética y Grooming', value: 'estetica' }
 ]
 
 const iconosDisponibles = ref([...iconosBase])
@@ -317,7 +422,11 @@ const abrirFormulario = (servicio = null) => {
       icono: 'auto_awesome',
       id_plantilla: null,
       activo: 'S',
-      id_configuracion: 1
+      id_configuracion: 1,
+      tipo_renderizado: 'dinamico',
+      componente_clave: '',
+      color: 'primary',
+      categoria: 'otros'
     })
   }
   cargarPlantillas()

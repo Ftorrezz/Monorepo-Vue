@@ -7,15 +7,10 @@
         :default-opened="menu.defaultopened"
         class="premium-expansion"
         header-class="premium-header"
+        :icon="menu.icon"
+        :label="$t(menu.labelKey)"
+        expand-icon="keyboard_arrow_down"
       >
-        <template v-slot:header>
-          <q-item-section avatar>
-            <q-icon :name="menu.icon" class="premium-icon" />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label class="premium-label">{{ $t(menu.labelKey) }}</q-item-label>
-          </q-item-section>
-        </template>
 
         <q-list class="premium-submenu">
           <template v-for="(item, subIndex) in menu.items" :key="subIndex">
@@ -41,19 +36,15 @@
               v-else
               class="premium-expansion-nested"
               header-class="premium-header-nested"
+              :icon="item.icon"
+              :label="$t(item.labelKey)"
+              expand-icon="keyboard_arrow_down"
             >
-              <template v-slot:header>
-                <q-item-section avatar>
-                  <q-icon :name="item.icon" size="xs" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>{{ $t(item.labelKey) }}</q-item-label>
-                </q-item-section>
-              </template>
 
               <q-list class="premium-sub-submenu">
                 <template v-for="(subItem, subSubIdx) in item.subItems" :key="subSubIdx">
                   <q-item
+                    v-if="!subItem.subItems"
                     :to="subItem.to"
                     clickable
                     active-class="premium-active-subitem"
@@ -67,6 +58,34 @@
                       <q-item-label>{{ $t(subItem.labelKey) }}</q-item-label>
                     </q-item-section>
                   </q-item>
+
+                  <q-expansion-item
+                    v-else
+                    class="premium-expansion-nested"
+                    header-class="premium-header-nested"
+                    :icon="subItem.icon"
+                    :label="$t(subItem.labelKey)"
+                    expand-icon="keyboard_arrow_down"
+                  >
+                    <q-list class="premium-sub-submenu">
+                      <template v-for="(lvl4, lvl4Idx) in subItem.subItems" :key="lvl4Idx">
+                        <q-item
+                          :to="lvl4.to"
+                          clickable
+                          active-class="premium-active-subitem"
+                          class="premium-sub-item"
+                          v-ripple
+                        >
+                          <q-item-section avatar>
+                            <q-icon :name="lvl4.icon" size="xs" />
+                          </q-item-section>
+                          <q-item-section>
+                            <q-item-label>{{ $t(lvl4.labelKey) }}</q-item-label>
+                          </q-item-section>
+                        </q-item>
+                      </template>
+                    </q-list>
+                  </q-expansion-item>
                 </template>
               </q-list>
             </q-expansion-item>
@@ -120,13 +139,13 @@ import { menuConfig } from "src/config/menuConfig"
     }
   }
 
-  .premium-icon {
+  .premium-icon, .premium-header .q-icon {
     font-size: 22px;
     opacity: 0.7;
     transition: all 0.3s ease;
   }
 
-  .premium-label {
+  .premium-label, .premium-header .q-item__label {
     font-weight: 500;
     font-size: 15px;
     letter-spacing: 0.3px;
