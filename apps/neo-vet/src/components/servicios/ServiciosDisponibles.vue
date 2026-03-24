@@ -274,22 +274,40 @@ export default defineComponent({
 
       // 2. Catálogo desde BD (GEN.SERVICIO con tipo_renderizado)
       if (props.serviciosCatalogo && props.serviciosCatalogo.length > 0) {
-        return props.serviciosCatalogo.map(s => ({
-          // id numérico real de BD → se usa como id_servicio_def en ATENCION_SERVICIOS
-          id:              s.id,
-          id_servicio:     s.id,
-          nombre:          s.nombre,
-          descripcion:     s.descripcion || '',
-          icono:           s.icono || 'medical_services',
-          color:           s.color || 'primary',
-          categoria:       s.categoria || 'consultas',
-          tipo_renderizado: s.tipo_renderizado || 'dinamico',
-          // componente_clave: qué componente Vue cargar (ej: 'vacunacion')
-          componente_clave: s.componente_clave || null,
-          // tipo: para backward compat con isServicioYaAgregado
-          tipo:            s.componente_clave || s.identificador || String(s.id),
-          esDinamico:      s.tipo_renderizado !== 'especializado'
-        }))
+        return props.serviciosCatalogo.map(s => {
+          const tipo = s.componente_clave || s.identificador || String(s.id)
+          
+          let pred = serviciosDisponiblesPredeterminados.find(p => 
+            p.tipo === tipo || 
+            (typeof tipo === 'string' && p.tipo.toLowerCase() === tipo.toLowerCase())
+          )
+          
+          // Si no encuentra por clave, intentar por nombre normalizado (sin acentos)
+          if (!pred && s.nombre) {
+            const nombreNormalizado = s.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            pred = serviciosDisponiblesPredeterminados.find(p => 
+              p.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === nombreNormalizado ||
+              p.tipo === nombreNormalizado
+            )
+          }
+
+          return {
+            // id numérico real de BD → se usa como id_servicio_def en ATENCION_SERVICIOS
+            id:              s.id,
+            id_servicio:     s.id,
+            nombre:          s.nombre,
+            descripcion:     s.descripcion || (pred?.descripcion) || '',
+            icono:           s.icono || (pred?.icono) || 'medical_services',
+            color:           s.color || (pred?.color) || 'primary',
+            categoria:       s.categoria || (pred ? categoriasMap[pred.tipo] : 'consultas'),
+            tipo_renderizado: s.tipo_renderizado || 'dinamico',
+            // componente_clave: qué componente Vue cargar (ej: 'vacunacion')
+            componente_clave: s.componente_clave || null,
+            // tipo: para backward compat con isServicioYaAgregado
+            tipo:            tipo,
+            esDinamico:      s.tipo_renderizado !== 'especializado'
+          }
+        })
       }
 
       // 3. Fallback: array hardcodeado + dinámicos (backward compat)
