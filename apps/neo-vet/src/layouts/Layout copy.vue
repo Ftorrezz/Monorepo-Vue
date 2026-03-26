@@ -200,12 +200,12 @@ function collapseFooter() {
   align-items: center;
   justify-content: center;
   width: 100%;
-  padding: 10px 4px;
+  padding: 10px;
 }
 
 .system-logo-expanded {
-  max-width: 260px;
-  max-height: 100px;
+  max-width: 220px;
+  max-height: 80px;
   object-fit: contain;
   transition: all 0.3s ease;
 }
@@ -232,8 +232,8 @@ function collapseFooter() {
 }
 
 .system-logo-mini {
-  width: 62px;
-  height: 50px;
+  width: 50px;
+  height: 40px;
   object-fit: contain;
   border-radius: 50%;
   background-color: rgba(255, 255, 255, 0.1);
@@ -411,13 +411,13 @@ function collapseFooter() {
 }
 
 .system-logo-expanded {
-  width: 190px;
+  width: 180px;
   max-width: 90%;
   height: auto;
 }
 
 .system-logo-mini {
-  width: 62px;
+  width: 44px;
   height: auto;
 }
 

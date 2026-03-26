@@ -1727,74 +1727,15 @@ const guardarDatos = () => {
     proveedores: proveedores.value
   })
 }
-  
-  // Movimientos de ejemplo
-  movimientos.value = [
-    {
-      id: 'mov_001',
-      fecha: '2024-02-15T14:30:00.000Z',
-      tipo: 'venta',
-      productoId: 'prod_001',
-      producto: 'Amoxicilina 250mg - Frasco 100ml',
-      cantidad: 1,
-      motivo: 'Venta a María González (3 dosis)',
-      stockAnterior: 6,
-      stockNuevo: 5,
-      usuario: 'Dr. Veterinario',
-      cliente: 'María González',
-      precioVenta: 18.00
-    },
-    {
-      id: 'mov_002',
-      fecha: '2024-02-15T16:20:00.000Z',
-      tipo: 'ajuste_negativo',
-      productoId: 'prod_004',
-      producto: 'Shampoo Antipulgas 500ml',
-      cantidad: 2,
-      motivo: 'Producto vencido - descarte',
-      stockAnterior: 2,
-      stockNuevo: 0,
-      usuario: 'Asistente Ana'
-    },
-    {
-      id: 'mov_003',
-      fecha: '2024-02-14T10:15:00.000Z',
-      tipo: 'entrada',
-      productoId: 'prod_002',
-      producto: 'Alimento Premium Perro Adulto',
-      cantidad: 10,
-      motivo: 'Compra - Factura #12345',
-      stockAnterior: 15,
-      stockNuevo: 25,
-      usuario: 'Encargado Compras'
-    },
-    {
-      id: 'mov_004',
-      fecha: '2024-02-13T15:45:00.000Z',
-      tipo: 'venta',
-      productoId: 'prod_002',
-      producto: 'Alimento Premium Perro Adulto',
-      cantidad: 2,
-      motivo: 'Venta a Carlos Pérez',
-      stockAnterior: 17,
-      stockNuevo: 15,
-      usuario: 'Vendedor Luis',
-      cliente: 'Carlos Pérez',
-      precioVenta: 1300.00
-    }
-  ]
-}
 
 // Inicialización al montar el componente
 onMounted(() => {
   cargarDatos()
-  // Inicializar productos disponibles para venta
-  productosDisponiblesParaVenta.value = inventario.value.productos.filter(p => p.activo && p.stockUnidades > 0)
 })
 
-// Watchers
-watch(() => inventario.value.productos, () => {
-  productosDisponiblesParaVenta.value = inventario.value.productos.filter(p => p.activo && p.stockUnidades > 0)
+// Watcher de productos disponibles para venta
+watch(productos, (nuevosProductos) => {
+  productosDisponiblesParaVenta.value = nuevosProductos.filter(p => p.activo && p.stockUnidades > 0)
 }, { deep: true })
 
 // Exponer métodos públicos si es necesario
@@ -1808,7 +1749,7 @@ defineExpose({
   },
   ajustarStockProducto: (productoId, ajuste) => {
     // Método para ajustar stock desde otros componentes
-    const producto = inventario.value.productos.find(p => p.id === productoId)
+    const producto = productos.value.find(p => p.id === productoId)
     if (producto) {
       productoParaAjustar.value = producto
       ajusteStock.value = ajuste
@@ -1816,10 +1757,10 @@ defineExpose({
     }
   },
   obtenerProductoPorId: (productoId) => {
-    return inventario.value.productos.find(p => p.id === productoId)
+    return productos.value.find(p => p.id === productoId)
   },
   verificarDisponibilidad: (productoId, cantidad, tipoBusqueda = 'completo') => {
-    const producto = inventario.value.productos.find(p => p.id === productoId)
+    const producto = productos.value.find(p => p.id === productoId)
     if (!producto) return false
     
     if (tipoBusqueda === 'dosis' && producto.manejoFraccionado) {
