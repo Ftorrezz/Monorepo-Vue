@@ -19,7 +19,7 @@
             :class="{ 'text-black bg-grey-3': route.path.startsWith(menu.to || 'none') }"
           >
             <q-icon :name="menu.icon" size="sm" class="q-mr-xs" />
-            <span class="text-body1 q-ml-sm q-mr-xs">{{ t(menu.labelKey) }}</span>
+            <span class="menu-label-text q-ml-sm q-mr-xs">{{ t(menu.labelKey) }}</span>
             <q-icon name="arrow_drop_down" />
 
             <q-menu
@@ -46,7 +46,7 @@
                     <q-item-section avatar>
                       <q-icon :name="item.icon" size="20px" color="grey-7" />
                     </q-item-section>
-                    <q-item-section class="text-body1">
+                    <q-item-section class="menu-label-text">
                       {{ t(item.labelKey) }}
                     </q-item-section>
                   </q-item>
@@ -62,7 +62,7 @@
                     <q-item-section avatar>
                       <q-icon :name="item.icon" size="20px" color="grey-7" />
                     </q-item-section>
-                    <q-item-section class="text-body1">
+                    <q-item-section class="menu-label-text">
                       {{ t(item.labelKey) }}
                     </q-item-section>
                     <q-item-section side>
@@ -94,7 +94,7 @@
                             <q-item-section avatar v-if="subItem.icon">
                               <q-icon :name="subItem.icon" size="20px" color="grey-7" />
                             </q-item-section>
-                            <q-item-section class="text-body1">
+                            <q-item-section class="menu-label-text">
                               {{ t(subItem.labelKey) }}
                             </q-item-section>
                           </q-item>
@@ -109,7 +109,7 @@
                             <q-item-section avatar v-if="subItem.icon">
                               <q-icon :name="subItem.icon" size="20px" color="grey-7" />
                             </q-item-section>
-                            <q-item-section class="text-body1">
+                            <q-item-section class="menu-label-text">
                               {{ t(subItem.labelKey) }}
                             </q-item-section>
                             <q-item-section side>
@@ -140,7 +140,7 @@
                                     <q-item-section avatar v-if="lvl4.icon">
                                       <q-icon :name="lvl4.icon" size="20px" color="grey-7" />
                                     </q-item-section>
-                                    <q-item-section class="text-body1">
+                                    <q-item-section class="menu-label-text">
                                       {{ t(lvl4.labelKey) }}
                                     </q-item-section>
                                   </q-item>
@@ -171,7 +171,7 @@
             :class="{ 'text-black bg-grey-3': route.path.startsWith(menu.to || 'none') }"
           >
             <q-icon :name="menu.icon" size="sm" class="q-mr-xs" />
-            <div class="text-subtitle2">{{ t(menu.labelKey) }}</div>
+            <span class="menu-label-text q-ml-sm q-mr-xs">{{ t(menu.labelKey) }}</span>
           </q-btn>
         </div>
       </template>
@@ -250,6 +250,24 @@ onBeforeUnmount(() => {
 <style scoped>
 .inline-block {
   display: inline-block;
+}
+
+/* Quitar negrita y suavizar fuente en el menú */
+.menu-label-text {
+  font-weight: 300 !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:deep(.q-btn) {
+  font-weight: 300 !important;
+}
+
+:deep(.q-btn__content), 
+:deep(.q-btn__content *),
+:deep(.q-item__section),
+:deep(.q-item__section *) {
+  font-weight: 300 !important;
 }
 
 /* Efecto hover celeste sobre botones principales y opciones de menú */

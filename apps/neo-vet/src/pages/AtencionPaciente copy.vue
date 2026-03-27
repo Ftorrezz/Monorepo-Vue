@@ -566,7 +566,7 @@
 </template>
 
 <script>
-import { ref, computed, onBeforeUnmount, watch, reactive, onMounted, defineAsyncComponent } from 'vue'
+import { ref, computed, onBeforeUnmount, watch, reactive, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useMascotaSeleccionadaStore } from 'src/stores/mascotaSeleccionadaStore';
 import { usePlantillas } from 'src/composables/usePlantillas'
@@ -579,22 +579,21 @@ import NdPeticionControl from 'src/controles/rest.control'
 import { DtoParametros } from 'src/controles/dto.parametros'
 import { useDialogStore } from 'src/stores/DialogoUbicacion'
 
-// Importación dinámica de componentes de servicios con lazy loading
-const ServicioVacunacion = defineAsyncComponent(() => import('../components/servicios/ServicioVacunacion.vue'))
-const ServicioDesparacitacion = defineAsyncComponent(() => import('../components/servicios/ServicioDesparacitacion.vue'))
-const ServiciosDisponibles = defineAsyncComponent(() => import('../components/servicios/ServiciosDisponibles.vue'))
-const OrdenLaboratorio = defineAsyncComponent(() => import('../components/laboratorio/OrdenLaboratorio.vue'))
-const ServicioRayosX = defineAsyncComponent(() => import('../components/servicios/ServicioRayosX.vue'))
-const ServicioUltrasonido = defineAsyncComponent(() => import('src/components/servicios/ServicioUltrasonido.vue'))
-const ServicioExploracionFisica = defineAsyncComponent(() => import('src/components/servicios/ServicioExploracionFisica.vue'))
-const ServicioHospitalizacion = defineAsyncComponent(() => import('src/components/servicios/ServicioHospitalizacion.vue'))
-const ServicioMedicamento = defineAsyncComponent(() => import('src/components/servicios/ServicioMedicamento.vue'))
-const ServicioFisioterapia = defineAsyncComponent(() => import('src/components/servicios/ServicioFisioterapia.vue'))
-const ServicioUrgencia = defineAsyncComponent(() => import('src/components/servicios/ServicioUrgencia.vue'))
-const ServicioEstetica = defineAsyncComponent(() => import('../components/servicios/ServicioEstetica.vue'))
-const ServicioResumen = defineAsyncComponent(() => import('../components/servicios/ServicioResumen.vue'))
-const ServicioDinamico = defineAsyncComponent(() => import('../components/servicios/ServicioDinamico.vue'))
-
+// Importación de los componentes de servicios
+import ServicioVacunacion from '../components/servicios/ServicioVacunacion.vue'
+import ServicioDesparacitacion from '../components/servicios/ServicioDesparacitacion.vue'
+import ServiciosDisponibles from '../components/servicios/ServiciosDisponibles.vue'
+import OrdenLaboratorio from '../components/laboratorio/OrdenLaboratorio.vue';
+import ServicioRayosX from '../components/servicios/ServicioRayosX.vue';
+import ServicioUltrasonido from 'src/components/servicios/ServicioUltrasonido.vue';
+import ServicioExploracionFisica from 'src/components/servicios/ServicioExploracionFisica.vue';
+import ServicioHospitalizacion from 'src/components/servicios/ServicioHospitalizacion.vue';
+import ServicioMedicamento from 'src/components/servicios/ServicioMedicamento.vue';
+import ServicioFisioterapia from 'src/components/servicios/ServicioFisioterapia.vue';
+import ServicioUrgencia from 'src/components/servicios/ServicioUrgencia.vue';
+import ServicioEstetica from '../components/servicios/ServicioEstetica.vue'
+import ServicioResumen from '../components/servicios/ServicioResumen.vue'
+import ServicioDinamico from '../components/servicios/ServicioDinamico.vue'
 import CardBusquedaPropietarioMascota from 'src/components/card/CardBusquedaPropietarioMascota.vue'
 
 export default {
@@ -991,34 +990,21 @@ export default {
           const clave = servicio.componente_clave || servicio.tipo
 
           if (clave === 'vacunacion') {
-            const vacunas = datosFinales.vacunas || []
-            
-            for (const v of vacunas) {
-              await atencionServicioService.guardarVacunacion({
-                id_atencion_servicio: servicio.idBD,
-                id_producto:          v.producto?.id || v.producto?.value,
-                tipo_vacuna:          v.tipoVacuna?.label || v.tipoVacuna,
-                laboratorio:          v.laboratorio,
-                lote:                 v.numeroLote || v.lote?.numeroLote,
-                fecha_vencimiento:    v.fechaVencimiento,
-                dosis:                Number(v.dosisAplicada),
-                via_administracion:   v.viaAdministracion?.label || v.viaAdministracion,
-                sitio_aplicacion:     v.sitioAplicacion,
-                proxima_vacuna:       v.proximaVacuna,
-                reacciones_adversas:  v.reaccionesAdversas ? `S: ${v.descripcionReacciones || ''}` : 'N'
-              })
+            await atencionServicioService.guardarVacunacion({
+              id_atencion_servicio: servicio.idBD,
+              ...datosFinales
+            })
 
-              // 3. Programar notificación de refuerzo si existe fecha
-              if (v.proximaVacuna) {
-                await atencionServicioService.crearNotificacion({
-                  id_atencion_servicio: servicio.idBD,
-                  id_propietario: atencionActualData.value.id_propietario || paciente.value.id_propietario,
-                  id_mascota: atencionActualData.value.id_mascota || paciente.value.id,
-                  tipo_notificacion: 'vacuna',
-                  mensaje: `Refuerzo de ${v.tipoVacuna?.label || v.tipoVacuna}`,
-                  fecha_programada: v.proximaVacuna
-                })
-              }
+            // 3. Programar notificación de refuerzo si existe fecha
+            if (datosFinales.proxima_vacuna) {
+              await atencionServicioService.crearNotificacion({
+                id_atencion_servicio: servicio.idBD,
+                id_propietario: atencionActualData.value.id_propietario || paciente.value.id_propietario,
+                id_mascota: atencionActualData.value.id_mascota || paciente.value.id,
+                tipo_notificacion: 'vacunacion',
+                mensaje: `Recordatorio: Próxima vacuna (${datosFinales.tipo_vacuna || 'General'}) para ${paciente.value.nombre}`,
+                fecha_programada: datosFinales.proxima_vacuna
+              })
             }
           } else if (clave === 'desparacitacion' || clave === 'desparasitacion') {
             // Mapeo selectivo de campos para desparasitación (FRONT -> BACK)
