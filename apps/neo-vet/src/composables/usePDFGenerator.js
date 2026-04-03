@@ -11,12 +11,34 @@ export function usePDFGenerator() {
             firmaBase64 = null
         } = opciones
 
+        let esString = typeof elementoHTML === 'string'
+        let tempDiv = null
+        let elementoHtmlFinal = elementoHTML
+
+        if (esString) {
+            tempDiv = document.createElement('div')
+            tempDiv.innerHTML = elementoHTML
+            // Estilos para que se renderice correctamente en segundo plano
+            tempDiv.style.position = 'absolute'
+            tempDiv.style.left = '-9999px'
+            tempDiv.style.width = '210mm' // Ancho A4
+            tempDiv.style.minHeight = '297mm' // Alto A4 aproximado
+            tempDiv.style.padding = '20mm'
+            tempDiv.style.backgroundColor = 'white'
+            document.body.appendChild(tempDiv)
+            elementoHtmlFinal = tempDiv
+        }
+
         // Capturar el HTML como imagen
-        const canvas = await html2canvas(elementoHTML, {
+        const canvas = await html2canvas(elementoHtmlFinal, {
             scale: 2,
             useCORS: true,
             logging: false
         })
+
+        if (esString && tempDiv) {
+            document.body.removeChild(tempDiv)
+        }
 
         const imgData = canvas.toDataURL('image/png')
         const pdf = new jsPDF(orientacion, 'mm', tamanoPapel)

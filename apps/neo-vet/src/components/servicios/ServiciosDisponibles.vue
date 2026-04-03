@@ -295,7 +295,7 @@ export default defineComponent({
             // id numérico real de BD → se usa como id_servicio_def en ATENCION_SERVICIOS
             id:              s.id,
             id_servicio:     s.id,
-            nombre:          s.nombre,
+            nombre:          (s.nombre && !s.nombre.toUpperCase().startsWith('SERVICIO ')) ? s.nombre : (pred?.nombre || s.nombre),
             descripcion:     s.descripcion || (pred?.descripcion) || '',
             icono:           s.icono || (pred?.icono) || 'medical_services',
             color:           s.color || (pred?.color) || 'primary',

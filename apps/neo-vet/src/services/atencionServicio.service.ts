@@ -13,7 +13,7 @@ export interface AtencionServicioValor {
 
 export interface AtencionServicioDto {
     id_atencion: number
-    id_servicio_def: number     // FK → SERVICIO.id (catálogo maestro)
+    id_servicio: number     // FK → SERVICIO.id (catálogo maestro)
     estado?: string             // 'pendiente' | 'completado' | 'cancelado'
     observaciones?: string
     valores?: AtencionServicioValor[]
@@ -43,12 +43,12 @@ export interface AtencionServicioVacunacion {
     id?: number
     id_atencion_servicio: number
     id_producto?: number
-    tipo_vacuna?: string
-    laboratorio?: string
+    id_tipo_vacuna?: number
+    id_laboratorio?: number
     lote?: string
     fecha_vencimiento?: string
     dosis?: number
-    via_administracion?: string
+    id_via_administracion?: number
     sitio_aplicacion?: string
     proxima_vacuna?: string
     reacciones_adversas?: string
@@ -65,6 +65,23 @@ export interface AtencionServicioDesparasitacion {
     via_administracion?: string
     parasitos_objetivo?: string
     proxima_desparasitacion?: string
+    observaciones?: string
+}
+
+export interface AtencionServicioConsulta {
+    id?: number
+    id_atencion_servicio: number
+    id_motivo?: number
+    motivo_consulta?: string
+    motivo_detallado?: string
+    anamnesis?: string
+    hallazgos_examen?: string
+    diagnostico?: string
+    plan_tratamiento?: string
+    indicaciones_medicas?: string
+    receta_indicaciones?: string
+    pronostico?: string
+    proxima_cita?: string
     observaciones?: string
 }
 
@@ -212,6 +229,20 @@ export const atencionServicioService = {
     },
 
     /**
+     * Obtiene el detalle especializado de una vacunación.
+     */
+    async getVacunacionByAtencionServicio(idAtencionServicio: number): Promise<AtencionServicioVacunacion[]> {
+        const peticion = new NdPeticionControl()
+        const response = await peticion.invocarMetodo('atencionserviciovacunacion', 'get', null, {
+            filtro: { id_atencion_servicio: idAtencionServicio }
+        })
+        if (Array.isArray(response) && response[0]?.elemento) {
+            return response[0].elemento || []
+        }
+        return Array.isArray(response) ? response : (response?.data || [])
+    },
+
+    /**
      * Guarda el detalle especializado de una vacunación.
      */
     async guardarVacunacion(datos: AtencionServicioVacunacion): Promise<void> {
@@ -219,10 +250,24 @@ export const atencionServicioService = {
     },
 
     /**
+     * Actualiza el detalle especializado de una vacunación.
+     */
+    async actualizarVacunacion(id: number, datos: Partial<AtencionServicioVacunacion>): Promise<void> {
+        await peticionService.actualizar('atencionserviciovacunacion', { id, ...datos })
+    },
+
+    /**
      * Guarda el detalle especializado de una desparasitación.
      */
     async guardarDesparasitacion(datos: AtencionServicioDesparasitacion): Promise<void> {
         await peticionService.crear('atencionserviciodesparasitacion', datos)
+    },
+
+    /**
+     * Guarda el detalle especializado de una consulta general.
+     */
+    async guardarConsulta(datos: AtencionServicioConsulta): Promise<void> {
+        await peticionService.crear('atencionservicioconsulta', datos)
     },
 
     /**

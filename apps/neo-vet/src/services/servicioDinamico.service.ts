@@ -45,6 +45,12 @@ export const servicioDinamicoService = {
     // --- SERVICIOS DEFINICION ---
     async getServicios() {
         const response = await peticionService.obtenerGet('servicio')
+
+        // Manejar estructura [{ elemento: [...] }]
+        if (Array.isArray(response) && response.length > 0 && response[0]?.elemento && Array.isArray(response[0].elemento)) {
+            return response[0].elemento
+        }
+
         return Array.isArray(response) ? response : (response?.data || [])
     },
 

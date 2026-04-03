@@ -12,17 +12,11 @@
             icon="more_vert"
           >
             <q-list>
-              <q-item clickable @click="imprimirCertificado('especial')">
+              <q-item clickable @click="imprimirCertificado">
                 <q-item-section avatar>
                   <q-icon name="print" color="primary"/>
                 </q-item-section>
                 <q-item-section>Imprimir Certificado</q-item-section>
-              </q-item>
-              <q-item v-if="idPlantilla" clickable @click="imprimirCertificado('plantilla')">
-                <q-item-section avatar>
-                  <q-icon name="description" color="secondary"/>
-                </q-item-section>
-                <q-item-section>Imprimir Reporte (Plantilla)</q-item-section>
               </q-item>
               <q-separator />
               <q-item clickable @click="completarVacunacion" :disable="vacunasAgregadas.length === 0">
@@ -348,7 +342,6 @@
   const props = defineProps({
     atencionId: { type: String, required: true },
     servicioId: { type: String, required: true },
-    idPlantilla: { type: [String, Number], default: null },
     modoLectura: { type: Boolean, default: false },
     datosIniciales: { type: Object, default: () => ({}) }
   })
@@ -595,8 +588,8 @@
     }
   }
   
-  const imprimirCertificado = (tipo = 'especial') => {
-    emit('imprimir-servicio', props.servicioId, { vacunas: vacunasAgregadas.value }, tipo)
+  const imprimirCertificado = () => {
+    emit('imprimir-servicio', props.servicioId, { vacunas: vacunasAgregadas.value })
   }
 
   const eliminarServicio = () => {

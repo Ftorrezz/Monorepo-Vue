@@ -60,19 +60,6 @@
               {{ formatDate(atenciones[atencionActual]?.fecha) }}
             </div>
           </div>
-
-          <div class="header-v-divider"></div>
-
-          <!-- Bloque Profesional Asignado -->
-          <!-- <div class="veterinario-card pointer-cursor" @click="verDetallesAtencion">
-            <div class="label-tiny">PROFESIONAL ASIGNADO</div>
-            <div class="row items-center no-wrap">
-              <q-icon name="medical_services" size="18px" color="primary" class="q-mr-xs" />
-              <div class="text-subtitle1 text-weight-bold text-primary">
-                {{ atencionActualData.veterinario }}
-              </div>
-            </div>
-          </div> -->
         </div>
 
         <div class="header-actions">
@@ -92,7 +79,7 @@
           <q-btn
             color="primary"
             icon="search"
-            label="Buscar Paciente"
+            label="Cambiar Paciente"
             @click="showSearchDialog = true"
             no-caps
 
@@ -187,7 +174,7 @@
               </div>
               <q-separator vertical dark inset class="q-mx-md opacity-2" />
               <div>
-                <div class="status-label">Profesional Asignado</div>
+                <div class="status-label">Veterinario Asignado</div>
                 <div class="status-value">{{ atencionActualData.veterinario }}</div>
               </div>
             </div>
@@ -280,7 +267,7 @@
                   >
                     <!-- 1. Componente Dinámico (EAV/Metadata PoC) -->
                     <ServicioDinamico
-                      v-if="esquemasActivos[servicio.tipo] && servicio.tipo_renderizado !== 'especializado'"
+                      v-if="esquemasActivos[servicio.tipo]"
                       :schema="esquemasActivos[servicio.tipo]"
                       :servicio-id="servicio.id"
                       :atencion-id="String(atencionActualData.id)"
@@ -290,38 +277,22 @@
                       @servicio-actualizado="actualizarServicio"
                       @servicio-completado="completarServicio"
                       @servicio-eliminado="eliminarServicio"
-                      @imprimir-servicio="imprimirDocumentoServicio(servicio)"
                     />
 
                     <!-- 2. Componentes Especializados -->
-                    <ServicioConsultaGeneral
-                      v-else-if="servicio.tipo?.toLowerCase() === 'consulta' || servicio.componente_clave === 'consulta'"
-                      :servicio-id="servicio.id"
-                      :atencion-id="String(atencionActualData.id)"
-                      :datos-iniciales="servicio.datos"
-                      :modo-lectura="servicio.completado || atencionActualData.estado === 'Finalizada'"
-                      :motivos="motivosOpciones"
-                      @servicio-actualizado="actualizarServicio"
-                      @servicio-completado="completarServicio"
-                      @servicio-eliminado="eliminarServicio"
-                      @imprimir-servicio="imprimirDocumentoServicio(servicio)"
-                    />
-
                     <ServicioVacunacion
-                      v-else-if="servicio.tipo?.toLowerCase() === 'vacunacion' || servicio.componente_clave === 'vacunacion'"
+                      v-else-if="servicio.tipo?.toLowerCase() === 'vacunacion'"
                       :servicio-id="servicio.id"
-                      :id-plantilla="servicio.id_plantilla"
                       :atencion-id="String(atencionActualData.id)"
                       :datos-iniciales="servicio.datos"
                       :modo-lectura="servicio.completado || atencionActualData.estado === 'Finalizada'"
                       @servicio-actualizado="actualizarServicio"
                       @servicio-completado="completarServicio"
                       @servicio-eliminado="eliminarServicio"
-                      @imprimir-servicio="(id, datos, tipo) => imprimirDocumentoServicio(servicio, tipo)"
                     />
 
                     <ServicioDesparacitacion
-                      v-else-if="servicio.tipo?.toLowerCase() === 'desparacitacion' || servicio.tipo?.toLowerCase() === 'desparasitacion' || servicio.componente_clave === 'desparacitacion'"
+                      v-else-if="servicio.tipo?.toLowerCase() === 'desparacitacion' || servicio.tipo?.toLowerCase() === 'desparasitacion'"
                       :servicio-id="servicio.id"
                       :atencion-id="String(atencionActualData.id)"
                       :datos-iniciales="servicio.datos"
@@ -329,11 +300,10 @@
                       @servicio-actualizado="actualizarServicio"
                       @servicio-completado="completarServicio"
                       @servicio-eliminado="eliminarServicio"
-                      @imprimir-servicio="imprimirDocumentoServicio(servicio)"
                     />
 
                     <OrdenLaboratorio
-                      v-else-if="servicio.tipo?.toLowerCase() === 'laboratorio' || servicio.componente_clave === 'laboratorio'"
+                      v-else-if="servicio.tipo?.toLowerCase() === 'laboratorio'"
                       :servicio-id="servicio.id"
                       :atencion-id="String(atencionActualData.id)"
                       :datos-iniciales="servicio.datos"
@@ -341,11 +311,10 @@
                       @servicio-actualizado="actualizarServicio"
                       @servicio-completado="completarServicio"
                       @servicio-eliminado="eliminarServicio"  
-                      @imprimir-servicio="imprimirDocumentoServicio(servicio)"
                     />
 
                     <ServicioRayosX
-                      v-else-if="servicio.tipo?.toLowerCase() === 'rayosx' || servicio.componente_clave === 'rayosx'"
+                      v-else-if="servicio.tipo?.toLowerCase() === 'rayosx'"
                       :servicio-id="servicio.id"
                       :atencion-id="String(atencionActualData.id)"
                       :datos-iniciales="servicio.datos"
@@ -353,11 +322,10 @@
                       @servicio-actualizado="actualizarServicio"
                       @servicio-completado="completarServicio"
                       @servicio-eliminado="eliminarServicio"  
-                      @imprimir-servicio="imprimirDocumentoServicio(servicio)"
                     />
 
                     <ServicioUltrasonido
-                      v-else-if="servicio.tipo?.toLowerCase() === 'ultrasonido' || servicio.componente_clave === 'ultrasonido'"
+                      v-else-if="servicio.tipo?.toLowerCase() === 'ultrasonido'"
                       :servicio-id="servicio.id"
                       :atencion-id="String(atencionActualData.id)"
                       :datos-iniciales="servicio.datos"
@@ -365,11 +333,10 @@
                       @servicio-actualizado="actualizarServicio"
                       @servicio-completado="completarServicio"
                       @servicio-eliminado="eliminarServicio"  
-                      @imprimir-servicio="imprimirDocumentoServicio(servicio)"
                     />
 
                     <ServicioExploracionFisica
-                      v-else-if="servicio.tipo?.toLowerCase() === 'exploracion' || servicio.componente_clave === 'exploracion'"
+                      v-else-if="servicio.tipo?.toLowerCase() === 'exploracion'"
                       :servicio-id="servicio.id"
                       :atencion-id="String(atencionActualData.id)"
                       :datos-iniciales="servicio.datos"
@@ -377,11 +344,10 @@
                       @servicio-actualizado="actualizarServicio"
                       @servicio-completado="completarServicio"
                       @servicio-eliminado="eliminarServicio"
-                      @imprimir-servicio="imprimirDocumentoServicio(servicio)"
                     />
 
                     <ServicioHospitalizacion
-                      v-else-if="servicio.tipo?.toLowerCase() === 'hospitalizacion' || servicio.componente_clave === 'hospitalizacion'"
+                      v-else-if="servicio.tipo?.toLowerCase() === 'hospitalizacion'"
                       :servicio-id="servicio.id"
                       :atencion-id="String(atencionActualData.id)"
                       :datos-iniciales="servicio.datos"
@@ -389,11 +355,10 @@
                       @servicio-actualizado="actualizarServicio"
                       @servicio-completado="completarServicio"
                       @servicio-eliminado="eliminarServicio"
-                      @imprimir-servicio="imprimirDocumentoServicio(servicio)"
                     />
 
                     <ServicioMedicamento
-                      v-else-if="servicio.tipo?.toLowerCase() === 'medicamentos' || servicio.componente_clave === 'medicamentos'"
+                      v-else-if="servicio.tipo?.toLowerCase() === 'medicamentos'"
                       :servicio-id="servicio.id"
                       :atencion-id="String(atencionActualData.id)"
                       :datos-iniciales="servicio.datos"
@@ -401,11 +366,10 @@
                       @servicio-actualizado="actualizarServicio"
                       @servicio-completado="completarServicio"
                       @servicio-eliminado="eliminarServicio"
-                      @imprimir-servicio="imprimirDocumentoServicio(servicio)"
                     />
 
                     <ServicioFisioterapia
-                      v-else-if="servicio.tipo?.toLowerCase() === 'rehabilitacion' || servicio.componente_clave === 'rehabilitacion'"
+                      v-else-if="servicio.tipo?.toLowerCase() === 'rehabilitacion'"
                       :servicio-id="servicio.id"
                       :atencion-id="String(atencionActualData.id)"
                       :datos-iniciales="servicio.datos"
@@ -413,11 +377,10 @@
                       @servicio-actualizado="actualizarServicio"
                       @servicio-completado="completarServicio"
                       @servicio-eliminado="eliminarServicio"
-                      @imprimir-servicio="imprimirDocumentoServicio(servicio)"
                     />
 
                     <ServicioUrgencia
-                      v-else-if="servicio.tipo?.toLowerCase() === 'emergencia' || servicio.componente_clave === 'emergencia'"
+                      v-else-if="servicio.tipo?.toLowerCase() === 'emergencia'"
                       :servicio-id="servicio.id"
                       :atencion-id="String(atencionActualData.id)"
                       :datos-iniciales="servicio.datos"
@@ -425,11 +388,10 @@
                       @servicio-actualizado="actualizarServicio"
                       @servicio-completado="completarServicio"
                       @servicio-eliminado="eliminarServicio"
-                      @imprimir-servicio="imprimirDocumentoServicio(servicio)"
                     />
 
                     <ServicioEstetica
-                      v-else-if="servicio.tipo?.toLowerCase() === 'estetica' || servicio.componente_clave === 'estetica'"
+                      v-else-if="servicio.tipo?.toLowerCase() === 'estetica'"
                       :servicio-id="servicio.id"
                       :atencion-id="String(atencionActualData.id)"
                       :datos-iniciales="servicio.datos"
@@ -437,7 +399,6 @@
                       @servicio-actualizado="actualizarServicio"
                       @servicio-completado="completarServicio"
                       @servicio-eliminado="eliminarServicio"
-                      @imprimir-servicio="imprimirDocumentoServicio(servicio)"
                     />
                     
                     <!-- Componente genérico -->
@@ -609,7 +570,6 @@ import { ref, computed, onBeforeUnmount, watch, reactive, onMounted, defineAsync
 import { useQuasar } from 'quasar'
 import { useMascotaSeleccionadaStore } from 'src/stores/mascotaSeleccionadaStore';
 import { usePlantillas } from 'src/composables/usePlantillas'
-import { useReportes } from 'src/composables/useReportes'
 import { servicioDinamicoService } from 'src/services/servicioDinamico.service'
 import { profesionalService } from 'src/services/profesional.service'
 import { citaMotivoService } from 'src/services/citaMotivo.service'
@@ -622,7 +582,6 @@ import { useDialogStore } from 'src/stores/DialogoUbicacion'
 // Importación dinámica de componentes de servicios con lazy loading
 const ServicioVacunacion = defineAsyncComponent(() => import('../components/servicios/ServicioVacunacion.vue'))
 const ServicioDesparacitacion = defineAsyncComponent(() => import('../components/servicios/ServicioDesparacitacion.vue'))
-const ServicioConsultaGeneral = defineAsyncComponent(() => import('../components/servicios/ServicioConsultaGeneral.vue'))
 const ServiciosDisponibles = defineAsyncComponent(() => import('../components/servicios/ServiciosDisponibles.vue'))
 const OrdenLaboratorio = defineAsyncComponent(() => import('../components/laboratorio/OrdenLaboratorio.vue'))
 const ServicioRayosX = defineAsyncComponent(() => import('../components/servicios/ServicioRayosX.vue'))
@@ -643,7 +602,6 @@ export default {
   components: {
     ServicioVacunacion,
     ServicioDesparacitacion,
-    ServicioConsultaGeneral,
     ServiciosDisponibles,
     OrdenLaboratorio,
     ServicioRayosX,
@@ -847,17 +805,6 @@ export default {
       }
     }, { immediate: true, deep: true })
 
-    // Helper para obtener el nombre del profesional por ID desde el catálogo cargado
-    const obtenerNombreProfesional = (id) => {
-      if (!id) return null
-      const prof = profesionalesDisponibles.value.find(p => String(p.id) === String(id))
-      if (!prof) return null
-      
-      return prof.nombre_completo || 
-             `${prof.poblador_nombre || prof.nombre || ''} ${prof.poblador_primerapellido || prof.primerapellido || ''} ${prof.poblador_segundoapellido || prof.segundoapellido || ''}`.trim() ||
-             'Sin nombre'
-    }
-
     // Métodos
     const formatDate = (dateString) => {
       const date = new Date(dateString)
@@ -983,25 +930,21 @@ export default {
         // Crear registro en BD usando el ID real del catálogo SERVICIO
         const registrado = await atencionServicioService.crear({
           id_atencion:     atenciones.value[atencionActual.value].id,
-          id_servicio: servicio.id_servicio || servicio.id,  // ID real de la tabla SERVICIO
+          id_servicio_def: servicio.id_servicio || servicio.id,  // ID real de la tabla SERVICIO
           estado:          'pendiente'
         })
 
         // Usar el ID real de BD (no temporal) para poder hacer PUT/DELETE después
         const nuevoServicio = {
-          id:               String(registrado?.id || `${servicio.tipo}_${Date.now()}`),  // ID de BD como string
-          idBD:             registrado?.id,          // guardamos el int de BD para operaciones REST
-          tipo:             (servicio.componente_clave || servicio.tipo || servicio.identificador)?.toLowerCase(),
-          nombre:           servicio.nombre,
-          icono:            servicio.icono,
-          color:            servicio.color,
-          tipo_renderizado: servicio.tipo_renderizado,
-          componente_clave: servicio.componente_clave?.toLowerCase(),
-          identificador:    servicio.identificador,
-          id_plantilla:     servicio.id_plantilla,
-          completado:       false,
-          timestamp:        new Date().toLocaleString(),
-          datos:            {}
+          id:         String(registrado?.id || `${servicio.tipo}_${Date.now()}`),  // ID de BD como string
+          idBD:       registrado?.id,          // guardamos el int de BD para operaciones REST
+          tipo:       (servicio.componente_clave || servicio.tipo || servicio.identificador)?.toLowerCase(),
+          nombre:     servicio.nombre,
+          icono:      servicio.icono,
+          color:      servicio.color,
+          completado: false,
+          timestamp:  new Date().toLocaleString(),
+          datos:      {}
         }
 
         if (!atenciones.value[atencionActual.value].servicios) {
@@ -1051,28 +994,21 @@ export default {
             const vacunas = datosFinales.vacunas || []
             
             for (const v of vacunas) {
-              const payloadVacuna = {
+              await atencionServicioService.guardarVacunacion({
                 id_atencion_servicio: servicio.idBD,
                 id_producto:          v.producto?.id || v.producto?.value,
-                id_tipo_vacuna:       v.tipoVacuna?.id_original || (v.tipoVacuna?.value ? Number(v.tipoVacuna.value) : null),
-                id_laboratorio:       v.laboratorio?.id_original || (v.laboratorio?.value ? Number(v.laboratorio.value) : null),
+                tipo_vacuna:          v.tipoVacuna?.label || v.tipoVacuna,
+                laboratorio:          v.laboratorio,
                 lote:                 v.numeroLote || v.lote?.numeroLote,
                 fecha_vencimiento:    v.fechaVencimiento,
                 dosis:                Number(v.dosisAplicada),
-                id_via_administracion: v.viaAdministracion?.id_original || (v.viaAdministracion?.value ? Number(v.viaAdministracion.value) : null),
+                via_administracion:   v.viaAdministracion?.label || v.viaAdministracion,
                 sitio_aplicacion:     v.sitioAplicacion,
                 proxima_vacuna:       v.proximaVacuna,
-                reacciones_adversas:  v.observaciones || 'N'
-              }
-
-              if (v.idBD) {
-                await atencionServicioService.actualizarVacunacion(v.idBD, payloadVacuna)
-              } else {
-                await atencionServicioService.guardarVacunacion(payloadVacuna)
-              }
+                reacciones_adversas:  v.reaccionesAdversas ? `S: ${v.descripcionReacciones || ''}` : 'N'
+              })
 
               // 3. Programar notificación de refuerzo si existe fecha
-              /* Comentado temporalmente por el usuario
               if (v.proximaVacuna) {
                 await atencionServicioService.crearNotificacion({
                   id_atencion_servicio: servicio.idBD,
@@ -1083,7 +1019,6 @@ export default {
                   fecha_programada: v.proximaVacuna
                 })
               }
-              */
             }
           } else if (clave === 'desparacitacion' || clave === 'desparasitacion') {
             // Mapeo selectivo de campos para desparasitación (FRONT -> BACK)
@@ -1103,7 +1038,6 @@ export default {
             })
 
             // 3. Programar notificación de refuerzo si existe fecha
-            /* Comentado temporalmente por el usuario
             if (datosFinales.proximaDesparacitacion) {
               await atencionServicioService.crearNotificacion({
                 id_atencion_servicio: servicio.idBD,
@@ -1114,7 +1048,6 @@ export default {
                 fecha_programada: datosFinales.proximaDesparacitacion
               })
             }
-            */
           }
         }
 
@@ -1249,59 +1182,41 @@ export default {
     }
 
     const { cargarPlantillaPorId, cargarPlantillaPorCodigo, procesarHtml, generarPDF } = usePlantillas()
-    const { imprimirPlantilla, imprimirVacunacion } = useReportes()
 
-    const imprimirDocumentoServicio = async (servicio, tipo = 'especial') => {
-      // Especial: Si es un servicio de Vacunación, usamos el backend con diseño programático
-      const esVacunacion = servicio.tipo?.toLowerCase() === 'vacunacion' || servicio.componente_clave === 'vacunacion'
-      
-      if (esVacunacion && tipo === 'especial') {
-        const datosGeneracion = {
-          paciente: {
-            nombre: paciente.value.nombre,
-            especie: paciente.value.especie,
-            raza: paciente.value.raza,
-            peso: paciente.value.peso ? `${paciente.value.peso} kg` : ''
-          },
-          propietario: {
-            nombre: `${paciente.value.propietario?.nombre || ''} ${paciente.value.propietario?.primerapellido || ''}`.trim(),
-            telefono: paciente.value.propietario?.telefono1 || paciente.value.propietario?.telefono2
-          },
-          atencion_numero: atenciones.value[atencionActual.value].numero,
-          atencion_fecha: atenciones.value[atencionActual.value].fecha,
-          veterinario: atenciones.value[atencionActual.value].veterinario,
-          vacunas: servicio.datos?.vacunas?.map(v => ({
-            tipo: typeof v.tipoVacuna === 'object' ? v.tipoVacuna?.label : v.tipoVacuna,
-            laboratorio: typeof v.laboratorio === 'object' ? v.laboratorio?.label : v.laboratorio,
-            lote: v.numeroLote || v.lote?.numeroLote,
-            dosis: v.dosisAplicada,
-            via: typeof v.viaAdministracion === 'object' ? v.viaAdministracion?.label : v.viaAdministracion,
-            sitio: v.sitioAplicacion,
-            proxima: v.proximaVacuna,
-            observaciones: v.observaciones
-          })) || []
-        }
-        await imprimirVacunacion(datosGeneracion)
-        return
-      }
-
-      // Otras plantillas de la base de datos (Ej: Desparasitacion, Consulta, etc)
-      const idPlantilla = servicio.id_plantilla || (esquemasActivos.value && esquemasActivos.value[servicio.tipo]?.id_plantilla)
+    const imprimirDocumentoServicio = async (servicio) => {
+      // Intentar obtener id_plantilla de la configuración del servicio
+      const idPlantilla = servicio.id_plantilla || (esquemasActivos[servicio.tipo]?.id_plantilla)
       
       if (!idPlantilla) {
         $q.notify({ type: 'warning', message: 'Este servicio no tiene una plantilla asociada' })
         return
       }
 
-      const datosVariables = {
-        ...servicio.datos,
-        paciente_nombre: paciente.value.nombre,
-        propietario_nombre: paciente.value.propietario?.nombre,
-        fecha_atencion: atenciones.value[atencionActual.value].fecha,
-        atencion_numero: atenciones.value[atencionActual.value].numero
+      $q.loading.show({ message: 'Preparando documento...' })
+      try {
+        const plantilla = await cargarPlantillaPorId(idPlantilla)
+        if (!plantilla) throw new Error('Plantilla no encontrada')
+
+        const datosVariables = {
+          ...servicio.datos,
+          paciente_nombre: paciente.value.nombre,
+          propietario_nombre: paciente.value.propietario?.nombre,
+          fecha_atencion: atenciones.value[atencionActual.value].fecha,
+          atencion_numero: atenciones.value[atencionActual.value].numero
+        }
+
+        const html = procesarHtml(plantilla.contenido_html, datosVariables)
+        await generarPDF(html, { 
+          filename: `${servicio.nombre}_${paciente.value.nombre}.pdf`,
+          paperSize: plantilla.tamano_papel,
+          orientation: plantilla.orientacion
+        })
+      } catch (error) {
+        console.error(error)
+        $q.notify({ type: 'negative', message: 'Error al generar documento' })
+      } finally {
+        $q.loading.hide()
       }
-      
-      await imprimirPlantilla(idPlantilla, datosVariables)
     }
 
     const imprimirResumenAtencion = async () => {
@@ -1350,27 +1265,19 @@ export default {
         }
 
         // Mapear atenciones básicas primero
-        const atencionesBase = lista.map(a => {
-          // Intentar resolver el nombre del profesional si no viene el objeto Join
-          const nombreProfesional = a.profesional?.nombre_completo ||
+        const atencionesBase = lista.map(a => ({
+          id: a.id,
+          numero: a.numero || a.identificador || `A-${a.id}`,
+          fecha: a.fecha || a.fechaalta?.split('T')[0] || '',
+          hora: a.hora || a.fechaalta?.split('T')[1]?.substring(0, 5) || '',
+          fechaFinalizacion: a.fecha_finalizacion || a.fechafinalizacion || '',
+          horaFinalizacion: a.hora_finalizacion || a.horafinalizacion || '',
+          veterinario: a.profesional?.nombre_completo ||
             `${a.profesional?.poblador_nombre || ''} ${a.profesional?.poblador_primerapellido || ''}`.trim() ||
-            obtenerNombreProfesional(a.id_profesional) ||
-            a.veterinario || 
-            'Sin asignar'
-
-          return {
-            id: a.id,
-            id_profesional: a.id_profesional,
-            numero: a.numero || a.identificador || `A-${a.id}`,
-            fecha: a.fecha || a.fechaalta?.split('T')[0] || '',
-            hora: a.hora || a.fechaalta?.split('T')[1]?.substring(0, 5) || '',
-            fechaFinalizacion: a.fecha_finalizacion || a.fechafinalizacion || '',
-            horaFinalizacion: a.hora_finalizacion || a.horafinalizacion || '',
-            veterinario: nombreProfesional,
-            estado: a.estado || 'En curso',
-            servicios: []
-          }
-        })
+            a.veterinario || 'Sin asignar',
+          estado: a.estado || 'En curso',
+          servicios: []
+        }))
 
         atenciones.value = atencionesBase
         atencionActual.value = 0
@@ -1392,64 +1299,19 @@ export default {
 
       try {
         const serviciosBD = await atencionServicioService.getPorAtencion(atencion.id)
-        atenciones.value[indiceAtencion].servicios = await Promise.all(
-          serviciosBD
-            .filter(s => s.estado !== 'cancelado')
-            .map(async s => {
-              const defClave = s.servicio?.componente_clave || s.servicio?.identificador || String(s.id_servicio)
-              const serviceDef = catalogoServiciosBD.value.find(c => c.id === s.id_servicio)
-              
-              let nombreMostrar = s.servicio?.nombre || serviceDef?.nombre || `Servicio ${s.id_servicio}`
-              if (nombreMostrar.toUpperCase().startsWith('SERVICIO ') && serviceDef?.componente_clave) {
-                  nombreMostrar = serviceDef.componente_clave.charAt(0).toUpperCase() + serviceDef.componente_clave.slice(1)
-              }
-
-              const tipo = defClave?.toLowerCase()
-              let datos = {}
-
-              // Si es vacunación, cargar el detalle especializado
-              if (tipo === 'vacunacion' || (serviceDef?.componente_clave?.toLowerCase() === 'vacunacion')) {
-                try {
-                  const vacunasBD = await atencionServicioService.getVacunacionByAtencionServicio(s.id)
-                  // Mapear de vuelta al formato del componente
-                  datos = {
-                    vacunas: vacunasBD.map(v => ({
-                      idBD: v.id,
-                      producto: v.id_producto ? { id: v.id_producto, value: v.id_producto } : null,
-                      tipoVacuna: v.id_tipo_vacuna ? { value: v.id_tipo_vacuna, label: v.tipo_vacuna } : v.tipo_vacuna,
-                      laboratorio: v.id_laboratorio ? { value: v.id_laboratorio, label: v.laboratorio } : v.laboratorio,
-                      numeroLote: v.lote,
-                      fechaVencimiento: v.fecha_vencimiento,
-                      dosisAplicada: v.dosis,
-                      viaAdministracion: v.id_via_administracion ? { value: v.id_via_administracion, label: v.via_administracion } : v.via_administracion,
-                      sitioAplicacion: v.sitio_aplicacion,
-                      proximaVacuna: v.proxima_vacuna,
-                      observaciones: v.reacciones_adversas === 'N' ? '' : v.reacciones_adversas
-                      // No resetear si ya venía de antes (aunque en este punto datos está vacío)
-                    }))
-                  }
-                } catch (err) {
-                  console.error('Error al cargar detalle de vacunación:', err)
-                }
-              }
-
-              return {
-                id:               String(s.id),
-                idBD:             s.id,
-                tipo:             tipo,
-                nombre:           nombreMostrar,
-                icono:            s.servicio?.icono || serviceDef?.icono || 'medical_services',
-                color:            s.servicio?.color || serviceDef?.color || 'primary',
-                tipo_renderizado: s.servicio?.tipo_renderizado || serviceDef?.tipo_renderizado,
-                componente_clave: (s.servicio?.componente_clave || serviceDef?.componente_clave)?.toLowerCase(),
-                identificador:    s.servicio?.identificador || serviceDef?.identificador,
-                id_plantilla:     s.servicio?.id_plantilla || serviceDef?.id_plantilla,
-                completado:       s.estado === 'completado',
-                datos:            datos,
-                timestamp:        s.fecha_creacion ? new Date(s.fecha_creacion).toLocaleString() : ''
-              }
-            })
-        )
+        atenciones.value[indiceAtencion].servicios = serviciosBD
+          .filter(s => s.estado !== 'cancelado')  // no mostrar los eliminados
+          .map(s => ({
+            id:         String(s.id),
+            idBD:       s.id,
+            tipo:       (s.servicio?.componente_clave || s.servicio?.identificador || String(s.id_servicio))?.toLowerCase(),
+            nombre:     s.servicio?.nombre || `Servicio ${s.id_servicio}`,
+            icono:      s.servicio?.icono || 'medical_services',
+            color:      s.servicio?.color || 'primary',
+            completado: s.estado === 'completado',
+            datos:      {},  // los valores EAV se pueden expandir aquí si se necesitan
+            timestamp:  s.fecha_creacion ? new Date(s.fecha_creacion).toLocaleString() : ''
+          }))
       } catch (error) {
         console.error(`Error al cargar servicios de atención ${atencion.id}:`, error)
       }
@@ -1663,19 +1525,6 @@ export default {
 .attention-number {
   font-size: 1.25rem;
   line-height: 1;
-}
-
-.veterinario-card .label-tiny {
-  font-size: 9px;
-  font-weight: 800;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  margin-bottom: 2px;
-}
-
-.pointer-cursor {
-  cursor: pointer;
 }
 
 .header-actions {

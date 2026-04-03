@@ -13,6 +13,13 @@
             :disable="modoLectura"
           >
             <q-list>
+              <q-item clickable @click="imprimirCertificado">
+                <q-item-section avatar>
+                  <q-icon name="print" color="primary"/>
+                </q-item-section>
+                <q-item-section>Imprimir Certificado</q-item-section>
+              </q-item>
+              <q-separator />
               <q-item clickable @click="completarDesparacitacion" :disable="!formularioValido">
                 <q-item-section avatar>
                   <q-icon name="check_circle" color="positive"/>
@@ -221,7 +228,7 @@
   })
   
   // Emits
-  const emit = defineEmits(['servicio-actualizado', 'servicio-completado', 'servicio-eliminado'])
+  const emit = defineEmits(['servicio-actualizado', 'servicio-completado', 'servicio-eliminado', 'imprimir-servicio'])
   
   // Estados del formulario
   const datosDesparacitacion = ref({
@@ -335,6 +342,10 @@
     }
   }
   
+  const imprimirCertificado = () => {
+    emit('imprimir-servicio', props.servicioId, datosDesparacitacion.value)
+  }
+
   const eliminarServicio = () => {
     emit('servicio-eliminado', props.servicioId)
   }

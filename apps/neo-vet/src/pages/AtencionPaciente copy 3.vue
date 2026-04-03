@@ -310,14 +310,13 @@
                     <ServicioVacunacion
                       v-else-if="servicio.tipo?.toLowerCase() === 'vacunacion' || servicio.componente_clave === 'vacunacion'"
                       :servicio-id="servicio.id"
-                      :id-plantilla="servicio.id_plantilla"
                       :atencion-id="String(atencionActualData.id)"
                       :datos-iniciales="servicio.datos"
                       :modo-lectura="servicio.completado || atencionActualData.estado === 'Finalizada'"
                       @servicio-actualizado="actualizarServicio"
                       @servicio-completado="completarServicio"
                       @servicio-eliminado="eliminarServicio"
-                      @imprimir-servicio="(id, datos, tipo) => imprimirDocumentoServicio(servicio, tipo)"
+                      @imprimir-servicio="imprimirDocumentoServicio(servicio)"
                     />
 
                     <ServicioDesparacitacion
@@ -1251,11 +1250,11 @@ export default {
     const { cargarPlantillaPorId, cargarPlantillaPorCodigo, procesarHtml, generarPDF } = usePlantillas()
     const { imprimirPlantilla, imprimirVacunacion } = useReportes()
 
-    const imprimirDocumentoServicio = async (servicio, tipo = 'especial') => {
+    const imprimirDocumentoServicio = async (servicio) => {
       // Especial: Si es un servicio de Vacunación, usamos el backend con diseño programático
       const esVacunacion = servicio.tipo?.toLowerCase() === 'vacunacion' || servicio.componente_clave === 'vacunacion'
       
-      if (esVacunacion && tipo === 'especial') {
+      if (esVacunacion) {
         const datosGeneracion = {
           paciente: {
             nombre: paciente.value.nombre,

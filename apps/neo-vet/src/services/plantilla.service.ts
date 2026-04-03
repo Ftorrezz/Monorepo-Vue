@@ -31,22 +31,39 @@ export interface PlantillaVariable {
 }
 
 export const plantillaService = {
-    async getPlantillas() {
-        const response = await peticionService.obtenerGet('plantilla')
+    extraerElementos(response: any): any[] {
+        if (Array.isArray(response) && response.length > 0 && response[0].elemento) {
+            return response[0].elemento
+        }
+        if (response && response.elemento) {
+            return response.elemento
+        }
         return Array.isArray(response) ? response : (response?.data || [])
     },
 
+    extraerElementoUnico(response: any): any {
+        const elementos = this.extraerElementos(response)
+        return elementos.length > 0 ? elementos[0] : null
+    },
+
+    async getPlantillas() {
+        const response = await peticionService.obtenerGet('plantilla')
+        return this.extraerElementos(response)
+    },
+
     async getPlantilla(id: number) {
-        return await peticionService.obtenerGet(`plantilla/${id}`)
+        const response = await peticionService.obtenerGet(`plantilla/${id}`)
+        return this.extraerElementoUnico(response)
     },
 
     async getPlantillaPorCodigo(codigo: string) {
-        return await peticionService.obtenerGet(`plantilla/codigo/${codigo}`)
+        const response = await peticionService.obtenerGet(`plantilla/codigo/${codigo}`)
+        return this.extraerElementoUnico(response)
     },
 
     async getPlantillasPorModulo(modulo: string) {
         const response = await peticionService.obtenerGet(`plantilla/modulo/${modulo}`)
-        return Array.isArray(response) ? response : (response?.data || [])
+        return this.extraerElementos(response)
     },
 
     async createPlantilla(plantilla: Plantilla) {
