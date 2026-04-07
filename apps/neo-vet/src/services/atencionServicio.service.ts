@@ -76,12 +76,21 @@ export interface AtencionServicioConsulta {
     motivo_detallado?: string
     anamnesis?: string
     hallazgos_examen?: string
+    id_diagnostico?: number
     diagnostico?: string
+    diagnostico_complemento?: string
     plan_tratamiento?: string
     indicaciones_medicas?: string
     receta_indicaciones?: string
     pronostico?: string
     proxima_cita?: string
+    observaciones?: string
+}
+
+export interface AtencionServicioReceta {
+    id?: number
+    id_atencion_servicio: number
+    receta_indicaciones?: string
     observaciones?: string
 }
 
@@ -268,6 +277,13 @@ export const atencionServicioService = {
      */
     async guardarConsulta(datos: AtencionServicioConsulta): Promise<void> {
         await peticionService.crear('atencionservicioconsulta', datos)
+    },
+
+    /**
+     * Guarda el detalle especializado de una receta médica.
+     */
+    async guardarReceta(datos: AtencionServicioReceta): Promise<void> {
+        await peticionService.crear('atencionservicioreceta', datos)
     },
 
     /**

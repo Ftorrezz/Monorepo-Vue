@@ -1,6 +1,6 @@
 <template>
   <div>
-    <q-dialog v-model="mostrarDialogo" persistent>
+    <q-dialog v-model="mostrarDialogo" persistent @hide="closeDialog">
     <q-card class="modern-dialog">
       <q-bar class="bg-primary text-white modern-header">
           <div class="row items-center full-width">
@@ -328,7 +328,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, defineEmits, watch } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { QForm, useQuasar } from "quasar";
 import OpcionCancelarGuardar from "../OpcionCancelarGuardar.vue";
 import PeticionService from "src/services/peticion.service";
@@ -342,6 +342,10 @@ import ListaEspecie from "../../../../../libs/shared/src/components/listas/Lista
 import ListaCaracter from "../../../../../libs/shared/src/components/listas/ListaCaracter.vue";
 import { OPCIONES_TAMANO_MASCOTA } from "../../../../../libs/shared/src/constant/mascota"
 import { obtenerIDValue } from "../../../../../libs/shared/src/helper/FuncionesGenericas"
+import { useLoading } from "../../../../../libs/shared/src/composables/useLoading";
+import { useDialogStore } from "src/stores/DialogoUbicacion";
+
+const store = useDialogStore()
 
 // Definir la interfaz Mascota para tipar correctamente la variable
 interface Mascota {
@@ -396,9 +400,8 @@ const props = defineProps({
       observaciones: "",
       pedigri: "N",
       esterilizado: "N",
-      activo: "S",
-      id_sitio: 1,
-      id_sucursal: 2,
+      activo: "S"
+      
     }),
   },
 });
@@ -409,7 +412,7 @@ const emit = defineEmits(["update:mascota", "mascota-guardada", "cerrar"]);
 
 const $q = useQuasar();
 const mostrarDialogo = ref(true);
-const isLoading = ref(false);
+const { showLoading, hideLoading } = useLoading();
 const peticionService = new PeticionService();
 const alertas = new NdAlertasControl();
 
@@ -479,7 +482,8 @@ const guardarMascota = async () => {
     return;
   }
 
-  isLoading.value = true;
+  showLoading();
+  
   try {
     let resultadoOperacion;
     const datosMascotaPayload = { ...mascota.value };
@@ -516,8 +520,8 @@ const guardarMascota = async () => {
 
     const mascotaGuardada = {
       ...datosMascotaPayload,
-      id: resultadoOperacion?.id || resultadoOperacion?.elemento?.id || datosMascotaPayload.id,
-      // If backend returns full object, spread it: ...resultadoOperacion.elemento
+      ...(resultadoOperacion?.elemento || {}),
+      id: resultadoOperacion?.id || resultadoOperacion?.elemento?.id || datosMascotaPayload.id
     };
 
     emit('mascota-guardada', mascotaGuardada);
@@ -533,7 +537,7 @@ const guardarMascota = async () => {
       (error as Error)?.message || "No fue posible guardar la mascota."
     );
   } finally {
-    isLoading.value = false;
+    hideLoading();
   }
 };
 
@@ -588,7 +592,9 @@ if (mascota.value.fechanacimiento) {
 });*/
 
 const closeDialog = () => {
-  mostrarDialogo.value = false;
+  if (mostrarDialogo.value) {
+    mostrarDialogo.value = false;
+  }
   emit("cerrar");
 };
 

@@ -13,11 +13,41 @@
             :disable="modoLectura"
           >
             <q-list>
-              <q-item clickable @click="imprimirCertificado">
+              <q-item clickable @click="imprimirCertificado('especial')">
                 <q-item-section avatar>
                   <q-icon name="print" color="primary"/>
                 </q-item-section>
                 <q-item-section>Imprimir Certificado</q-item-section>
+              </q-item>
+
+              <q-item v-if="plantillasServicio && plantillasServicio.length > 0" clickable>
+                <q-item-section avatar>
+                  <q-icon name="description" color="secondary"/>
+                </q-item-section>
+                <q-item-section>
+                  Otras Plantillas
+                  <q-tooltip>Selecciona una plantilla adicional</q-tooltip>
+                </q-item-section>
+                <q-item-section side>
+                  <q-icon name="chevron_right" />
+                </q-item-section>
+                
+                <q-menu anchor="top end" self="top start">
+                  <q-list style="min-width: 200px">
+                    <q-item 
+                      v-for="p in plantillasServicio" 
+                      :key="p.id_plantilla" 
+                      clickable 
+                      v-close-popup
+                      @click="imprimirCertificado('plantilla', p.id_plantilla)"
+                    >
+                      <q-item-section avatar>
+                        <q-icon name="description" color="secondary" size="xs" />
+                      </q-item-section>
+                      <q-item-section>{{ p.nombre_plantilla || 'Plantilla ' + p.id_plantilla }}</q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
               </q-item>
               <q-separator />
               <q-item clickable @click="completarDesparacitacion" :disable="!formularioValido">
@@ -221,6 +251,10 @@
       type: String,
       required: true
     },
+    plantillasServicio: {
+      type: Array,
+      default: () => []
+    },
     modoLectura: {
       type: Boolean,
       default: false
@@ -342,8 +376,8 @@
     }
   }
   
-  const imprimirCertificado = () => {
-    emit('imprimir-servicio', props.servicioId, datosDesparacitacion.value)
+  const imprimirCertificado = (tipo = 'especial', idPlantilla = null) => {
+    emit('imprimir-servicio', props.servicioId, datosDesparacitacion.value, tipo, idPlantilla)
   }
 
   const eliminarServicio = () => {

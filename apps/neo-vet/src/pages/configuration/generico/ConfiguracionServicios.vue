@@ -35,6 +35,7 @@
       row-key="id"
       flat
       bordered
+      :pagination="{ rowsPerPage: 12 }"
     >
       <template v-slot:body-cell-icono="props">
         <q-td :props="props">
@@ -165,17 +166,20 @@
               </div>
               <div class="col-12">
                 <q-select
-                  v-model="formularioServicio.id_plantilla"
+                  v-model="formularioServicio.ids_plantillas"
                   :options="plantillas"
                   option-value="id"
                   option-label="nombre"
                   emit-value
                   map-options
-                  label="Plantilla de Documento"
+                  multiple
+                  use-chips
+                  stack-label
+                  label="Plantillas de Documentos"
                   outlined
                   dense
                   clearable
-                  hint="Plantilla para generar certificados o reportes"
+                  hint="Selecciona una o más plantillas para generar certificados o reportes"
                 >
                   <template v-slot:prepend>
                     <q-icon name="description" />
@@ -293,6 +297,7 @@ import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
 import { servicioDinamicoService } from 'src/services/servicioDinamico.service'
 import { plantillaService } from 'src/services/plantilla.service'
+import { plantillaServicioService } from 'src/services/plantillaServicio.service'
 
 const $q = useQuasar()
 const router = useRouter()
@@ -311,7 +316,7 @@ const formularioServicio = reactive({
   descripcion: '',
   nombre: '',
   icono: 'auto_awesome',
-  id_plantilla: null,
+  ids_plantillas: [],
   activo: 'S',
   id_configuracion: 1,
   tipo_renderizado: 'dinamico',
@@ -319,7 +324,6 @@ const formularioServicio = reactive({
   color: 'primary',
   categoria: 'otros'
 })
-
 const columnas = [
   { name: 'icono', label: '', field: 'icono', align: 'center', style: 'width: 50px' },
   { name: 'nombre', label: 'Nombre', field: 'nombre', align: 'left' },
@@ -409,44 +413,96 @@ const cargarPlantillas = async () => {
   }
 }
 
-const abrirFormulario = (servicio = null) => {
+const abrirFormulario = async (servicio = null) => {
   modoEdicion.value = !!servicio
-  if (servicio) {
-    Object.assign(formularioServicio, servicio)
-  } else {
-    Object.assign(formularioServicio, {
-      id: null,
-      identificador: '',
-      descripcion: '',
-      nombre: '',
-      icono: 'auto_awesome',
-      id_plantilla: null,
-      activo: 'S',
-      id_configuracion: 1,
-      tipo_renderizado: 'dinamico',
-      componente_clave: '',
-      color: 'primary',
-      categoria: 'otros'
-    })
+  
+  loading.value = true
+  
+  try {
+    await cargarPlantillas()
+    
+    if (servicio) {
+      // Intentar obtener las plantillas directamente del API para asegurar que están sincronizadas
+      const plantillasActuales = await plantillaServicioService.getPorServicio(servicio.id)
+      
+      const ids_plantillas = (plantillasActuales.length > 0 ? plantillasActuales : (servicio.plantillas_servicio || []))
+        .filter(p => !p.activo || p.activo === 'S')
+        .map(p => Number(p.id_plantilla))
+
+      // Resetear formulario con valores base
+      Object.assign(formularioServicio, {
+        id: null,
+        identificador: '',
+        descripcion: '',
+        nombre: '',
+        icono: 'auto_awesome',
+        ids_plantillas: [],
+        activo: 'S',
+        id_configuracion: 1,
+        tipo_renderizado: 'dinamico',
+        componente_clave: '',
+        color: 'primary',
+        categoria: 'otros'
+      })
+
+      // Asignar datos del servicio y luego los IDs calculados
+      Object.assign(formularioServicio, servicio)
+      formularioServicio.ids_plantillas = ids_plantillas
+    } else {
+      Object.assign(formularioServicio, {
+        id: null,
+        identificador: '',
+        descripcion: '',
+        nombre: '',
+        icono: 'auto_awesome',
+        ids_plantillas: [],
+        activo: 'S',
+        id_configuracion: 1,
+        tipo_renderizado: 'dinamico',
+        componente_clave: '',
+        color: 'primary',
+        categoria: 'otros'
+      })
+    }
+    
+    mostrarFormulario.value = true
+  } catch (error) {
+    console.error('Error al abrir formulario:', error)
+    $q.notify({ type: 'negative', message: 'Error al preparar el formulario' })
+  } finally {
+    loading.value = false
   }
-  cargarPlantillas()
-  mostrarFormulario.value = true
 }
 
 const guardarServicio = async () => {
   guardando.value = true
   try {
+    // Clonar para no enviar ids_plantillas ni otros campos calculados/relaciones
+    const { ids_plantillas, plantillas_servicio, paridad, ...datosServicio } = formularioServicio
+    // También removemos id_plantilla si existe para cumplir con el requerimiento
+    delete datosServicio.id_plantilla
+
+    let idServicio = formularioServicio.id
+
     if (modoEdicion.value) {
-      await servicioDinamicoService.updateServicio(formularioServicio.id, formularioServicio)
-      
+      await servicioDinamicoService.updateServicio(idServicio, datosServicio)
     } else {
-      await servicioDinamicoService.createServicio(formularioServicio)
-      
+      const resp = await servicioDinamicoService.createServicio(datosServicio)
+      // Extraer el ID del nuevo servicio (depende de cómo responda el backend)
+      idServicio = resp?.id || (Array.isArray(resp) ? resp[0]?.id : null) || resp?.elemento?.id
     }
+
+    // Sincronizar plantillas
+    if (idServicio) {
+        await plantillaServicioService.syncPlantillas(idServicio, ids_plantillas)
+    }
+    
+    $q.notify({ type: 'positive', message: 'Servicio guardado correctamente' })
     mostrarFormulario.value = false
     cargarServicios()
   } catch (error) {
-    
+    console.error('Error al guardar servicio:', error)
+    $q.notify({ type: 'negative', message: 'Error al guardar servicio' })
   } finally {
     guardando.value = false
   }
@@ -466,7 +522,8 @@ const gestionarEstructura = (servicio) => {
 const cambiarEstado = async (servicio, estado) => {
   try {
     const nuevoEstado = estado ? 'S' : 'N'
-    await servicioDinamicoService.updateServicio(servicio.id, { ...servicio, activo: nuevoEstado })
+    const { plantillas_servicio, paridad, ...datosServicio } = servicio
+    await servicioDinamicoService.updateServicio(servicio.id, { ...datosServicio, activo: nuevoEstado })
     servicio.activo = nuevoEstado
     $q.notify({ type: 'positive', message: `Servicio ${estado ? 'activado' : 'desactivado'}` })
   } catch (error) {

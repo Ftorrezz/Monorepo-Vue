@@ -162,8 +162,14 @@
                             />
                           </div>
                           <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
-                            <ListaSexo
+                            <q-select
                               v-model="mascota.id_sexo"
+                              :options="catalogosSexo"
+                              label="Sexo"
+                              option-label="label"
+                              option-value="value"
+                              map-options
+                              emit-value
                               dense
                             />
                           </div>
@@ -219,40 +225,76 @@
                     </div>
                     <div class="row q-col-gutter-md">
                       <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                        <ListaEspecie
+                        <q-select
                           v-model="mascota.id_especie"
+                          :options="catalogosEspecie"
+                          label="Especie"
+                          option-label="label"
+                          option-value="value"
+                          map-options
+                          emit-value
                           dense
                         />
                       </div>
                       <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                            <ListaRazaMascota
+                            <q-select
                               v-model="mascota.id_raza"
+                              :options="catalogosRaza"
+                              label="Raza"
+                              option-label="label"
+                              option-value="value"
+                              map-options
+                              emit-value
                               dense
                             />
                       </div>
                       <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                        <ListaColor
+                        <q-select
                           v-model="mascota.id_color"
+                          :options="catalogosColor"
+                          label="Color"
+                          option-label="label"
+                          option-value="value"
+                          map-options
+                          emit-value
                           dense
                         />
                       </div>
 
                       <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                        <ListaDieta
+                        <q-select
                           v-model="mascota.id_dieta"
+                          :options="catalogosDieta"
+                          label="Dieta"
+                          option-label="label"
+                          option-value="value"
+                          map-options
+                          emit-value
                           dense
                         />
                       </div>
                       <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                        <ListaHabitat
+                        <q-select
                           v-model="mascota.id_habitat"
+                          :options="catalogosHabitat"
+                          label="Habitat"
+                          option-label="label"
+                          option-value="value"
+                          map-options
+                          emit-value
                           dense
                         />
                       </div>
                       <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                        <ListaCaracter
-                        v-model="mascota.id_caracter"
-                        dense
+                        <q-select
+                          v-model="mascota.id_caracter"
+                          :options="catalogosCaracter"
+                          label="Carácter"
+                          option-label="label"
+                          option-value="value"
+                          map-options
+                          emit-value
+                          dense
                         />
                       </div>
                       <!-- Campos de checkbox -->
@@ -333,19 +375,25 @@ import { QForm, useQuasar } from "quasar";
 import OpcionCancelarGuardar from "../OpcionCancelarGuardar.vue";
 import PeticionService from "src/services/peticion.service";
 import NdAlertasControl from "src/controles/alertas.control";
-import ListaRazaMascota from "../../../../../libs/shared/src/components/listas/ListaRazaMascota.vue";
-import ListaSexo from "../../../../../libs/shared/src/components/listas/ListaSexo.vue";
-import ListaHabitat from "../../../../../libs/shared/src/components/listas/ListaHabitat.vue";
-import ListaColor from "../../../../../libs/shared/src/components/listas/ListaColor.vue";
-import ListaDieta from "../../../../../libs/shared/src/components/listas/ListaDieta.vue";
-import ListaEspecie from "../../../../../libs/shared/src/components/listas/ListaEspecie.vue";
-import ListaCaracter from "../../../../../libs/shared/src/components/listas/ListaCaracter.vue";
 import { OPCIONES_TAMANO_MASCOTA } from "../../../../../libs/shared/src/constant/mascota"
 import { obtenerIDValue } from "../../../../../libs/shared/src/helper/FuncionesGenericas"
 import { useLoading } from "../../../../../libs/shared/src/composables/useLoading";
 import { useDialogStore } from "src/stores/DialogoUbicacion";
+import useCatalogos from "src/composables/useCatalogos";
+import { Modulo, Tabla } from "src/common/enums/configuracion.enum";
 
 const store = useDialogStore()
+
+const { obtenerCatalogo } = useCatalogos();
+
+// Catálogos
+const catalogosSexo = ref([]);
+const catalogosEspecie = ref([]);
+const catalogosRaza = ref([]);
+const catalogosColor = ref([]);
+const catalogosDieta = ref([]);
+const catalogosHabitat = ref([]);
+const catalogosCaracter = ref([]);
 
 // Definir la interfaz Mascota para tipar correctamente la variable
 interface Mascota {
@@ -657,6 +705,35 @@ const reiniciarCamara = () => {
   imagenCapturada.value = null;
   activarCamara();
 };
+
+// Cargar catálogos
+const cargarCatalogos = async () => {
+  try {
+    const [sexo, especie, raza, color, dieta, habitat, caracter] = await Promise.all([
+      obtenerCatalogo(Modulo.MASCOTA, Tabla.SEXO),
+      obtenerCatalogo(Modulo.MASCOTA, Tabla.ESPECIE),
+      obtenerCatalogo(Modulo.MASCOTA, Tabla.RAZA),
+      obtenerCatalogo(Modulo.MASCOTA, Tabla.COLOR),
+      obtenerCatalogo(Modulo.MASCOTA, Tabla.DIETA),
+      obtenerCatalogo(Modulo.MASCOTA, Tabla.HABITAT),
+      obtenerCatalogo(Modulo.MASCOTA, Tabla.COMPORTAMIENTO)
+    ]);
+
+    catalogosSexo.value = sexo;
+    catalogosEspecie.value = especie;
+    catalogosRaza.value = raza;
+    catalogosColor.value = color;
+    catalogosDieta.value = dieta;
+    catalogosHabitat.value = habitat;
+    catalogosCaracter.value = caracter;
+  } catch (error) {
+    console.error('Error al cargar catálogos de mascota:', error);
+  }
+};
+
+onMounted(() => {
+  cargarCatalogos();
+});
 
 
 

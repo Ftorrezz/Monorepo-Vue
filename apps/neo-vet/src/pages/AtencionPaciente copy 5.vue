@@ -438,19 +438,6 @@
                       @imprimir-servicio="imprimirDocumentoServicio(servicio)"
                     />
 
-                    <ServicioRecetaMedica
-                      v-else-if="servicio.tipo?.toLowerCase() === 'receta' || servicio.componente_clave === 'receta'"
-                      :servicio-id="servicio.id"
-                      :plantillas-servicio="servicio.plantillas_servicio"
-                      :atencion-id="String(atencionActualData.id)"
-                      :datos-iniciales="servicio.datos"
-                      :modo-lectura="servicio.completado || atencionActualData.estado === 'Finalizada'"
-                      @servicio-actualizado="actualizarServicio"
-                      @servicio-completado="completarServicio"
-                      @servicio-eliminado="eliminarServicio"
-                      @imprimir-servicio="(id, datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicio, tipo, idPlantilla)"
-                    />
-
                     <ServicioEstetica
                       v-else-if="servicio.tipo?.toLowerCase() === 'estetica' || servicio.componente_clave === 'estetica'"
                       :servicio-id="servicio.id"
@@ -489,28 +476,9 @@
         </div>
       </div>
 
-      <!-- Estado vacío cuando no hay atenciones (v-else de la línea 178) -->
+      <!-- Estado vacío cuando no hay atenciones (v-else de la línea 168) -->
       <div class="content-scroll-area flex flex-center" v-else>
-        <!-- CASO 1: No se ha seleccionado ningún paciente -->
-        <div v-if="!paciente || !paciente.id" class="text-center q-pa-xl empty-atención-state">
-          <q-icon name="person_search" size="100px" color="grey-4" class="q-mb-md" />
-          <div class="text-h5 text-grey-8 text-weight-bold">Esperando selección de paciente</div>
-          <p class="text-grey-6 text-h6 q-mt-sm">
-            Para comenzar a registrar atenciones, primero debe buscar y seleccionar un paciente.<br>
-            Utilice el botón <span class="text-primary text-weight-bolder">Buscar Paciente</span> en la parte superior.
-          </p>
-          <q-btn
-            color="primary"
-            icon="search"
-            label="Buscar Paciente"
-            @click="showSearchDialog = true"
-            size="lg"
-            class="q-mt-md"
-          />
-        </div>
-
-        <!-- CASO 2: Paciente seleccionado pero sin historial -->
-        <div v-else class="text-center q-pa-xl empty-atención-state">
+        <div class="text-center q-pa-xl empty-atención-state">
           <q-icon name="medical_services" size="100px" color="grey-4" class="q-mb-md" />
           <div class="text-h5 text-grey-8 text-weight-bold">No hay atenciones registradas</div>
           <p class="text-grey-6 text-h6 q-mt-sm">
@@ -522,6 +490,7 @@
             icon="add"
             label="Crear Primera Atención"
             @click="nuevaAtencion"
+
             size="lg"
             class="q-mt-md"
           />
@@ -674,7 +643,6 @@ const ServicioMedicamento = defineAsyncComponent(() => import('src/components/se
 const ServicioFisioterapia = defineAsyncComponent(() => import('src/components/servicios/ServicioFisioterapia.vue'))
 const ServicioUrgencia = defineAsyncComponent(() => import('src/components/servicios/ServicioUrgencia.vue'))
 const ServicioEstetica = defineAsyncComponent(() => import('../components/servicios/ServicioEstetica.vue'))
-const ServicioRecetaMedica = defineAsyncComponent(() => import('../components/servicios/ServicioRecetaMedica.vue'))
 const ServicioResumen = defineAsyncComponent(() => import('../components/servicios/ServicioResumen.vue'))
 const ServicioDinamico = defineAsyncComponent(() => import('../components/servicios/ServicioDinamico.vue'))
 
@@ -696,7 +664,6 @@ export default {
     ServicioFisioterapia,
     ServicioUrgencia,
     ServicioEstetica,
-    ServicioRecetaMedica,
     ServicioResumen,
     ServicioDinamico,
     CardBusquedaPropietarioMascota,

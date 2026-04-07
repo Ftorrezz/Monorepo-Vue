@@ -107,17 +107,53 @@
                       >
                         <q-tooltip>Ir a pestaña</q-tooltip>
                       </q-btn>
-                      <q-btn
-                        v-if="servicio.completado"
-                        flat
-                        round
-                        dense
-                        icon="print"
-                        color="secondary"
-                        @click="$emit('imprimir-servicio', servicio)"
-                      >
-                        <q-tooltip>Imprimir Documento</q-tooltip>
-                      </q-btn>
+                      <template v-if="servicio.completado">
+                        <!-- Impresión Dedicada (Certificados, etc) -->
+                        <q-btn
+                          v-if="servicio.tipo?.toLowerCase() === 'vacunacion' || servicio.componente_clave === 'vacunacion'"
+                          flat round dense
+                          icon="card_membership"
+                          color="primary"
+                          @click="$emit('imprimir-servicio', servicio, 'especial')"
+                        >
+                          <q-tooltip>Imprimir Certificado</q-tooltip>
+                        </q-btn>
+
+                        <!-- Impresión de Plantillas (Reportes) -->
+                        <q-btn-dropdown
+                          v-if="servicio.plantillas_servicio && servicio.plantillas_servicio.length > 1"
+                          flat round dense
+                          icon="print"
+                          color="secondary"
+                        >
+                          <q-list style="min-width: 200px">
+                            <q-item 
+                              v-for="p in servicio.plantillas_servicio" 
+                              :key="p.id_plantilla" 
+                              clickable 
+                              v-close-popup
+                              @click="$emit('imprimir-servicio', servicio, 'plantilla', p.id_plantilla)"
+                            >
+                              <q-item-section avatar>
+                                <q-icon name="description" color="secondary" size="xs" />
+                              </q-item-section>
+                              <q-item-section>{{ p.nombre_plantilla || 'Plantilla ' + p.id_plantilla }}</q-item-section>
+                            </q-item>
+                          </q-list>
+                        </q-btn-dropdown>
+
+                        <q-btn
+                          v-else-if="servicio.plantillas_servicio?.length === 1 || servicio.id_plantilla"
+                          flat
+                          round
+                          dense
+                          icon="print"
+                          color="secondary"
+                          @click="$emit('imprimir-servicio', servicio, 'plantilla')"
+                        >
+                          <q-tooltip>Imprimir Plantilla</q-tooltip>
+                        </q-btn>
+                      </template>
                     </div>
                   </div>
 

@@ -279,27 +279,20 @@
                     class="q-pa-md"
                   >
                     <!-- 1. Componente Dinámico (EAV/Metadata PoC) -->
-                    <template v-if="servicio.tipo_renderizado === 'dinamico'">
-                      <div v-if="cargandoEsquema && !esquemasActivos[servicio.tipo]" class="flex flex-center q-pa-xl">
-                        <q-spinner-dots color="primary" size="40px" />
-                        <div class="q-ml-md text-grey-7">Cargando diseño del servicio...</div>
-                      </div>
-                      
-                      <ServicioDinamico
-                        v-else-if="esquemasActivos[servicio.tipo]"
-                        :schema="esquemasActivos[servicio.tipo]"
-                        :servicio-id="servicio.id"
-                        :atencion-id="String(atencionActualData.id)"
-                        :datos-iniciales="servicio.datos"
-                        :modo-lectura="servicio.completado || atencionActualData.estado === 'Finalizada'"
-                        :catalogos="catalogosSistemas"
-                        @servicio-actualizado="actualizarServicio"
-                        @servicio-completado="completarServicio"
-                        @servicio-eliminado="eliminarServicio"
-                        @imprimir-servicio="imprimirDocumentoServicio(servicio)"
-                      />
-                    </template>
- 
+                    <ServicioDinamico
+                      v-if="esquemasActivos[servicio.tipo] && servicio.tipo_renderizado !== 'especializado'"
+                      :schema="esquemasActivos[servicio.tipo]"
+                      :servicio-id="servicio.id"
+                      :atencion-id="String(atencionActualData.id)"
+                      :datos-iniciales="servicio.datos"
+                      :modo-lectura="servicio.completado || atencionActualData.estado === 'Finalizada'"
+                      :catalogos="catalogosSistemas"
+                      @servicio-actualizado="actualizarServicio"
+                      @servicio-completado="completarServicio"
+                      @servicio-eliminado="eliminarServicio"
+                      @imprimir-servicio="imprimirDocumentoServicio(servicio)"
+                    />
+
                     <!-- 2. Componentes Especializados -->
                     <ServicioConsultaGeneral
                       v-else-if="servicio.tipo?.toLowerCase() === 'consulta' || servicio.componente_clave === 'consulta'"
@@ -438,19 +431,6 @@
                       @imprimir-servicio="imprimirDocumentoServicio(servicio)"
                     />
 
-                    <ServicioRecetaMedica
-                      v-else-if="servicio.tipo?.toLowerCase() === 'receta' || servicio.componente_clave === 'receta'"
-                      :servicio-id="servicio.id"
-                      :plantillas-servicio="servicio.plantillas_servicio"
-                      :atencion-id="String(atencionActualData.id)"
-                      :datos-iniciales="servicio.datos"
-                      :modo-lectura="servicio.completado || atencionActualData.estado === 'Finalizada'"
-                      @servicio-actualizado="actualizarServicio"
-                      @servicio-completado="completarServicio"
-                      @servicio-eliminado="eliminarServicio"
-                      @imprimir-servicio="(id, datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicio, tipo, idPlantilla)"
-                    />
-
                     <ServicioEstetica
                       v-else-if="servicio.tipo?.toLowerCase() === 'estetica' || servicio.componente_clave === 'estetica'"
                       :servicio-id="servicio.id"
@@ -489,28 +469,9 @@
         </div>
       </div>
 
-      <!-- Estado vacío cuando no hay atenciones (v-else de la línea 178) -->
+      <!-- Estado vacío cuando no hay atenciones (v-else de la línea 168) -->
       <div class="content-scroll-area flex flex-center" v-else>
-        <!-- CASO 1: No se ha seleccionado ningún paciente -->
-        <div v-if="!paciente || !paciente.id" class="text-center q-pa-xl empty-atención-state">
-          <q-icon name="person_search" size="100px" color="grey-4" class="q-mb-md" />
-          <div class="text-h5 text-grey-8 text-weight-bold">Esperando selección de paciente</div>
-          <p class="text-grey-6 text-h6 q-mt-sm">
-            Para comenzar a registrar atenciones, primero debe buscar y seleccionar un paciente.<br>
-            Utilice el botón <span class="text-primary text-weight-bolder">Buscar Paciente</span> en la parte superior.
-          </p>
-          <q-btn
-            color="primary"
-            icon="search"
-            label="Buscar Paciente"
-            @click="showSearchDialog = true"
-            size="lg"
-            class="q-mt-md"
-          />
-        </div>
-
-        <!-- CASO 2: Paciente seleccionado pero sin historial -->
-        <div v-else class="text-center q-pa-xl empty-atención-state">
+        <div class="text-center q-pa-xl empty-atención-state">
           <q-icon name="medical_services" size="100px" color="grey-4" class="q-mb-md" />
           <div class="text-h5 text-grey-8 text-weight-bold">No hay atenciones registradas</div>
           <p class="text-grey-6 text-h6 q-mt-sm">
@@ -522,6 +483,7 @@
             icon="add"
             label="Crear Primera Atención"
             @click="nuevaAtencion"
+
             size="lg"
             class="q-mt-md"
           />
@@ -674,7 +636,6 @@ const ServicioMedicamento = defineAsyncComponent(() => import('src/components/se
 const ServicioFisioterapia = defineAsyncComponent(() => import('src/components/servicios/ServicioFisioterapia.vue'))
 const ServicioUrgencia = defineAsyncComponent(() => import('src/components/servicios/ServicioUrgencia.vue'))
 const ServicioEstetica = defineAsyncComponent(() => import('../components/servicios/ServicioEstetica.vue'))
-const ServicioRecetaMedica = defineAsyncComponent(() => import('../components/servicios/ServicioRecetaMedica.vue'))
 const ServicioResumen = defineAsyncComponent(() => import('../components/servicios/ServicioResumen.vue'))
 const ServicioDinamico = defineAsyncComponent(() => import('../components/servicios/ServicioDinamico.vue'))
 
@@ -696,7 +657,6 @@ export default {
     ServicioFisioterapia,
     ServicioUrgencia,
     ServicioEstetica,
-    ServicioRecetaMedica,
     ServicioResumen,
     ServicioDinamico,
     CardBusquedaPropietarioMascota,
@@ -735,9 +695,8 @@ export default {
       ]
     })
 
-    // Esquemas para servicios dinámicos (se cargan bajo demanda)
+    // Esquemas para servicios dinámicos (se cargan de BD)
     const esquemasActivos = ref({})
-    const cargandoEsquema = ref(false)
     const catalogoServiciosBD = ref([])
     
     // Estados para catálogos
@@ -882,7 +841,7 @@ export default {
       }
     })
 
-     // Watcher para actualizar la pestaña activa y cargar esquema si es necesario
+     // Watcher para actualizar la pestaña activa cuando cambien los servicios
     watch(serviciosAplicados, (nuevosServicios) => {
       if (nuevosServicios.length > 0 && !servicioActivoTab.value) {
         servicioActivoTab.value = 'resumen'
@@ -890,15 +849,6 @@ export default {
         servicioActivoTab.value = null
       }
     }, { immediate: true, deep: true })
-
-    watch(servicioActivoTab, async (nuevoTab) => {
-      if (nuevoTab && nuevoTab !== 'resumen') {
-        const servicio = serviciosAplicados.value.find(s => s.id === nuevoTab)
-        if (servicio && servicio.tipo_renderizado === 'dinamico' && servicio.identificador) {
-          await cargarEsquema(servicio.identificador, servicio.id_servicio_def)
-        }
-      }
-    })
 
     // Helper para obtener el nombre del profesional por ID desde el catálogo cargado
     const obtenerNombreProfesional = (id) => {
@@ -943,25 +893,6 @@ export default {
         html: true,
         ok: 'Cerrar'
       })
-    }
-
-    // Función para cargar esquema de servicio bajo demanda
-    const cargarEsquema = async (identificador, idServicioDef) => {
-      if (esquemasActivos.value[identificador]) return
-      
-      cargandoEsquema.value = true
-      try {
-        const esquema = await servicioDinamicoService.getEsquemaServicio(idServicioDef)
-        if (esquema) {
-          esquemasActivos.value[identificador] = esquema
-          console.log(`✅ Esquema cargado para: ${identificador}`)
-        }
-      } catch (error) {
-        console.error(`Error al cargar esquema ${identificador}:`, error)
-        $q.notify({ type: 'negative', message: 'Error al cargar el diseño del servicio' })
-      } finally {
-        cargandoEsquema.value = false
-      }
     }
 
     const nuevaAtencion = async () => {
@@ -1522,7 +1453,6 @@ export default {
                 identificador:    s.servicio?.identificador || serviceDef?.identificador,
                 id_plantilla:     s.servicio?.id_plantilla || serviceDef?.id_plantilla,
                 plantillas_servicio: ((s.servicio?.plantillas_servicio && s.servicio.plantillas_servicio.length > 0) ? s.servicio.plantillas_servicio : (serviceDef?.plantillas_servicio || [])).filter(p => !p.activo || p.activo === 'S'),
-                 id_servicio_def:  s.id_servicio,
                 completado:       s.estado === 'completado',
                 datos:            datos,
                 timestamp:        s.fecha_creacion ? new Date(s.fecha_creacion).toLocaleString() : ''
@@ -1547,8 +1477,20 @@ export default {
           ])
         ])
         
-        // No cargamos los esquemas aquí (Optimización Lazy Loading)
-        // Solo guardamos la lista básica de servicios disponibles
+        // Cargar esquemas de servicios de forma paralela (solo para los dinámicos)
+        const serviciosActivos = serviciosDinamicos.filter(s => s.activo === 'S')
+        const promesasEsquemas = serviciosActivos
+          .filter(s => s.tipo_renderizado !== 'especializado')
+          .map(srv => 
+            servicioDinamicoService.getEsquemaServicio(srv.id)
+              .then(esquema => {
+                if (esquema && esquema.identificador) {
+                  esquemasActivos.value[esquema.identificador] = esquema
+                }
+              })
+          )
+        
+        await Promise.all(promesasEsquemas)
 
         // Guardar catálogo completo para ServiciosDisponibles
         catalogoServiciosBD.value = serviciosDinamicos

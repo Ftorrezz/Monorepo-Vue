@@ -23,6 +23,7 @@ export enum Tabla {
     RAZA = 10,
     SEXO = 12,
     TAMANIO = 13,
+    DIAGNOSTICO = 17,
 
     // Propietario
     ESCOLARIDAD = 4,
@@ -38,7 +39,7 @@ export enum Tabla {
 }
 
 export const RelacionModuloTipo = {
-    [Modulo.MASCOTA]: [Tabla.DIETA, Tabla.ESPECIE, Tabla.COLOR, Tabla.COMPORTAMIENTO, Tabla.HABITAT, Tabla.RAZA, Tabla.SEXO, Tabla.TAMANIO],
+    [Modulo.MASCOTA]: [Tabla.DIETA, Tabla.ESPECIE, Tabla.COLOR, Tabla.COMPORTAMIENTO, Tabla.HABITAT, Tabla.RAZA, Tabla.SEXO, Tabla.TAMANIO, Tabla.DIAGNOSTICO],
     [Modulo.PROPIETARIO]: [Tabla.ESCOLARIDAD, Tabla.ESTADO_CIVIL, Tabla.GENERO, Tabla.PROFESION, Tabla.RELIGION],
     [Modulo.VACUNA]: [Tabla.TIPO_VACUNA, Tabla.VIA_ADMINISTRACION, Tabla.LABORATORIO],
 };

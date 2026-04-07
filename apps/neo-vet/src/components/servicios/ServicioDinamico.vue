@@ -8,15 +8,53 @@
           <div class="text-h6 leading-tight">{{ schema.servicio }}</div>
           <div class="text-caption opacity-80" v-if="schema.descripcion">{{ schema.descripcion }}</div>
         </div>
+        <!-- Botón de Impresión con soporte para múltiples plantillas -->
+        <template v-if="schema.plantillas_servicio && schema.plantillas_servicio.length > 0">
+           <q-btn-dropdown
+            v-if="schema.plantillas_servicio.length > 1"
+            flat round dense
+            icon="print"
+            color="white"
+            class="q-mr-sm"
+            :loading="cargandoPlantilla"
+          >
+            <q-list style="min-width: 200px">
+              <q-item 
+                v-for="p in schema.plantillas_servicio" 
+                :key="p.id_plantilla" 
+                clickable 
+                v-close-popup
+                @click="imprimirDocumento(p.id_plantilla)"
+              >
+                <q-item-section avatar>
+                  <q-icon name="description" color="primary" size="xs" />
+                </q-item-section>
+                <q-item-section>{{ p.nombre_plantilla || 'Plantilla ' + p.id_plantilla }}</q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+          
+          <q-btn 
+            v-else
+            flat round dense 
+            icon="print" 
+            color="white" 
+            class="q-mr-sm"
+            @click="imprimirDocumento(schema.plantillas_servicio[0].id_plantilla)"
+            :loading="cargandoPlantilla"
+          >
+            <q-tooltip>Imprimir Documento</q-tooltip>
+          </q-btn>
+        </template>
+        
+        <!-- Soporte para plantilla única heredada (Legacy fallback) -->
         <q-btn 
-          v-if="schema.id_plantilla || schema.id_plantilla_asociada"
-          flat 
-          round 
-          dense 
+          v-else-if="schema.id_plantilla || schema.id_plantilla_asociada"
+          flat round dense 
           icon="print" 
           color="white" 
           class="q-mr-sm"
-          @click="imprimirDocumento"
+          @click="imprimirDocumento()"
           :loading="cargandoPlantilla"
         >
           <q-tooltip>Imprimir Documento</q-tooltip>
@@ -242,8 +280,8 @@ const completarServicio = async () => {
   guardando.value = false
 }
 
-const imprimirDocumento = async () => {
-  const idPlantilla = props.schema.id_plantilla || props.schema.id_plantilla_asociada
+const imprimirDocumento = async (idPlantillaManual = null) => {
+  const idPlantilla = idPlantillaManual || props.schema.id_plantilla || props.schema.id_plantilla_asociada
   if (!idPlantilla) return
 
   cargandoPlantilla.value = true

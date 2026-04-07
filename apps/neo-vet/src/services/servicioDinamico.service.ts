@@ -10,11 +10,11 @@ export interface ServicioDefinicion {
     icono?: string
     activo: string // 'S' o 'N'
     id_configuracion: number
-    id_plantilla?: number
     tipo_renderizado?: string   // 'dinamico' | 'especializado'
     componente_clave?: string   // ej: 'vacunacion'
     color?: string
     categoria?: string
+    plantillas_servicio?: any[]
 }
 
 export interface ServicioSeccion {
@@ -132,7 +132,7 @@ export const servicioDinamicoService = {
                 icono: servicio.icono || 'auto_awesome',
                 descripcion: servicio.descripcion,
                 identificador: servicio.identificador,
-                id_plantilla: servicio.id_plantilla,
+                plantillas_servicio: servicio.plantillas_servicio || [],
                 secciones: secciones.map((sec: any) => ({
                     titulo: sec.titulo,
                     orden: sec.orden,

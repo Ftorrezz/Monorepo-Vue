@@ -18,7 +18,38 @@
                 </q-item-section>
                 <q-item-section>Imprimir Certificado</q-item-section>
               </q-item>
-              <q-item v-if="idPlantilla" clickable @click="imprimirCertificado('plantilla')">
+               <q-item v-if="plantillasServicio && plantillasServicio.length > 0" clickable>
+                <q-item-section avatar>
+                  <q-icon name="description" color="secondary"/>
+                </q-item-section>
+                <q-item-section>
+                  Imprimir Plantilla
+                  <q-tooltip>Selecciona una plantilla</q-tooltip>
+                </q-item-section>
+                <q-item-section side>
+                  <q-icon name="chevron_right" />
+                </q-item-section>
+                
+                <q-menu anchor="top end" self="top start">
+                  <q-list style="min-width: 200px">
+                    <q-item 
+                      v-for="p in plantillasServicio" 
+                      :key="p.id_plantilla" 
+                      clickable 
+                      v-close-popup
+                      @click="imprimirCertificado('plantilla', p.id_plantilla)"
+                    >
+                      <q-item-section avatar>
+                        <q-icon name="description" color="secondary" size="xs" />
+                      </q-item-section>
+                      <q-item-section>{{ p.nombre_plantilla || 'Plantilla ' + p.id_plantilla }}</q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-item>
+
+              <!-- Mantener opción original si solo hay una configurada legacy (opcional) -->
+              <q-item v-else-if="idPlantilla" clickable @click="imprimirCertificado('plantilla')">
                 <q-item-section avatar>
                   <q-icon name="description" color="secondary"/>
                 </q-item-section>
@@ -349,6 +380,7 @@
     atencionId: { type: String, required: true },
     servicioId: { type: String, required: true },
     idPlantilla: { type: [String, Number], default: null },
+    plantillasServicio: { type: Array, default: () => [] },
     modoLectura: { type: Boolean, default: false },
     datosIniciales: { type: Object, default: () => ({}) }
   })
@@ -595,8 +627,8 @@
     }
   }
   
-  const imprimirCertificado = (tipo = 'especial') => {
-    emit('imprimir-servicio', props.servicioId, { vacunas: vacunasAgregadas.value }, tipo)
+  const imprimirCertificado = (tipo = 'especial', idPlantilla = null) => {
+    emit('imprimir-servicio', props.servicioId, { vacunas: vacunasAgregadas.value }, tipo, idPlantilla)
   }
 
   const eliminarServicio = () => {

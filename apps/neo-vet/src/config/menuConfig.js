@@ -109,7 +109,7 @@ export const menuConfig = [
         subItems: [
 
 
-          { labelKey: "Servicios Dinámicos", icon: "auto_awesome", to: "/config/servicios-dinamicos" },
+          { labelKey: "Servicios Atención", icon: "auto_awesome", to: "/config/servicios-dinamicos" },
 
           //{ labelKey: "mainMenu.settings.general.location", icon: "place", to: "/config/ubicacion" },
           /*{

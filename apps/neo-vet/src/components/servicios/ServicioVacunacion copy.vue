@@ -10,14 +10,50 @@
           <q-btn-dropdown 
             flat round 
             icon="more_vert"
-            :disable="modoLectura"
           >
             <q-list>
-              <q-item clickable @click="imprimirCertificado">
+              <q-item clickable @click="imprimirCertificado('especial')">
                 <q-item-section avatar>
                   <q-icon name="print" color="primary"/>
                 </q-item-section>
                 <q-item-section>Imprimir Certificado</q-item-section>
+              </q-item>
+               <q-item v-if="plantillasServicio && plantillasServicio.length > 0" clickable>
+                <q-item-section avatar>
+                  <q-icon name="description" color="secondary"/>
+                </q-item-section>
+                <q-item-section>
+                  Imprimir Plantilla
+                  <q-tooltip>Selecciona una plantilla</q-tooltip>
+                </q-item-section>
+                <q-item-section side>
+                  <q-icon name="chevron_right" />
+                </q-item-section>
+                
+                <q-menu anchor="top end" self="top start">
+                  <q-list style="min-width: 200px">
+                    <q-item 
+                      v-for="p in plantillasServicio" 
+                      :key="p.id_plantilla" 
+                      clickable 
+                      v-close-popup
+                      @click="imprimirCertificado('plantilla', p.id_plantilla)"
+                    >
+                      <q-item-section avatar>
+                        <q-icon name="description" color="secondary" size="xs" />
+                      </q-item-section>
+                      <q-item-section>{{ p.nombre_plantilla || 'Plantilla ' + p.id_plantilla }}</q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-item>
+
+              <!-- Mantener opción original si solo hay una configurada legacy (opcional) -->
+              <q-item v-else-if="idPlantilla" clickable @click="imprimirCertificado('plantilla')">
+                <q-item-section avatar>
+                  <q-icon name="description" color="secondary"/>
+                </q-item-section>
+                <q-item-section>Imprimir Reporte (Plantilla)</q-item-section>
               </q-item>
               <q-separator />
               <q-item clickable @click="completarVacunacion" :disable="vacunasAgregadas.length === 0">
@@ -38,31 +74,43 @@
       </q-card-section>
       
       <!-- Listado de Vacunas Agregadas -->
-      <q-card-section v-if="vacunasAgregadas.length > 0" class="q-pb-none">
-        <div class="text-subtitle2 q-mb-sm">Vacunas por Aplicar ({{ vacunasAgregadas.length }})</div>
+      <q-card-section v-if="vacunasAgregadas.length > 0 && (!modoLectura || modoEdicionManual)" class="q-pb-none">
+        <div class="text-subtitle2 q-mb-sm">
+          {{ modoEdicionManual ? 'Vacunas Aplicadas (Editando)' : 'Vacunas por Aplicar' }} ({{ vacunasAgregadas.length }})
+        </div>
         <q-list bordered separator class="rounded-borders bg-grey-1">
           <q-item v-for="(v, index) in vacunasAgregadas" :key="index">
             <q-item-section avatar>
               <q-icon name="vaccines" color="primary" />
             </q-item-section>
             <q-item-section>
-              <q-item-label class="text-weight-bold">{{ v.tipoVacuna?.label || v.tipoVacuna }}</q-item-label>
+              <q-item-label class="text-weight-bold">
+                {{ typeof v.tipoVacuna === 'object' ? (v.tipoVacuna?.label || v.tipoVacuna?.value) : v.tipoVacuna }}
+              </q-item-label>
               <q-item-label caption>
-                {{ v.producto?.label || 'Producto manual' }} | Lote: {{ v.numeroLote }} | Dosis: {{ v.dosisAplicada }}ml
+                {{ v.producto?.label || 'Producto manual' }} | 
+                Lab: {{ typeof v.laboratorio === 'object' ? (v.laboratorio?.label || v.laboratorio?.value) : v.laboratorio }} | 
+                Lote: {{ v.numeroLote }} | Dosis: {{ v.dosisAplicada }}ml
+              </q-item-label>
+              <q-item-label caption v-if="v.observaciones" class="text-italic text-grey-8">
+                Obs/Reacciones: {{ v.observaciones }}
               </q-item-label>
               <q-item-label caption v-if="v.proximaVacuna">
                 Próximo refuerzo: {{ v.proximaVacuna }}
               </q-item-label>
             </q-item-section>
-            <q-item-section side v-if="!modoLectura">
-              <q-btn flat round color="negative" icon="delete" size="sm" @click="quitarVacuna(index)" />
+            <q-item-section side v-if="!modoLectura || modoEdicionManual">
+              <div class="row q-gutter-xs">
+                <q-btn flat round color="primary" icon="edit" size="sm" @click="editarVacuna(index)" />
+                <q-btn flat round color="negative" icon="delete" size="sm" @click="quitarVacuna(index)" />
+              </div>
             </q-item-section>
           </q-item>
         </q-list>
       </q-card-section>
 
       <!-- Formulario para Agregar Nueva Vacuna -->
-      <q-card-section v-if="!modoLectura">
+      <q-card-section v-if="!modoLectura || modoEdicionManual">
         <div class="row items-center q-mb-md">
           <q-separator class="col" />
           <div class="q-px-md text-weight-bold text-grey-7">{{ vacunasAgregadas.length === 0 ? 'Registrar Vacuna' : 'Agregar otra Vacuna' }}</div>
@@ -97,8 +145,12 @@
               :options="tiposVacuna"
               label="Tipo de Vacuna *"
               outlined dense
+              use-input
+              @filter="filterFn"
+              new-value-mode="add-unique"
               option-label="label"
               option-value="value"
+              map-options
             />
           </div>
           
@@ -109,9 +161,11 @@
               label="Laboratorio *"
               outlined dense
               use-input
-              fill-input
-              hide-selected
-              input-debounce="0"
+              @filter="filterFn"
+              new-value-mode="add-unique"
+              option-label="label"
+              option-value="value"
+              map-options
             />
           </div>
           
@@ -134,6 +188,15 @@
                 </q-item>
               </template>
             </q-select>
+          </div>
+          
+          <div class="col-12 col-md-4">
+            <q-input
+              v-model="datosVacuna.numeroLote"
+              label="Número de Lote *"
+              outlined dense
+              hint="Ingresa el lote manualmente o selecciona arriba"
+            />
           </div>
           
           <div class="col-12 col-md-4">
@@ -164,6 +227,7 @@
               outlined dense
               option-label="label"
               option-value="value"
+              map-options
             />
           </div>
           
@@ -188,19 +252,28 @@
           <div class="col-12">
             <q-input
               v-model="datosVacuna.observaciones"
-              label="Observaciones de esta vacuna"
+              label="Observaciones / Reacciones Adversas"
               outlined dense
               type="textarea"
               rows="2"
+              placeholder="Registra cualquier reacción adversa u observación clínica relevante..."
             />
           </div>
 
-          <div class="col-12 flex justify-end">
+          <div class="col-12 flex justify-end q-gutter-sm">
+            <q-btn
+              v-if="indiceEditando > -1"
+              flat
+              color="grey-7"
+              label="Cancelar"
+              @click="cancelarEdicionItem"
+              no-caps
+            />
             <q-btn
               color="primary"
               outline
-              icon="add"
-              label="Agregar a la Lista"
+              :icon="indiceEditando > -1 ? 'save' : 'add'"
+              :label="indiceEditando > -1 ? 'Actualizar Vacuna' : 'Agregar a la Lista'"
               @click="agregarVacuna"
               :disable="!formularioValido"
               no-caps
@@ -210,7 +283,7 @@
       </q-card-section>
 
       <!-- Estado y acciones finales -->
-      <q-card-section v-if="!modoLectura" class="bg-grey-1 border-top">
+      <q-card-section v-if="!modoLectura || modoEdicionManual" class="bg-grey-1 border-top">
         <div class="row items-center justify-between">
           <div class="col-auto">
             <q-chip 
@@ -231,32 +304,61 @@
           
           <div class="col-auto">
             <q-btn
+              v-if="!modoEdicionManual && !modoLectura"
               color="positive"
               icon="check"
               label="Finalizar Vacunación"
               @click="completarVacunacion"
-              :disable="vacunasAgregadas.length === 0"
+              :disable="vacunasAgregadas.length === 0 || procesando"
+              :loading="procesando"
+            />
+            <q-btn
+              v-if="modoEdicionManual"
+              color="primary"
+              icon="save"
+              label="Guardar Cambios"
+              @click="completarVacunacion"
+              :disable="vacunasAgregadas.length === 0 || procesando"
+              :loading="procesando"
             />
           </div>
         </div>
       </q-card-section>
 
       <!-- Vista Lectura: Mostrar vacunas guardadas -->
-      <q-card-section v-if="modoLectura" class="q-pt-none">
-        <div class="text-subtitle2 q-mb-sm">Vacunas Aplicadas</div>
+      <q-card-section v-if="modoLectura && !modoEdicionManual" class="q-pt-none">
+        <div class="row items-center justify-between q-mb-sm">
+          <div class="text-subtitle2">Vacunas Aplicadas</div>
+          <q-btn 
+            flat dense round 
+            color="primary" 
+            icon="edit" 
+            size="sm" 
+            @click="modoEdicionManual = true"
+          >
+            <q-tooltip>Habilitar Edición</q-tooltip>
+          </q-btn>
+        </div>
         <q-list bordered separator class="rounded-borders">
           <q-item v-for="(v, index) in vacunasAgregadas" :key="index">
             <q-item-section avatar>
               <q-icon name="verified" color="positive" />
             </q-item-section>
             <q-item-section>
-              <q-item-label class="text-weight-bold">{{ v.tipoVacuna?.label || v.tipoVacuna }}</q-item-label>
+              <q-item-label class="text-weight-bold">
+                {{ typeof v.tipoVacuna === 'object' ? (v.tipoVacuna?.label || v.tipoVacuna?.value) : v.tipoVacuna }}
+              </q-item-label>
               <q-item-label caption>
-                {{ v.producto?.label || 'Producto manual' }} | Lote: {{ v.numeroLote }} | Dosis: {{ v.dosisAplicada }}ml
+                {{ v.producto?.label || 'Producto manual' }} | 
+                Lab: {{ typeof v.laboratorio === 'object' ? (v.laboratorio?.label || v.laboratorio?.value) : v.laboratorio }} | 
+                Lote: {{ v.numeroLote }} | Dosis: {{ v.dosisAplicada }}ml
+              </q-item-label>
+              <q-item-label caption v-if="v.observaciones" class="text-italic text-grey-8">
+                Obs/Reacciones: {{ v.observaciones }}
               </q-item-label>
             </q-item-section>
             <q-item-section side>
-               <q-chip dense outline color="grey-7" size="sm">{{ v.vencimiento || 'Sin vencimiento' }}</q-chip>
+               <q-chip dense outline color="grey-7" size="sm">{{ v.fechaVencimiento || 'Sin vencimiento' }}</q-chip>
             </q-item-section>
           </q-item>
         </q-list>
@@ -268,12 +370,17 @@
   import { ref, computed, watch, onMounted } from 'vue'
   import inventarioService from 'src/services/inventario.service'
   import { useQuasar } from 'quasar'
+  import useCatalogos from 'src/composables/useCatalogos'
+  import { Modulo, Tabla } from 'src/common/enums/configuracion.enum'
 
   const $q = useQuasar()
+  const { obtenerCatalogo } = useCatalogos()
   
   const props = defineProps({
     atencionId: { type: String, required: true },
     servicioId: { type: String, required: true },
+    idPlantilla: { type: [String, Number], default: null },
+    plantillasServicio: { type: Array, default: () => [] },
     modoLectura: { type: Boolean, default: false },
     datosIniciales: { type: Object, default: () => ({}) }
   })
@@ -282,6 +389,9 @@
   
   // Lista de vacunas agregadas
   const vacunasAgregadas = ref([])
+  const procesando = ref(false)
+  const modoEdicionManual = ref(false)
+  const indiceEditando = ref(-1)
 
   // Formulario actual para entrada
   const datosVacuna = ref({
@@ -295,8 +405,6 @@
     viaAdministracion: 'subcutanea',
     sitioAplicacion: '',
     proximaVacuna: '',
-    reaccionesAdversas: false,
-    descripcionReacciones: '',
     observaciones: ''
   })
 
@@ -312,34 +420,88 @@
       viaAdministracion: 'subcutanea',
       sitioAplicacion: '',
       proximaVacuna: '',
-      reaccionesAdversas: false,
-      descripcionReacciones: '',
       observaciones: ''
     }
+    indiceEditando.value = -1
+  }
+
+  const cancelarEdicionItem = () => {
+    resetForm()
+  }
+
+  const editarVacuna = (index) => {
+    indiceEditando.value = index
+    const v = vacunasAgregadas.value[index]
+    datosVacuna.value = JSON.parse(JSON.stringify(v))
+    // Asegurar que si es un objeto (select) se mantenga como tal
+    // (JSON.parse(JSON.stringify)) es seguro para objetos planos
   }
 
   const productosVacuna = ref([])
   const lotesDisponibles = ref([])
   
-  const tiposVacuna = [
-    { label: 'Triple Felina (FVRCP)', value: 'triple_felina' },
-    { label: 'Rabia', value: 'rabia' },
-    { label: 'Parvovirus Canino', value: 'parvovirus' },
-    { label: 'Hepatitis Canina', value: 'hepatitis' },
-    { label: 'Moquillo Canino', value: 'moquillo' },
-    { label: 'Bordetella', value: 'bordetella' },
-    { label: 'Leucemia Felina', value: 'leucemia_felina' },
-    { label: 'Pentavalente', value: 'pentavalente' },
-    { label: 'Otra', value: 'otra' }
-  ]
+  const tiposVacuna = ref([])
+  const laboratorios = ref([])
+  const viasAdministracion = ref([])
   
-  const laboratorios = ['Zoetis', 'MSD Animal Health', 'Boehringer Ingelheim', 'Virbac', 'HIPRA', 'Fort Dodge', 'Otro']
-  const viasAdministracion = [
-    { label: 'Subcutánea', value: 'subcutanea' },
-    { label: 'Intramuscular', value: 'intramuscular' },
-    { label: 'Intranasal', value: 'intranasal' },
-    { label: 'Oral', value: 'oral' }
-  ]
+  const cargarCatalogos = async () => {
+    try {
+      // Cargar catálogos usando los Enums definidos
+      const [tipos, labs, vias] = await Promise.all([
+        obtenerCatalogo(Modulo.VACUNA, Tabla.TIPO_VACUNA),
+        obtenerCatalogo(Modulo.VACUNA, Tabla.LABORATORIO),
+        obtenerCatalogo(Modulo.VACUNA, Tabla.VIA_ADMINISTRACION)
+      ])
+      
+      tiposVacuna.value = tipos
+      laboratorios.value = labs
+      viasAdministracion.value = vias
+
+      // Resolver labels para vacunas cargadas inicialmente si faltan
+      resolverLabelsDeVacunas()
+    } catch (error) {
+      console.error('Error al cargar catálogos de vacunación:', error)
+      $q.notify({
+        type: 'negative',
+        message: 'Error al cargar los catálogos de vacunación'
+      })
+    }
+  }
+  
+  const resolverLabelsDeVacunas = () => {
+    if (!tiposVacuna.value.length) return
+
+    vacunasAgregadas.value.forEach(v => {
+      // Tipo Vacuna
+      if (v.tipoVacuna && typeof v.tipoVacuna === 'object') {
+        if (!v.tipoVacuna.label || v.tipoVacuna.label === v.tipoVacuna.value) {
+          const found = tiposVacuna.value.find(t => Number(t.value) === Number(v.tipoVacuna.value))
+          if (found) v.tipoVacuna.label = found.label
+        }
+      }
+      
+      // Laboratorio
+      if (v.laboratorio && typeof v.laboratorio === 'object') {
+        if (!v.laboratorio.label || v.laboratorio.label === v.laboratorio.value) {
+          const found = laboratorios.value.find(l => Number(l.value) === Number(v.laboratorio.value))
+          if (found) v.laboratorio.label = found.label
+        }
+      }
+
+      // Via Administracion
+      if (v.viaAdministracion && typeof v.viaAdministracion === 'object') {
+        if (!v.viaAdministracion.label || v.viaAdministracion.label === v.viaAdministracion.value) {
+          const found = viasAdministracion.value.find(va => Number(va.value) === Number(v.viaAdministracion.value))
+          if (found) v.viaAdministracion.label = found.label
+        }
+      }
+    })
+  }
+
+  // Vigilar cambios en la lista para resolver labels si se cargan asíncronamente
+  watch(() => vacunasAgregadas.value, () => {
+    resolverLabelsDeVacunas()
+  }, { deep: true })
   
   const formularioValido = computed(() => {
     return (datosVacuna.value.tipoVacuna || datosVacuna.value.producto) && 
@@ -350,9 +512,16 @@
   
   const agregarVacuna = () => {
     if (formularioValido.value) {
-      vacunasAgregadas.value.push({ ...datosVacuna.value })
+      if (indiceEditando.value > -1) {
+        // Estamos editando un item existente en la lista
+        vacunasAgregadas.value[indiceEditando.value] = { ...datosVacuna.value }
+      } else {
+        // Nuevo item
+        vacunasAgregadas.value.push({ ...datosVacuna.value })
+      }
+      
       resetForm()
-      $q.notify({ type: 'positive', message: 'Vacuna agregada a la lista', position: 'bottom-right', timeout: 1000 })
+      $q.notify({ type: 'positive', message: indiceEditando.value > -1 ? 'Vacuna actualizada' : 'Vacuna agregada a la lista', position: 'bottom-right', timeout: 1000 })
       emit('servicio-actualizado', props.servicioId, { vacunas: vacunasAgregadas.value })
     }
   }
@@ -404,6 +573,13 @@
     } catch (error) { console.error(error) }
   }
 
+  const filterFn = (val, update) => {
+    update(() => {
+      // Esta función permite que el q-select muestre las opciones filtradas
+      // y también que acepte valores nuevos (new-value-mode)
+    })
+  }
+
   const alSeleccionarLote = (lote) => {
     if (!lote) return
     datosVacuna.value.numeroLote = lote.numeroLote
@@ -411,13 +587,16 @@
   }
 
   const completarVacunacion = async () => {
-    if (vacunasAgregadas.length === 0 && formularioValido.value) {
+    if (procesando.value) return
+    
+    if (vacunasAgregadas.value.length === 0 && formularioValido.value) {
         // Si hay datos en el form pero no se agregaron a la lista, agregarlos antes de completar
         agregarVacuna()
     }
 
     if (vacunasAgregadas.value.length > 0) {
       try {
+        procesando.value = true
         $q.loading.show({ message: 'Procesando aplicaciones e inventario...' })
         
         // Descontar inventario para cada vacuna que tenga lote
@@ -435,26 +614,30 @@
           vacunas: vacunasAgregadas.value,
           fechaAplicacion: new Date().toISOString()
         })
+        modoEdicionManual.value = false
       } catch (error) {
         console.error(error)
         $q.notify({ color: 'negative', message: 'Error al actualizar inventario parcial' })
         // Aun así emitimos para completar la parte clínica
         emit('servicio-completado', props.servicioId, { vacunas: vacunasAgregadas.value })
       } finally {
+        procesando.value = false
         $q.loading.hide()
       }
     }
   }
   
-  const imprimirCertificado = () => {
-    emit('imprimir-servicio', props.servicioId, { vacunas: vacunasAgregadas.value })
+  const imprimirCertificado = (tipo = 'especial', idPlantilla = null) => {
+    emit('imprimir-servicio', props.servicioId, { vacunas: vacunasAgregadas.value }, tipo, idPlantilla)
   }
 
   const eliminarServicio = () => {
     emit('servicio-eliminado', props.servicioId)
   }
   
-  onMounted(() => {
+  onMounted(async () => {
+    await cargarCatalogos()
+    
     if (props.datosIniciales?.vacunas) {
       vacunasAgregadas.value = props.datosIniciales.vacunas
     }

@@ -1,5 +1,5 @@
 import NdPeticionControl from '../controles/rest.control';
-import DtoParametros from '../controles/dto.parametros';
+import { DtoParametros } from '../controles/dto.parametros';
 import NdAlertasControl from '../controles/alertas.control';
 
 class PeticionService {
@@ -20,7 +20,7 @@ class PeticionService {
 
     let peticion = new NdPeticionControl();
 
-    return peticion.invocarMetodo(endPoint, 'get', unDtoParametros);
+    return peticion.invocarMetodo(endPoint, 'get', null, unDtoParametros);
 
   }
 

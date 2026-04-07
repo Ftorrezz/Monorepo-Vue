@@ -120,33 +120,12 @@
           <div class="text-subtitle2 q-mb-sm text-primary">Diagnóstico y Plan</div>
         </div>
 
-        <div class="col-12 col-md-6">
-          <q-select
-            v-model="atencionConsulta.id_diagnostico"
-            :options="diagnosticosOptions"
+        <div class="col-12">
+          <q-input
+            v-model="atencionConsulta.diagnostico"
             label="Diagnóstico Presuntivo / Definitivo *"
             outlined
-            emit-value
-            map-options
-            use-input
-            @filter="filtrarDiagnosticos"
             :readonly="modoLectura"
-            hint="Selecciona de la lista para estadísticas"
-          >
-            <template v-slot:no-option>
-              <q-item>
-                <q-item-section class="text-grey">No se encontraron resultados</q-item-section>
-              </q-item>
-            </template>
-          </q-select>
-        </div>
-        <div class="col-12 col-md-6">
-          <q-input
-            v-model="atencionConsulta.diagnostico_complemento"
-            label="Complemento del Diagnóstico (Texto Libre)"
-            outlined
-            :readonly="modoLectura"
-            placeholder="Detalles adicionales, observaciones específicas..."
           />
         </div>
 
@@ -162,6 +141,27 @@
           />
         </div>
 
+        <!-- Receta (Lo que se imprime) -->
+        <div class="col-12">
+          <q-card bordered flat class="bg-grey-1">
+            <q-card-section class="q-py-sm">
+              <div class="text-subtitle2 text-grey-8 flex items-center">
+                <q-icon name="receipt_long" class="q-mr-xs" /> Receta Médica (Contenido para impresión)
+              </div>
+            </q-card-section>
+            <q-card-section>
+              <q-input
+                v-model="atencionConsulta.receta_indicaciones"
+                type="textarea"
+                rows="4"
+                outlined
+                bg-color="white"
+                :readonly="modoLectura"
+                placeholder="Listado de medicamentos con dosis y horarios..."
+              />
+            </q-card-section>
+          </q-card>
+        </div>
 
         <!-- Pronóstico y Seguimiento -->
         <div class="col-12 col-md-6">
@@ -198,10 +198,6 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import useCatalogos from 'src/composables/useCatalogos'
-import { Modulo, Tabla } from 'src/common/enums/configuracion.enum'
-
-const { obtenerCatalogo } = useCatalogos()
 
 const props = defineProps({
   atencionId: { type: String, required: true },
@@ -219,37 +215,15 @@ const atencionConsulta = ref({
   motivo_detallado: '',
   anamnesis: '',
   hallazgos_examen: '',
-  id_diagnostico: null,
-  diagnostico_complemento: '',
+  diagnostico: '',
   indicaciones_medicas: '',
+  receta_indicaciones: '',
   pronostico: '',
   proxima_cita: ''
 })
 
-const diagnosticosOptions = ref([])
-const todosLosDiagnosticos = ref([])
-
-const cargarDiagnosticos = async () => {
-    try {
-        const res = await obtenerCatalogo(Modulo.MASCOTA, Tabla.DIAGNOSTICO)
-        todosLosDiagnosticos.value = res
-        diagnosticosOptions.value = res
-    } catch (error) {
-        console.error('Error al cargar catálogo de diagnósticos:', error)
-    }
-}
-
-const filtrarDiagnosticos = (val, update) => {
-    update(() => {
-        const needle = val.toLowerCase()
-        diagnosticosOptions.value = todosLosDiagnosticos.value.filter(
-            v => v.label.toLowerCase().indexOf(needle) > -1
-        )
-    })
-}
-
 const formularioValido = computed(() => {
-  return atencionConsulta.value.id_motivo && atencionConsulta.value.id_diagnostico
+  return atencionConsulta.value.id_motivo && atencionConsulta.value.diagnostico
 })
 
 const guardarCambios = () => {
@@ -275,8 +249,7 @@ const eliminarServicio = () => {
 
 watch(atencionConsulta, guardarCambios, { deep: true })
 
-onMounted(async () => {
-  await cargarDiagnosticos()
+onMounted(() => {
   if (props.datosIniciales && Object.keys(props.datosIniciales).length > 0) {
     Object.assign(atencionConsulta.value, props.datosIniciales)
   }
