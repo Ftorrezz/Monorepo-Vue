@@ -37,6 +37,15 @@ export default {
       accessError: 'Error al verificar acceso'
     }
   },
+  laboratorio: {
+    gestionOrdenes: 'Gestión de Órdenes',
+    detalleOrden: 'Detalle de Orden',
+    nuevaOrden: 'Nueva Orden',
+    buscarOrdenes: 'Buscar órdenes',
+    estado: 'Estado',
+    paciente: 'Paciente',
+    cargaResultados: 'Carga de Resultados'
+  },
   mainMenu: {
     home: {
       title: 'Inicio',

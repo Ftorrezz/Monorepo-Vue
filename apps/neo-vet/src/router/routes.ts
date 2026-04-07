@@ -202,7 +202,31 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../../../neo-vet/src/pages/configuration/general/ConfiguracionParametros.vue'),
         meta: { requireAuth: true },
       },
-
+      {
+        path: '/laboratorio',
+        name: 'laboratorio',
+        component: () => import('pages/laboratorio/GestionOrdenes.vue'),
+        meta: { requireAuth: true },
+        
+      },
+      {
+        path: '/laboratorio/carga-resultados',
+        name: 'laboratorio-carga-resultados',
+        component: () => import('pages/laboratorio/CargaResultados.vue'),
+        meta: { requireAuth: true },
+      },
+      {
+        path: '/laboratorio/registro-muestras',
+        name: 'laboratorio-registro-muestras',
+        component: () => import('pages/laboratorio/RegistroMuestras.vue'),
+        meta: { requireAuth: true },
+      },
+      {
+        path: '/laboratorio/orden/:id',
+        name: 'laboratorio-orden',
+        component: () => import('pages/laboratorio/VerOrden.vue'),
+        meta: { requireAuth: true },
+      },
 
     ],
     //meta: { requireAuth: true },

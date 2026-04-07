@@ -457,7 +457,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick, reactive } from 'vue'
+import { ref, computed, nextTick, reactive, watch } from 'vue'
 import { useQuasar } from 'quasar'
 
 // Types
@@ -589,13 +589,23 @@ const inicializarDatos = () => {
 // Inicializar datos al montar el componente
 inicializarDatos()
 
+watch(
+  () => props.orden,
+  (nuevaOrden, ordenAnterior) => {
+    if (nuevaOrden !== ordenAnterior) {
+      inicializarDatos()
+    }
+  },
+  { deep: true }
+)
+
 // Columnas de la tabla
 const columns = [
   { 
     name: 'sectorNombre', 
     label: 'Sector', 
     field: 'sectorNombre', 
-    align: 'left', 
+    align: 'left' as const, 
     sortable: true,
     style: 'width: 140px'
   },
@@ -603,7 +613,7 @@ const columns = [
     name: 'estudioNombre', 
     label: 'Estudio', 
     field: 'estudioNombre', 
-    align: 'left', 
+    align: 'left' as const, 
     sortable: true,
     style: 'width: 180px'
   },
@@ -611,7 +621,7 @@ const columns = [
     name: 'nombre', 
     label: 'Prueba', 
     field: 'nombre', 
-    align: 'left', 
+    align: 'left' as const, 
     sortable: true,
     style: 'width: 200px'
   },
@@ -619,28 +629,28 @@ const columns = [
     name: 'rango', 
     label: 'Rango Normal', 
     field: 'rango', 
-    align: 'center',
+    align: 'center' as const,
     style: 'width: 120px'
   },
   { 
     name: 'unidad', 
     label: 'Unidad', 
     field: 'unidad', 
-    align: 'center',
+    align: 'center' as const, 
     style: 'width: 80px'
   },
   { 
     name: 'resultado', 
     label: 'Resultado', 
     field: 'resultado', 
-    align: 'center',
+    align: 'center' as const, 
     style: 'width: 140px'
   },
   { 
     name: 'estado', 
     label: 'Estado', 
     field: 'estado', 
-    align: 'center', 
+    align: 'center' as const, 
     sortable: true,
     style: 'width: 100px'
   },
@@ -648,26 +658,25 @@ const columns = [
     name: 'usuarioCargo', 
     label: 'Cargado por', 
     field: 'usuarioCargo', 
-    align: 'left',
+    align: 'left' as const,
     style: 'width: 120px'
   },
   { 
     name: 'usuarioValido', 
     label: 'Validado por', 
     field: 'usuarioValido', 
-    align: 'left',
+    align: 'left' as const,
     style: 'width: 120px'
   },
   { 
     name: 'acciones', 
     label: 'Acciones', 
     field: '', 
-    align: 'center',
+    align: 'center' as const,
     style: 'width: 120px'
   }
 ]
 
-// Computed properties
 const pruebasAplanadas = computed(() => {
   const pruebas: Prueba[] = []
   
@@ -813,9 +822,41 @@ const getResultadoValue = (pruebaId: string): string => {
   return valoresResultados[pruebaId] || ''
 }
 
-const updateResultadoValue = (pruebaId: string, valor: string) => {
-  console.log(`Actualizando valor - ID: ${pruebaId}, Valor: "${valor}"`)
-  valoresResultados[pruebaId] = valor
+const updateResultadoValue = (pruebaId: string, valor: string | number | null) => {
+  const valorStr = valor?.toString() ?? ''
+  valoresResultados[pruebaId] = valorStr
+
+  const pruebaOriginal = props.orden?.estudios
+    ?.flatMap((estudio: any) => estudio.pruebas || [])
+    ?.find((p: any) => p.id === pruebaId)
+
+  if (!pruebaOriginal) return
+
+  const estadoActual = estadosPruebas[pruebaId] || pruebaOriginal.estado
+  const valorLimpio = valorStr.trim() || ''
+
+  if (valorLimpio && estadoActual === 'pendiente') {
+    estadosPruebas[pruebaId] = 'cargado'
+    metadatosPruebas[pruebaId] = {
+      ...metadatosPruebas[pruebaId],
+      usuarioCargo: 'Usuario Actual',
+      fechaCarga: new Date().toISOString()
+    }
+  }
+
+  if (!valorLimpio && estadoActual !== 'validado') {
+    estadosPruebas[pruebaId] = 'pendiente'
+    metadatosPruebas[pruebaId] = {
+      ...metadatosPruebas[pruebaId],
+      usuarioCargo: undefined,
+      fechaCarga: undefined
+    }
+  }
+
+  const pruebaActualizada = pruebasAplanadas.value.find(p => p.id === pruebaId)
+  if (pruebaActualizada) {
+    emit('resultados-actualizados', [pruebaActualizada])
+  }
 }
 
 const procesarResultadoFinal = (pruebaId: string) => {
@@ -1381,7 +1422,7 @@ const ejecutarAccionConfirmada = () => {
 }
 
 // Métodos auxiliares
-const filtrarPruebas = (rows: Prueba[], terms: string) => {
+const filtrarPruebas = (rows: readonly Prueba[], terms: string, cols: readonly any[], getCellValue: (col: any, row: any) => any) => {
   if (!terms) return rows
   
   const terminos = terms.toLowerCase().split(' ')

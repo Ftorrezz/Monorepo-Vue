@@ -28,6 +28,33 @@ export const menuConfig = [
     ],
   },
   {
+    labelKey: "mainMenu.Laboratory.title",
+    icon: "science",
+    items: [
+      {
+        labelKey: "mainMenu.Laboratory.exams.title",
+        icon: "biotech",
+        to: "/laboratorio/registro-muestras",
+      },
+      {
+        labelKey: "mainMenu.Laboratory.results.title",
+        icon: "assignment_turned_in",
+        to: "/laboratorio/results",
+      },
+      {
+        labelKey: "mainMenu.Laboratory.cargaResultados.title",
+        icon: "upload_file",
+        to: "/laboratorio/carga-resultados",
+      },
+      {
+        labelKey: "mainMenu.Laboratory.orden.title",
+        icon: "assignment",
+        to: "/laboratorio",
+      }
+    ],
+
+  },
+  {
     labelKey: "mainMenu.inventory.title",
     icon: "inventory",
     to: "/inventario",
