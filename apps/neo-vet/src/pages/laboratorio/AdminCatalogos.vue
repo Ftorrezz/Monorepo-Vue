@@ -11,59 +11,36 @@
       </div>
     </div>
 
-    <!-- Tabs con secciones -->
-    <q-tabs
-      v-model="tabActiva"
-      dense
-      class="tabs-section"
-      active-color="primary"
-      indicator-color="primary"
-    >
-      <!-- TAB 1: Estudios -->
-      <q-tab name="estudios" label="Estudios" icon="science">
-        <q-tab-panels v-model="tabActiva" animated>
-          <q-tab-panel name="estudios">
-            <AbmEstudios />
-          </q-tab-panel>
-        </q-tab-panels>
-      </q-tab>
+    <!-- Contenedor principal con sidebar -->
+    <div class="content-wrapper">
+      <!-- Sidebar fijo -->
+      <aside class="sidebar">
+        <nav class="nav-options">
+          <button
+            v-for="seccion in secciones"
+            :key="seccion.id"
+            class="nav-item"
+            :class="{ 'nav-item--active': tabActiva === seccion.id }"
+            @click="tabActiva = seccion.id"
+          >
+            <q-icon :name="seccion.icon" class="nav-item__icon" />
+            <span class="nav-item__label">{{ seccion.label }}</span>
+            <q-icon name="arrow_forward" class="nav-item__arrow" />
+          </button>
+        </nav>
+      </aside>
 
-      <!-- TAB 2: Pruebas -->
-      <q-tab name="pruebas" label="Pruebas / Tests" icon="analytics">
-        <q-tab-panels v-model="tabActiva" animated>
-          <q-tab-panel name="pruebas">
-            <AbmPruebas />
-          </q-tab-panel>
-        </q-tab-panels>
-      </q-tab>
-
-      <!-- TAB 3: Valores de Referencia -->
-      <q-tab name="valores" label="Valores de Referencia" icon="assessment">
-        <q-tab-panels v-model="tabActiva" animated>
-          <q-tab-panel name="valores">
-            <AbmValoresReferencia />
-          </q-tab-panel>
-        </q-tab-panels>
-      </q-tab>
-
-      <!-- TAB 4: Tipos de Muestra -->
-      <q-tab name="tipos" label="Tipos de Muestra" icon="invert_colors">
-        <q-tab-panels v-model="tabActiva" animated>
-          <q-tab-panel name="tipos">
-            <AbmTiposMuestra />
-          </q-tab-panel>
-        </q-tab-panels>
-      </q-tab>
-
-      <!-- TAB 5: Dashboard -->
-      <q-tab name="dashboard" label="Dashboard" icon="dashboard">
-        <q-tab-panels v-model="tabActiva" animated>
-          <q-tab-panel name="dashboard">
-            <DashboardCatalogos />
-          </q-tab-panel>
-        </q-tab-panels>
-      </q-tab>
-    </q-tabs>
+      <!-- Área de contenido principal -->
+      <main class="main-content">
+        <div class="content-panel">
+          <AbmEstudios v-if="tabActiva === 'estudios'" />
+          <AbmPruebas v-else-if="tabActiva === 'pruebas'" />
+          <AbmValoresReferencia v-else-if="tabActiva === 'valores'" />
+          <AbmTiposMuestra v-else-if="tabActiva === 'tipos'" />
+          <DashboardCatalogos v-else-if="tabActiva === 'dashboard'" />
+        </div>
+      </main>
+    </div>
   </div>
 </template>
 
@@ -76,6 +53,14 @@ import AbmTiposMuestra from '../../components/laboratorio/catalogo/AbmTiposMuest
 import DashboardCatalogos from '../../components/laboratorio/catalogo/DashboardCatalogos.vue'
 
 const tabActiva = ref('estudios')
+
+const secciones = [
+  { id: 'estudios', label: 'Estudios', icon: 'science' },
+  { id: 'pruebas', label: 'Pruebas / Tests', icon: 'analytics' },
+  { id: 'valores', label: 'Valores de Referencia', icon: 'assessment' },
+  { id: 'tipos', label: 'Tipos de Muestra', icon: 'invert_colors' },
+  { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' }
+]
 </script>
 
 <style scoped lang="scss">
@@ -111,19 +96,155 @@ const tabActiva = ref('estudios')
   }
 }
 
-.tabs-section {
+// Layout con sidebar
+.content-wrapper {
+  display: flex;
+  gap: 20px;
+  min-height: calc(100vh - 250px);
+}
+
+// Sidebar fijo
+.sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  height: fit-content;
+  position: sticky;
+  top: 20px;
+}
+
+.nav-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+
+  &:hover {
+    background-color: #f0f0f0;
+    color: #1976d2;
+    transform: translateX(4px);
+  }
+
+  &--active {
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+    color: white;
+    font-weight: 600;
+
+    .nav-item__arrow {
+      opacity: 1;
+    }
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+      transform: translateX(6px);
+    }
+  }
+
+  &__icon {
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  &__label {
+    flex: 1;
+    font-size: 13px;
+  }
+
+  &__arrow {
+    font-size: 16px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+}
+
+// Área de contenido principal
+.main-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-panel {
   background: white;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-:deep(.q-tab-panels) {
-  background: transparent;
-  box-shadow: none;
-  padding: 0;
+:deep(.content-panel > div) {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
-:deep(.q-tab-panel) {
-  padding: 0;
+// Responsive
+@media (max-width: 1024px) {
+  .content-wrapper {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .sidebar {
+    width: 100%;
+    position: relative;
+    top: auto;
+    height: auto;
+  }
+
+  .nav-options {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .nav-item {
+    flex: 1;
+    min-width: 150px;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-laboratorio {
+    padding: 12px;
+  }
+
+  .page-header {
+    padding: 20px;
+  }
+
+  .nav-item {
+    justify-content: center;
+
+    &__label {
+      display: none;
+    }
+  }
+
+  .nav-item--active .nav-item__label {
+    display: block;
+  }
 }
 </style>

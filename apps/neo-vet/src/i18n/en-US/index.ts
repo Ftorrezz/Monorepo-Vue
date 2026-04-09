@@ -45,6 +45,18 @@ export default {
       petCare: 'Pet Care',
       schedule: 'Calendar'
     },
+    modules: {
+      title: 'MModules',
+      laboratory: 'Laboratory',
+      inventory: 'Inventory',
+      boarding: 'Boarding',
+      sales: 'Sales'
+
+    },  
+    laboratory: {
+      title: 'Laboratory',
+      gestionOrdenes: 'Order Management',
+    },
     inventory: {
       title: 'Inventory'
     },

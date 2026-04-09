@@ -54,6 +54,19 @@ export default {
       petCare: 'Atención Mascota',
       schedule: 'Calendario'
     },
+    modules: {
+      title: 'Módulos',
+      laboratory: 'Laboratorio',
+      inventory: 'Inventario',
+      boarding: 'Pensión',
+      sales: 'Ventas'
+
+    },  
+    laboratory: {
+      title: 'Laboratorio',
+      gestionOrdenes: 'Gestión de Órdenes',
+    },
+
     inventory: {
       title: 'Inventario'
     },

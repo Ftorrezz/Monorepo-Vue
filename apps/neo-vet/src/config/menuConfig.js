@@ -27,40 +27,41 @@ export const menuConfig = [
       },
     ],
   },
-  {
-    labelKey: "mainMenu.Laboratory.title",
+  
+  /*{
+    labelKey: "mainMenu.laboratory.title",
     icon: "science",
     to: "/laboratorio/home",
+  },*/
+  {
+    labelKey: "mainMenu.modules.title",
+    icon: "view_module",
     items: [
       {
-        labelKey: "mainMenu.Laboratory.dashboard",
-        icon: "dashboard",
+        labelKey: "mainMenu.modules.laboratory",
+        icon: "science",
         to: "/laboratorio/home",
       },
       {
-        labelKey: "mainMenu.Laboratory.exams.title",
-        icon: "biotech",
-        to: "/laboratorio/registro-muestras",
+        labelKey: "mainMenu.modules.inventory",
+        icon: "inventory",
+        to: "/inventario",
       },
       {
-        labelKey: "mainMenu.Laboratory.results.title",
-        icon: "assignment_turned_in",
-        to: "/laboratorio/results",
+        labelKey: "mainMenu.modules.boarding",
+        icon: "bedroom_baby",
+        to: "/pension",
       },
       {
-        labelKey: "mainMenu.Laboratory.cargaResultados.title",
-        icon: "upload_file",
-        to: "/laboratorio/carga-resultados",
+        labelKey: "mainMenu.modules.sales",
+        icon: "point_of_sale",
+        to: "/ventas",
       },
-      {
-        labelKey: "mainMenu.Laboratory.orden.title",
-        icon: "assignment",
-        to: "/laboratorio",
-      }
+      
     ],
 
   },
-  {
+  /*{
     labelKey: "mainMenu.inventory.title",
     icon: "inventory",
     to: "/inventario",
@@ -74,7 +75,7 @@ export const menuConfig = [
     labelKey: "mainMenu.sales.title",
     icon: "point_of_sale",
     to: "/ventas",
-  },
+  },*/
   {
     labelKey: "mainMenu.reports.title",
     icon: "analytics",

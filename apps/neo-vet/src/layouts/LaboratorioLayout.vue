@@ -1,113 +1,79 @@
 <template>
-  <q-layout view="hHr lRr fFf" class="laboratorio-layout">
-    <!-- Header Laboratorio -->
-    <q-header elevated class="laboratorio-header">
-      <div class="header-content">
-        <div class="logo-section">
-          <q-icon name="science" size="32px" color="white" />
-          <div class="logo-text">
-            <div class="logo-title">Módulo de Laboratorio</div>
-            <div class="logo-subtitle">Gestión de Órdenes, Muestras y Resultados</div>
+  <q-layout view="hHh Lpr lFf">
+    <!-- HEADER -->
+    <q-header flat class="bg-primary shadow-2">
+      <q-toolbar class="header-toolbar">
+        <!-- Botón de regreso -->
+        <q-btn
+          flat
+          dense
+          round
+          icon="arrow_back"
+          @click="volverAModulos"
+          class="q-mr-md"
+          title="Volver a módulos principales"
+        />
+
+        <!-- Identificador del Módulo -->
+        <div class="module-header-title">
+          <q-icon name="science" size="24px" class="q-mr-xs" />
+          <span class="text-weight-bold text-uppercase">Laboratorio</span>
+        </div>
+
+        <q-separator vertical inset class="q-mx-md" />
+
+        <!-- Logo y nombre del sistema -->
+        <div class="row items-center q-gutter-md">
+          <img
+            src="/static/VetDimioMenuMini.png"
+            alt="Logo"
+            class="logo-header cursor-pointer"
+            @click="$router.push('/')"
+          />
+          <div class="system-info">
+            <div class="system-name text-weight-bold">VetDimio</div>
+            <div class="system-module text-weight-bold">Sistema integral de gestión veterinaria</div>
           </div>
         </div>
 
-        <div class="header-actions">
-          <q-btn
-            flat
-            round
-            dense
-            icon="home"
-            color="white"
-            @click="irAHome"
-            unelevated
-          >
-            <q-tooltip>Ir al inicio de laboratorio</q-tooltip>
-          </q-btn>
-          <q-separator vertical inset class="q-mx-md" style="background-color: rgba(255,255,255,0.3)" />
-          <q-btn
-            flat
-            round
-            dense
-            icon="pets"
-            color="white"
-            @click="irAVeterinaria"
-            unelevated
-          >
-            <q-tooltip>Volver a Veterinaria</q-tooltip>
-          </q-btn>
-          <q-separator vertical inset class="q-mx-md" style="background-color: rgba(255,255,255,0.3)" />
-          <q-btn
-            flat
-            round
-            dense
-            icon="arrow_back"
-            color="white"
-            @click="volverAlMenu"
-            unelevated
-          >
-            <q-tooltip>Volver al menú principal</q-tooltip>
-          </q-btn>
+        <!-- Pestañas de navegación -->
+        <div class="nav-tabs">
+          <HeaderLaboratorio />
         </div>
-      </div>
 
-      <!-- Navbar de Laboratorio -->
-      <q-tabs
-        v-model="tabActiva"
-        dense
-        class="text-white"
-        active-color="white"
-        indicator-color="white"
-        align="left"
-        no-caps
-      >
-        <q-tab
-          name="home"
-          icon="dashboard"
-          label="Dashboard"
-          @click="$router.push('/laboratorio/home')"
-        />
-        <q-tab
-          name="ordenes"
-          icon="receipt"
-          label="Órdenes"
-          @click="$router.push('/laboratorio')"
-        />
-        <q-tab
-          name="muestras"
-          icon="local_shipping"
-          label="Muestras"
-          @click="$router.push('/laboratorio/registro-muestras')"
-        />
-        <q-tab
-          name="resultados"
-          icon="check_circle"
-          label="Resultados"
-          @click="$router.push('/laboratorio/carga-resultados')"
-        />
-        <q-tab
-          name="catalogos"
-          icon="settings"
-          label="Configuración"
-          @click="$router.push('/laboratorio/admin-catalogos')"
-        />
-        <q-tab
-          name="reportes"
-          icon="assessment"
-          label="Reportes"
-          @click="$router.push('/laboratorio/reportes')"
-        />
-        <q-tab
-          name="inventario"
-          icon="inventory"
-          label="Inventario"
-          @click="$router.push('/laboratorio/inventario')"
-        />
-      </q-tabs>
+        <!-- Botones de acción rápida -->
+        <!--<div class="quick-actions row items-center q-gutter-sm">
+          <q-btn 
+            push 
+            color="white" 
+            text-color="primary" 
+            label="Nueva Orden" 
+            icon="add_circle" 
+            @click="irA('/laboratorio')"
+            no-caps 
+            size="sm"
+          />
+          <q-btn 
+            push 
+            color="positive" 
+            text-color="white" 
+            label="Ver Resultados" 
+            icon="check_circle" 
+            @click="irA('/laboratorio/carga-resultados')"
+            no-caps 
+            size="sm"
+          />
+        </div>-->
+        
+        <q-space />
+        
+        <MenuOpcionesUsuario />
+      </q-toolbar>
     </q-header>
 
-    <!-- Contenido -->
+    <!-- PAGE CONTAINER -->
     <q-page-container>
-      <q-page class="laboratorio-page">
+      <q-page class="q-pa-md">
         <router-view></router-view>
       </q-page>
     </q-page-container>
@@ -115,136 +81,108 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { useRouter } from 'vue-router';
+import HeaderLaboratorio from '../components/laboratorio/HeaderLaboratorio.vue';
+import MenuOpcionesUsuario from '../components/MenuOpcionesUsuario.vue';
 
 const router = useRouter();
-const route = useRoute();
-const tabActiva = ref('home');
 
-// Actualizar tab activa según la ruta
-watch(
-  () => route.path,
-  (newPath) => {
-    if (newPath.includes('/home')) tabActiva.value = 'home';
-    else if (newPath.includes('/carga-resultados')) tabActiva.value = 'resultados';
-    else if (newPath.includes('/registro-muestras')) tabActiva.value = 'muestras';
-    else if (newPath.includes('/admin-catalogos')) tabActiva.value = 'catalogos';
-    else if (newPath.includes('/reportes')) tabActiva.value = 'reportes';
-    else if (newPath.includes('/inventario')) tabActiva.value = 'inventario';
-    else if (newPath === '/laboratorio' || newPath.includes('/laboratorio/orden')) tabActiva.value = 'ordenes';
-  }
-);
-
-const irAHome = () => {
-  router.push('/laboratorio/home');
-};
-
-const irAVeterinaria = () => {
-  router.push('/atencionpaciente');
-};
-
-const volverAlMenu = () => {
+const volverAModulos = () => {
   router.push('/');
+};
+
+const irA = (ruta: string) => {
+  router.push(ruta);
 };
 </script>
 
 <style lang="scss" scoped>
-:deep(.laboratorio-layout) {
-  .q-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-  }
-}
-
-.header-content {
+.header-toolbar {
+  min-height: auto;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  max-width: 100%;
-  width: 100%;
-  padding: 8px 0;
+  gap: 8px;
+  padding: 8px 12px;
+}
 
-  .logo-section {
-    display: flex;
-    align-items: center;
-    gap: 16px;
+.module-header-title {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  color: white;
+  white-space: nowrap;
+  flex-shrink: 0;
 
-    .logo-text {
-      .logo-title {
-        font-size: 18px;
-        font-weight: 600;
-        letter-spacing: 0.3px;
-        color: white;
-        margin: 0;
-      }
-
-      .logo-subtitle {
-        font-size: 12px;
-        opacity: 0.9;
-        margin-top: 2px;
-        color: white;
-      }
-    }
-  }
-
-  .header-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  span {
+    font-weight: 700;
   }
 }
 
-.laboratorio-page {
-  background-color: #f5f5f5;
-  padding: 24px;
-  width: 100%;
-  min-height: 100vh;
+.logo-header {
+  height: 40px;
+  width: auto;
+  border-radius: 4px;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.05);
+  }
 }
 
-:deep(.q-tabs) {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+.system-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 
-  .q-tab {
-    color: rgba(255, 255, 255, 0.8) !important;
+  .system-name {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: white;
+    line-height: 1;
+  }
+
+  .system-module {
+    color: rgba(255, 255, 255, 0.8);
     font-weight: 500;
-
-    &.q-tab--active {
-      color: white !important;
-    }
-  }
-
-  .q-tabs__content {
-    color: white !important;
-  }
-
-  .q-tab__indicator {
-    background-color: white !important;
+    font-size: 11px;
   }
 }
 
-// Responsivo
-@media (max-width: 600px) {
-  .header-content {
-    gap: 12px;
+.nav-tabs {
+  display: flex;
+  align-items: center;
+  margin: 0 4px;
+  flex-shrink: 0;
 
-    .logo-section {
-      gap: 12px;
-
-      .logo-text {
-        .logo-title {
-          font-size: 16px;
-        }
-
-        .logo-subtitle {
-          font-size: 11px;
-        }
-      }
-    }
+  :deep(.q-tabs) {
+    min-height: auto;
   }
 
-  .laboratorio-page {
-    padding: 12px;
+  :deep(.q-tab-panels) {
+    display: none;
+  }
+}
+
+.quick-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: 8px;
+
+  :deep(.q-btn) {
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
   }
 }
 </style>
