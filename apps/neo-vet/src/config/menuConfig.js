@@ -30,7 +30,13 @@ export const menuConfig = [
   {
     labelKey: "mainMenu.Laboratory.title",
     icon: "science",
+    to: "/laboratorio/home",
     items: [
+      {
+        labelKey: "mainMenu.Laboratory.dashboard",
+        icon: "dashboard",
+        to: "/laboratorio/home",
+      },
       {
         labelKey: "mainMenu.Laboratory.exams.title",
         icon: "biotech",

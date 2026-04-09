@@ -58,9 +58,7 @@
         </q-td>
       </template>
 
-      <template v-slot:top-right>
-        <q-btn color="primary" label="Nueva Orden" icon="add" @click="$emit('crear-nuevo')" />
-      </template>
+
     </q-table>
   </q-card>
 </template>

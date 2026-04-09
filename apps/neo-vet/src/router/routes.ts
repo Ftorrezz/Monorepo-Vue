@@ -202,35 +202,66 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../../../neo-vet/src/pages/configuration/general/ConfiguracionParametros.vue'),
         meta: { requireAuth: true },
       },
+    ],
+    //meta: { requireAuth: true },
+
+  },
+
+  // Rutas del módulo de Laboratorio con layout específico
+  {
+    path: '/laboratorio',
+    component: () => import('layouts/LaboratorioLayout.vue'),
+    children: [
       {
-        path: '/laboratorio',
+        path: 'home',
+        name: 'laboratorio-home',
+        component: () => import('pages/laboratorio/LaboratorioHome.vue'),
+        meta: { requireAuth: true },
+      },
+      {
+        path: '',
         name: 'laboratorio',
         component: () => import('pages/laboratorio/GestionOrdenes.vue'),
         meta: { requireAuth: true },
-        
       },
       {
-        path: '/laboratorio/carga-resultados',
+        path: 'carga-resultados',
         name: 'laboratorio-carga-resultados',
         component: () => import('pages/laboratorio/CargaResultados.vue'),
         meta: { requireAuth: true },
       },
       {
-        path: '/laboratorio/registro-muestras',
+        path: 'registro-muestras',
         name: 'laboratorio-registro-muestras',
         component: () => import('pages/laboratorio/RegistroMuestras.vue'),
         meta: { requireAuth: true },
       },
       {
-        path: '/laboratorio/orden/:id',
+        path: 'admin-catalogos',
+        name: 'laboratorio-admin-catalogos',
+        component: () => import('pages/laboratorio/AdminCatalogos.vue'),
+        meta: { requireAuth: true },
+      },
+      {
+        path: 'reportes',
+        name: 'laboratorio-reportes',
+        component: () => import('pages/laboratorio/ReportesLaboratorio.vue'),
+        meta: { requireAuth: true },
+      },
+      {
+        path: 'inventario',
+        name: 'laboratorio-inventario',
+        component: () => import('pages/inventario/Inventario.vue'),
+        meta: { requireAuth: true },
+      },
+      {
+        path: 'orden/:id',
         name: 'laboratorio-orden',
         component: () => import('pages/laboratorio/VerOrden.vue'),
         meta: { requireAuth: true },
       },
-
     ],
-    //meta: { requireAuth: true },
-
+    meta: { requireAuth: true },
   },
 
   {
