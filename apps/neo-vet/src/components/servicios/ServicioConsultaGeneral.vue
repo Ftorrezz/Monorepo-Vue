@@ -7,10 +7,31 @@
           <div class="text-h6 text-primary">Consulta General</div>
           <div class="text-caption text-grey-7">Registro clínico completo y receta médica</div>
         </div>
+        <q-btn 
+          v-if="modoLectura && !modoEdicionManual"
+          flat dense round 
+          color="primary" 
+          icon="edit" 
+          size="sm" 
+          @click="modoEdicionManual = true"
+          class="q-mr-sm"
+        >
+          <q-tooltip>Habilitar Edición</q-tooltip>
+        </q-btn>
+        <q-btn 
+          v-if="modoEdicionManual"
+          flat dense round 
+          color="grey-7" 
+          icon="close" 
+          size="sm" 
+          @click="cancelarEdicion"
+          class="q-mr-sm"
+        >
+          <q-tooltip>Cancelar Edición</q-tooltip>
+        </q-btn>
         <q-btn-dropdown 
           flat round 
           icon="more_vert"
-          :disable="modoLectura"
         >
           <q-list>
             <q-item clickable @click="imprimirReceta('especial')">
@@ -78,7 +99,7 @@
             outlined
             emit-value
             map-options
-            :readonly="modoLectura"
+            :readonly="modoLectura && !modoEdicionManual"
           />
         </div>
         <div class="col-12 col-md-6">
@@ -86,7 +107,7 @@
             v-model="atencionConsulta.motivo_detallado"
             label="Motivo Detallado"
             outlined
-            :readonly="modoLectura"
+            :readonly="modoLectura && !modoEdicionManual"
           />
         </div>
 
@@ -98,7 +119,7 @@
             type="textarea"
             rows="3"
             outlined
-            :readonly="modoLectura"
+            :readonly="modoLectura && !modoEdicionManual"
             placeholder="Antecedentes, inicio de síntomas, etc."
           />
         </div>
@@ -110,7 +131,7 @@
             type="textarea"
             rows="3"
             outlined
-            :readonly="modoLectura"
+            :readonly="modoLectura && !modoEdicionManual"
           />
         </div>
 
@@ -130,7 +151,7 @@
             map-options
             use-input
             @filter="filtrarDiagnosticos"
-            :readonly="modoLectura"
+            :readonly="modoLectura && !modoEdicionManual"
             hint="Selecciona de la lista para estadísticas"
           >
             <template v-slot:no-option>
@@ -145,7 +166,7 @@
             v-model="atencionConsulta.diagnostico_complemento"
             label="Complemento del Diagnóstico (Texto Libre)"
             outlined
-            :readonly="modoLectura"
+            :readonly="modoLectura && !modoEdicionManual"
             placeholder="Detalles adicionales, observaciones específicas..."
           />
         </div>
@@ -157,7 +178,7 @@
             type="textarea"
             rows="3"
             outlined
-            :readonly="modoLectura"
+            :readonly="modoLectura && !modoEdicionManual"
             placeholder="Indicaciones para el propietario..."
           />
         </div>
@@ -169,7 +190,7 @@
             v-model="atencionConsulta.pronostico"
             label="Pronóstico"
             outlined
-            :readonly="modoLectura"
+            :readonly="modoLectura && !modoEdicionManual"
           />
         </div>
         <div class="col-12 col-md-6">
@@ -178,20 +199,37 @@
             label="Próxima Cita Sugerida"
             type="date"
             outlined
-            :readonly="modoLectura"
+            :readonly="modoLectura && !modoEdicionManual"
           />
         </div>
       </div>
     </q-card-section>
 
-    <q-card-section v-if="!modoLectura" class="bg-grey-1 text-right">
+    <q-card-section v-if="!modoLectura || modoEdicionManual" class="bg-grey-1 text-right q-gutter-x-sm">
       <q-btn 
-        color="primary" 
-        icon="save" 
-        label="Completar y Guardar Consulta" 
+        v-if="modoEdicionManual"
+        flat
+        color="grey-7"
+        label="Cancelar"
+        @click="cancelarEdicion"
+      />
+      <q-btn 
+        :color="modoEdicionManual ? 'orange' : 'primary'" 
+        :icon="modoEdicionManual ? 'save' : 'save'" 
+        :label="modoEdicionManual ? 'Guardar Cambios' : 'Completar y Guardar Consulta'" 
         @click="completarConsulta"
         :disable="!formularioValido"
       />
+      <q-linear-progress 
+        v-if="!formularioValido && (atencionConsulta.id_motivo || atencionConsulta.id_diagnostico)"
+        indeterminate 
+        color="warning" 
+        size="2px"
+        class="q-mt-sm"
+      />
+      <div v-if="!formularioValido" class="text-caption text-warning q-mt-sm">
+        ⚠️ Completa: Motivo de Consulta y Diagnóstico (obligatorios)
+      </div>
     </q-card-section>
   </q-card>
 </template>
@@ -213,6 +251,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['servicio-actualizado', 'servicio-completado', 'servicio-eliminado', 'imprimir-servicio'])
+
+const modoEdicionManual = ref(false)
 
 const atencionConsulta = ref({
   id_motivo: null,
@@ -262,7 +302,30 @@ const completarConsulta = () => {
       ...atencionConsulta.value,
       fecha_aplicacion: new Date().toISOString()
     })
+    modoEdicionManual.value = false
   }
+}
+
+const cancelarEdicion = () => {
+  if (props.datosIniciales && Object.keys(props.datosIniciales).length > 0) {
+    const datos = { ...props.datosIniciales }
+    if (datos.id_motivo) datos.id_motivo = Number(datos.id_motivo)
+    if (datos.id_diagnostico) datos.id_diagnostico = Number(datos.id_diagnostico)
+    Object.assign(atencionConsulta.value, datos)
+  } else {
+    atencionConsulta.value = {
+      id_motivo: null,
+      motivo_detallado: '',
+      anamnesis: '',
+      hallazgos_examen: '',
+      id_diagnostico: null,
+      diagnostico_complemento: '',
+      indicaciones_medicas: '',
+      pronostico: '',
+      proxima_cita: ''
+    }
+  }
+  modoEdicionManual.value = false
 }
 
 const imprimirReceta = (tipo = 'especial', idPlantilla = null) => {
@@ -278,7 +341,12 @@ watch(atencionConsulta, guardarCambios, { deep: true })
 onMounted(async () => {
   await cargarDiagnosticos()
   if (props.datosIniciales && Object.keys(props.datosIniciales).length > 0) {
-    Object.assign(atencionConsulta.value, props.datosIniciales)
+    // Asegurar que los IDs sean números si vienen como strings (para q-select map-options)
+    const datos = { ...props.datosIniciales }
+    if (datos.id_motivo) datos.id_motivo = Number(datos.id_motivo)
+    if (datos.id_diagnostico) datos.id_diagnostico = Number(datos.id_diagnostico)
+    
+    Object.assign(atencionConsulta.value, datos)
   }
 })
 </script>

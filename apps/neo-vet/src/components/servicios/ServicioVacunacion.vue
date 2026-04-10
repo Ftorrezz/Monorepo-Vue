@@ -7,6 +7,28 @@
             <div class="text-h6">Vacunación</div>
             <div class="text-caption text-grey-7">Registro de aplicación de múltiples vacunas</div>
           </div>
+          <q-btn 
+            v-if="modoLectura && !modoEdicionManual"
+            flat dense round 
+            color="primary" 
+            icon="edit" 
+            size="sm" 
+            @click="modoEdicionManual = true"
+            class="q-mr-sm"
+          >
+            <q-tooltip>Habilitar Edición</q-tooltip>
+          </q-btn>
+          <q-btn 
+            v-if="modoEdicionManual"
+            flat dense round 
+            color="grey-7" 
+            icon="close" 
+            size="sm" 
+            @click="cancelarEdicionGeneral"
+            class="q-mr-sm"
+          >
+            <q-tooltip>Cancelar Edición</q-tooltip>
+          </q-btn>
           <q-btn-dropdown 
             flat round 
             icon="more_vert"
@@ -302,7 +324,14 @@
             />
           </div>
           
-          <div class="col-auto">
+          <div class="col-auto q-gutter-x-sm">
+            <q-btn
+              v-if="modoEdicionManual"
+              flat
+              color="grey-7"
+              label="Cancelar"
+              @click="cancelarEdicionGeneral"
+            />
             <q-btn
               v-if="!modoEdicionManual && !modoLectura"
               color="positive"
@@ -329,15 +358,6 @@
       <q-card-section v-if="modoLectura && !modoEdicionManual" class="q-pt-none">
         <div class="row items-center justify-between q-mb-sm">
           <div class="text-subtitle2">Vacunas Aplicadas</div>
-          <q-btn 
-            flat dense round 
-            color="primary" 
-            icon="edit" 
-            size="sm" 
-            @click="modoEdicionManual = true"
-          >
-            <q-tooltip>Habilitar Edición</q-tooltip>
-          </q-btn>
         </div>
         <q-list bordered separator class="rounded-borders">
           <q-item v-for="(v, index) in vacunasAgregadas" :key="index">
@@ -639,9 +659,19 @@
     await cargarCatalogos()
     
     if (props.datosIniciales?.vacunas) {
-      vacunasAgregadas.value = props.datosIniciales.vacunas
+      vacunasAgregadas.value = JSON.parse(JSON.stringify(props.datosIniciales.vacunas))
     }
   })
+
+  const cancelarEdicionGeneral = () => {
+    if (props.datosIniciales?.vacunas) {
+      vacunasAgregadas.value = JSON.parse(JSON.stringify(props.datosIniciales.vacunas))
+    } else {
+      vacunasAgregadas.value = []
+    }
+    resetForm()
+    modoEdicionManual.value = false
+  }
 
   watch(() => datosVacuna.value.tipoVacuna, calcularProximaVacuna)
   </script>

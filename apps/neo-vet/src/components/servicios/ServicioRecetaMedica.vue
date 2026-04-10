@@ -7,10 +7,31 @@
           <div class="text-h6 text-secondary">Receta Médica</div>
           <div class="text-caption text-grey-7">Prescripción de medicamentos e indicaciones</div>
         </div>
+        <q-btn 
+          v-if="modoLectura && !modoEdicionManual"
+          flat dense round 
+          color="secondary" 
+          icon="edit" 
+          size="sm" 
+          @click="modoEdicionManual = true"
+          class="q-mr-sm"
+        >
+          <q-tooltip>Habilitar Edición</q-tooltip>
+        </q-btn>
+        <q-btn 
+          v-if="modoEdicionManual"
+          flat dense round 
+          color="grey-7" 
+          icon="close" 
+          size="sm" 
+          @click="cancelarEdicion"
+          class="q-mr-sm"
+        >
+          <q-tooltip>Cancelar Edición</q-tooltip>
+        </q-btn>
         <q-btn-dropdown 
           flat round 
           icon="more_vert"
-          :disable="modoLectura"
         >
           <q-list>
             <q-item clickable @click="imprimirReceta('especial')">
@@ -76,7 +97,7 @@
             type="textarea"
             rows="8"
             outlined
-            :readonly="modoLectura"
+            :readonly="modoLectura && !modoEdicionManual"
             placeholder="Escribe aquí los medicamentos, dosis, frecuencia y duración del tratamiento..."
             :rules="[val => !!val || 'Las indicaciones son requeridas']"
           >
@@ -92,18 +113,25 @@
             label="Observaciones Internas"
             outlined
             dense
-            :readonly="modoLectura"
+            :readonly="modoLectura && !modoEdicionManual"
             placeholder="Notas que no aparecen en la impresión..."
           />
         </div>
       </div>
     </q-card-section>
 
-    <q-card-section v-if="!modoLectura" class="bg-grey-1 text-right">
+    <q-card-section v-if="!modoLectura || modoEdicionManual" class="bg-grey-1 text-right q-gutter-x-sm">
       <q-btn 
-        color="secondary" 
-        icon="save" 
-        label="Guardar Receta" 
+        v-if="modoEdicionManual"
+        flat
+        color="grey-7"
+        label="Cancelar"
+        @click="cancelarEdicion"
+      />
+      <q-btn 
+        :color="modoEdicionManual ? 'orange' : 'secondary'" 
+        :icon="modoEdicionManual ? 'save' : 'save'" 
+        :label="modoEdicionManual ? 'Guardar Cambios' : 'Guardar Receta'" 
         @click="completarReceta"
         :disable="!formularioValido"
       />
@@ -124,6 +152,8 @@ const props = defineProps({
 
 const emit = defineEmits(['servicio-actualizado', 'servicio-completado', 'servicio-eliminado', 'imprimir-servicio'])
 
+const modoEdicionManual = ref(false)
+
 const datosReceta = ref({
   receta_indicaciones: '',
   observaciones: ''
@@ -143,7 +173,20 @@ const completarReceta = () => {
       ...datosReceta.value,
       fecha_aplicacion: new Date().toISOString()
     })
+    modoEdicionManual.value = false
   }
+}
+
+const cancelarEdicion = () => {
+  if (props.datosIniciales && Object.keys(props.datosIniciales).length > 0) {
+    Object.assign(datosReceta.value, props.datosIniciales)
+  } else {
+    datosReceta.value = {
+      receta_indicaciones: '',
+      observaciones: ''
+    }
+  }
+  modoEdicionManual.value = false
 }
 
 const imprimirReceta = (tipo = 'especial', idPlantilla = null) => {

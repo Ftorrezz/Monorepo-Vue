@@ -269,6 +269,7 @@
                       :servicios-aplicados="serviciosAplicados"
                       @seleccionar-pestaña="servicioActivoTab = $event"
                       @imprimir-servicio="imprimirDocumentoServicio"
+                      @imprimir-resumen="imprimirResumenAtencion"
                     />
                   </q-tab-panel>
 
@@ -1187,6 +1188,23 @@ export default {
               })
             }
             */
+          } else if (clave === 'consulta') {
+            // Mapeo de campos para consulta general (FRONT -> BACK)
+            await atencionServicioService.guardarConsulta({
+              id_atencion_servicio: servicio.idBD,
+              id_motivo: datosFinales.id_motivo ? Number(datosFinales.id_motivo) : null,
+              motivo_consulta: datosFinales.motivo_detallado || '',
+              motivo_detallado: datosFinales.motivo_detallado || '',
+              anamnesis: datosFinales.anamnesis || '',
+              hallazgos_examen: datosFinales.hallazgos_examen || '',
+              id_diagnostico: datosFinales.id_diagnostico ? Number(datosFinales.id_diagnostico) : null,
+              diagnostico: '',
+              diagnostico_complemento: datosFinales.diagnostico_complemento || '',
+              indicaciones_medicas: datosFinales.indicaciones_medicas || '',
+              pronostico: datosFinales.pronostico || '',
+              proxima_cita: datosFinales.proxima_cita || null,
+              observaciones: datosFinales.observaciones || ''
+            })
           }
         }
 
@@ -1321,7 +1339,7 @@ export default {
     }
 
     const { cargarPlantillaPorId, cargarPlantillaPorCodigo, procesarHtml, generarPDF } = usePlantillas()
-    const { imprimirPlantilla, imprimirVacunacion } = useReportes()
+    const { imprimirPlantilla, imprimirVacunacion, imprimirConsulta } = useReportes()
 
     const imprimirDocumentoServicio = async (servicio, tipo = 'especial', idPlantillaManual = null) => {
       // Especial: Si es un servicio de Vacunación, usamos el backend con diseño programático
@@ -1357,7 +1375,39 @@ export default {
         return
       }
 
-      // Otras plantillas de la base de datos (Ej: Desparasitacion, Consulta, etc)
+      // Especial: Si es un servicio de Consulta, usamos el backend con diseño programático
+      const esConsulta = servicio.tipo?.toLowerCase() === 'consulta' || servicio.componente_clave === 'consulta'
+      
+      if (esConsulta && tipo === 'especial') {
+        const datosGeneracion = {
+          paciente: {
+            nombre: paciente.value.nombre,
+            especie: paciente.value.especie,
+            raza: paciente.value.raza,
+            peso: paciente.value.peso ? `${paciente.value.peso} kg` : ''
+          },
+          propietario: {
+            nombre: `${paciente.value.propietario?.nombre || ''} ${paciente.value.propietario?.primerapellido || ''}`.trim(),
+            telefono: paciente.value.propietario?.telefono1 || paciente.value.propietario?.telefono2
+          },
+          atencion_numero: atenciones.value[atencionActual.value].numero,
+          atencion_fecha: atenciones.value[atencionActual.value].fecha,
+          veterinario: atenciones.value[atencionActual.value].veterinario,
+          motivo_consulta: servicio.datos?.motivo_detallado || servicio.datos?.motivo_consulta,
+          anamnesis: servicio.datos?.anamnesis,
+          hallazgos_examen: servicio.datos?.hallazgos_examen,
+          diagnostico: servicio.datos?.diagnostico,
+          diagnostico_complemento: servicio.datos?.diagnostico_complemento,
+          indicaciones_medicas: servicio.datos?.indicaciones_medicas || servicio.datos?.receta_indicaciones,
+          pronostico: servicio.datos?.pronostico,
+          proxima_cita: servicio.datos?.proxima_cita,
+          observaciones: servicio.datos?.observaciones
+        }
+        await imprimirConsulta(datosGeneracion)
+        return
+      }
+
+      // Otras plantillas de la base de datos (Ej: Desparasitacion, etc)
       let idPlantilla = idPlantillaManual || servicio.id_plantilla || (esquemasActivos.value && esquemasActivos.value[servicio.tipo]?.id_plantilla)
       
       // Si no tenemos ID pero hay plantillas_servicio, tomar la primera por defecto
@@ -1507,6 +1557,59 @@ export default {
                   }
                 } catch (err) {
                   console.error('Error al cargar detalle de vacunación:', err)
+                }
+              } else if (tipo === 'consulta' || (serviceDef?.componente_clave?.toLowerCase() === 'consulta')) {
+                try {
+                  const consultasBD = await atencionServicioService.getConsultaByAtencionServicio(s.id)
+                  if (consultasBD && consultasBD.length > 0) {
+                    const c = consultasBD[0]
+                    datos = {
+                      id_motivo: c.id_motivo,
+                      motivo_detallado: c.motivo_detallado || c.motivo_consulta,
+                      anamnesis: c.anamnesis,
+                      hallazgos_examen: c.hallazgos_examen,
+                      id_diagnostico: c.id_diagnostico,
+                      diagnostico_complemento: c.diagnostico_complemento,
+                      indicaciones_medicas: c.indicaciones_medicas || c.plan_tratamiento,
+                      pronostico: c.pronostico,
+                      proxima_cita: c.proxima_cita
+                    }
+                  }
+                } catch (err) {
+                  console.error('Error al cargar detalle de consulta:', err)
+                }
+              } else if (tipo === 'desparacitacion' || tipo === 'desparasitacion' || (serviceDef?.componente_clave?.toLowerCase() === 'desparacitacion')) {
+                try {
+                  const desparasitacionesBD = await atencionServicioService.getDesparasitacionByAtencionServicio(s.id)
+                  if (desparasitacionesBD && desparasitacionesBD.length > 0) {
+                    const d = desparasitacionesBD[0]
+                    datos = {
+                      tipoTratamiento: d.tipo_desparasitante,
+                      producto: d.producto_nombre,
+                      laboratorio: d.laboratorio,
+                      lote: d.lote,
+                      dosisAplicada: d.dosis,
+                      viaAdministracion: d.via_administracion,
+                      tipoParasitos: d.parasitos_objetivo ? d.parasitos_objetivo.split(',').map(p => p.trim()) : [],
+                      proximaDesparacitacion: d.proxima_desparasitacion,
+                      observaciones: d.observaciones
+                    }
+                  }
+                } catch (err) {
+                  console.error('Error al cargar detalle de desparasitación:', err)
+                }
+              } else if (tipo === 'receta' || (serviceDef?.componente_clave?.toLowerCase() === 'receta')) {
+                try {
+                  const recetasBD = await atencionServicioService.getRecetaByAtencionServicio(s.id)
+                  if (recetasBD && recetasBD.length > 0) {
+                    const r = recetasBD[0]
+                    datos = {
+                      receta_indicaciones: r.receta_indicaciones,
+                      observaciones: r.observaciones
+                    }
+                  }
+                } catch (err) {
+                  console.error('Error al cargar detalle de receta:', err)
                 }
               }
 

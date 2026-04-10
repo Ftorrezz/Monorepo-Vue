@@ -252,6 +252,48 @@ export const atencionServicioService = {
     },
 
     /**
+     * Obtiene el detalle especializado de una consulta general.
+     */
+    async getConsultaByAtencionServicio(idAtencionServicio: number): Promise<AtencionServicioConsulta[]> {
+        const peticion = new NdPeticionControl()
+        const response = await peticion.invocarMetodo('atencionservicioconsulta', 'get', null, {
+            filtro: { id_atencion_servicio: idAtencionServicio }
+        })
+        if (Array.isArray(response) && response[0]?.elemento) {
+            return response[0].elemento || []
+        }
+        return Array.isArray(response) ? response : (response?.data || [])
+    },
+
+    /**
+     * Obtiene el detalle especializado de una desparasitación.
+     */
+    async getDesparasitacionByAtencionServicio(idAtencionServicio: number): Promise<AtencionServicioDesparasitacion[]> {
+        const peticion = new NdPeticionControl()
+        const response = await peticion.invocarMetodo('atencionserviciodesparasitacion', 'get', null, {
+            filtro: { id_atencion_servicio: idAtencionServicio }
+        })
+        if (Array.isArray(response) && response[0]?.elemento) {
+            return response[0].elemento || []
+        }
+        return Array.isArray(response) ? response : (response?.data || [])
+    },
+
+    /**
+     * Obtiene el detalle especializado de una receta médica.
+     */
+    async getRecetaByAtencionServicio(idAtencionServicio: number): Promise<AtencionServicioReceta[]> {
+        const peticion = new NdPeticionControl()
+        const response = await peticion.invocarMetodo('atencionservicioreceta', 'get', null, {
+            filtro: { id_atencion_servicio: idAtencionServicio }
+        })
+        if (Array.isArray(response) && response[0]?.elemento) {
+            return response[0].elemento || []
+        }
+        return Array.isArray(response) ? response : (response?.data || [])
+    },
+
+    /**
      * Guarda el detalle especializado de una vacunación.
      */
     async guardarVacunacion(datos: AtencionServicioVacunacion): Promise<void> {

@@ -51,8 +51,29 @@ export function useReportes() {
         }
     };
 
+    const imprimirConsulta = async (datosConsulta) => {
+        try {
+            $q.loading.show({ message: 'Generando reporte de consulta...' });
+
+            const response = await Api.post('/reporte/consulta',
+                datosConsulta,
+                { responseType: 'blob' }
+            );
+
+            _manejarBlobVentana(response.data);
+            return true;
+        } catch (error) {
+            console.error('Error generando reporte de consulta:', error);
+            $q.notify({ type: 'negative', message: 'Error al generar reporte de consulta' });
+            return false;
+        } finally {
+            $q.loading.hide();
+        }
+    };
+
     return {
         imprimirPlantilla,
-        imprimirVacunacion
+        imprimirVacunacion,
+        imprimirConsulta
     };
 }

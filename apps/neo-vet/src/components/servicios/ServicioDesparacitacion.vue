@@ -7,10 +7,31 @@
             <div class="text-h6">Desparacitación</div>
             <div class="text-caption text-grey-7">Registro de tratamiento antiparasitario</div>
           </div>
+          <q-btn 
+            v-if="modoLectura && !modoEdicionManual"
+            flat dense round 
+            color="primary" 
+            icon="edit" 
+            size="sm" 
+            @click="modoEdicionManual = true"
+            class="q-mr-sm"
+          >
+            <q-tooltip>Habilitar Edición</q-tooltip>
+          </q-btn>
+          <q-btn 
+            v-if="modoEdicionManual"
+            flat dense round 
+            color="grey-7" 
+            icon="close" 
+            size="sm" 
+            @click="cancelarEdicion"
+            class="q-mr-sm"
+          >
+            <q-tooltip>Cancelar Edición</q-tooltip>
+          </q-btn>
           <q-btn-dropdown 
             flat round 
             icon="more_vert"
-            :disable="modoLectura"
           >
             <q-list>
               <q-item clickable @click="imprimirCertificado('especial')">
@@ -78,7 +99,7 @@
               outlined
               option-label="label"
               option-value="value"
-              :readonly="modoLectura"
+              :readonly="modoLectura && !modoEdicionManual"
             />
           </div>
           
@@ -92,7 +113,7 @@
               fill-input
               hide-selected
               input-debounce="0"
-              :readonly="modoLectura"
+              :readonly="modoLectura && !modoEdicionManual"
             />
           </div>
           
@@ -102,7 +123,7 @@
               v-model="datosDesparacitacion.principioActivo"
               label="Principio Activo"
               outlined
-              :readonly="modoLectura"
+              :readonly="modoLectura && !modoEdicionManual"
             />
           </div>
           
@@ -112,7 +133,7 @@
               :options="presentaciones"
               label="Presentación"
               outlined
-              :readonly="modoLectura"
+              :readonly="modoLectura && !modoEdicionManual"
             />
           </div>
           
@@ -130,7 +151,7 @@
               type="number"
               step="0.1"
               min="0"
-              :readonly="modoLectura"
+              :readonly="modoLectura && !modoEdicionManual"
               @update:model-value="calcularDosis"
             />
           </div>
@@ -140,7 +161,7 @@
               v-model="datosDesparacitacion.dosisAplicada"
               label="Dosis Aplicada *"
               outlined
-              :readonly="modoLectura"
+              :readonly="modoLectura && !modoEdicionManual"
               :hint="dosisSugerida"
             />
           </div>
@@ -151,7 +172,7 @@
               label="Vía de Administración"
               outlined
               placeholder="Oral, tópica, etc."
-              :readonly="modoLectura"
+              :readonly="modoLectura && !modoEdicionManual"
             />
           </div>
           
@@ -164,7 +185,7 @@
               outlined
               multiple
               use-chips
-              :readonly="modoLectura"
+              :readonly="modoLectura && !modoEdicionManual"
             />
           </div>
           
@@ -182,7 +203,7 @@
               outlined
               option-label="label"
               option-value="value"
-              :readonly="modoLectura"
+              :readonly="modoLectura && !modoEdicionManual"
               @update:model-value="calcularProximaDesparacitacion"
             />
           </div>
@@ -193,7 +214,7 @@
               label="Próxima Desparacitación"
               outlined
               type="date"
-              :readonly="modoLectura"
+              :readonly="modoLectura && !modoEdicionManual"
             />
           </div>
           
@@ -206,14 +227,14 @@
               type="textarea"
               rows="3"
               placeholder="Instrucciones especiales, efectos observados, etc."
-              :readonly="modoLectura"
+              :readonly="modoLectura && !modoEdicionManual"
             />
           </div>
         </div>
       </q-card-section>
       
       <!-- Estado y acciones -->
-      <q-card-section v-if="!modoLectura" class="bg-grey-1">
+      <q-card-section v-if="!modoLectura || modoEdicionManual" class="bg-grey-1">
         <div class="row items-center justify-between">
           <div class="col-auto">
             <q-chip 
@@ -226,9 +247,17 @@
           
           <div class="col-auto">
             <q-btn
-              color="positive"
-              icon="check"
-              label="Completar Desparacitación"
+              v-if="modoEdicionManual"
+              flat
+              color="grey-7"
+              label="Cancelar"
+              @click="cancelarEdicion"
+              class="q-mr-sm"
+            />
+            <q-btn
+              :color="modoEdicionManual ? 'orange' : 'positive'"
+              :icon="modoEdicionManual ? 'save' : 'check'"
+              :label="modoEdicionManual ? 'Guardar Cambios' : 'Completar Desparacitación'"
               @click="completarDesparacitacion"
               :disable="!formularioValido"
             />
@@ -258,11 +287,17 @@
     modoLectura: {
       type: Boolean,
       default: false
+    },
+    datosIniciales: {
+      type: Object,
+      default: () => ({})
     }
   })
   
   // Emits
   const emit = defineEmits(['servicio-actualizado', 'servicio-completado', 'servicio-eliminado', 'imprimir-servicio'])
+
+const modoEdicionManual = ref(false)
   
   // Estados del formulario
   const datosDesparacitacion = ref({
@@ -373,7 +408,22 @@
         fechaAplicacion: new Date().toISOString(),
         aplicadoPor: 'Dr. Usuario Actual'
       })
+      modoEdicionManual.value = false
     }
+  }
+
+  const cancelarEdicion = () => {
+    if (props.datosIniciales && Object.keys(props.datosIniciales).length > 0) {
+      Object.assign(datosDesparacitacion.value, JSON.parse(JSON.stringify(props.datosIniciales)))
+      
+      // Manejar el caso especial de tipos de parásitos
+      if (typeof datosDesparacitacion.value.tipoParasitos === 'string') {
+        datosDesparacitacion.value.tipoParasitos = datosDesparacitacion.value.tipoParasitos.split(',').map(p => p.trim())
+      }
+    } else {
+      resetForm()
+    }
+    modoEdicionManual.value = false
   }
   
   const imprimirCertificado = (tipo = 'especial', idPlantilla = null) => {
@@ -390,6 +440,12 @@
   })
   
   watch(datosDesparacitacion, guardarDatos, { deep: true })
+  
+  onMounted(() => {
+    if (props.datosIniciales && Object.keys(props.datosIniciales).length > 0) {
+      Object.assign(datosDesparacitacion.value, props.datosIniciales)
+    }
+  })
   </script>
   
   <style scoped>
