@@ -27,7 +27,7 @@ export const menuConfig = [
       },
     ],
   },
-  
+
   /*{
     labelKey: "mainMenu.laboratory.title",
     icon: "science",
@@ -57,7 +57,7 @@ export const menuConfig = [
         icon: "point_of_sale",
         to: "/ventas",
       },
-      
+
     ],
 
   },
@@ -166,29 +166,38 @@ export const menuConfig = [
             ]
           },
           { labelKey: "mainMenu.settings.general.configuracionparametros", icon: "settings", to: "/config/general/configuracionparametros" },
-
+          {
+            labelKey: "mainMenu.settings.system.templates.title",
+            icon: "description",
+            subItems: [
+              { labelKey: "mainMenu.settings.system.templates.consultation", icon: "note_add", to: "/config/plantillas-consulta" },
+              { labelKey: "mainMenu.settings.system.templates.report", icon: "article", to: "/config/plantillas-reporte" },
+              { labelKey: "mainMenu.settings.system.templates.certificates", icon: "verified", to: "/templatemanager" },
+              { labelKey: "mainMenu.settings.system.templates.management", icon: "settings_suggest", to: "/config/plantillas" },
+            ]
+          },
         ],
       },
-      {
+     /* {
         labelKey: "mainMenu.settings.pet.title",
         icon: "pets",
         subItems: [
 
-          /*{ labelKey: "mainMenu.settings.pet.physical.color", icon: "color_lens", to: "/config/mascota/color" },
+          { labelKey: "mainMenu.settings.pet.physical.color", icon: "color_lens", to: "/config/mascota/color" },
           { labelKey: "mainMenu.settings.pet.physical.breed", icon: "pets", to: "/config/mascota/razamascota" },
           { labelKey: "mainMenu.settings.pet.biological.species", icon: "category", to: "/config/mascota/especie" },
           { labelKey: "mainMenu.settings.pet.biological.sex", icon: "wc", to: "/config/mascota/sexo" },
           { labelKey: "mainMenu.settings.pet.behavior.character", icon: "sentiment_satisfied", to: "/config/mascota/caracter" },
           { labelKey: "mainMenu.settings.pet.care.diet", icon: "restaurant", to: "/config/mascota/dieta" },
           { labelKey: "mainMenu.settings.pet.care.habitat", icon: "home", to: "/config/mascota/habitat" },
-           */
+
         ],
       },
       {
         labelKey: "mainMenu.settings.owner.title",
         icon: "person",
         subItems: [
-          /*{
+          {
             labelKey: "mainMenu.settings.owner.personal.title",
             icon: "account_circle",
             subItems: [
@@ -200,20 +209,10 @@ export const menuConfig = [
               { labelKey: "mainMenu.settings.owner.cultural.raza", icon: "wc", to: "/config/propietario/raza" },
 
             ]
-          }*/
+          }
         ],
-      },
-      {
-        labelKey: "mainMenu.settings.institutional.title",
-        icon: "key",
-        subItems: [
-          { labelKey: "mainMenu.settings.institutional.site", icon: "note_add", to: "/sitio" },
-          { labelKey: "mainMenu.settings.institutional.entityconf", icon: "note_add", to: "/configuracion" },
-          { labelKey: "mainMenu.settings.institutional.siteLocationType", icon: "note_add", to: "/tipositioubicacion" },
-          { labelKey: "mainMenu.settings.institutional.siteLocation", icon: "note_add", to: "/sitioubicacion" },
-          { labelKey: "mainMenu.settings.institutional.branch", icon: "note_add", to: "/sucursal" },
-        ],
-      },
+      },*/
+
       {
         labelKey: "mainMenu.settings.inventory.title",
         icon: "key",
@@ -226,41 +225,7 @@ export const menuConfig = [
 
         ],
       },
-      {
-        labelKey: "mainMenu.settings.system.title",
-        icon: "computer",
-        subItems: [
-          {
-            labelKey: "mainMenu.settings.system.usersPermissions.title",
-            icon: "admin_panel_settings",
-            subItems: [
-              { labelKey: "mainMenu.settings.system.usersPermissions.userManagement", icon: "people", to: "/config/usuarios" },
-              { labelKey: "mainMenu.settings.system.usersPermissions.roles", icon: "security", to: "/config/roles" },
-              { labelKey: "mainMenu.settings.system.usersPermissions.permissions", icon: "lock", to: "/config/permisos" },
-            ]
-          },
-          {
-            labelKey: "mainMenu.settings.system.templates.title",
-            icon: "description",
-            subItems: [
-              { labelKey: "mainMenu.settings.system.templates.consultation", icon: "note_add", to: "/config/plantillas-consulta" },
-              { labelKey: "mainMenu.settings.system.templates.report", icon: "article", to: "/config/plantillas-reporte" },
-              { labelKey: "mainMenu.settings.system.templates.certificates", icon: "verified", to: "/templatemanager" },
-              { labelKey: "mainMenu.settings.system.templates.management", icon: "settings_suggest", to: "/config/plantillas" },
-            ]
-          },
-          {
-            labelKey: "mainMenu.settings.system.backups.title",
-            icon: "backup",
-            subItems: [
-              { labelKey: "mainMenu.settings.system.backups.create", icon: "save", to: "/config/crear-respaldo" },
-              { labelKey: "mainMenu.settings.system.backups.restore", icon: "restore", to: "/config/restaurar" },
-              { labelKey: "mainMenu.settings.system.backups.schedule", icon: "schedule", to: "/config/programar-respaldos" },
-            ]
-          },
-          { labelKey: "mainMenu.settings.system.general", icon: "settings", to: "/config/general" },
-        ],
-      },
+
       {
         labelKey: "mainMenu.settings.security.title",
         icon: "key",
@@ -269,60 +234,34 @@ export const menuConfig = [
             labelKey: "mainMenu.settings.security.user.title",
             icon: "person",
             subItems: [
-              { labelKey: "mainMenu.settings.security.user.user", icon: "note_add", to: "/usuario" },
-              { labelKey: "mainMenu.settings.security.user.profile", icon: "article", to: "/usuarioperfil" },
-              { labelKey: "mainMenu.settings.security.user.access", icon: "verified", to: "/usuarioacceso" },
+              { labelKey: "mainMenu.settings.security.user.user", icon: "people", to: "/usuario" },
+              { labelKey: "mainMenu.settings.security.user.profile", icon: "security", to: "/usuarioperfil" },
+              { labelKey: "mainMenu.settings.security.user.access", icon: "lock", to: "/usuarioacceso" },
             ]
           },
         ],
       },
+
+
     ],
   },
   {
-    labelKey: "mainMenu.help.title",
-    icon: "help",
-    items: [
-      {
-        labelKey: "mainMenu.help.documentation",
-        icon: "description",
-        to: "/ayuda/documentacion",
-      },
-      {
-        labelKey: "mainMenu.help.tutorials.title",
-        icon: "play_circle",
-        subItems: [
-          { labelKey: "mainMenu.help.tutorials.introVideos", icon: "video_library", to: "/ayuda/videos-intro" },
-          { labelKey: "mainMenu.help.tutorials.stepByStep", icon: "list_alt", to: "/ayuda/guias" },
-          { labelKey: "mainMenu.help.tutorials.useCases", icon: "lightbulb", to: "/ayuda/casos-uso" },
+        labelKey: "administrador",
+        icon: "person",
+        items: [
+          {
+            labelKey: "mainMenu.settings.institutional.title",
+            icon: "key",
+            subItems: [
+              { labelKey: "mainMenu.settings.institutional.site", icon: "note_add", to: "/sitio" },
+              { labelKey: "mainMenu.settings.institutional.entityconf", icon: "note_add", to: "/configuracion" },
+              { labelKey: "mainMenu.settings.institutional.siteLocationType", icon: "note_add", to: "/tipositioubicacion" },
+              { labelKey: "mainMenu.settings.institutional.siteLocation", icon: "note_add", to: "/sitioubicacion" },
+              { labelKey: "mainMenu.settings.institutional.branch", icon: "note_add", to: "/sucursal" },
+            ],
+          },
+
         ],
       },
-      {
-        labelKey: "mainMenu.help.support",
-        icon: "support_agent",
-        to: "/ayuda/soporte",
-      },
-    ],
-  },
-  {
-    labelKey: "mainMenu.conf.title",
-    icon: "help",
-    items: [
-      {
-        labelKey: "mainMenu.modulo.documentation",
-        icon: "description",
-        to: "/configuracionmodulo",
-      },
 
-      {
-        labelKey: "mainMenu.valor.support",
-        icon: "support_agent",
-        to: "/configuracionvalor",
-      },
-      {
-        labelKey: "mainMenu.campo.support",
-        icon: "support_agent",
-        to: "/configuracioncampo",
-      },
-    ],
-  },
 ];

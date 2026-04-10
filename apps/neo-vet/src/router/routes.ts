@@ -325,29 +325,6 @@ const routes: RouteRecordRaw[] = [
     meta: { requireAuth: false },
 
   },
-
-  {
-    path: '/configuracionmodulo',
-    component: () => import('layouts/Layout.vue'),
-    children: [{ path: '', name: 'configuracionmodulo', component: () => import('pages/Configuration/generico/ConfiguracionModulo.vue') }],
-    meta: { requireAuth: false },
-
-  },
-  {
-    path: '/configuracioncampo',
-    component: () => import('layouts/Layout.vue'),
-    children: [{ path: '', name: 'configuracioncampo', component: () => import('pages/Configuration/generico/ConfiguracionCampo.vue') }],
-    meta: { requireAuth: false },
-
-  },
-  {
-    path: '/configuracionvalor',
-    component: () => import('layouts/Layout.vue'),
-    children: [{ path: '', name: 'configuracionvalor', component: () => import('pages/Configuration/generico/ConfiguracionValor.vue') }],
-    meta: { requireAuth: false },
-
-  },
-
   {
     path: '/config/servicios-dinamicos',
     component: () => import('layouts/Layout.vue'),
