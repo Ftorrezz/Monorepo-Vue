@@ -26,7 +26,7 @@
           >
             <div class="branch-image-container">
               <q-img
-                :src="sucursal.imagen"
+                :src="sucursal.logo_url || sucursal.imagen"
                 :alt="$t('branchDialog.imageAlt')"
                 class="branch-image"
                 loading="lazy"

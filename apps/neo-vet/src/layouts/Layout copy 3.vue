@@ -106,24 +106,6 @@
       <!-- PAGE CONTAINER -->
       <q-page-container>
         <router-view />
-
-        <!-- Marca de agua flotante (Logo Sucursal) -->
-        <transition 
-          appear
-          enter-active-class="animated fadeInRight"
-          leave-active-class="animated fadeOutRight"
-        >
-          <div 
-            v-if="dialogStore.sucursalSeleccionada?.logo_url" 
-            class="floating-branch-logo shadow-5"
-            :class="{ 'with-footer-expanded': footerOpen }"
-          >
-            <img :src="dialogStore.sucursalSeleccionada.logo_url" alt="Branch Logo">
-            <q-tooltip anchor="center left" self="center right" :offset="[10, 10]">
-              {{ dialogStore.sucursalSeleccionada.descripcion }}
-            </q-tooltip>
-          </div>
-        </transition>
       </q-page-container>
 
       <!-- FOOTER -->
@@ -137,11 +119,7 @@
         <div class="footer-content">
           <div class="footer-main">
             <!-- Logo o Icono -->
-            <q-avatar 
-              v-if="dialogStore.sucursalSeleccionada?.logo_url" 
-              :size="footerOpen ? '140px' : '32px'" 
-              class="q-mr-md transition-logo shadow-2"
-            >
+            <q-avatar v-if="dialogStore.sucursalSeleccionada?.logo_url" size="32px" class="q-mr-sm">
               <img :src="dialogStore.sucursalSeleccionada.logo_url" alt="Logo sucursal">
             </q-avatar>
             <q-icon v-else name="place" class="icon-large" />
@@ -374,7 +352,7 @@ function collapseFooter() {
 }
 
 .footer-expanded {
-  height: 200px;
+  height: 150px;
   background: linear-gradient(to right, #007aff, #4a90e2);
 }
 
@@ -452,45 +430,6 @@ function collapseFooter() {
 .system-logo-mini {
   width: 62px;
   height: auto;
-}
-
-.transition-logo {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.floating-branch-logo {
-  position: fixed;
-  bottom: 70px;
-  right: 20px;
-  width: 120px;
-  height: 120px;
-  border-radius: 16px;
-  padding: 0px;
-  z-index: 2000;
-  opacity: 0.7;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  pointer-events: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-
-  img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
-  }
-
-  &:hover {
-    opacity: 1;
-    transform: scale(1.1) translateY(-10px);
-  }
-
-  &.with-footer-expanded {
-    bottom: 220px;
-    opacity: 0.5;
-  }
 }
 
 /* Ocultar barra de scroll nativa del Drawer para que no se encime al diseño */

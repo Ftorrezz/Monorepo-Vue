@@ -49,7 +49,7 @@ export const useAuthStore = defineStore('useAuthStore', {
         };
         const respuesta = await _peticion.invocarMetodo('autorizacion/login', 'post', Usuario);
 
-        const {token, usuario, sucursales, roles} = respuesta[0]
+        const { token, usuario, sucursales, roles } = respuesta[0]
 
         if (token) {
 
@@ -68,6 +68,7 @@ export const useAuthStore = defineStore('useAuthStore', {
             responsable: sucursal.responsable,
             activo: sucursal.activo,
             imagen: "https://via.placeholder.com/400x200?text=" + encodeURIComponent(sucursal.abreviatura),
+            logo_url: sucursal.logo_url,
             id_sitio: sucursal.id_sitio,
           }));
 
@@ -85,27 +86,39 @@ export const useAuthStore = defineStore('useAuthStore', {
 
     async checkAuthentication() {
 
-        if (!this.token) {
+      if (!this.token) {
 
-          this.logout()
-          return { ok: false, message: "No hay token" };
-        }
+        this.logout()
+        return { ok: false, message: "No hay token" };
+      }
 
-        try {
+      try {
 
-          const dto: TokenDto = new TokenDto(this.token);
+        const dto: TokenDto = new TokenDto(this.token);
 
-          const _peticion = new NdPeticionControl();
+        const _peticion = new NdPeticionControl();
 
-          const respuesta = await _peticion.invocarMetodo('autorizacion/actualizartoken', 'post', dto);
+        const respuesta = await _peticion.invocarMetodo('autorizacion/actualizartoken', 'post', dto);
 
-          const {token, usuario, sucursales} = respuesta[0]
+        const { token, usuario, sucursales } = respuesta[0]
 
         if (token) {
 
 
           this.usuario = usuario.nombreusuario;
           this.token = token;
+
+          this.sucursales = sucursales.map((sucursal: Sucursal) => ({
+            id: sucursal.id,
+            descripcion: sucursal.descripcion,
+            abreviatura: sucursal.abreviatura,
+            direccion: sucursal.direccion,
+            responsable: sucursal.responsable,
+            activo: sucursal.activo,
+            imagen: "https://via.placeholder.com/400x200?text=" + encodeURIComponent(sucursal.abreviatura),
+            logo_url: sucursal.logo_url,
+            id_sitio: sucursal.id_sitio,
+          }));
 
           this.estado = "autenticado";
           return { ok: true };
@@ -115,10 +128,10 @@ export const useAuthStore = defineStore('useAuthStore', {
           return { ok: false, message: "Token invalido" };
         }
 
-        } catch (error) {
-          this.logout()
-          return { ok: false};
-        }
+      } catch (error) {
+        this.logout()
+        return { ok: false };
+      }
     },
 
     logout() {

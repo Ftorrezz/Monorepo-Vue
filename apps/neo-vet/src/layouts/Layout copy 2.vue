@@ -106,24 +106,6 @@
       <!-- PAGE CONTAINER -->
       <q-page-container>
         <router-view />
-
-        <!-- Marca de agua flotante (Logo Sucursal) -->
-        <transition 
-          appear
-          enter-active-class="animated fadeInRight"
-          leave-active-class="animated fadeOutRight"
-        >
-          <div 
-            v-if="dialogStore.sucursalSeleccionada?.logo_url" 
-            class="floating-branch-logo shadow-5"
-            :class="{ 'with-footer-expanded': footerOpen }"
-          >
-            <img :src="dialogStore.sucursalSeleccionada.logo_url" alt="Branch Logo">
-            <q-tooltip anchor="center left" self="center right" :offset="[10, 10]">
-              {{ dialogStore.sucursalSeleccionada.descripcion }}
-            </q-tooltip>
-          </div>
-        </transition>
       </q-page-container>
 
       <!-- FOOTER -->
@@ -136,28 +118,15 @@
       >
         <div class="footer-content">
           <div class="footer-main">
-            <!-- Logo o Icono -->
-            <q-avatar 
-              v-if="dialogStore.sucursalSeleccionada?.logo_url" 
-              :size="footerOpen ? '140px' : '32px'" 
-              class="q-mr-md transition-logo shadow-2"
-            >
-              <img :src="dialogStore.sucursalSeleccionada.logo_url" alt="Logo sucursal">
-            </q-avatar>
-            <q-icon v-else name="place" class="icon-large" />
-
+            <q-icon name="place" class="icon-large" />
             <div>
-              <div v-if="!footerOpen" class="footer-title">
-                {{ dialogStore.sucursalSeleccionada?.descripcion || 'Ubicación' }}
-              </div>
+              <div v-if="!footerOpen" class="footer-title">Ubicación</div>
               <div v-else>
-                <div class="footer-title">{{ dialogStore.sucursalSeleccionada?.descripcion || 'Sin sucursal seleccionada' }}</div>
-                <div class="footer-details" v-if="dialogStore.sucursalSeleccionada?.direccion">
-                  {{ dialogStore.sucursalSeleccionada.direccion }}
+                <div class="footer-title">Sucursal Central</div>
+                <div class="footer-details">
+                  Dirección: Avenida Siempre Viva, 742
                 </div>
-                <div class="footer-details" v-if="dialogStore.sucursalSeleccionada?.responsable">
-                   - Resp: {{ dialogStore.sucursalSeleccionada.responsable }}
-                </div>
+                <div class="footer-details">Horario: 8:00 AM - 8:00 PM</div>
               </div>
             </div>
           </div>
@@ -178,12 +147,10 @@ import { useQuasar } from "quasar";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useUiStore } from "../stores/uiStore";
-import { useDialogStore } from "../stores/DialogoUbicacion";
 
 const $q = useQuasar();
 const router = useRouter();
 const uiStore = useUiStore();
-const dialogStore = useDialogStore();
 
 defineOptions({
   name: "Layout",
@@ -374,7 +341,7 @@ function collapseFooter() {
 }
 
 .footer-expanded {
-  height: 200px;
+  height: 150px;
   background: linear-gradient(to right, #007aff, #4a90e2);
 }
 
@@ -452,45 +419,6 @@ function collapseFooter() {
 .system-logo-mini {
   width: 62px;
   height: auto;
-}
-
-.transition-logo {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.floating-branch-logo {
-  position: fixed;
-  bottom: 70px;
-  right: 20px;
-  width: 120px;
-  height: 120px;
-  border-radius: 16px;
-  padding: 0px;
-  z-index: 2000;
-  opacity: 0.7;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  pointer-events: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-
-  img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
-  }
-
-  &:hover {
-    opacity: 1;
-    transform: scale(1.1) translateY(-10px);
-  }
-
-  &.with-footer-expanded {
-    bottom: 220px;
-    opacity: 0.5;
-  }
 }
 
 /* Ocultar barra de scroll nativa del Drawer para que no se encime al diseño */
