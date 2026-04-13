@@ -25,7 +25,7 @@
                 v-model="paisForm.paridad"
                 label="Paridad"
               />
-              <q-checkbox v-model="paisForm.activo" label="Activo" />
+              <q-checkbox v-model="paisForm.activo" label="Activo" true-value="S" false-value="N" />
 
               <q-card-actions align="right">
                 <q-btn :label="paisForm.id ? 'Actualizar' : 'Guardar'" type="submit" color="primary"/>
@@ -47,7 +47,7 @@
             >
               <q-item-section>{{ pais.descripcion }}</q-item-section>
               <q-item-section side top v-if="pais.id">
-                <q-badge :color="pais.activo ? 'green' : 'red'" :label="pais.activo ? 'Activo' : 'Inactivo'" class="q-mb-xs" />
+                <q-badge :color="pais.activo === 'S' ? 'green' : 'red'" :label="pais.activo === 'S' ? 'Activo' : 'Inactivo'" class="q-mb-xs" />
                 <div class="q-gutter-xs">
                   <q-btn size="sm" flat dense round icon="edit" @click.stop="() => editPaisForm(pais, paisForm)" :text-color="selectedPaisId === pais.id ? 'white' : 'primary'"/>
                   <q-btn size="sm" flat dense round icon="delete" @click.stop="confirmDeletePais(pais.id!)" :text-color="selectedPaisId === pais.id ? 'white' : 'negative'"/>
@@ -72,7 +72,7 @@
                 v-model="estadoForm.paridad"
                 label="Paridad"
               />
-              <q-checkbox v-model="estadoForm.activo" label="Activo" />
+              <q-checkbox v-model="estadoForm.activo" label="Activo" true-value="S" false-value="N" />
               <q-card-actions align="right">
                 <q-btn :label="estadoForm.id ? 'Actualizar' : 'Guardar'" type="submit" color="primary"/>
                 <q-btn label="Cancelar" type="button" color="grey" flat @click="() => resetEstadoForm(estadoForm)" v-if="estadoForm.id" />
@@ -85,7 +85,7 @@
             <q-item v-for="estado in estados" :key="estado.id" clickable v-ripple @click="selectEstado(estado.id!)" :active="selectedEstadoId === estado.id" active-class="bg-primary text-white">
               <q-item-section >{{ estado.descripcion }}</q-item-section>
               <q-item-section side top v-if="estado.id">
-                <q-badge :color="estado.activo ? 'green' : 'red'" :label="estado.activo ? 'Activo' : 'Inactivo'" class="q-mb-xs"/>
+                <q-badge :color="estado.activo === 'S' ? 'green' : 'red'" :label="estado.activo === 'S' ? 'Activo' : 'Inactivo'" class="q-mb-xs"/>
                 <div class="q-gutter-xs">
                   <q-btn size="sm" flat dense round icon="edit" @click.stop="() => editEstadoForm(estado, estadoForm)" :text-color="selectedEstadoId === estado.id ? 'white' : 'primary'"/>
                   <q-btn size="sm" flat dense round icon="delete" @click.stop="confirmDeleteEstado(estado.id!)" :text-color="selectedEstadoId === estado.id ? 'white' : 'negative'"/>
@@ -113,7 +113,7 @@
                 v-model="municipioForm.paridad"
                 label="Paridad"
               />
-              <q-checkbox v-model="municipioForm.activo" label="Activo" />
+              <q-checkbox v-model="municipioForm.activo" label="Activo" true-value="S" false-value="N" />
               <q-card-actions align="right">
                 <q-btn :label="municipioForm.id ? 'Actualizar' : 'Guardar'" type="submit" color="primary"/>
                 <q-btn label="Cancelar" type="button" color="grey" flat @click="() => resetMunicipioForm(municipioForm)" v-if="municipioForm.id" />
@@ -126,7 +126,7 @@
             <q-item v-for="municipio in municipios" :key="municipio.id" clickable v-ripple @click="selectMunicipio(municipio.id!)" :active="selectedMunicipioId === municipio.id" active-class="bg-primary text-white">
               <q-item-section >{{ municipio.descripcion }}</q-item-section>
               <q-item-section side top v-if="municipio.id">
-                <q-badge :color="municipio.activo ? 'green' : 'red'" :label="municipio.activo ? 'Activo' : 'Inactivo'" class="q-mb-xs"/>
+                <q-badge :color="municipio.activo === 'S' ? 'green' : 'red'" :label="municipio.activo === 'S' ? 'Activo' : 'Inactivo'" class="q-mb-xs"/>
                 <div class="q-gutter-xs">
                   <q-btn size="sm" flat dense round icon="edit" @click.stop="() => editMunicipioForm(municipio, municipioForm)" :text-color="selectedMunicipioId === municipio.id ? 'white' : 'primary'"/>
                   <q-btn size="sm" flat dense round icon="delete" @click.stop="confirmDeleteMunicipio(municipio.id!)" :text-color="selectedMunicipioId === municipio.id ? 'white' : 'negative'"/>
@@ -154,7 +154,7 @@
                 v-model="coloniaForm.paridad"
                 label="Paridad"
               />
-              <q-checkbox v-model="coloniaForm.activo" label="Activo" />
+              <q-checkbox v-model="coloniaForm.activo" label="Activo" true-value="S" false-value="N" />
               <q-card-actions align="right">
                 <q-btn :label="coloniaForm.id ? 'Actualizar' : 'Guardar'" type="submit" color="primary"/>
                 <q-btn label="Cancelar" type="button" color="grey" flat @click="() => resetColoniaForm(coloniaForm)" v-if="coloniaForm.id" />
@@ -167,7 +167,7 @@
             <q-item v-for="colonia in colonias" :key="colonia.id" > <!-- No clickable, no active state for last level -->
               <q-item-section >{{ colonia.descripcion }}</q-item-section>
               <q-item-section side top v-if="colonia.id">
-                <q-badge :color="colonia.activo ? 'green' : 'red'" :label="colonia.activo ? 'Activo' : 'Inactivo'" class="q-mb-xs"/>
+                <q-badge :color="colonia.activo === 'S' ? 'green' : 'red'" :label="colonia.activo === 'S' ? 'Activo' : 'Inactivo'" class="q-mb-xs"/>
                 <div class="q-gutter-xs">
                   <q-btn size="sm" flat dense round icon="edit" @click.stop="() => editColoniaForm(colonia, coloniaForm)" text-color="primary"/>
                   <q-btn size="sm" flat dense round icon="delete" @click.stop="confirmDeleteColonia(colonia.id!)" text-color="negative"/>
@@ -218,64 +218,70 @@ interface Pais {
   id_configuracion: number;
   descripcion: string;
   paridad: string;
-  activo: boolean; // Internally use boolean
+  activo: string;
 }
 
 interface Estado {
   id?: number;
+  id_configuracion: number;
   id_pais: number;
   descripcion: string;
   paridad: string;
-  activo: boolean;
+  activo: string;
 }
 
 interface Municipio {
   id?: number;
+  id_configuracion: number;
   id_estado: number;
   descripcion: string;
   paridad: string;
-  activo: boolean;
+  activo: string;
 }
 
 interface Colonia {
   id?: number;
+  id_configuracion: number;
   id_municipio: number;
   descripcion: string;
   paridad: string;
-  activo: boolean;
+  activo: string;
 }
 
 
 const paisForm = reactive({
   id: undefined as number | undefined,
-  id_configuracion: 0,
+  id_configuracion: 1,
   descripcion: '',
   paridad: '',
-  activo: true,
+  activo: 'S',
 });
 
 const estadoForm = reactive<Estado>({
   id: undefined as number | undefined,
+  id_configuracion: 1,
   id_pais: 0,
   descripcion: '',
   paridad: '',
-  activo: true,
+  activo: 'S',
 });
 
 const municipioForm = reactive<Municipio>({
   id: undefined as number | undefined,
+  id_configuracion: 1,
   id_estado: 0,
   descripcion: '',
   paridad: '',
-  activo: true,
+  activo: 'S',
 });
 
 const coloniaForm = reactive<Colonia>({
   id: undefined as number | undefined,
+  id_configuracion: 1,
   id_municipio: 0,
   descripcion: '',
   paridad: '',
-  activo: true,
+  activo: 'S',
 });
 
 // --- PAÍSES ---

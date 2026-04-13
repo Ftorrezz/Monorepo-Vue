@@ -1,6 +1,5 @@
 <template>
-  <div>
-    <q-dialog v-model="mostrarDialogo" persistent @hide="closeDialog">
+  <q-dialog v-model="mostrarDialogo" persistent @hide="closeDialog">
     <q-card class="modern-dialog">
       <q-bar class="bg-primary text-white modern-header">
           <div class="row items-center full-width">
@@ -365,8 +364,6 @@
 
     </q-card>
     </q-dialog>
-
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -428,29 +425,7 @@ const props = defineProps({
   },
   mascotaData: {
     type: Object,
-    default: () => ({
-      id: null,
-      id_propietario: null,
-      nombre: "",
-      historiaclinica: "",
-      edad: null,
-      id_especie: null,
-      id_raza: null,
-      id_sexo: null,
-      fechanacimiento: null,
-      chip: "",
-      fechachip: null,
-      id_color: null,
-      id_tamanio: null,
-      id_dieta: null,
-      id_habitat: null,
-      id_caracter: null,
-      observaciones: "",
-      pedigri: "N",
-      esterilizado: "N",
-      activo: "S"
-      
-    }),
+    default: () => null,
   },
 });
 
@@ -463,6 +438,25 @@ const mostrarDialogo = ref(true);
 const { showLoading, hideLoading } = useLoading();
 const peticionService = new PeticionService();
 const alertas = new NdAlertasControl();
+
+const cargarMascotaCompleta = async (id: number) => {
+  try {
+    const rawData = await peticionService.obtenerGet('paciente/' + id);
+    const fullData = Array.isArray(rawData) ? rawData[0] : rawData;
+    
+    if (fullData) {
+      mascota.value = normalizarDatos(fullData);
+      if (mascota.value.fechanacimiento) {
+        calcularEdadMascota();
+      }
+      if (fullData.foto) {
+        imagenCapturada.value = fullData.foto;
+      }
+    }
+  } catch (error) {
+    console.error("Error al cargar datos completos de la mascota:", error);
+  }
+};
 
 const close = () => {
   mostrarDialogo.value = false;
@@ -480,31 +474,63 @@ const stream = ref(null);
 
 const formMascotaRef = ref<QForm | null>(null);
 
+const defaultMascota: Mascota = {
+  id: null,
+  id_propietario: props.propietario?.id || null,
+  nombre: "",
+  historiaclinica: "",
+  edad: null,
+  id_especie: null,
+  id_raza: null,
+  id_sexo: null,
+  fechanacimiento: null,
+  chip: "",
+  fechachip: null,
+  id_color: null,
+  id_tamanio: null,
+  id_dieta: null,
+  id_habitat: null,
+  id_caracter: null,
+  observaciones: "",
+  pedigri: "N",
+  esterilizado: "N",
+  activo: "S",
+  id_sitio: 1,
+  id_sucursal: 1,
+};
+
+const normalizarDatos = (data: any): Mascota => {
+  if (!data) return { ...defaultMascota, id_propietario: props.propietario?.id };
+  
+  const normalized = { ...defaultMascota, ...data };
+  
+  // Ensure id_propietario is correct
+  normalized.id_propietario = data.id_propietario || props.propietario?.id;
+
+  // Map nested objects if they exist
+  if (data.especie && data.especie.id) normalized.id_especie = data.especie.id;
+  if (data.raza && data.raza.id) normalized.id_raza = data.raza.id;
+  if (data.sexo && data.sexo.id) normalized.id_sexo = data.sexo.id;
+  if (data.color && data.color.id) normalized.id_color = data.color.id;
+  if (data.dieta && data.dieta.id) normalized.id_dieta = data.dieta.id;
+  if (data.habitat && data.habitat.id) normalized.id_habitat = data.habitat.id;
+  if (data.caracter && data.caracter.id) normalized.id_caracter = data.caracter.id;
+  if (data.tamanio && data.tamanio.id) normalized.id_tamanio = data.tamanio.id;
+
+  return normalized;
+};
+
 // Datos de la mascota
-const mascota = ref<Mascota>({
-  id: props.mascotaData.id,
-  id_propietario: props.propietario?.id,
-  nombre: props.mascotaData.nombre,
-  historiaclinica: props.mascotaData.historiaclinica,
-  edad: props.mascotaData.edad,
-  id_especie: props.mascotaData.id_especie,
-  id_raza: props.mascotaData.id_raza,
-  id_sexo: props.mascotaData.id_sexo,
-  fechanacimiento: props.mascotaData.fechanacimiento,
-  chip: props.mascotaData.chip,
-  fechachip: props.mascotaData.fechachip,
-  id_color: props.mascotaData.id_color,
-  id_tamanio: props.mascotaData.id_tamanio,
-  id_dieta: props.mascotaData.id_dieta,
-  id_habitat: props.mascotaData.id_habitat,
-  id_caracter: props.mascotaData.id_caracter,
-  observaciones: props.mascotaData.observaciones,
-  pedigri: props.mascotaData.pedigri,
-  esterilizado: props.mascotaData.esterilizado,
-  activo: props.mascotaData.activo,
-  id_sitio: props.mascotaData.id_sitio,
-  id_sucursal: props.mascotaData.id_sucursal,
-});
+const mascota = ref<Mascota>(normalizarDatos(props.mascotaData));
+
+// Watcher para actualizar los datos cuando cambie la prop
+watch(
+  () => props.mascotaData,
+  (newData) => {
+    mascota.value = normalizarDatos(newData);
+  },
+  { deep: true }
+);
 
 
 
@@ -733,6 +759,9 @@ const cargarCatalogos = async () => {
 
 onMounted(() => {
   cargarCatalogos();
+  if (props.mascotaData && props.mascotaData.id) {
+    cargarMascotaCompleta(props.mascotaData.id);
+  }
 });
 
 

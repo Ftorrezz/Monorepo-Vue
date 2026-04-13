@@ -1,6 +1,5 @@
 <template>
-  <div>
-    <q-dialog v-model="mostrarDialogo" persistent @hide="emit('cerrar')">
+  <q-dialog v-model="mostrarDialogo" persistent @hide="emit('cerrar')">
       <q-card class="modern-dialog">
         <!-- Encabezado moderno -->
         <q-bar class="bg-primary text-white modern-header">
@@ -373,11 +372,10 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
-  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onBeforeUnmount, watch } from "vue";
+import { ref, onBeforeUnmount, watch, computed, onMounted } from "vue";
 import { QForm, useQuasar } from "quasar";
 import ListaGenero from "../../../../../libs/shared/src/components/listas/ListaGenero.vue";
 // Importar los nuevos componentes de lista de ubicación
@@ -443,14 +441,87 @@ const stream = ref(null);
 // Referencia al formulario
 const formPropietarioRef = ref<QForm | null>(null);
 
+const defaultPropietario = {
+  id: null,
+  primerapellido: "",
+  segundoapellido: "",
+  nombre: "",
+  email: "",
+  telefono1: "",
+  telefono2: "",
+  id_genero: null,
+  id_estadocivil: null,
+  id_escolaridad: null,
+  fechanacimiento: null,
+  observaciones: "",
+  // Campos para el domicilio
+  id_pais: null,
+  id_estado: null,
+  id_municipio: null,
+  id_colonia: null,
+  calle: "",
+  exterior: "",
+  interior: "",
+  codigopostal: "",
+  activo: "S",
+  id_sitio: 1
+};
+
+// Función para normalizar los datos (manejar objetos anidados si los hay)
+const normalizarDatos = (data: any) => {
+  if (!data) return { ...defaultPropietario };
+  
+  const normalized = { ...defaultPropietario, ...data };
+
+  // Si los campos de ID traen el objeto completo de la relación, extraemos el ID para el v-model
+  if (data.genero && data.genero.id) normalized.id_genero = data.genero.id;
+  if (data.pais && data.pais.id) normalized.id_pais = data.pais.id;
+  if (data.estado && data.estado.id) normalized.id_estado = data.estado.id;
+  if (data.municipio && data.municipio.id) normalized.id_municipio = data.municipio.id;
+  if (data.colonia && data.colonia.id) normalized.id_colonia = data.colonia.id;
+
+  return normalized;
+};
+
 // Datos del propietario
-const propietario = ref({ ...props.propietarioData });
+const propietario = ref(normalizarDatos(props.propietarioData));
+
+// Watcher para actualizar los datos cuando cambie la prop (por ejemplo al editar)
+watch(
+  () => props.propietarioData,
+  (newData) => {
+    propietario.value = normalizarDatos(newData);
+  },
+  { deep: true }
+);
 
 const $q = useQuasar();
 const isLoading = ref(false);
 
 // Instanciar el servicio real
 const peticionService = new PeticionService();
+
+const cargarPropietarioCompleto = async (id: number) => {
+  try {
+    const rawData = await peticionService.obtenerGet('propietario/' + id);
+    const fullData = Array.isArray(rawData) ? rawData[0] : rawData;
+    
+    if (fullData) {
+      propietario.value = normalizarDatos(fullData);
+      if (fullData.foto) {
+        imagenCapturada.value = fullData.foto;
+      }
+    }
+  } catch (error) {
+    console.error("Error al cargar datos completos del propietario:", error);
+  }
+};
+
+onMounted(() => {
+  if (props.propietarioData && props.propietarioData.id) {
+    cargarPropietarioCompleto(props.propietarioData.id);
+  }
+});
 
 // Funciones para la cámara
 const activarCamara = async () => {

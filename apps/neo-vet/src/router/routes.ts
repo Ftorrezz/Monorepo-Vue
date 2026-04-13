@@ -113,7 +113,7 @@ const routes: RouteRecordRaw[] = [
         meta: { requireAuth: false },
       },
       {
-        path: '/ubicacion',
+        path: '/config/ubicacion',
         name: 'ubicacion',
         component: () => import('pages/configuration/general/ubicacion.vue'),
         meta: { requireAuth: false },

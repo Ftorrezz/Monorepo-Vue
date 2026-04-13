@@ -260,6 +260,7 @@
 
   <DialogAgregarPropietario
     v-if="mostrarDialogoPropietario"
+    :propietarioData="propietarioAEditar"
     @propietario-guardado="propietarioAgregado"
     @cerrar="cerrarDialogoPropietario"
   />
@@ -267,6 +268,7 @@
   <DialogAgregarMascota
     v-if="mostrarDialogoMascota"
     :propietario="propietarioSeleccionado"
+    :mascotaData="mascotaAEditar"
     @mascota-guardada="mascotaAgregada"
     @cerrar="cerrarDialogoMascota"
   />
@@ -314,16 +316,21 @@ const propietarioStore = usePropietarioStore();
 const router = useRouter();
 const mascotaSeleccionadaStore = useMascotaSeleccionadaStore();
 
+const propietarioAEditar = ref(null);
+const mascotaAEditar = ref(null);
+
 const emit = defineEmits(['update:rows', 'refresh-data', 'limpiar-filtro', 'llenar-filtro-y-buscar', 'mascota-seleccionada']);
 
 const abrirDialogoPropietario = () => {
   // Limpiar el filtro antes de abrir el diálogo
   emit('limpiar-filtro');
+  propietarioAEditar.value = null;
   mostrarDialogoPropietario.value = true;
 };
 
 const abrirDialogoMascota = () => {
   if (propietarioStore.tienePropietarioSeleccionado) {
+    mascotaAEditar.value = null;
     mostrarDialogoMascota.value = true;
   }
 };
@@ -461,13 +468,13 @@ const columnsMascota = ref([
 ]);
 
 const editarPropietario = (props) => {
-  // Implementar la lógica para editar propietario
-  console.log('Editar propietario:', props.row);
+  propietarioAEditar.value = { ...props.row };
+  mostrarDialogoPropietario.value = true;
 };
 
 const editarMascota = (props) => {
-  // Implementar la lógica para editar mascota
-  console.log('Editar mascota:', props.row);
+  mascotaAEditar.value = { ...props.row };
+  mostrarDialogoMascota.value = true;
 };
 
 const eliminarPropietario = async (props) => {
@@ -600,6 +607,7 @@ const propietarioAgregado = async (propietarioGuardado) => {
 
 const cerrarDialogoPropietario = () => {
   mostrarDialogoPropietario.value = false;
+  propietarioAEditar.value = null;
 };
 
 const mascotaAgregada = (mascotaGuardada) => {
@@ -638,6 +646,7 @@ const mascotaAgregada = (mascotaGuardada) => {
 
 const cerrarDialogoMascota = () => {
   mostrarDialogoMascota.value = false;
+  mascotaAEditar.value = null;
 };
 
 // Procesar los datos para la tabla de mascotas

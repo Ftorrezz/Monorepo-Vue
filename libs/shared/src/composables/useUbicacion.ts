@@ -1,16 +1,17 @@
 // libs/shared/src/composables/useUbicacion.ts
 import { ref } from 'vue';
 import { useQuasar } from 'quasar';
-import PeticionService from '../../../../apps/neo-vet/src/services/peticion.service'; // Ajusta la ruta si es necesario
+import PeticionService from '../../../../apps/neo-vet/src/services/peticion.service';
+import { DtoParametros } from '../../../../apps/neo-vet/src/controles/dto.parametros';
 
 // Interfaces (pueden estar en un archivo d.ts compartido)
-interface Pais { id?: number; id_configuracion: number; descripcion: string; paridad: string; activo: boolean; }
-interface Estado { id?: number; id_pais: number; descripcion: string; paridad: string; activo: boolean; }
-interface Municipio { id?: number; id_estado: number; descripcion: string; paridad: string; activo: boolean; }
-interface Colonia { id?: number; id_municipio: number; descripcion: string; paridad: string; activo: boolean; }
+interface Pais { id?: number; id_configuracion: number; descripcion: string; paridad: string; activo: string; }
+interface Estado { id?: number; id_configuracion: number; id_pais: number; descripcion: string; paridad: string; activo: string; }
+interface Municipio { id?: number; id_configuracion: number; id_estado: number; descripcion: string; paridad: string; activo: string; }
+interface Colonia { id?: number; id_configuracion: number; id_municipio: number; descripcion: string; paridad: string; activo: string; }
 
 // Define un tipo genérico para los formularios para evitar repetición
-type UbicacionForm<T extends { id?: number; descripcion: string; paridad: string; activo: boolean }> = T;
+type UbicacionForm<T extends { id?: number; descripcion: string; paridad: string; activo: string }> = T;
 
 
 export function useUbicacion() {
@@ -49,9 +50,9 @@ export function useUbicacion() {
   const savePaisAPI = async (paisData: UbicacionForm<Pais>) => {
     try {
       if (paisData.id) {
-        await peticionService.actualizar(`/pais/${paisData.id}`, paisData);
+        await peticionService.actualizar('pais', paisData);
       } else {
-        await peticionService.crear('/pais', paisData);
+        await peticionService.crear('pais', paisData);
       }
     } catch (error) {
       console.error("Error saving pais:", error);
@@ -60,7 +61,7 @@ export function useUbicacion() {
   };
   const deletePaisAPI = async (id: number) => {
     try {
-      await peticionService.eliminar(`/pais/${id}`, { id }); // El servicio de petición podría necesitar un objeto para el 'modelo'
+      await peticionService.eliminar('pais', { id });
     } catch (error) {
       console.error("Error deleting pais:", error);
       throw error;
@@ -69,13 +70,13 @@ export function useUbicacion() {
 
   const resetPaisForm = (form: UbicacionForm<Pais>) => {
     form.id = undefined;
-    form.id_configuracion = 0;
+    form.id_configuracion = 1;
     form.descripcion = '';
     form.paridad = '';
-    form.activo = true;
+    form.activo = 'S';
   };
 
-   const editPaisForm = (pais: Pais, form: UbicacionForm<Pais>) => {
+  const editPaisForm = (pais: Pais, form: UbicacionForm<Pais>) => {
     Object.assign(form, pais);
   };
 
@@ -85,8 +86,9 @@ export function useUbicacion() {
     loadingEstados.value = true;
     estados.value = [];
     try {
-      estados.value = await peticionService.obtenerGet('estado');
-      //estados.value = await peticionService.obtenerGet({ 'estado', filtro: { id_pais: paisId } });
+      const _peticion = new DtoParametros();
+      _peticion.filtro = { id_pais: paisId };
+      estados.value = await peticionService.obtenerGet('estado', _peticion);
     } catch (error) {
       console.error("Error fetching estados:", error);
       $q.notify({ type: 'negative', message: `Error al cargar estados para el país ID: ${paisId}.` });
@@ -98,9 +100,9 @@ export function useUbicacion() {
   const saveEstadoAPI = async (estadoData: UbicacionForm<Estado>) => {
     try {
       if (estadoData.id) {
-        await peticionService.actualizar(`/estados/${estadoData.id}`, estadoData);
+        await peticionService.actualizar('estado', estadoData);
       } else {
-        await peticionService.crear('/estados', estadoData);
+        await peticionService.crear('estado', estadoData);
       }
     } catch (error) {
       console.error("Error saving estado:", error);
@@ -109,7 +111,7 @@ export function useUbicacion() {
   };
   const deleteEstadoAPI = async (id: number) => {
     try {
-      await peticionService.eliminar(`/estados/${id}`, { id });
+      await peticionService.eliminar('estado', { id });
     } catch (error) {
       console.error("Error deleting estado:", error);
       throw error;
@@ -121,7 +123,8 @@ export function useUbicacion() {
     // form.id_pais se asigna en el componente antes de guardar
     form.descripcion = '';
     form.paridad = '';
-    form.activo = true;
+    form.activo = 'S';
+    form.id_configuracion = 1;
   };
 
   const editEstadoForm = (estado: Estado, form: UbicacionForm<Estado>) => {
@@ -133,8 +136,9 @@ export function useUbicacion() {
     loadingMunicipios.value = true;
     municipios.value = [];
     try {
-      //municipios.value = await peticionService.obtenerGet({ endPoint: 'municipios', filtro: { id_estado: estadoId } });
-      municipios.value = await peticionService.obtenerGet("municipio");
+      const _peticion = new DtoParametros();
+      _peticion.filtro = { id_estado: estadoId };
+      municipios.value = await peticionService.obtenerGet('municipio', _peticion);
     } catch (error) {
       console.error("Error fetching municipios:", error);
       $q.notify({ type: 'negative', message: `Error al cargar municipios para el estado ID: ${estadoId}.` });
@@ -146,9 +150,9 @@ export function useUbicacion() {
   const saveMunicipioAPI = async (municipioData: UbicacionForm<Municipio>) => {
     try {
       if (municipioData.id) {
-        await peticionService.actualizar(`/municipios/${municipioData.id}`, municipioData);
+        await peticionService.actualizar('municipio', municipioData);
       } else {
-        await peticionService.crear('/municipios', municipioData);
+        await peticionService.crear('municipio', municipioData);
       }
     } catch (error) {
       console.error("Error saving municipio:", error);
@@ -157,9 +161,8 @@ export function useUbicacion() {
   };
   const deleteMunicipioAPI = async (id: number) => {
     try {
-      await peticionService.eliminar(`/municipios/${id}`, { id });
-    } catch (error)
-    {
+      await peticionService.eliminar('municipio', { id });
+    } catch (error) {
       console.error("Error deleting municipio:", error);
       throw error;
     }
@@ -170,7 +173,8 @@ export function useUbicacion() {
     // form.id_estado se asigna en el componente
     form.descripcion = '';
     form.paridad = '';
-    form.activo = true;
+    form.activo = 'S';
+    form.id_configuracion = 1;
   };
 
   const editMunicipioForm = (municipio: Municipio, form: UbicacionForm<Municipio>) => {
@@ -183,8 +187,9 @@ export function useUbicacion() {
     loadingColonias.value = true;
     colonias.value = [];
     try {
-      //colonias.value = await peticionService.obtenerGet({ endPoint: 'colonias', filtro: { id_municipio: municipioId } });
-      colonias.value = await peticionService.obtenerGet("colonia");
+      const _peticion = new DtoParametros();
+      _peticion.filtro = { id_municipio: municipioId };
+      colonias.value = await peticionService.obtenerGet('colonia', _peticion);
     } catch (error) {
       console.error("Error fetching colonias:", error);
       $q.notify({ type: 'negative', message: `Error al cargar colonias para el municipio ID: ${municipioId}.` });
@@ -196,9 +201,9 @@ export function useUbicacion() {
   const saveColoniaAPI = async (coloniaData: UbicacionForm<Colonia>) => {
     try {
       if (coloniaData.id) {
-        await peticionService.actualizar(`/colonias/${coloniaData.id}`, coloniaData);
+        await peticionService.actualizar('colonia', coloniaData);
       } else {
-        await peticionService.crear('/colonias', coloniaData);
+        await peticionService.crear('colonia', coloniaData);
       }
     } catch (error) {
       console.error("Error saving colonia:", error);
@@ -207,7 +212,7 @@ export function useUbicacion() {
   };
   const deleteColoniaAPI = async (id: number) => {
     try {
-      await peticionService.eliminar(`/colonias/${id}`, { id });
+      await peticionService.eliminar('colonia', { id });
     } catch (error) {
       console.error("Error deleting colonia:", error);
       throw error;
@@ -219,7 +224,9 @@ export function useUbicacion() {
     // form.id_municipio se asigna en el componente
     form.descripcion = '';
     form.paridad = '';
-    form.activo = true;
+    form.activo = 'S';
+    form.id_configuracion = 1;
+    //todo: id_configuracion de la sesion
   };
 
   const editColoniaForm = (colonia: Colonia, form: UbicacionForm<Colonia>) => {
