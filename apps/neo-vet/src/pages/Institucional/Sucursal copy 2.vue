@@ -116,23 +116,10 @@
               <!-- Logo -->
               <div class="col-12 col-md-4 flex flex-center">
                 <div class="text-center">
-                  <q-avatar size="100px" bordered class="q-mb-sm shadow-1 relative-position">
+                  <q-avatar size="100px" bordered class="q-mb-sm shadow-1">
                     <img v-if="previewLogo" :src="previewLogo">
                     <img v-else-if="formulario.logo_url" :src="formulario.logo_url">
                     <q-icon v-else name="store" color="grey-4" size="64px" />
-                    
-                    <q-btn
-                      v-if="previewLogo || formulario.logo_url"
-                      round
-                      dense
-                      color="negative"
-                      icon="delete"
-                      size="sm"
-                      class="absolute-top-right q-ma-xs shadow-2"
-                      @click="quitarLogo"
-                    >
-                      <q-tooltip>Eliminar Logo</q-tooltip>
-                    </q-btn>
                   </q-avatar>
                   <q-file
                     v-model="archivoLogo"
@@ -250,7 +237,6 @@ const modulosDisponibles = ref<string[]>([]);
 const modulosSeleccionados = ref<string[]>([]);
 const archivoLogo = ref<File | null>(null);
 const previewLogo = ref<string | null>(null);
-const logoEliminado = ref(false);
 const formularioRef = ref<any>(null);
 
 const formulario = reactive<Sucursal>({
@@ -307,7 +293,6 @@ const abrirFormulario = (datos: Sucursal | null = null) => {
   modoEdicion.value = !!datos;
   archivoLogo.value = null;
   previewLogo.value = null;
-  logoEliminado.value = false;
   modulosSeleccionados.value = [];
 
   if (datos) {
@@ -351,19 +336,11 @@ const generarPreview = (file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       previewLogo.value = e.target?.result as string;
-      logoEliminado.value = false;
     };
     reader.readAsDataURL(file);
   } else {
     previewLogo.value = null;
   }
-};
-
-const quitarLogo = () => {
-  archivoLogo.value = null;
-  previewLogo.value = null;
-  formulario.logo_url = undefined;
-  logoEliminado.value = true;
 };
 
 const validarYGuardar = () => {
@@ -406,11 +383,6 @@ const guardarSucursal = async () => {
     }
 
     const idSucursal = formulario.id || res?.id || (Array.isArray(res) ? res[0]?.id : null) || res?.elemento?.id;
-
-    // Si se marcó para eliminar y no hay un archivo nuevo para subir
-    if (idSucursal && logoEliminado.value && !archivoLogo.value) {
-      await sucursalService.deleteLogo(idSucursal);
-    }
 
     // Si hay un logo nuevo, subirlo
     if (idSucursal && archivoLogo.value) {

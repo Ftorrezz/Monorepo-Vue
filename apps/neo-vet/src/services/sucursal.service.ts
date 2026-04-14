@@ -49,6 +49,17 @@ export const sucursalService = {
         return response.data;
     },
 
+    async deleteLogo(id: number) {
+        const store = useDialogStore();
+        const headers = {
+            'idsitio': store.id_sitio,
+            'idsucursal': store.id_sucursal
+        };
+
+        const response = await Api.delete(`/sucursal/${id}/logo`, { headers });
+        return response.data;
+    },
+
     async getModulos() {
         return await peticionService.obtenerGet('sucursal/modulos');
     },
