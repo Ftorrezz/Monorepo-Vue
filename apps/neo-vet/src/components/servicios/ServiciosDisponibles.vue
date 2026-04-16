@@ -222,7 +222,8 @@ export default defineComponent({
     // Categorización de servicios
     const categoriasMap = {
       vacunacion: 'consultas',
-      desparacitacion: 'consultas',
+      desparasitacion: 'consultas',
+      desparacitacion: 'consultas', // fallback
       exploracion: 'consultas',
       certificado: 'consultas',
       receta: 'consultas',
@@ -234,25 +235,27 @@ export default defineComponent({
       emergencia: 'procedimientos',
       laboratorio: 'diagnostico',
       rayosx: 'diagnostico',
-      ultrasonido: 'diagnostico'
+      ultrasonido: 'diagnostico',
+      archivos: 'diagnostico'
     }
     
-    // Lista de servicios fijos
+    // Lista de servicios fijos con su configuración especializada explícita
     const serviciosDisponiblesPredeterminados = [
-      { id: 'vacunacion', nombre: 'Vacunación', descripcion: 'Aplicación de vacunas preventivas', icono: 'vaccines', color: 'green', tipo: 'vacunacion', esFijo: true },
-      { id: 'desparacitacion', nombre: 'Desparacitación', descripcion: 'Tratamiento antiparasitario', icono: 'medication', color: 'orange', tipo: 'desparacitacion', esFijo: true },
-      { id: 'exploracion', nombre: 'Exploración Física', descripcion: 'Examen clínico general', icono: 'health_and_safety', color: 'blue', tipo: 'exploracion', esFijo: true },
-      { id: 'certificado', nombre: 'Certificado Médico', descripcion: 'Constancias médicas', icono: 'description', color: 'purple', tipo: 'certificado', esFijo: true },
-      { id: 'receta', nombre: 'Receta Médica', descripcion: 'Prescripción de medicamentos', icono: 'receipt_long', color: 'purple', tipo: 'receta', esFijo: true },
-      { id: 'medicamentos', nombre: 'Medicamentos', descripcion: 'Gestión de prescripciones', icono: 'medication', color: 'blue', tipo: 'medicamentos', integrable: true, esFijo: true },
-      { id: 'cirugia', nombre: 'Cirugía', descripcion: 'Procedimientos quirúrgicos', icono: 'local_hospital', color: 'red', tipo: 'cirugia', integrable: true, esFijo: true },
-      { id: 'laboratorio', nombre: 'Laboratorio', descripcion: 'Análisis y pruebas', icono: 'biotech', color: 'teal', tipo: 'laboratorio', esFijo: true },
-      { id: 'rayosx', nombre: 'Rayos X', descripcion: 'Estudios por imagen', icono: 'medical_information', color: 'indigo', tipo: 'rayosx', esFijo: true },
-      { id: 'hospitalizacion', nombre: 'Hospitalización', descripcion: 'Cuidados intensivos', icono: 'local_hotel', color: 'pink', tipo: 'hospitalizacion', integrable: true, esFijo: true },
-      { id: 'estetica', nombre: 'Estética', descripcion: 'Corte y baño', icono: 'content_cut', color: 'cyan', tipo: 'estetica', esFijo: true },
-      { id: 'ultrasonido', nombre: 'Ultrasonido', descripcion: 'Diagnóstico por ultrasonido', icono: 'monitor_heart', color: 'lime', tipo: 'ultrasonido', esFijo: true },
-      { id: 'emergencia', nombre: 'Emergencia', descripcion: 'Atención urgente 24/7', icono: 'emergency', color: 'deep-orange', tipo: 'emergencia', integrable: true, premium: true, esFijo: true },
-      { id: 'rehabilitacion', nombre: 'Rehabilitación', descripcion: 'Fisioterapia y recuperación', icono: 'accessibility_new', color: 'brown', tipo: 'rehabilitacion', integrable: true, esFijo: true }
+      { id: 'vacunacion', nombre: 'Vacunación', descripcion: 'Aplicación de vacunas preventivas', icono: 'vaccines', color: 'green', tipo: 'vacunacion', tipo_renderizado: 'especializado', componente_clave: 'vacunacion', esFijo: true },
+      { id: 'desparasitacion', nombre: 'Desparasitación', descripcion: 'Tratamiento antiparasitario', icono: 'medication', color: 'orange', tipo: 'desparasitacion', tipo_renderizado: 'especializado', componente_clave: 'desparasitacion', esFijo: true },
+      { id: 'exploracion', nombre: 'Exploración Física', descripcion: 'Examen clínico general', icono: 'health_and_safety', color: 'blue', tipo: 'exploracion', tipo_renderizado: 'especializado', componente_clave: 'exploracion', esFijo: true },
+      { id: 'certificado', nombre: 'Certificado Médico', descripcion: 'Constancias médicas', icono: 'description', color: 'purple', tipo: 'certificado', tipo_renderizado: 'especializado', componente_clave: 'certificado', esFijo: true },
+      { id: 'receta', nombre: 'Receta Médica', descripcion: 'Prescripción de medicamentos', icono: 'receipt_long', color: 'purple', tipo: 'receta', tipo_renderizado: 'especializado', componente_clave: 'receta', esFijo: true },
+      { id: 'medicamentos', nombre: 'Medicamentos', descripcion: 'Gestión de prescripciones', icono: 'medication', color: 'blue', tipo: 'medicamentos', tipo_renderizado: 'especializado', componente_clave: 'medicamentos', integrable: true, esFijo: true },
+      { id: 'cirugia', nombre: 'Cirugía', descripcion: 'Procedimientos quirúrgicos', icono: 'local_hospital', color: 'red', tipo: 'cirugia', tipo_renderizado: 'especializado', componente_clave: 'cirugia', integrable: true, esFijo: true },
+      { id: 'laboratorio', nombre: 'Laboratorio', descripcion: 'Análisis y pruebas', icono: 'biotech', color: 'teal', tipo: 'laboratorio', tipo_renderizado: 'especializado', componente_clave: 'laboratorio', esFijo: true },
+      { id: 'rayosx', nombre: 'Rayos X', descripcion: 'Estudios por imagen', icono: 'medical_information', color: 'indigo', tipo: 'rayosx', tipo_renderizado: 'especializado', componente_clave: 'rayosx', esFijo: true },
+      { id: 'hospitalizacion', nombre: 'Hospitalización', descripcion: 'Cuidados intensivos', icono: 'local_hotel', color: 'pink', tipo: 'hospitalizacion', tipo_renderizado: 'especializado', componente_clave: 'hospitalizacion', integrable: true, esFijo: true },
+      { id: 'estetica', nombre: 'Estética', descripcion: 'Corte y baño', icono: 'content_cut', color: 'cyan', tipo: 'estetica', tipo_renderizado: 'especializado', componente_clave: 'estetica', esFijo: true },
+      { id: 'ultrasonido', nombre: 'Ultrasonido', descripcion: 'Diagnóstico por ultrasonido', icono: 'monitor_heart', color: 'lime', tipo: 'ultrasonido', tipo_renderizado: 'especializado', componente_clave: 'ultrasonido', esFijo: true },
+      { id: 'emergencia', nombre: 'Emergencia', descripcion: 'Atención urgente 24/7', icono: 'emergency', color: 'deep-orange', tipo: 'emergencia', tipo_renderizado: 'especializado', componente_clave: 'emergencia', integrable: true, premium: true, esFijo: true },
+      { id: 'rehabilitacion', nombre: 'Rehabilitación', descripcion: 'Fisioterapia y recuperación', icono: 'accessibility_new', color: 'brown', tipo: 'rehabilitacion', tipo_renderizado: 'especializado', componente_clave: 'rehabilitacion', integrable: true, esFijo: true },
+      { id: 'archivos', nombre: 'Archivos Adjuntos', descripcion: 'Subir imágenes, PDFs y otros documentos', icono: 'folder_open', color: 'blue-grey', tipo: 'archivos', tipo_renderizado: 'especializado', componente_clave: 'archivos', esFijo: true }
     ]
     
     // Mapear servicios dinámicos

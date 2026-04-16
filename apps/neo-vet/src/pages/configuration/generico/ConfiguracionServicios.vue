@@ -364,7 +364,7 @@ const iconosBase = [
 
 const componentesEspecializados = [
   { label: 'Vacunación', value: 'vacunacion' },
-  { label: 'Desparasitación', value: 'desparacitacion' },
+  { label: 'Desparasitación', value: 'desparasitacion' },
   { label: 'Laboratorio', value: 'laboratorio' },
   { label: 'Rayos X', value: 'rayosx' },
   { label: 'Ultrasonido', value: 'ultrasonido' },
@@ -373,7 +373,8 @@ const componentesEspecializados = [
   { label: 'Medicamentos y Tratamientos', value: 'medicamentos' },
   { label: 'Rehabilitación / Fisioterapia', value: 'rehabilitacion' },
   { label: 'Urgencias / Emergencias', value: 'emergencia' },
-  { label: 'Estética y Grooming', value: 'estetica' }
+  { label: 'Estética y Grooming', value: 'estetica' },
+  { label: 'Archivos Adjuntos', value: 'archivos' }
 ]
 
 const iconosDisponibles = ref([...iconosBase])

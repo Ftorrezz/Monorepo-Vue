@@ -348,8 +348,8 @@
                       @imprimir-servicio="(id, datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicio, tipo, idPlantilla)"
                     />
 
-                    <ServicioDesparacitacion
-                      v-else-if="servicio.tipo?.toLowerCase() === 'desparacitacion' || servicio.tipo?.toLowerCase() === 'desparasitacion' || servicio.componente_clave === 'desparacitacion'"
+                    <ServicioDesparasitacion
+                      v-else-if="servicio.tipo?.toLowerCase() === 'desparacitacion' || servicio.tipo?.toLowerCase() === 'desparasitacion' || servicio.componente_clave === 'desparacitacion' || servicio.componente_clave === 'desparasitacion'"
                       :servicio-id="servicio.id"
                       :plantillas-servicio="servicio.plantillas_servicio"
                       :atencion-id="String(atencionActualData.id)"
@@ -480,6 +480,17 @@
                       @servicio-completado="completarServicio"
                       @servicio-eliminado="eliminarServicio"
                       @imprimir-servicio="imprimirDocumentoServicio(servicio)"
+                    />
+
+                    <ServicioArchivos
+                      v-else-if="servicio.tipo?.toLowerCase() === 'archivos' || servicio.tipo?.toLowerCase() === 'adjuntos' || servicio.componente_clave === 'archivos'"
+                      :servicio-id="servicio.id"
+                      :atencion-id="String(atencionActualData.id)"
+                      :datos-iniciales="servicio.datos"
+                      :modo-lectura="servicio.completado || atencionActualData.estado === 'Finalizada'"
+                      @servicio-actualizado="actualizarServicio"
+                      @servicio-completado="completarServicio"
+                      @servicio-eliminado="eliminarServicio"
                     />
                     
                     <!-- Componente genérico -->
@@ -681,7 +692,7 @@ import { useDialogStore } from 'src/stores/DialogoUbicacion'
 
 // Importación dinámica de componentes de servicios con lazy loading
 const ServicioVacunacion = defineAsyncComponent(() => import('../components/servicios/ServicioVacunacion.vue'))
-const ServicioDesparacitacion = defineAsyncComponent(() => import('../components/servicios/ServicioDesparacitacion.vue'))
+const ServicioDesparasitacion = defineAsyncComponent(() => import('../components/servicios/ServicioDesparasitacion.vue'))
 const ServicioConsultaGeneral = defineAsyncComponent(() => import('../components/servicios/ServicioConsultaGeneral.vue'))
 const ServiciosDisponibles = defineAsyncComponent(() => import('../components/servicios/ServiciosDisponibles.vue'))
 const OrdenLaboratorio = defineAsyncComponent(() => import('../components/laboratorio/OrdenLaboratorio.vue'))
@@ -696,6 +707,7 @@ const ServicioEstetica = defineAsyncComponent(() => import('../components/servic
 const ServicioRecetaMedica = defineAsyncComponent(() => import('../components/servicios/ServicioRecetaMedica.vue'))
 const ServicioResumen = defineAsyncComponent(() => import('../components/servicios/ServicioResumen.vue'))
 const ServicioDinamico = defineAsyncComponent(() => import('../components/servicios/ServicioDinamico.vue'))
+const ServicioArchivos = defineAsyncComponent(() => import('../components/servicios/ServicioArchivos.vue'))
 
 import CardBusquedaPropietarioMascota from 'src/components/card/CardBusquedaPropietarioMascota.vue'
 
@@ -703,7 +715,7 @@ export default {
   name: 'AtencionPaciente',
   components: {
     ServicioVacunacion,
-    ServicioDesparacitacion,
+    ServicioDesparasitacion,
     ServicioConsultaGeneral,
     ServiciosDisponibles,
     OrdenLaboratorio,
@@ -718,6 +730,7 @@ export default {
     ServicioRecetaMedica,
     ServicioResumen,
     ServicioDinamico,
+    ServicioArchivos,
     CardBusquedaPropietarioMascota,
   },
   setup() {
