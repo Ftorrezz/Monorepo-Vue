@@ -76,33 +76,34 @@
         </div>
 
         <div class="header-actions">
-           <!-- Botón Nueva Atención movido desde el sidebar -->
-           <q-btn
-            color="white"
-            text-color="primary"
-            icon="add"
-            label="Nueva Atención"
-            @click="nuevaAtencion"
-            :disable="!paciente || !paciente.id"
-            no-caps
-            class="q-mr-sm text-weight-bold"
-            style="height: 40px;"
-          />
+          <div class="row no-wrap items-center q-gutter-sm">
+            <!-- Botón Nueva Atención -->
+            <q-btn
+              unelevated
+              color="white"
+              text-color="primary"
+              icon="add"
+              label="Nueva Atención"
+              @click="nuevaAtencion"
+              :disable="!paciente || !paciente.id"
+              no-caps
+              class="text-weight-bold shadow-1"
+              style="height: 40px;"
+            />
 
-          <q-btn
-            color="primary"
-            icon="search"
-            label="Buscar Paciente"
-            @click="showSearchDialog = true"
-            no-caps
+            <q-btn
+              color="primary"
+              icon="search"
+              label="Buscar Paciente"
+              @click="showSearchDialog = true"
+              no-caps
+              flat
+              class="search-btn-premium"
+              style="height: 40px;"
+            />
+            
+            <q-separator vertical class="q-mx-xs" />
 
-            flat
-            class="search-btn-premium"
-          />
-          
-          <q-separator vertical class="q-mx-sm" />
-
-          <div class="row q-gutter-sm no-wrap">
             <q-btn 
               round 
               flat 
@@ -112,6 +113,7 @@
             >
               <q-tooltip>Imprimir Resumen</q-tooltip>
             </q-btn>
+
             <q-btn 
               round 
               flat 
@@ -121,46 +123,62 @@
             >
               <q-tooltip>Detalles de Atención</q-tooltip>
             </q-btn>
+
             <q-btn
               color="primary"
-              icon="add"
+              icon="add_circle"
               label="Nuevo Servicio"
               @click="showAddServiceDialog = true"
               :disable="atenciones.length === 0 || atencionActualData.estado === 'Finalizada'"
               no-caps
-
-              class="add-service-btn animate-pop"
+              class="add-service-btn animate-pop text-weight-bold"
+              style="height: 40px;"
             />
           </div>
         </div>
       </div>
 
-      <!-- Barra de Historial Horizontal (Timeline) -->
+      <!-- Barra de Historial Horizontal Ultra-Compacta -->
       <div class="attentions-timeline-bar" v-if="atenciones.length > 0">
-        <div class="timeline-header">
-          <q-icon name="history" size="xs" color="grey-7" />
-          <span class="text-caption text-weight-bold text-grey-7">HISTORIAL</span>
-        </div>
-        
-        <div class="timeline-scroll-container">
-          <div
-            v-for="(atencion, index) in atenciones"
-            :key="atencion.id"
-            class="timeline-item-pill"
-            :class="{ 
-              'active': atencionActual === index,
-              'in-progress': atencion.estado === 'En curso'
-            }"
-            @click="atencionActual = index"
-          >
-            <div class="item-indicator" :class="atencion.estado === 'En curso' ? 'bg-orange' : 'bg-green'"></div>
-            <div class="item-data">
-              <span class="item-number">{{ atencion.numero }}</span>
-              <span class="item-date">{{ formatDate(atencion.fecha) }}</span>
+        <div class="timeline-layout">
+          <!-- Etiqueta -->
+          <div class="timeline-header-side">
+            <div class="history-label">
+              <q-icon name="history" size="18px" color="primary" />
+              <span class="text-caption text-weight-bold">HISTORIAL</span>
+              <q-badge color="grey-3" text-color="grey-8" dense class="q-ml-xs" style="font-size: 9px">{{ atenciones.length }}</q-badge>
             </div>
-            <q-tooltip anchor="bottom middle" self="top middle" :offset="[0, 8]">
-              {{ atencion.veterinario }} - {{ atencion.estado }}
-            </q-tooltip>
+          </div>
+          
+          <!-- Línea de Tiempo Siempre Visible -->
+          <div class="timeline-wrapper-compact">
+            <div class="timeline-track"></div>
+            <div class="timeline-scroll-container">
+              <div
+                v-for="(atencion, index) in atenciones"
+                :key="atencion.id"
+                class="timeline-node"
+                :class="{ 
+                  'active': atencionActual === index,
+                  'is-current': atencion.estado === 'En curso'
+                }"
+                @click="atencionActual = index"
+              >
+                <div class="node-marker">
+                  <div class="marker-ring"></div>
+                  <div class="marker-dot"></div>
+                  <div class="pulse-ring" v-if="atencion.estado === 'En curso'"></div>
+                </div>
+                <div class="node-content">
+                  <span class="node-number">{{ atencion.numero }}</span>
+                  <span class="node-date">{{ formatDate(atencion.fecha) }}</span>
+                </div>
+                <q-tooltip anchor="bottom middle" self="top middle" :offset="[0, 12]" class="timeline-tooltip">
+                  <div class="text-weight-bold">{{ atencion.veterinario }}</div>
+                  <div class="text-caption">{{ atencion.estado }}</div>
+                </q-tooltip>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1848,100 +1866,196 @@ export default {
   cursor: pointer;
 }
 
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-/* Barra de Historial Horizontal (Timeline) */
+/* Barra de Historial Timeline Ultra-Compacta */
 .attentions-timeline-bar {
-  display: flex;
-  align-items: center;
   background: white;
-  padding: 10px 24px;
-  border-bottom: 1px solid #e2e8f0;
-  gap: 20px;
+  border-bottom: 1px solid #eef2f6;
+  padding: 8px 24px;
+  transition: all 0.3s ease;
   z-index: 90;
 }
 
-.timeline-header {
+.attentions-timeline-bar.is-collapsed {
+  padding: 4px 24px;
+}
+
+.timeline-layout {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-height: 40px;
+}
+
+.timeline-header-side {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.history-label {
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-shrink: 0;
-  padding-right: 15px;
-  border-right: 1px solid #e2e8f0;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.history-label:hover {
+  background: #f1f5f9;
+}
+
+.timeline-wrapper-compact {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  padding: 10px 0;
+}
+
+.timeline-track {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #e2e8f0;
+  transform: translateY(-50%);
+  z-index: 1;
 }
 
 .timeline-scroll-container {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  gap: 30px;
   overflow-x: auto;
-  padding: 4px 2px;
-  scrollbar-width: thin;
+  position: relative;
+  z-index: 2;
+  scrollbar-width: none;
 }
 
 .timeline-scroll-container::-webkit-scrollbar {
-  height: 4px;
+  display: none;
 }
 
-.timeline-scroll-container::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
+.timeline-node {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  min-width: fit-content;
+  transition: all 0.3s ease;
 }
 
-.timeline-item-pill {
+.node-marker {
+  position: relative;
+  width: 18px;
+  height: 18px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 16px;
-  background: #f1f5f9;
-  border-radius: 50px;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid transparent;
-  white-space: nowrap;
-  user-select: none;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.timeline-item-pill:hover {
-  background: #e2e8f0;
-  transform: translateY(-1px);
-}
-
-.timeline-item-pill.active {
-  background: #eff6ff;
-  border-color: #3b82f6;
-  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1);
-}
-
-.timeline-item-pill.active .item-number {
-  color: #2563eb;
-  font-weight: 700;
-}
-
-.item-indicator {
-  width: 8px;
-  height: 8px;
+.marker-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
+  background: white;
+  border: 2px solid #cbd5e1;
+  transition: all 0.3s ease;
 }
 
-.item-data {
+.marker-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  transition: all 0.3s ease;
+  z-index: 2;
+}
+
+.timeline-node:hover .marker-ring {
+  border-color: #3b82f6;
+  transform: scale(1.1);
+}
+
+.timeline-node.active .marker-ring {
+  border-color: #3b82f6;
+  border-width: 5px;
+}
+
+.timeline-node.active .marker-dot {
+  background: white;
+  transform: scale(0.5);
+}
+
+.timeline-node.is-current .marker-ring {
+  border-color: #f59e0b;
+}
+
+.timeline-node.is-current .marker-dot {
+  background: #f59e0b;
+}
+
+.pulse-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid #f59e0b;
+  animation: timeline-pulse 2s infinite;
+}
+
+@keyframes timeline-pulse {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+.node-content {
   display: flex;
   flex-direction: column;
 }
 
-.item-number {
-  font-size: 0.85rem;
-  font-weight: 600;
+.node-number {
+  font-size: 0.8rem;
+  font-weight: 700;
   color: #475569;
 }
 
-.item-date {
-  font-size: 0.75rem;
+.node-date {
+  font-size: 0.65rem;
+  font-weight: 600;
   color: #94a3b8;
+  margin-top: -2px;
+}
+
+.timeline-summary-view {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #64748b;
+  background: #f8fafc;
+  padding: 4px 12px;
+  border-radius: 6px;
+}
+
+.timeline-tooltip {
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(4px);
+  padding: 8px 12px;
+  border-radius: 8px;
 }
 
 /* Área de Contenido */

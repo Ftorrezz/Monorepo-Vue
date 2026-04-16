@@ -108,7 +108,7 @@
         <router-view />
 
         <!-- Marca de agua flotante (Logo Sucursal) -->
-        <transition 
+        <!--<transition 
           appear
           enter-active-class="animated fadeInRight"
           leave-active-class="animated fadeOutRight"
@@ -123,7 +123,7 @@
               {{ dialogStore.sucursalSeleccionada.descripcion }}
             </q-tooltip>
           </div>
-        </transition>
+        </transition>-->
       </q-page-container>
 
       <!-- FOOTER -->
