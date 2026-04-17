@@ -4,7 +4,7 @@
         <div class="row items-center">
           <q-icon name="medication" color="orange" size="md" class="q-mr-md"/>
           <div class="col">
-            <div class="text-h6">Desparacitación</div>
+            <div class="text-h6">Desparasitación</div>
             <div class="text-caption text-grey-7">Registro de tratamiento antiparasitario</div>
           </div>
           <q-btn 
@@ -268,7 +268,7 @@
   </template>
   
   <script setup>
-  import { ref, computed, watch } from 'vue'
+  import { ref, computed, watch, onMounted } from 'vue'
   
   // Props
   const props = defineProps({
@@ -441,7 +441,8 @@ const modoEdicionManual = ref(false)
   
   watch(datosDesparacitacion, guardarDatos, { deep: true })
   
-  onMounted(() => {
+
+  onMounted(async() => {
     if (props.datosIniciales && Object.keys(props.datosIniciales).length > 0) {
       Object.assign(datosDesparacitacion.value, props.datosIniciales)
     }
