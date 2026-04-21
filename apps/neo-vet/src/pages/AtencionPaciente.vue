@@ -348,8 +348,8 @@
                       @imprimir-servicio="(id, datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicio, tipo, idPlantilla)"
                     />
 
-                    <ServicioDesparasitacion
-                      v-else-if="servicio.tipo?.toLowerCase() === 'desparacitacion' || servicio.tipo?.toLowerCase() === 'desparasitacion' || servicio.componente_clave === 'desparacitacion' || servicio.componente_clave === 'desparasitacion'"
+                    <ServicioDesparacitacion
+                      v-else-if="servicio.tipo?.toLowerCase() === 'desparacitacion' || servicio.tipo?.toLowerCase() === 'desparasitacion' || servicio.componente_clave === 'desparacitacion'"
                       :servicio-id="servicio.id"
                       :plantillas-servicio="servicio.plantillas_servicio"
                       :atencion-id="String(atencionActualData.id)"
@@ -1609,7 +1609,7 @@ export default {
                 } catch (err) {
                   console.error('Error al cargar detalle de consulta:', err)
                 }
-              } else if (tipo === 'desparacitacion' || tipo === 'desparasitacion' || (serviceDef?.componente_clave?.toLowerCase() === 'desparacitacion')) {
+              } else if (tipo === 'desparasitacion' || tipo === 'desparasitacion' || (serviceDef?.componente_clave?.toLowerCase() === 'desparasitacion')) {
                 try {
                   const desparasitacionesBD = await atencionServicioService.getDesparasitacionByAtencionServicio(s.id)
                   if (desparasitacionesBD && desparasitacionesBD.length > 0) {

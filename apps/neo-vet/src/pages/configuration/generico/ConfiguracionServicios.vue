@@ -374,7 +374,8 @@ const componentesEspecializados = [
   { label: 'Rehabilitación / Fisioterapia', value: 'rehabilitacion' },
   { label: 'Urgencias / Emergencias', value: 'emergencia' },
   { label: 'Estética y Grooming', value: 'estetica' },
-  { label: 'Archivos Adjuntos', value: 'archivos' }
+  { label: 'Archivos Adjuntos', value: 'archivos' },
+  { label: 'Receta', value: 'receta' }
 ]
 
 const iconosDisponibles = ref([...iconosBase])
