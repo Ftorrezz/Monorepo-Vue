@@ -30,35 +30,61 @@
                   <q-icon name="description" color="primary" size="xs" />
                 </q-item-section>
                 <q-item-section>{{ p.nombre_plantilla || 'Plantilla ' + p.id_plantilla }}</q-item-section>
+                <q-item-section side>
+                  <div class="row items-center q-gutter-xs">
+                    <q-btn flat round dense icon="print" size="xs" color="primary" @click.stop="imprimirDocumento(p.id_plantilla)" />
+                    <q-btn flat round dense icon="history_edu" size="xs" color="orange-8" @click.stop="firmarDocumento(p.id_plantilla)" />
+                  </div>
+                </q-item-section>
               </q-item>
             </q-list>
           </q-btn-dropdown>
           
+          <div v-else class="row items-center no-wrap">
+            <q-btn 
+              flat round dense 
+              icon="print" 
+              color="white" 
+              class="q-mr-xs"
+              @click="imprimirDocumento(schema.plantillas_servicio[0].id_plantilla)"
+              :loading="cargandoPlantilla"
+            >
+              <q-tooltip>Imprimir Documento</q-tooltip>
+            </q-btn>
+            <q-btn
+              flat round dense
+              icon="history_edu"
+              color="orange-4"
+              class="q-mr-sm"
+              @click="firmarDocumento(schema.plantillas_servicio[0].id_plantilla)"
+            >
+              <q-tooltip>Visualizar y Firmar</q-tooltip>
+            </q-btn>
+          </div>
+        </template>
+        
+        <!-- Soporte para plantilla única heredada (Legacy fallback) -->
+        <div v-else-if="schema.id_plantilla || schema.id_plantilla_asociada" class="row items-center no-wrap">
           <q-btn 
-            v-else
             flat round dense 
             icon="print" 
             color="white" 
-            class="q-mr-sm"
-            @click="imprimirDocumento(schema.plantillas_servicio[0].id_plantilla)"
+            class="q-mr-xs"
+            @click="imprimirDocumento()"
             :loading="cargandoPlantilla"
           >
             <q-tooltip>Imprimir Documento</q-tooltip>
           </q-btn>
-        </template>
-        
-        <!-- Soporte para plantilla única heredada (Legacy fallback) -->
-        <q-btn 
-          v-else-if="schema.id_plantilla || schema.id_plantilla_asociada"
-          flat round dense 
-          icon="print" 
-          color="white" 
-          class="q-mr-sm"
-          @click="imprimirDocumento()"
-          :loading="cargandoPlantilla"
-        >
-          <q-tooltip>Imprimir Documento</q-tooltip>
-        </q-btn>
+          <q-btn
+            flat round dense
+            icon="history_edu"
+            color="orange-4"
+            class="q-mr-sm"
+            @click="firmarDocumento()"
+          >
+            <q-tooltip>Visualizar y Firmar</q-tooltip>
+          </q-btn>
+        </div>
         <q-btn-dropdown flat round dense icon="more_vert" color="white">
           <q-list style="min-width: 150px">
             <q-item clickable v-close-popup @click="emit('servicio-eliminado', props.servicioId)">
@@ -195,7 +221,7 @@ import { useQuasar } from 'quasar'
 const props = defineProps({
   schema: {
     type: Object,
-    required: true
+    default: () => ({})
   },
   servicioId: {
     type: String,
@@ -219,7 +245,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['servicio-actualizado', 'servicio-completado', 'servicio-eliminado'])
+const emit = defineEmits(['servicio-actualizado', 'servicio-completado', 'servicio-eliminado', 'firmar-servicio'])
 
 const formData = reactive({})
 const guardando = ref(false)
@@ -230,7 +256,11 @@ const { cargarPlantillaPorId, procesarHtml, generarPDF } = usePlantillas()
 
 // Inicializar el formulario con valores del esquema o datos existentes
 const initForm = () => {
+  if (!props.schema?.secciones) return
+  
   props.schema.secciones.forEach(seccion => {
+    if (!seccion.campos) return
+    
     seccion.campos.forEach(campo => {
       // Prioridad: 1. Datos previos, 2. Valor default del esquema, 3. Valor vacío según tipo
       if (props.datosIniciales[campo.id] !== undefined) {
@@ -278,6 +308,12 @@ const completarServicio = async () => {
   await new Promise(resolve => setTimeout(resolve, 800))
   emit('servicio-completado', props.servicioId, { ...formData })
   guardando.value = false
+}
+
+const firmarDocumento = (idPlantillaManual = null) => {
+  const idPlantilla = idPlantillaManual || props.schema.id_plantilla || props.schema.id_plantilla_asociada
+  if (!idPlantilla) return
+  emit('firmar-servicio', props.servicioId, { ...formData }, 'plantilla', idPlantilla)
 }
 
 const imprimirDocumento = async (idPlantillaManual = null) => {

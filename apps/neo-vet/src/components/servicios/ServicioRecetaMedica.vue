@@ -25,6 +25,10 @@
               <q-item-section avatar><q-icon name="print" color="primary"/></q-item-section>
               <q-item-section>Imprimir Receta</q-item-section>
             </q-item>
+            <q-item clickable @click="firmarReceta('especial')">
+              <q-item-section avatar><q-icon name="history_edu" color="orange-8"/></q-item-section>
+              <q-item-section>Visualizar y Firmar</q-item-section>
+            </q-item>
             <q-item v-if="plantillasServicio?.length" clickable>
               <q-item-section avatar><q-icon name="description" color="secondary"/></q-item-section>
               <q-item-section>Otras Plantillas</q-item-section>
@@ -32,10 +36,15 @@
               <q-menu anchor="top end" self="top start">
                 <q-list style="min-width:200px">
                   <q-item v-for="p in plantillasServicio" :key="p.id_plantilla"
-                    clickable v-close-popup
-                    @click="imprimirReceta('plantilla', p.id_plantilla)">
+                    clickable v-close-popup>
                     <q-item-section avatar><q-icon name="description" color="secondary" size="xs"/></q-item-section>
                     <q-item-section>{{ p.nombre_plantilla || 'Plantilla ' + p.id_plantilla }}</q-item-section>
+                    <q-item-section side>
+                      <div class="row items-center q-gutter-xs">
+                        <q-btn flat round dense icon="print" size="xs" color="grey-7" @click.stop="imprimirReceta('plantilla', p.id_plantilla)" />
+                        <q-btn flat round dense icon="history_edu" size="xs" color="orange-8" @click.stop="firmarReceta('plantilla', p.id_plantilla)" />
+                      </div>
+                    </q-item-section>
                   </q-item>
                 </q-list>
               </q-menu>
@@ -405,6 +414,7 @@ const props = defineProps({
 const emit = defineEmits([
   'servicio-actualizado', 'servicio-completado',
   'servicio-eliminado',   'imprimir-servicio',
+  'firmar-servicio'
 ])
 
 // ══ ESTADO ══════════════════════════════════════════════════════
@@ -542,6 +552,9 @@ const guardarCambios   = ()    => emit('servicio-actualizado', props.servicioId,
 const eliminarServicio = ()    => emit('servicio-eliminado', props.servicioId)
 const imprimirReceta   = (tipo = 'especial', id = null) =>
   emit('imprimir-servicio', props.servicioId, serializar(), tipo, id)
+
+const firmarReceta   = (tipo = 'especial', id = null) =>
+  emit('firmar-servicio', props.servicioId, serializar(), tipo, id)
 
 const completarReceta = () => {
   if (!formularioValido.value) return

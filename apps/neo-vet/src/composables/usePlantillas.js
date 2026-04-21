@@ -83,8 +83,8 @@ export function usePlantillas() {
         procesarPlantilla,
         procesarHtml: procesarPlantilla, // Alias for backwards compatibility
         generarCertificado,
-        cargarPlantillaPorId: plantillaService.getPlantilla,
-        cargarPlantillaPorCodigo: plantillaService.getPlantillaPorCodigo,
+        cargarPlantillaPorId: (id) => plantillaService.getPlantilla(id),
+        cargarPlantillaPorCodigo: (codigo) => plantillaService.getPlantillaPorCodigo(codigo),
         generarPDF: usePDFGenerator().generarPDF
     }
 }

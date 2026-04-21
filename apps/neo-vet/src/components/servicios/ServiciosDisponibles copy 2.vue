@@ -1,113 +1,141 @@
 <template>
-  <div class="servicios-selector-premium">
-    <!-- Header de Búsqueda y Categorías -->
-    <div class="selector-header q-pa-md bg-white border-bottom sticky-top z-10">
-      <div class="row q-col-gutter-sm items-center">
-        <div class="col-12 col-md-5">
+  <div class="servicios-disponibles-modern">
+    <!-- Header con búsqueda y filtros -->
+    <div class="services-header q-mb-md">
+      <div class="row q-col-gutter-md items-center">
+        <div class="col-12 col-md-6">
           <q-input
             v-model="filtroTexto"
-            placeholder="¿Qué servicio necesitas?"
             outlined
             dense
-            bg-color="grey-1"
-            class="br-md search-field"
+            placeholder="Buscar servicios..."
+            class="search-input"
           >
             <template v-slot:prepend>
-              <q-icon name="search" color="primary" />
+              <q-icon name="search" />
             </template>
             <template v-slot:append v-if="filtroTexto">
               <q-icon name="close" class="cursor-pointer" @click="filtroTexto = ''" />
             </template>
           </q-input>
         </div>
-        <div class="col-12 col-md-7">
-          <div class="row q-gutter-xs justify-end no-wrap overflow-auto hide-scrollbar">
+        <div class="col-12 col-md-6">
+          <div class="row q-gutter-sm justify-end">
             <q-btn
-              v-for="cat in ['todas', 'consultas', 'procedimientos', 'diagnostico']"
-              :key="cat"
-              :label="cat"
-              :color="categoriaSeleccionada === cat ? 'primary' : 'grey-8'"
-              :flat="categoriaSeleccionada !== cat"
-              :unelevated="categoriaSeleccionada === cat"
-              size="11px"
-              class="br-md q-px-sm text-capitalize"
+              :flat="categoriaSeleccionada !== 'todas'"
+              :unelevated="categoriaSeleccionada === 'todas'"
+              :color="categoriaSeleccionada === 'todas' ? 'primary' : 'grey-7'"
+              label="Todas"
+              size="sm"
               no-caps
-              @click="categoriaSeleccionada = cat"
+              @click="categoriaSeleccionada = 'todas'"
+            />
+            <q-btn
+              :flat="categoriaSeleccionada !== 'consultas'"
+              :unelevated="categoriaSeleccionada === 'consultas'"
+              :color="categoriaSeleccionada === 'consultas' ? 'blue' : 'grey-7'"
+              label="Consultas"
+              size="sm"
+              no-caps
+              @click="categoriaSeleccionada = 'consultas'"
+            />
+            <q-btn
+              :flat="categoriaSeleccionada !== 'procedimientos'"
+              :unelevated="categoriaSeleccionada === 'procedimientos'"
+              :color="categoriaSeleccionada === 'procedimientos' ? 'purple' : 'grey-7'"
+              label="Procedimientos"
+              size="sm"
+              no-caps
+              @click="categoriaSeleccionada = 'procedimientos'"
+            />
+            <q-btn
+              :flat="categoriaSeleccionada !== 'diagnostico'"
+              :unelevated="categoriaSeleccionada === 'diagnostico'"
+              :color="categoriaSeleccionada === 'diagnostico' ? 'teal' : 'grey-7'"
+              label="Diagnóstico"
+              size="sm"
+              no-caps
+              @click="categoriaSeleccionada = 'diagnostico'"
             />
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Lista de Servicios con Estética de Menú -->
-    <div class="scroll-area custom-scrollbar" style="height: calc(80vh - 160px)">
-      <q-list class="q-pa-md">
+    <!-- Lista de servicios (Migrado de Grid a Lista) -->
+    <div class="services-list-container">
+      <q-list separator class="br-md overflow-hidden bg-white shadow-1">
         <q-item
-          v-for="(servicio, index) in serviciosFiltrados"
+          v-for="servicio in serviciosFiltrados"
           :key="servicio.id"
           clickable
-          :disable="isServicioYaAgregado(servicio.tipo, servicio.id)"
-          v-ripple="!isServicioYaAgregado(servicio.tipo, servicio.id)"
-          class="service-modern-item q-mb-xs animate-fade-in"
-          :class="{ 'item--is-added': isServicioYaAgregado(servicio.tipo, servicio.id) }"
-          :style="{ animationDelay: (index * 0.03) + 's' }"
+          v-ripple="!isServicioYaAgregado(servicio.tipo)"
+          class="service-list-item q-py-sm"
+          :class="{
+            'service-item--disabled bg-grey-1': isServicioYaAgregado(servicio.tipo)
+          }"
           @click="seleccionarServicio(servicio)"
         >
-          <!-- Icono Moderno (Color sobre Fondo Pastel) -->
           <q-item-section avatar>
-            <div 
-              class="modern-icon-container" 
-              :style="{ 
-                backgroundColor: getServicePastelColor(servicio),
-                color: getServiceColor(servicio)
-              }"
+            <q-avatar 
+              :color="isServicioYaAgregado(servicio.tipo) ? 'grey-4' : servicio.color" 
+              text-color="white" 
+              size="38px"
             >
-              <q-icon :name="servicio.icono" size="24px" />
-            </div>
+              <q-icon :name="servicio.icono" size="20px" />
+            </q-avatar>
           </q-item-section>
 
-          <!-- Textos con Mayor Contraste -->
           <q-item-section>
-            <q-item-label class="text-weight-bold text-dark text-uppercase letter-spacing-1 no-wrap">
+            <q-item-label class="text-weight-bold text-blue-10 no-wrap">
               {{ servicio.nombre }}
-              <q-badge v-if="servicio.premium" color="amber-2" text-color="amber-10" label="PREMIUM" class="q-ml-sm br-sm text-weight-bolder" />
+              <q-badge v-if="servicio.premium" color="amber" text-color="black" label="PREMIUM" size="9px" class="q-ml-sm" />
             </q-item-label>
-            <q-item-label caption lines="1" class="text-grey-8 text-weight-medium">{{ servicio.descripcion }}</q-item-label>
+            <q-item-label caption lines="1" class="text-grey-7">{{ servicio.descripcion }}</q-item-label>
           </q-item-section>
 
-          <!-- Acciones -->
           <q-item-section side>
-            <div v-if="isServicioYaAgregado(servicio.tipo, servicio.id)" class="flex items-center text-positive animate-scale">
-              <q-icon name="check_circle" size="26px" />
+            <div class="row items-center q-gutter-x-sm">
+              <!-- Badges de características -->
+              <div class="row q-gutter-xs hide-mobile">
+                <q-badge v-if="servicio.integrable" outline color="blue-4" label="Integrable" size="9px" />
+                <q-badge v-if="servicio.esDinamico" outline color="purple-4" label="Configurable" size="9px" />
+              </div>
+
+              <!-- Botones de Acción -->
+              <q-btn
+                v-if="!isServicioYaAgregado(servicio.tipo)"
+                flat
+                round
+                dense
+                color="primary"
+                icon="add_circle"
+                size="sm"
+                @click.stop="seleccionarServicio(servicio)"
+              >
+                <q-tooltip>Agregar Servicio</q-tooltip>
+              </q-btn>
+              <q-icon
+                v-else
+                name="check_circle"
+                color="positive"
+                size="sm"
+              />
             </div>
-            <q-btn
-              v-else
-              icon="add_circle"
-              color="blue-7"
-              flat
-              round
-              dense
-              size="md"
-              class="hover-reveal"
-            />
           </q-item-section>
         </q-item>
-
-        <!-- Empty State -->
-        <div v-if="serviciosFiltrados.length === 0" class="text-center q-pa-xl">
-          <q-icon name="search_off" size="64px" color="grey-3" />
-          <div class="text-grey-5 q-mt-md">No se encontraron servicios que coincidan</div>
-        </div>
       </q-list>
     </div>
 
-    <!-- Footer Informativo -->
-    <div class="selector-footer q-px-lg q-py-sm bg-grey-1 flex items-center justify-between border-top">
-      <div class="row items-center text-caption text-grey-6">
-        <q-icon name="lightbulb" color="amber-8" size="14px" class="q-mr-xs" />
-        Mostrando {{ serviciosFiltrados.length }} servicios disponibles
+    <!-- Información y acciones del footer -->
+    <div class="services-footer q-mt-md q-pa-md bg-grey-1 rounded-borders">
+      <div class="row items-center justify-between">
+        <div class="text-caption text-grey-7">
+          <q-icon name="info" size="xs" class="q-mr-xs" />
+          Mostrando {{ serviciosFiltrados.length }} de {{ serviciosDisponibles.length }} servicios
+        </div>
+        <q-btn flat dense label="Cerrar" color="grey-7" @click="$emit('close')" />
       </div>
-      <q-btn flat dense label="Cerrar Catálogo" color="primary" no-caps v-close-popup />
     </div>
   </div>
 </template>
@@ -242,7 +270,7 @@ export default defineComponent({
             // componente_clave: qué componente Vue cargar (ej: 'vacunacion')
             componente_clave: s.componente_clave || null,
             // tipo: para backward compat con isServicioYaAgregado
-            tipo:            String(tipo).toLowerCase(),
+            tipo:            tipo,
             esDinamico:      s.tipo_renderizado !== 'especializado'
           }
         })
@@ -255,11 +283,11 @@ export default defineComponent({
       ]
     })
     
-    // Servicios filtrados (Incluyendo los agregados pero marcados como deshabilitados)
+    // Servicios filtrados
     const serviciosFiltrados = computed(() => {
       let servicios = serviciosDisponibles.value
       
-      // 1. Filtro por texto
+      // Filtro por texto
       if (filtroTexto.value) {
         const texto = filtroTexto.value.toLowerCase()
         servicios = servicios.filter(s => 
@@ -268,7 +296,7 @@ export default defineComponent({
         )
       }
       
-      // 2. Filtro por categoría
+      // Filtro por categoría
       if (categoriaSeleccionada.value !== 'todas') {
         servicios = servicios.filter(s => {
           const categoria = categoriasMap[s.tipo] || 'consultas'
@@ -279,20 +307,8 @@ export default defineComponent({
       return servicios
     })
     
-    const isServicioYaAgregado = (tipoServicio, idCatalog = null) => {
-      if (!tipoServicio && !idCatalog) return false
-      
-      const tipoLower = tipoServicio ? String(tipoServicio).toLowerCase() : null
-      
-      return props.serviciosAplicados.some(s => {
-        // 1. Prioridad: Comparar por ID real de catálogo (unívoco)
-        if (idCatalog && s.id_servicio_def && Number(s.id_servicio_def) === Number(idCatalog)) return true
-        
-        // 2. Fallback: Comparar por tipo (retrocompatibilidad)
-        if (tipoLower && s.tipo && String(s.tipo).toLowerCase() === tipoLower) return true
-        
-        return false
-      })
+    const isServicioYaAgregado = (tipoServicio) => {
+      return props.serviciosAplicados.some(servicio => servicio.tipo === tipoServicio)
     }
     
     const seleccionarServicio = (servicio) => {
@@ -320,139 +336,103 @@ export default defineComponent({
       })
     }
     
-    const getServiceColor = (servicio) => {
-      const colors = {
-        consultas: '#2e7d32', // Mas oscuro para contraste
-        procedimientos: '#4527a0',
-        diagnostico: '#00695c'
-      }
-      return servicio.color || colors[categoriasMap[servicio.tipo]] || '#1565c0'
-    }
-
-    const getServicePastelColor = (servicio) => {
-      const baseColor = getServiceColor(servicio)
-      // Generar una versión muy clara del color base para el fondo
-      return baseColor + '15' // 15 es ~8% de opacidad en hex
-    }
-
     return {
       serviciosDisponibles,
       serviciosFiltrados,
       isServicioYaAgregado,
       seleccionarServicio,
       filtroTexto,
-      categoriaSeleccionada,
-      getServiceColor,
-      getServicePastelColor
+      categoriaSeleccionada
     }
   }
 })
 </script>
 
 <style scoped>
-.servicios-selector-premium {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background: #fdfdfd;
+.servicios-disponibles-modern {
+  padding: 16px;
 }
 
-.selector-header {
-  border-bottom: 2px solid #f1f1f1;
+.search-input {
+  font-size: 14px;
 }
 
-.search-field :deep(.q-field__control) {
-  border-radius: 8px !important;
-  background: white !important;
+.services-list-container {
+  max-height: calc(75vh - 150px);
+  overflow-y: auto;
+  padding: 2px;
 }
 
-.service-modern-item {
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #f0f0f0;
-  transition: all 0.2s ease-out;
-  padding: 8px 16px;
+.service-list-item {
+  border-radius: 8px;
+  margin-bottom: 4px;
+  transition: all 0.2s ease;
 }
 
-.service-modern-item:hover:not(.item--is-added) {
-  border-color: #1976d2;
-  background: #f8fbff;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-  transform: translateY(-1px);
+.service-list-item:hover:not(.service-item--disabled) {
+  background-color: rgba(25, 118, 210, 0.04);
 }
 
-.item--is-added {
-  background: #fff5f5;
-  border-color: #fee2e2;
-  opacity: 0.7;
-  cursor: not-allowed !important;
-}
-
-.item--is-added .modern-icon-container {
-  filter: grayscale(0.5);
+.service-item--disabled {
   opacity: 0.6;
 }
 
-.item--is-added .text-dark {
-  color: #c53030 !important;
+.services-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-.modern-icon-container {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+/* Scrollbar personalizado */
+.services-grid::-webkit-scrollbar {
+  width: 8px;
 }
 
-.service-modern-item:hover .modern-icon-container {
-  transform: scale(1.05) rotate(-2deg);
-}
-
-.letter-spacing-1 {
-  letter-spacing: 0.5px;
-  font-size: 13px;
-}
-
-.hover-reveal {
-  opacity: 0.3;
-  transition: opacity 0.2s ease;
-}
-
-.service-modern-item:hover .hover-reveal {
-  opacity: 1;
-}
-
-/* Animations */
-.animate-fade-in {
-  animation: fadeInUp 0.35s ease-out both;
-}
-
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-scale {
-  animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-@keyframes scaleIn {
-  from { transform: scale(0.5); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #e0e0e0;
+.services-grid::-webkit-scrollbar-track {
+  background: #f1f1f1;
   border-radius: 10px;
 }
 
-.selector-footer {
-  border-top: 1px solid #eee;
+.services-grid::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+
+.services-grid::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Animación de entrada */
+.service-card {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dark mode */
+.body--dark .service-card {
+  background: #1e1e1e;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.body--dark .service-card--hover:hover {
+  background: #252525;
+  border-color: var(--q-primary) !important;
+}
+
+.body--dark .service-card--disabled {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.body--dark .services-footer {
+  background: #1a1a1a;
+  border-top-color: rgba(255, 255, 255, 0.1);
 }
 </style>

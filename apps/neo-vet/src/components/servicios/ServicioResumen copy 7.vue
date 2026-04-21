@@ -108,29 +108,49 @@
 
             <div class="timeline-content-wrapper">
               <div class="timeline-card" :class="servicio.completado ? 'timeline-card--done' : 'timeline-card--pending'">
-                <!-- Cabecera Consolidada -->
-                <div class="row items-center justify-between no-wrap q-gutter-x-sm">
-                  <div class="column flex-grow-1 overflow-hidden" style="min-width: 0;">
-                    <span class="service-name-text ellipsis">{{ servicio.nombre }}</span>
+                <div class="row items-center justify-between q-mb-sm">
+                  <div class="column">
+                    <span class="service-name-text">{{ servicio.nombre }}</span>
                     <span class="service-meta-text">
                       <q-icon name="schedule" size="12px" class="q-mr-xs" />
                       {{ servicio.timestamp }}
                     </span>
                   </div>
-
-                  <div class="row items-center no-wrap q-gutter-x-xs">
+                  <div class="row q-gutter-x-xs no-wrap">
                     <q-chip 
                       dense 
                       outline 
                       :color="servicio.completado ? 'positive' : 'negative'" 
                       size="10px" 
-                      class="text-weight-bold br-xs q-mx-xs"
+                      class="text-weight-bold"
+                      style="border-radius: 4px;"
                     >
-                      {{ servicio.completado ? 'FIN' : 'PEND' }}
+                      {{ servicio.completado ? 'COMPLETADO' : 'PENDIENTE' }}
                     </q-chip>
+                  </div>
+                </div>
 
-                    <!-- Acciones Integradas -->
-                    <div class="row items-center no-wrap q-gutter-x-xs" v-if="servicio.completado">
+                <!-- Información Clínica Expandida -->
+                <div class="clinical-info-segment q-mt-md" v-if="servicio.completado">
+                  <div class="row q-col-gutter-sm">
+                    <template v-for="(valor, label) in getsDatosRelevantes(servicio)" :key="label">
+                      <div class="col-auto" v-if="valor">
+                        <div class="info-badge">
+                          <span class="info-badge__label">{{ label }}:</span>
+                          <span class="info-badge__value">{{ valor }}</span>
+                        </div>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+                <div class="pending-info-segment" v-else>
+                  <q-icon name="info_outline" color="grey-5" size="14px" class="q-mr-xs" />
+                  <span class="text-caption text-grey-6 italic">Esperando registro de datos...</span>
+                </div>
+
+                <!-- Barra de Acciones Premium -->
+                <div class="timeline-card-actions q-mt-md pt-md row items-center justify-between border-t-dashed">
+                    <div class="row q-gutter-x-xs no-wrap" v-if="servicio.completado">
                       <q-btn
                         v-if="servicio.componente_clave === 'vacunacion'"
                         unelevated round dense icon="card_membership" size="11px" color="blue-1" text-color="blue-7" class="action-btn-v3"
@@ -158,7 +178,6 @@
                       <q-btn-dropdown
                         v-if="servicio.plantillas_servicio && servicio.plantillas_servicio.length > 1"
                         unelevated round dense icon="print" size="11px" color="grey-2" text-color="grey-7" class="action-btn-v3"
-                        dropdown-icon="none"
                       >
                         <q-list dense style="min-width: 180px">
                           <q-item v-for="p in servicio.plantillas_servicio" :key="p.id_plantilla" clickable v-close-popup @click="$emit('imprimir-servicio', servicio, 'plantilla', p.id_plantilla)">
@@ -173,29 +192,10 @@
                         @click.stop="$emit('imprimir-servicio', servicio, 'plantilla')"
                       ><q-tooltip>Imprimir</q-tooltip></q-btn>
                     </div>
+                    <div v-else></div>
 
-                    <q-btn unelevated round dense icon="arrow_forward" size="11px" color="primary" class="action-btn-v3 q-ml-xs shadow-sm" @click="$emit('seleccionar-pestaña', servicio.id)">
-                      <q-tooltip>Ir al Servicio</q-tooltip>
-                    </q-btn>
-                  </div>
+                    <q-btn color="primary" flat icon-right="arrow_forward" label="Ir al Servicio" size="11px" class="br-md" no-caps @click="$emit('seleccionar-pestaña', servicio.id)" />
                 </div>
-
-                <!-- Información Clínica Expandida -->
-                <div class="clinical-info-segment q-mt-md" v-if="servicio.completado">
-                  <div class="row q-col-gutter-sm">
-                    <template v-for="(valor, label) in getsDatosRelevantes(servicio)" :key="label">
-                      <div class="col-auto" v-if="valor">
-                        <div class="info-badge">
-                          <span class="info-badge__label">{{ label }}:</span>
-                          <span class="info-badge__value">{{ valor }}</span>
-                        </div>
-                      </div>
-                    </template>
-                  </div>
-                </div>
-
-
-
               </div>
             </div>
           </div>
@@ -410,7 +410,6 @@ const getsDatosRelevantes = (servicio) => {
   flex-direction: column;
   align-items: center;
   flex-shrink: 0;
-  margin-top: -2px;
 }
 
 .trail-line {
@@ -428,8 +427,8 @@ const getsDatosRelevantes = (servicio) => {
 }
 
 .trail-node {
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: white;
   border: 2px solid #f1f5f9;
@@ -439,7 +438,6 @@ const getsDatosRelevantes = (servicio) => {
   position: relative;
   z-index: 10;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  margin-top: 6px;
 }
 
 .node--done {
@@ -469,13 +467,13 @@ const getsDatosRelevantes = (servicio) => {
 /* Tarjeta de Contenido */
 .timeline-content-wrapper {
   flex: 1;
-  padding-bottom: 12px;
+  padding-bottom: 32px;
 }
 
 .timeline-card {
-  padding: 12px 16px;
+  padding: 16px 20px;
   background: white;
-  border-radius: 12px;
+  border-radius: 16px;
   border: 1px solid #f1f5f9;
   transition: all 0.3s ease;
   position: relative;
@@ -501,11 +499,11 @@ const getsDatosRelevantes = (servicio) => {
 .info-badge {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  padding: 2px 8px;
-  border-radius: 6px;
+  padding: 4px 10px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   transition: all 0.2s;
 }
 
@@ -543,16 +541,26 @@ const getsDatosRelevantes = (servicio) => {
   transform: translateY(-3px) scale(1.1);
 }
 
-.br-xs { border-radius: 4px; }
-.shadow-sm { box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-.flex-grow-1 { flex-grow: 1; }
-
-.action-btn-v3:hover {
-  transform: scale(1.1);
+.br-md {
+  border-radius: 8px;
 }
 
-.action-btn-v3 :deep(.q-btn-dropdown__arrow) {
-  display: none !important;
+.bg-positive-soft { background: #ecfdf5; }
+.bg-orange-soft { background: #fff7ed; }
+
+/* Animaciones */
+.animate-fade-in {
+  animation: slideInLeft 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-15px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.timeline-item:nth-child(1) { animation-delay: 0.1s; }
+.timeline-item:nth-child(2) { animation-delay: 0.2s; }
+.timeline-item:nth-child(3) { animation-delay: 0.3s; }
+.timeline-item:nth-child(4) { animation-delay: 0.4s; }
 </style>
 

@@ -41,6 +41,13 @@
                 <q-item-section>Imprimir Certificado</q-item-section>
               </q-item>
 
+              <q-item clickable @click="firmarDocumento('especial')">
+                <q-item-section avatar>
+                  <q-icon name="history_edu" color="orange-8"/>
+                </q-item-section>
+                <q-item-section>Visualizar y Firmar</q-item-section>
+              </q-item>
+
               <q-item v-if="plantillasServicio && plantillasServicio.length > 0" clickable>
                 <q-item-section avatar>
                   <q-icon name="description" color="secondary"/>
@@ -66,6 +73,12 @@
                         <q-icon name="description" color="secondary" size="xs" />
                       </q-item-section>
                       <q-item-section>{{ p.nombre_plantilla || 'Plantilla ' + p.id_plantilla }}</q-item-section>
+                      <q-item-section side>
+                        <div class="row items-center q-gutter-xs">
+                          <q-btn flat round dense icon="print" size="xs" color="grey-7" @click.stop="imprimirCertificado('plantilla', p.id_plantilla)" />
+                          <q-btn flat round dense icon="history_edu" size="xs" color="orange-8" @click.stop="firmarDocumento('plantilla', p.id_plantilla)" />
+                        </div>
+                      </q-item-section>
                     </q-item>
                   </q-list>
                 </q-menu>
@@ -295,7 +308,7 @@
   })
   
   // Emits
-  const emit = defineEmits(['servicio-actualizado', 'servicio-completado', 'servicio-eliminado', 'imprimir-servicio'])
+  const emit = defineEmits(['servicio-actualizado', 'servicio-completado', 'servicio-eliminado', 'imprimir-servicio', 'firmar-servicio'])
 
 const modoEdicionManual = ref(false)
   
@@ -428,6 +441,10 @@ const modoEdicionManual = ref(false)
   
   const imprimirCertificado = (tipo = 'especial', idPlantilla = null) => {
     emit('imprimir-servicio', props.servicioId, datosDesparacitacion.value, tipo, idPlantilla)
+  }
+
+  const firmarDocumento = (tipo = 'especial', idPlantilla = null) => {
+    emit('firmar-servicio', props.servicioId, datosDesparacitacion.value, tipo, idPlantilla)
   }
 
   const eliminarServicio = () => {

@@ -1,409 +1,700 @@
 <template>
   <div class="fullscreen-atencion">
-    <div class="app-shell" :class="{ 'is-collapsed': sidebarCollapsed }">
-      <!-- SIDEBAR LATERAL SEGUIMIENTO -->
-      <aside class="atencion-sidebar">
-        <div class="sidebar-header q-pa-md flex items-center justify-between">
+    <div class="app-column-layout">
+      <!-- Cabecera Premium Rediseñada -->
+      <div class="main-header-premium">
+        <div class="header-profile-section" v-if="paciente && paciente.id">
+          <!-- Bloque Paciente -->
+          <div class="patient-profile-card shadow-sm">
+            <div class="profile-avatar bg-primary-soft">
+              <q-icon name="pets" size="32px" color="primary" />
+            </div>
+            <div class="profile-details">
+              <div class="patient-name-container">
+                <h1 class="patient-name text-weight-bolder">{{ paciente.nombre }}</h1>
+                <q-badge rounded color="primary" class="q-ml-sm text-weight-bold" outline v-if="paciente.especie">
+                  {{ paciente.especie }}
+                </q-badge>
+              </div>
+              <div class="patient-brief row items-center no-wrap">
+                <span class="brief-item" v-if="paciente.raza">{{ paciente.raza }}</span>
+                <q-separator vertical class="q-mx-sm" v-if="paciente.edad" />
+                <span class="brief-item" v-if="paciente.edad">{{ paciente.edad }} años</span>
+                <q-separator vertical class="q-mx-sm" v-if="paciente.peso" />
+                <span class="brief-item" v-if="paciente.peso">{{ paciente.peso }} kg</span>
+              </div>
+            </div>
+          </div>
 
-          <q-btn
-            flat round dense
-            :icon="sidebarCollapsed ? 'last_page' : 'first_page'"
-            color="grey-7"
-            @click="sidebarCollapsed = !sidebarCollapsed"
-          />
+          <div class="header-v-divider"></div>
+
+          <!-- Bloque Propietario -->
+          <div class="owner-profile-card" v-if="paciente.propietario">
+            <div class="row items-center no-wrap">
+              <q-avatar size="44px" class="q-mr-md shadow-1 bg-blue-1">
+                <q-icon name="person" size="28px" color="primary" />
+              </q-avatar>
+              <div class="owner-info">
+                <div class="label-tiny">PROPIETARIO</div>
+                <div class="owner-fullname text-weight-bold">
+                  {{ paciente.propietario.nombre }} {{ paciente.propietario.primerapellido }}
+                </div>
+                <div class="owner-contact text-caption text-grey-7 row items-center no-wrap">
+                  <q-icon name="phone" size="14px" class="q-mr-xs" />
+                  {{ paciente.propietario.telefono1 || 'Sin teléfono' }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="header-v-divider"></div>
+
+          <!-- Bloque ID Atención -->
+          <div class="attention-id-card">
+            <div class="label-tiny">ID ATENCIÓN ACTUAL</div>
+            <div class="attention-number text-primary text-weight-black" v-if="atenciones.length > 0">
+              {{ atenciones[atencionActual]?.numero }}
+            </div>
+            <div class="attention-number text-grey-5" v-else>SN-0000</div>
+            <div class="text-caption text-grey-6" v-if="atenciones.length > 0">
+              {{ formatDate(atenciones[atencionActual]?.fecha) }}
+            </div>
+          </div>
+
+          <div class="header-v-divider"></div>
+
+          <!-- Bloque Profesional Asignado -->
+          <!-- <div class="veterinario-card pointer-cursor" @click="verDetallesAtencion">
+            <div class="label-tiny">PROFESIONAL ASIGNADO</div>
+            <div class="row items-center no-wrap">
+              <q-icon name="medical_services" size="18px" color="primary" class="q-mr-xs" />
+              <div class="text-subtitle1 text-weight-bold text-primary">
+                {{ atencionActualData.veterinario }}
+              </div>
+            </div>
+          </div> -->
         </div>
 
-        <div class="sidebar-main scroll">
+        <div class="header-actions">
+          <div class="row no-wrap items-center q-gutter-sm">
+            <!-- Botón Nueva Atención -->
+            <q-btn
+              unelevated
+              color="white"
+              text-color="primary"
+              icon="add"
+              label="Nueva Atención"
+              @click="nuevaAtencion"
+              :disable="!paciente || !paciente.id"
+              no-caps
+              class="text-weight-bold shadow-1"
+              style="height: 40px;"
+            />
 
-
-          <!-- Navegación de Servicios Activos -->
-          <q-list class="q-px-sm" padding>
-            <q-item-label header v-if="!sidebarCollapsed" class="text-uppercase text-weight-bold text-caption text-grey-5 letter-spacing-1">Servicios de Atención</q-item-label>
+            <q-btn
+              color="primary"
+              icon="search"
+              label="Buscar Paciente"
+              @click="showSearchDialog = true"
+              no-caps
+              flat
+              class="search-btn-premium"
+              style="height: 40px;"
+            />
             
-            <q-item
-              clickable v-ripple
-              :active="servicioActivoTab === 'resumen'"
-              @click="servicioActivoTab = 'resumen'"
-              active-class="nav-active"
-              class="nav-btn br-md q-mb-xs"
+            <q-separator vertical class="q-mx-xs" />
+
+            <q-btn 
+              round 
+              flat 
+              color="secondary" 
+              icon="print" 
+              @click="imprimirResumenAtencion"
             >
-              <q-item-section avatar>
-                <q-icon name="grid_view" />
-              </q-item-section>
-              <q-item-section v-if="!sidebarCollapsed">Resumen Clínico</q-item-section>
-              <q-tooltip v-if="sidebarCollapsed" anchor="center right" self="center left">Resumen</q-tooltip>
-            </q-item>
+              <q-tooltip>Imprimir Resumen</q-tooltip>
+            </q-btn>
 
-            <q-item
-              v-for="servicio in serviciosAplicados"
-              :key="'sidebar-nav-' + servicio.id"
-              clickable v-ripple
-              :active="servicioActivoTab === servicio.id"
-              @click="servicioActivoTab = servicio.id"
-              active-class="nav-active"
-              class="nav-btn br-md q-mb-xs"
+            <q-btn 
+              round 
+              flat 
+              color="info" 
+              icon="info_outline" 
+              @click="verDetallesAtencion"
             >
-              <q-item-section avatar>
-                <q-icon :name="servicio.icono" />
-              </q-item-section>
-              <q-item-section v-if="!sidebarCollapsed">
-                <q-item-label class="text-weight-medium">{{ servicio.nombre }}</q-item-label>
-              </q-item-section>
-              <q-item-section side v-if="servicio.completado && !sidebarCollapsed">
-                <q-icon name="verified" color="positive" size="16px" />
-              </q-item-section>
-              <q-tooltip v-if="sidebarCollapsed" anchor="center right" self="center left">{{ servicio.nombre }}</q-tooltip>
-            </q-item>
+              <q-tooltip>Detalles de Atención</q-tooltip>
+            </q-btn>
 
-            <!-- Boton Añadir -->
-            <q-item clickable v-ripple class="nav-btn-add br-md q-mt-md" @click="showAddServiceDialog = true" key="add-service-btn">
-              <q-item-section avatar>
-                <q-icon name="add_circle" color="primary" />
-              </q-item-section>
-              <q-item-section v-if="!sidebarCollapsed" class="text-primary text-weight-bold">Agregar Servicio</q-item-section>
-            </q-item>
-          </q-list>
-
-          <!-- Timeline de Historial Contextual (Mejorado) -->
-          <div class="history-context-section q-mt-lg q-pb-md" v-if="!sidebarCollapsed && atenciones.length > 1" key="history-section">
-            <div class="flex items-center q-px-md q-mb-sm">
-              <q-icon name="history" color="grey-6" size="18px" class="q-mr-sm" />
-              <div class="text-uppercase text-weight-bold text-caption text-grey-7 letter-spacing-1">Historial de Atención</div>
-            </div>
-            
-            <q-list class="q-gutter-y-xs">
-              <q-item 
-                v-for="(atenc, idx) in atenciones.slice(0, 5)" 
-                :key="'hist-' + atenc.id" 
-                clickable v-ripple
-                @click="atencionActual = idx"
-                :active="atencionActual === idx"
-                class="br-lg q-mx-md history-card-item"
-                :class="{ 'history-card-active': atencionActual === idx }"
-              >
-                <q-item-section>
-                  <div class="row items-center justify-between no-wrap q-mb-xs">
-                    <q-item-label class="text-weight-bolder text-body2 text-primary">{{ atenc.numero }}</q-item-label>
-                    <q-item-label caption class="text-weight-bold">{{ atenc.fecha }}</q-item-label>
-                  </div>
-                  <q-item-label caption lines="1" class="text-grey-7 flex items-center">
-                    <q-icon name="person" size="12px" class="q-mr-xs" />
-                    {{ atenc.veterinario }}
-                  </q-item-label>
-                </q-item-section>
-                
-                <q-item-section side v-if="atenc.estado === 'Finalizada'">
-                  <q-icon name="check_circle" color="grey-4" size="16px" />
-                </q-item-section>
-              </q-item>
-            </q-list>
+            <q-btn
+              color="primary"
+              icon="add_circle"
+              label="Nuevo Servicio"
+              @click="showAddServiceDialog = true"
+              :disable="atenciones.length === 0 || atencionActualData.estado === 'Finalizada'"
+              no-caps
+              class="add-service-btn animate-pop text-weight-bold"
+              style="height: 40px;"
+            />
           </div>
         </div>
+      </div>
 
-        <div class="sidebar-actions q-pa-md" v-if="!sidebarCollapsed">
-          <q-btn outline color="primary" icon="history" label="Ver Historial" class="full-width br-lg q-mb-sm" @click="verDetallesAtencion" />
-          <q-btn unelevated color="primary" icon="save" label="Guardar Atención" class="full-width br-lg" :loading="guardandoAtencion" @click="guardarAtencion" />
-        </div>
-      </aside>
-
-      <!-- MAIN WORKSPACE -->
-      <main class="main-workspace flex column">
-        <!-- Header Premium Modernizado (Atención 2.0 - Refined) -->
-        <header class="workspace-header workspace-header--premium q-px-lg q-py-md text-white border-bottom shadow-2">
-          <div class="row items-center no-wrap full-width">
-            
-            <!-- Columna 1: Folio y Estado -->
-            <div class="col-auto q-pr-lg border-right-glass">
-              <div class="flex items-center q-mb-xs">
-                <div class="folio-badge q-px-md q-py-xs br-pill text-weight-bolder">
-                   <q-icon name="pin" class="q-mr-xs" /> {{ atencionActualData?.numero || 'A-00' }}
-                </div>
-              </div>
-              <div class="row items-center">
-                 <div class="status-indicator" :class="{ 'is-finalized': atencionActualData?.estado === 'Finalizada' }"></div>
-                 <span class="text-caption text-weight-bold letter-spacing-1 uppercase opacity-80">{{ atencionActualData?.estado || 'En curso' }}</span>
-              </div>
+      <!-- Barra de Historial Horizontal Ultra-Compacta -->
+      <div class="attentions-timeline-bar" v-if="atenciones.length > 0">
+        <div class="timeline-layout">
+          <!-- Etiqueta -->
+          <div class="timeline-header-side">
+            <div class="history-label">
+              <q-icon name="history" size="18px" color="primary" />
+              <span class="text-caption text-weight-bold">HISTORIAL</span>
+              <q-badge color="grey-3" text-color="grey-8" dense class="q-ml-xs" style="font-size: 9px">{{ atenciones.length }}</q-badge>
             </div>
-
-            <!-- Columna 2: Mascota y Propietario (Datos Concatenados) -->
-            <div class="col q-px-lg">
-              <div class="info-stack">
-                <div class="row items-baseline no-wrap">
-                  <span class="text-h5 text-weight-bolder truncate q-mr-md patient-name-glow">{{ paciente?.nombre }}</span>
-                  <div class="flex items-center gap-xs">
-                    <q-badge outline color="white" class="br-md text-caption text-weight-medium opacity-90">
-                      {{ paciente?.especie }} / {{ paciente?.raza || 'Mestizo' }}
-                    </q-badge>
-                    <q-badge v-if="paciente?.edad" outline color="white" class="br-md text-caption opacity-90">{{ paciente.edad }}</q-badge>
-                    <q-badge v-if="paciente?.sexo" outline color="white" class="br-md text-caption uppercase opacity-90">{{ paciente.sexo }}</q-badge>
-                  </div>
-                </div>
-                <div class="owner-info flex items-center q-mt-xs opacity-90">
-                  <q-icon name="person" size="16px" class="q-mr-xs" />
-                  <span class="text-caption text-weight-bold uppercase">
-                    {{ paciente?.propietario?.nombre }} {{ paciente?.propietario?.primerapellido }}
-                   <span v-if="paciente?.propietario?.cedula" class="q-ml-xs text-weight-light"> (DNI: {{ paciente.propietario.cedula }})</span>
-                   <span v-if="paciente?.propietario?.poblador_contacto_telefono1" class="q-ml-md"> <q-icon name="phone" size="12px" /> {{ paciente.propietario.poblador_contacto_telefono1 }}</span>
-                  </span>
-                  <q-separator vertical color="white" dark class="q-mx-md opacity-40" inset />
-                  <q-icon name="event" size="16px" class="q-mr-xs" />
-                  <span class="text-caption">{{ formatDate(atencionActualData?.fecha) }} {{ atencionActualData?.hora }}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Columna 3: Profesional y Acciones -->
-            <div class="col-auto row items-center no-wrap">
-              <div class="professional-pill q-px-md q-py-sm br-xl flex items-center q-mr-lg">
-                 <q-avatar size="32px" class="bg-white text-primary text-weight-bold shadow-1">
-                   {{ atencionActualData?.veterinario?.[0] || 'V' }}
-                 </q-avatar>
-                 <div class="q-ml-sm hide-mobile">
-                    <div class="text-caption text-weight-bold leading-none">Médico Veterinario</div>
-                    <div class="text-subtitle2 text-weight-bolder text-white truncate max-width-250">{{ atencionActualData?.veterinario }}</div>
-                 </div>
-              </div>
-
-              <div class="action-buttons flex items-center">
-                <q-btn-group unelevated class="br-lg shadow-1">
-                  <q-btn color="white" text-color="blue-10" icon="add" label="Nueva Atención" @click="nuevaAtencion" class="text-weight-bold" />
-                  <q-btn color="blue-9" icon="search" @click="showSearchDialog = true" />
-                </q-btn-group>
-                <q-btn flat round icon="more_vert" color="white" class="q-ml-sm" />
-              </div>
-            </div>
-
-          </div>
-        </header>
-
-        <!-- Viewport de Contenido -->
-        <div class="workspace-viewport col scroll bg-grey-1" :key="'viewport-' + atencionActualData.id">
-          <!-- Empty States -->
-          <div v-if="atenciones.length === 0" class="full-height flex flex-center" key="empty-state">
-             <div class="text-center animate-fade-in" v-if="!paciente">
-                <q-icon name="manage_search" size="80px" color="grey-3" />
-                <div class="text-h6 text-grey-5 q-mt-md">Selecciona un paciente para continuar</div>
-                <q-btn unelevated color="primary" label="Buscador" class="q-mt-lg br-lg" icon="search" @click="showSearchDialog = true" />
-             </div>
-             <div class="text-center animate-fade-in" v-else>
-                <q-icon name="post_add" size="80px" color="blue-1" />
-                <div class="text-h6 text-grey-7 q-mt-md">No hay atenciones para {{ paciente.nombre }}</div>
-                <q-btn unelevated color="primary" label="Iniciar Nueva Atención" class="q-mt-lg br-xl q-px-xl" size="lg" icon="add" @click="nuevaAtencion" />
-             </div>
           </div>
           
-          <!-- Contenido Activo -->
-          <div v-else class="active-content-render q-pa-lg">
-             <!-- RENDERIZADOR ESTABILIZADO (Atención 2.0) -->
-             <div class="service-view-port br-xl bg-white shadow-2 q-pa-none overflow-hidden" 
-                  style="min-height: 500px" 
-                  :key="'service-container-' + (servicioSeleccionado?.id || 'resumen')">
-                
-                <!-- 1. RESUMEN CLÍNICO -->
-                <div v-if="servicioActivoTab === 'resumen'" key="resumen-content" class="animate-fade-in">
-                  <ServicioResumen 
-                    :atencion="atencionActualData"
-                    :paciente="paciente"
-                    :servicios-aplicados="serviciosAplicados"
-                    @seleccionar-pestaña="id => servicioActivoTab = id"
-                    @nueva-atencion="nuevaAtencion"
-                    @imprimir-resumen="imprimirResumenAtencion"
-                    @imprimir-servicio="imprimirDocumentoServicio"
-                    @firmar-servicio="firmarServicio"
-                  />
+          <!-- Línea de Tiempo Siempre Visible -->
+          <div class="timeline-wrapper-compact">
+            <div class="timeline-track"></div>
+            <div class="timeline-scroll-container">
+              <div
+                v-for="(atencion, index) in atenciones"
+                :key="atencion.id"
+                class="timeline-node"
+                :class="{ 
+                  'active': atencionActual === index,
+                  'is-current': atencion.estado === 'En curso'
+                }"
+                @click="atencionActual = index"
+              >
+                <div class="node-marker">
+                  <div class="marker-ring"></div>
+                  <div class="marker-dot"></div>
+                  <div class="pulse-ring" v-if="atencion.estado === 'En curso'"></div>
                 </div>
+                <div class="node-content">
+                  <span class="node-number">{{ atencion.numero }}</span>
+                  <span class="node-date">{{ formatDate(atencion.fecha) }}</span>
+                </div>
+                <q-tooltip anchor="bottom middle" self="top middle" :offset="[0, 12]" class="timeline-tooltip">
+                  <div class="text-weight-bold">{{ atencion.veterinario }}</div>
+                  <div class="text-caption">{{ atencion.estado }}</div>
+                </q-tooltip>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-                <!-- 2. SERVICIO SELECCIONADO (Sin v-for para mayor estabilidad) -->
-                <div v-else-if="servicioSeleccionado" :key="'content-' + servicioSeleccionado.id" class="animate-fade-in full-width">
-                  
-                  <ServicioConsultaGeneral
-                    v-if="servicioSeleccionado.componente_clave === 'consulta'"
-                    :atencion-id="String(atencionActualData.id)"
-                    :servicio-id="servicioSeleccionado.id"
-                    :datos-iniciales="servicioSeleccionado.datos"
-                    :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
-                    @servicio-actualizado="actualizarServicio"
-                    @servicio-completado="completarServicio"
-                    @servicio-eliminado="eliminarServicio"
+      <!-- Overlay de carga inicial -->
+      <q-inner-loading :showing="cargandoConfiguracion" class="bg-white" style="z-index: 2000;">
+        <q-spinner-cube color="primary" size="80px" />
+        <div class="text-h6 q-mt-md text-primary text-weight-bold animate-pulse">
+          Configurando entorno médico...
+        </div>
+        <div class="text-caption text-grey-6">Optimizando servicios y catálogos</div>
+      </q-inner-loading>
+
+      <!-- Área de Contenido Central -->
+      <div class="content-scroll-area" v-if="atenciones.length > 0">
+        <!-- Banner de estado -->
+        <div class="status-banner q-pa-md" :class="atencionActualData.estado === 'En curso' ? 'in-progress' : 'completed'">
+          <div class="row items-center justify-between no-wrap">
+            <div class="row items-center q-gutter-md">
+              <q-icon :name="atencionActualData.estado === 'En curso' ? 'pending' : 'verified'" size="32px" />
+              <div>
+                <div class="status-label">Estado de la Atención</div>
+                <div class="status-value">{{ atencionActualData.estado }}</div>
+              </div>
+              <q-separator vertical dark inset class="q-mx-md opacity-2" />
+              <div>
+                <div class="status-label">Profesional Asignado</div>
+                <div class="status-value">{{ atencionActualData.veterinario }}</div>
+              </div>
+            </div>
+            <div class="row items-center q-gutter-sm">
+              <q-chip outline color="white" text-color="white" icon="event">
+                {{ atencionActualData.fecha }}
+              </q-chip>
+              <q-chip outline color="white" text-color="white" icon="schedule">
+                {{ atencionActualData.hora }}
+              </q-chip>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pestañas de servicios aplicados -->
+        <div class="services-container">
+          <q-card class="services-card">
+            <q-card-section class="q-pa-none">
+              <div v-if="serviciosAplicados.length === 0" class="empty-services">
+                <div class="text-center q-py-xl text-grey-6" style="height: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                  <q-icon name="info" size="xl" class="q-mb-md" />
+                  <div class="text-h6">No se han aplicado servicios aún</div>
+                  <div class="text-subtitle2">Usa el botón "Agregar Servicio" para añadir servicios</div>
+                </div>
+              </div>
+
+              <div v-else>
+                <!-- Pestañas de servicios modernas -->
+                <q-tabs
+                  v-model="servicioActivoTab"
+                  dense
+                  class="modern-tabs"
+                  active-color="primary"
+                  indicator-color="primary"
+                  align="left"
+                  narrow-indicator
+                >
+                  <!-- Pestaña de Resumen Automática -->
+                  <q-tab
+                    name="resumen"
+                    icon="dashboard"
+                    label="Resumen de Atención"
+                    class="modern-tab resumen-tab"
                   />
 
-                  <ServicioVacunacion
-                    v-else-if="servicioSeleccionado.componente_clave === 'vacunacion'"
-                    :atencion-id="String(atencionActualData.id)"
-                    :servicio-id="servicioSeleccionado.id"
-                    :datos-iniciales="servicioSeleccionado.datos"
-                    :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
-                    @servicio-actualizado="actualizarServicio"
-                    @servicio-completado="completarServicio"
-                    @servicio-eliminado="eliminarServicio"
-                  />
+                  <q-tab
+                    v-for="servicio in serviciosAplicados"
+                    :key="servicio.id"
+                    :name="servicio.id"
+                    :icon="servicio.icono"
+                    :label="servicio.nombre"
+                    class="modern-tab"
+                    :class="{ 'tab-completed': servicio.completado }"
+                  >
+                    <q-badge
+                      v-if="servicio.completado"
+                      floating
+                      color="positive"
+                      rounded
+                      class="completion-badge"
+                    >
+                      <q-icon name="check" size="10px" />
+                    </q-badge>
+                  </q-tab>
+                </q-tabs>
 
-                  <ServicioDesparasitacion
-                    v-else-if="servicioSeleccionado.componente_clave === 'desparasitacion'"
-                    :atencion-id="String(atencionActualData.id)"
-                    :servicio-id="servicioSeleccionado.id"
-                    :datos-iniciales="servicioSeleccionado.datos"
-                    :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
-                    @servicio-actualizado="actualizarServicio"
-                    @servicio-completado="completarServicio"
-                    @servicio-eliminado="eliminarServicio"
-                  />
+                <q-separator />
 
-                  <template v-else-if="servicioSeleccionado.tipo_renderizado === 'dinamico'">
-                    <ServicioDinamico
-                      :schema="servicioSeleccionado"
+                <!-- Contenido de las pestañas -->
+                 <q-tab-panels
+                  v-model="servicioActivoTab"
+                  animated
+                  swipeable
+                  class="modern-tab-panels"
+                >
+                  <!-- Panel de Resumen -->
+                  <q-tab-panel name="resumen" class="q-pa-md">
+                    <ServicioResumen 
+                      :servicios-aplicados="serviciosAplicados"
+                      @seleccionar-pestaña="servicioActivoTab = $event"
+                      @imprimir-servicio="imprimirDocumentoServicio"
+                      @imprimir-resumen="imprimirResumenAtencion"
+                      @firmar-servicio="firmarServicio"
+                    />
+                  </q-tab-panel>
+
+                  <q-tab-panel
+                    v-for="servicio in serviciosAplicados"
+                    :key="servicio.id"
+                    :name="servicio.id"
+                    class="q-pa-md"
+                  >
+                    <!-- 1. Componente Dinámico (EAV/Metadata PoC) -->
+                    <template v-if="servicio.tipo_renderizado === 'dinamico'">
+                      <div v-if="cargandoEsquema && !esquemasActivos[servicio.tipo]" class="flex flex-center q-pa-xl">
+                        <q-spinner-dots color="primary" size="40px" />
+                        <div class="q-ml-md text-grey-7">Cargando diseño del servicio...</div>
+                      </div>
+                      
+                      <ServicioDinamico
+                        v-else-if="esquemasActivos[servicio.tipo]"
+                        :schema="esquemasActivos[servicio.tipo]"
+                        :servicio-id="servicio.id"
+                        :atencion-id="String(atencionActualData.id)"
+                        :datos-iniciales="servicio.datos"
+                        :modo-lectura="servicio.completado || atencionActualData.estado === 'Finalizada'"
+                        :catalogos="catalogosSistemas"
+                        @servicio-actualizado="actualizarServicio"
+                        @servicio-completado="completarServicio"
+                        @servicio-eliminado="eliminarServicio"
+                        @imprimir-servicio="imprimirDocumentoServicio(servicio)"
+                        @firmar-servicio="firmarServicio(servicio)"
+                      />
+                    </template>
+ 
+                    <!-- 2. Componentes Especializados -->
+                    <ServicioConsultaGeneral
+                      v-else-if="servicio.tipo?.toLowerCase() === 'consulta' || servicio.componente_clave === 'consulta'"
+                      :servicio-id="servicio.id"
+                      :plantillas-servicio="servicio.plantillas_servicio"
                       :atencion-id="String(atencionActualData.id)"
-                      :servicio-id="servicioSeleccionado.id"
-                      :datos-iniciales="servicioSeleccionado.datos"
-                      :catalogos="catalogosSistemas"
-                      :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
+                      :datos-iniciales="servicio.datos"
+                      :modo-lectura="servicio.completado || atencionActualData.estado === 'Finalizada'"
+                      :motivos="motivosOpciones"
                       @servicio-actualizado="actualizarServicio"
                       @servicio-completado="completarServicio"
                       @servicio-eliminado="eliminarServicio"
-                      @imprimir-servicio="imprimirDocumentoServicio(servicioSeleccionado)"
-                      @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                      @imprimir-servicio="(id, datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicio, tipo, idPlantilla)"
+                      @firmar-servicio="(id, datos, tipo, idPlantilla) => firmarServicio(servicio, idPlantilla)"
                     />
-                  </template>
 
-                  <ServicioArchivos
-                    v-else-if="servicioSeleccionado.componente_clave === 'archivos'"
-                    :servicio-id="servicioSeleccionado.id"
-                    :atencion-id="String(atencionActualData.id)"
-                    :datos-iniciales="servicioSeleccionado.datos"
-                    :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
-                    @servicio-actualizado="actualizarServicio"
-                    @servicio-completado="completarServicio"
-                    @servicio-eliminado="eliminarServicio"
-                  />
+                    <ServicioVacunacion
+                      v-else-if="servicio.tipo?.toLowerCase() === 'vacunacion' || servicio.componente_clave === 'vacunacion'"
+                      :servicio-id="servicio.id"
+                      :id-plantilla="servicio.id_plantilla"
+                      :plantillas-servicio="servicio.plantillas_servicio"
+                      :atencion-id="String(atencionActualData.id)"
+                      :datos-iniciales="servicio.datos"
+                      :modo-lectura="servicio.completado || atencionActualData.estado === 'Finalizada'"
+                      @servicio-actualizado="actualizarServicio"
+                      @servicio-completado="completarServicio"
+                      @servicio-eliminado="eliminarServicio"
+                      @imprimir-servicio="(id, datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicio, tipo, idPlantilla)"
+                      @firmar-servicio="(id, datos, tipo, idPlantilla) => firmarServicio(servicio, idPlantilla)"
+                    />
 
-                  <div v-else class="q-pa-xl text-center">
-                     <q-icon :name="servicioSeleccionado.icono" size="50px" color="grey-3" />
-                     <div class="text-h6 text-grey-5">{{ servicioSeleccionado.nombre }}</div>
-                     <div class="text-caption">Módulo especializado en proceso de optimización</div>
-                     <q-btn flat color="negative" label="Remover Servicio" class="q-mt-lg" @click="eliminarServicio(servicioSeleccionado.id)" />
-                  </div>
-                </div>
-             </div>
-          </div>
+                    <ServicioDesparasitacion
+                      v-else-if="servicio.tipo?.toLowerCase() === 'desparacitacion' || servicio.tipo?.toLowerCase() === 'desparasitacion' || servicio.componente_clave === 'desparacitacion'"
+                      :servicio-id="servicio.id"
+                      :plantillas-servicio="servicio.plantillas_servicio"
+                      :atencion-id="String(atencionActualData.id)"
+                      :datos-iniciales="servicio.datos"
+                      :modo-lectura="servicio.completado || atencionActualData.estado === 'Finalizada'"
+                      @servicio-actualizado="actualizarServicio"
+                      @servicio-completado="completarServicio"
+                      @servicio-eliminado="eliminarServicio"
+                      @imprimir-servicio="(id, datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicio, tipo, idPlantilla)"
+                      @firmar-servicio="(id, datos, tipo, idPlantilla) => firmarServicio(servicio, idPlantilla)"
+                    />
+
+                    <OrdenLaboratorio
+                      v-else-if="servicio.tipo?.toLowerCase() === 'laboratorio' || servicio.componente_clave === 'laboratorio'"
+                      :servicio-id="servicio.id"
+                      :atencion-id="String(atencionActualData.id)"
+                      :datos-iniciales="servicio.datos"
+                      :modo-lectura="servicio.completado || atencionActualData.estado === 'Finalizada'"
+                      @servicio-actualizado="actualizarServicio"
+                      @servicio-completado="completarServicio"
+                      @servicio-eliminado="eliminarServicio"  
+                      @imprimir-servicio="imprimirDocumentoServicio(servicio)"
+                      @firmar-servicio="firmarServicio(servicio)"
+                    />
+
+                    <ServicioRayosX
+                      v-else-if="servicio.tipo?.toLowerCase() === 'rayosx' || servicio.componente_clave === 'rayosx'"
+                      :servicio-id="servicio.id"
+                      :atencion-id="String(atencionActualData.id)"
+                      :datos-iniciales="servicio.datos"
+                      :modo-lectura="servicio.completado || atencionActualData.estado === 'Finalizada'"
+                      @servicio-actualizado="actualizarServicio"
+                      @servicio-completado="completarServicio"
+                      @servicio-eliminado="eliminarServicio"  
+                      @imprimir-servicio="imprimirDocumentoServicio(servicio)"
+                      @firmar-servicio="firmarServicio(servicio)"
+                    />
+
+                    <ServicioUltrasonido
+                      v-else-if="servicio.tipo?.toLowerCase() === 'ultrasonido' || servicio.componente_clave === 'ultrasonido'"
+                      :servicio-id="servicio.id"
+                      :atencion-id="String(atencionActualData.id)"
+                      :datos-iniciales="servicio.datos"
+                      :modo-lectura="servicio.completado || atencionActualData.estado === 'Finalizada'"
+                      @servicio-actualizado="actualizarServicio"
+                      @servicio-completado="completarServicio"
+                      @servicio-eliminado="eliminarServicio"  
+                      @imprimir-servicio="imprimirDocumentoServicio(servicio)"
+                      @firmar-servicio="firmarServicio(servicio)"
+                    />
+
+                    <ServicioExploracionFisica
+                      v-else-if="servicio.tipo?.toLowerCase() === 'exploracion' || servicio.componente_clave === 'exploracion'"
+                      :servicio-id="servicio.id"
+                      :atencion-id="String(atencionActualData.id)"
+                      :datos-iniciales="servicio.datos"
+                      :modo-lectura="servicio.completado || atencionActualData.estado === 'Finalizada'"
+                      @servicio-actualizado="actualizarServicio"
+                      @servicio-completado="completarServicio"
+                      @servicio-eliminado="eliminarServicio"
+                      @imprimir-servicio="imprimirDocumentoServicio(servicio)"
+                      @firmar-servicio="firmarServicio(servicio)"
+                    />
+
+                    <ServicioHospitalizacion
+                      v-else-if="servicio.tipo?.toLowerCase() === 'hospitalizacion' || servicio.componente_clave === 'hospitalizacion'"
+                      :servicio-id="servicio.id"
+                      :atencion-id="String(atencionActualData.id)"
+                      :datos-iniciales="servicio.datos"
+                      :modo-lectura="servicio.completado || atencionActualData.estado === 'Finalizada'"
+                      @servicio-actualizado="actualizarServicio"
+                      @servicio-completado="completarServicio"
+                      @servicio-eliminado="eliminarServicio"
+                      @imprimir-servicio="imprimirDocumentoServicio(servicio)"
+                      @firmar-servicio="firmarServicio(servicio)"
+                    />
+
+                    <ServicioMedicamento
+                      v-else-if="servicio.tipo?.toLowerCase() === 'medicamentos' || servicio.componente_clave === 'medicamentos'"
+                      :servicio-id="servicio.id"
+                      :atencion-id="String(atencionActualData.id)"
+                      :datos-iniciales="servicio.datos"
+                      :modo-lectura="servicio.completado || atencionActualData.estado === 'Finalizada'"
+                      @servicio-actualizado="actualizarServicio"
+                      @servicio-completado="completarServicio"
+                      @servicio-eliminado="eliminarServicio"
+                      @imprimir-servicio="imprimirDocumentoServicio(servicio)"
+                      @firmar-servicio="firmarServicio(servicio)"
+                    />
+
+                    <ServicioFisioterapia
+                      v-else-if="servicio.tipo?.toLowerCase() === 'rehabilitacion' || servicio.componente_clave === 'rehabilitacion'"
+                      :servicio-id="servicio.id"
+                      :atencion-id="String(atencionActualData.id)"
+                      :datos-iniciales="servicio.datos"
+                      :modo-lectura="servicio.completado || atencionActualData.estado === 'Finalizada'"
+                      @servicio-actualizado="actualizarServicio"
+                      @servicio-completado="completarServicio"
+                      @servicio-eliminado="eliminarServicio"
+                      @imprimir-servicio="imprimirDocumentoServicio(servicio)"
+                      @firmar-servicio="firmarServicio(servicio)"
+                    />
+
+                    <ServicioUrgencia
+                      v-else-if="servicio.tipo?.toLowerCase() === 'emergencia' || servicio.componente_clave === 'emergencia'"
+                      :servicio-id="servicio.id"
+                      :atencion-id="String(atencionActualData.id)"
+                      :datos-iniciales="servicio.datos"
+                      :modo-lectura="servicio.completado || atencionActualData.estado === 'Finalizada'"
+                      @servicio-actualizado="actualizarServicio"
+                      @servicio-completado="completarServicio"
+                      @servicio-eliminado="eliminarServicio"
+                      @imprimir-servicio="imprimirDocumentoServicio(servicio)"
+                      @firmar-servicio="firmarServicio(servicio)"
+                    />
+
+                    <ServicioRecetaMedica
+                      v-else-if="servicio.tipo?.toLowerCase() === 'receta' || servicio.componente_clave === 'receta'"
+                      :servicio-id="servicio.id"
+                      :plantillas-servicio="servicio.plantillas_servicio"
+                      :atencion-id="String(atencionActualData.id)"
+                      :datos-iniciales="servicio.datos"
+                      :modo-lectura="servicio.completado || atencionActualData.estado === 'Finalizada'"
+                      @servicio-actualizado="actualizarServicio"
+                      @servicio-completado="completarServicio"
+                      @servicio-eliminado="eliminarServicio"
+                      @imprimir-servicio="(id, datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicio, tipo, idPlantilla)"
+                      @firmar-servicio="(id, datos, tipo, idPlantilla) => firmarServicio(servicio, idPlantilla)"
+                    />
+
+                    <ServicioEstetica
+                      v-else-if="servicio.tipo?.toLowerCase() === 'estetica' || servicio.componente_clave === 'estetica'"
+                      :servicio-id="servicio.id"
+                      :atencion-id="String(atencionActualData.id)"
+                      :datos-iniciales="servicio.datos"
+                      :modo-lectura="servicio.completado || atencionActualData.estado === 'Finalizada'"
+                      @servicio-actualizado="actualizarServicio"
+                      @servicio-completado="completarServicio"
+                      @servicio-eliminado="eliminarServicio"
+                      @imprimir-servicio="imprimirDocumentoServicio(servicio)"
+                      @firmar-servicio="firmarServicio(servicio)"
+                    />
+
+                    <ServicioArchivos
+                      v-else-if="servicio.tipo?.toLowerCase() === 'archivos' || servicio.tipo?.toLowerCase() === 'adjuntos' || servicio.componente_clave === 'archivos'"
+                      :servicio-id="servicio.id"
+                      :atencion-id="String(atencionActualData.id)"
+                      :datos-iniciales="servicio.datos"
+                      :modo-lectura="servicio.completado || atencionActualData.estado === 'Finalizada'"
+                      @servicio-actualizado="actualizarServicio"
+                      @servicio-completado="completarServicio"
+                      @servicio-eliminado="eliminarServicio"
+                    />
+                    
+                    <!-- Componente genérico -->
+                    <div v-else class="generic-service">
+                      <div class="generic-service-content">
+                        <q-avatar size="64px" :color="servicio.color" class="q-mb-md">
+                          <q-icon :name="servicio.icono" size="32px" color="white" />
+                        </q-avatar>
+                        <div class="service-name">{{ servicio.nombre }}</div>
+                        <div class="service-status">En desarrollo...</div>
+                        <q-btn
+                          flat
+                          color="negative"
+                          icon="delete"
+                          label="Eliminar"
+                          @click="eliminarServicio(servicio.id)"
+                          class="q-mt-md"
+                        />
+                      </div>
+                    </div>
+                  </q-tab-panel>
+                </q-tab-panels>
+              </div>
+            </q-card-section>
+          </q-card>
         </div>
-      </main>
-    </div>
+      </div>
 
-    <!-- OVERLAYS & DIALOGS -->
-    <q-inner-loading :showing="cargandoConfiguracion" class="bg-white" style="z-index: 9999">
-      <q-spinner-dots color="primary" size="60px" />
-      <div class="text-primary text-weight-bold q-mt-md">Preparando espacio de trabajo...</div>
-    </q-inner-loading>
+      <!-- Estado vacío cuando no hay atenciones (v-else de la línea 178) -->
+      <div class="content-scroll-area flex flex-center" v-else>
+        <!-- CASO 1: No se ha seleccionado ningún paciente -->
+        <div v-if="!paciente || !paciente.id" class="text-center q-pa-xl empty-atención-state">
+          <q-icon name="person_search" size="100px" color="grey-4" class="q-mb-md" />
+          <div class="text-h5 text-grey-8 text-weight-bold">Esperando selección de paciente</div>
+          <p class="text-grey-6 text-h6 q-mt-sm">
+            Para comenzar a registrar atenciones, primero debe buscar y seleccionar un paciente.<br>
+            Utilice el botón <span class="text-primary text-weight-bolder">Buscar Paciente</span> en la parte superior.
+          </p>
+          <q-btn
+            color="primary"
+            icon="search"
+            label="Buscar Paciente"
+            @click="showSearchDialog = true"
+            size="lg"
+            class="q-mt-md"
+          />
+        </div>
 
-    <q-dialog v-model="showNuevaAtencionDialog" persistent>
-      <q-card style="width: 450px" class="br-xl overflow-hidden">
-        <q-card-section class="bg-primary text-white q-pa-lg">
-          <div class="text-h6 text-weight-bolder">Nueva Atención Medica</div>
-        </q-card-section>
-        <q-card-section class="q-pa-lg q-gutter-md">
-          <q-select v-model="formNuevaAtencion.veterinario_id" :options="profesionalesOpciones" label="Veterinario *" outlined dense emit-value map-options class="br-md" />
-          <q-select v-model="formNuevaAtencion.motivo_id" :options="motivosOpciones" label="Motivo *" outlined dense emit-value map-options class="br-md" />
-          <q-input v-model="formNuevaAtencion.observaciones" label="Observaciones" type="textarea" outlined dense class="br-md" />
-        </q-card-section>
-        <q-card-actions align="right" class="q-pa-lg">
-          <q-btn flat label="Cancelar" color="grey-7" v-close-popup />
-          <q-btn unelevated label="Comenzar" color="primary" @click="crearNuevaAtencion" class="br-lg q-px-lg" />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
+        <!-- CASO 2: Paciente seleccionado pero sin historial -->
+        <div v-else class="text-center q-pa-xl empty-atención-state">
+          <q-icon name="medical_services" size="100px" color="grey-4" class="q-mb-md" />
+          <div class="text-h5 text-grey-8 text-weight-bold">No hay atenciones registradas</div>
+          <p class="text-grey-6 text-h6 q-mt-sm">
+            Este paciente aún no registra ninguna atención clínica.<br>
+            Haga clic en el botón <span class="text-primary text-weight-bolder">Nueva Atención</span> para comenzar.
+          </p>
+          <q-btn
+            color="primary"
+            icon="add"
+            label="Crear Primera Atención"
+            @click="nuevaAtencion"
+            size="lg"
+            class="q-mt-md"
+          />
+        </div>
+      </div>
 
-    <q-dialog v-model="showAddServiceDialog" position="right" maximized transition-show="slide-left" transition-hide="slide-right">
-      <q-card style="width: 500px; max-width: 90vw; background-color: #f8fafd;" class="column full-height">
-        <q-card-section class="flex items-center q-pa-lg">
-          <div class="text-h6 text-weight-bold">Servicios Disponibles</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
-        </q-card-section>
-        <q-card-section class="col scroll q-pa-md">
+      <!-- BOTONES FLOTANTES -->
+      <q-page-sticky position="bottom-right" :offset="[20, 20]">
+        <div class="floating-actions">
+          <q-btn
+            fab
+            icon="save"
+            color="primary"
+            @click="guardarAtencion"
+            :loading="guardandoAtencion"
+            class="action-btn"
+            size="lg"
+          >
+            <q-tooltip anchor="center left" self="center right">Guardar Atención</q-tooltip>
+          </q-btn>
+          <q-btn
+            fab
+            icon="check_circle"
+            color="positive"
+            @click="finalizarAtencion"
+            class="action-btn q-ml-sm"
+            size="lg"
+          >
+            <q-tooltip anchor="center left" self="center right">Finalizar Atención</q-tooltip>
+          </q-btn>
+        </div>
+      </q-page-sticky>
+
+      <!-- DIALOGS -->
+      <q-dialog v-model="showNuevaAtencionDialog" persistent>
+        <q-card style="min-width: 500px; max-width: 600px">
+          <q-card-section class="bg-primary text-white">
+            <div class="text-h6">Nueva Atención</div>
+            <div class="text-caption">Ingrese los datos principales de la atención</div>
+          </q-card-section>
+          <q-card-section class="q-gutter-md">
+            <q-select
+              v-model="formNuevaAtencion.veterinario_id"
+              :options="profesionalesOpciones"
+              :loading="cargandoCatalogos"
+              label="Profesional Asignado *"
+              outlined dense emit-value map-options
+              :rules="[val => !!val || 'Campo obligatorio']"
+            >
+              <template v-slot:prepend><q-icon name="badge" color="primary" /></template>
+            </q-select>
+            <q-select
+              v-model="formNuevaAtencion.motivo_id"
+              :options="motivosOpciones"
+              :loading="cargandoCatalogos"
+              label="Motivo de la Atención *"
+              outlined dense emit-value map-options
+              :rules="[val => !!val || 'Campo obligatorio']"
+            >
+              <template v-slot:prepend><q-icon name="event_note" /></template>
+            </q-select>
+            <q-input
+              v-model="formNuevaAtencion.observaciones"
+              label="Observaciones Iniciales"
+              type="textarea" rows="3" outlined dense
+            />
+          </q-card-section>
+          <q-card-actions align="right">
+            <q-btn flat label="Cancelar" color="grey-7" @click="showNuevaAtencionDialog = false" />
+            <q-btn unelevated label="Crear Atención" color="primary" @click="crearNuevaAtencion" />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
+
+      <q-dialog v-model="showAddServiceDialog" persistent class="servicios-dialog">
+        <div class="dialog-content q-pa-lg bg-white">
           <ServiciosDisponibles
             :servicios-aplicados="serviciosAplicados"
             :servicios-dinamicos="serviciosDinamicosParaLista"
             :servicios-catalogo="catalogoServiciosBD"
-            :atencion-finalizada="atencionActualData?.estado === 'Finalizada'"
+            :atencion-finalizada="atenciones.length > 0 && atenciones[atencionActual].estado === 'Finalizada'"
             @agregar-servicio="agregarServicioEnDialogo"
             @close="showAddServiceDialog = false"
           />
-        </q-card-section>
-      </q-card>
-    </q-dialog>
+        </div>
+      </q-dialog>
 
-    <q-dialog v-model="showSearchDialog" transition-show="scale" transition-hide="scale">
-       <q-card style="width: 1400px; max-width: 98vw; height: 90vh;" class="bg-grey-1 br-xl overflow-hidden column">
-         <q-toolbar class="bg-primary text-white q-pa-lg">
-           <q-icon name="manage_search" size="32px" class="q-mr-md" />
-           <q-toolbar-title class="text-weight-bolder text-h5">Buscador de Pacientes</q-toolbar-title>
-           <q-btn flat round icon="close" v-close-popup />
-         </q-toolbar>
-         <q-card-section class="q-pa-lg col scroll">
-            <div class="full-width q-px-md">
-                <!-- Filtros de búsqueda premium expandidos -->
-                <div class="search-filters-container q-pa-md br-xl bg-white shadow-1 q-mb-lg">
-                  <div class="row q-col-gutter-md items-end">
-                    <!-- Fila 1: Propietario -->
-                    <div class="col-12 col-md-3">
-                      <div class="text-caption text-weight-bold text-grey-7 q-mb-xs">Nombres del Propietario</div>
-                      <q-input v-model="busquedaFormData.propietario.nombre" placeholder="Ej: Juan" outlined dense bg-color="white" class="br-md" @keyup.enter="buscarPacientes">
-                        <template v-slot:prepend><q-icon name="person" color="primary" /></template>
-                      </q-input>
-                    </div>
-                    <div class="col-12 col-md-3">
-                      <div class="text-caption text-weight-bold text-grey-7 q-mb-xs">Primer Apellido</div>
-                      <q-input v-model="busquedaFormData.propietario.primerapellido" placeholder="Ej: Perez" outlined dense bg-color="white" class="br-md" @keyup.enter="buscarPacientes">
-                        <template v-slot:prepend><q-icon name="badge" color="primary" /></template>
-                      </q-input>
-                    </div>
-                    <div class="col-12 col-md-3">
-                      <div class="text-caption text-weight-bold text-grey-7 q-mb-xs">Segundo Apellido</div>
-                      <q-input v-model="busquedaFormData.propietario.segundoapellido" placeholder="Ej: Garcia" outlined dense bg-color="white" class="br-md" @keyup.enter="buscarPacientes"></q-input>
-                    </div>
-                    <div class="col-12 col-md-3">
-                      <div class="text-caption text-weight-bold text-grey-7 q-mb-xs">Teléfono / Celular</div>
-                      <q-input v-model="busquedaFormData.propietario.telefono1" placeholder="Ej: 99887766" outlined dense bg-color="white" class="br-md" @keyup.enter="buscarPacientes">
-                        <template v-slot:prepend><q-icon name="phone" color="primary" /></template>
-                      </q-input>
-                    </div>
-
-                    <!-- Fila 2: Email & Mascota -->
-                    <div class="col-12 col-md-4">
-                      <div class="text-caption text-weight-bold text-grey-7 q-mb-xs">Correo Electrónico</div>
-                      <q-input v-model="busquedaFormData.propietario.email" placeholder="ejemplo@correo.com" outlined dense bg-color="white" class="br-md" @keyup.enter="buscarPacientes">
-                        <template v-slot:prepend><q-icon name="email" color="primary" /></template>
-                      </q-input>
-                    </div>
-                    <div class="col-12 col-md-3">
-                      <div class="text-caption text-weight-bold text-grey-7 q-mb-xs">Nombre de la Mascota</div>
-                      <q-input v-model="busquedaFormData.mascota.nombre" placeholder="Ej: Rocky" outlined dense bg-color="white" class="br-md" @keyup.enter="buscarPacientes">
-                        <template v-slot:prepend><q-icon name="pets" color="primary" /></template>
-                      </q-input>
-                    </div>
-                    <div class="col-12 col-md-3">
-                      <div class="text-caption text-weight-bold text-grey-7 q-mb-xs">N° Historia Clínica</div>
-                      <q-input v-model="busquedaFormData.mascota.historia_clinica" placeholder="Ej: 12345" outlined dense bg-color="white" class="br-md" @keyup.enter="buscarPacientes">
-                        <template v-slot:prepend><q-icon name="assignment" color="primary" /></template>
-                      </q-input>
-                    </div>
-                    
-                    <div class="col-12 col-md-2">
-                      <q-btn color="primary" label="Buscar" class="full-width br-lg q-py-sm" icon="search" @click="buscarPacientes" unelevated />
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Resultados -->
-                <div class="results-area animate-fade-in">
-                  <CardBusquedaPropietarioMascota :rows="listaPropietariosBusqueda" @refresh-data="buscarPacientes" @mascota-seleccionada="onMascotaSeleccionada" />
-                </div>
+      <q-dialog v-model="showSearchDialog" full-width full-height>
+        <q-card class="column full-height">
+          <q-card-section class="row items-center q-pb-none bg-primary text-white">
+            <div class="text-h6">Buscar Paciente</div>
+            <q-space />
+            <q-btn icon="close" flat round dense v-close-popup text-color="white" />
+          </q-card-section>
+          <q-card-section class="col q-pa-md scroll">
+            <div class="row q-col-gutter-md q-mb-md">
+              <div class="col-12 col-md-3">
+                <q-input v-model="busquedaFormData.propietario.primerapellido" label="Primer Apellido" dense outlined @keyup.enter="buscarPacientes" class="uppercase" />
+              </div>
+              <div class="col-12 col-md-3">
+                <q-input v-model="busquedaFormData.propietario.nombre" label="Nombre Propietario" dense outlined @keyup.enter="buscarPacientes" class="uppercase" />
+              </div>
+              <div class="col-12 col-md-3">
+                <q-input v-model="busquedaFormData.mascota.nombre" label="Nombre Mascota" dense outlined @keyup.enter="buscarPacientes" />
+              </div>
+              <div class="col-12 col-md-3 flex items-center">
+                <q-btn color="primary" icon="search" label="Buscar" @click="buscarPacientes" class="full-width" />
+              </div>
             </div>
-         </q-card-section>
-       </q-card>
-    </q-dialog>
+            <CardBusquedaPropietarioMascota 
+              :rows="listaPropietariosBusqueda"  
+              @refresh-data="buscarPacientes" 
+              @limpiar-filtro="limpiarFiltrosBusqueda"
+              @mascota-seleccionada="onMascotaSeleccionada"
+            />
+          </q-card-section>
+        </q-card>
+      </q-dialog>
 
-    <DialogFirmarDocumento v-model="showFirmaDialog" :html-content="datosFirma.htmlContent" :document-name="datosFirma.documentName" @signed-and-saved="procesarGuardadoFirma" />
+      <!-- Diálogo de Firma Electrónica -->
+      <DialogFirmarDocumento
+        v-model="showFirmaDialog"
+        :html-content="datosFirma.htmlContent"
+        :document-name="datosFirma.documentName"
+        @signed-and-saved="procesarGuardadoFirma"
+      />
+
+    </div>
   </div>
 </template>
 
@@ -488,20 +779,13 @@ export default {
       }
     })
 
-    const firmarServicio = (servicio, tipo = 'especial', idPlantilla = null) => {
-      console.log('📝 Firmar Servicio:', servicio.nombre, tipo, idPlantilla)
-      if (!atencionActualData.value?.id) {
-        console.warn('❌ No hay datos de atención para firmar')
-      }
-      // Si el segundo argumento es 'plantilla' y hay un tercer argumento, ese es el ID
-      const realIdPlantilla = tipo === 'plantilla' ? idPlantilla : null
-      visualizarYFirmar(servicio, atencionActualData.value, paciente.value, realIdPlantilla)
+    const firmarServicio = (servicio, idPlantilla = null) => {
+      visualizarYFirmar(servicio, atencionActualData.value, paciente.value, idPlantilla)
     }
 
     // Estados reactivos
     const guardandoAtencion = ref(false)
-    const servicioActivoTab = ref('resumen')
-    const sidebarCollapsed = ref(false)
+    const servicioActivoTab = ref(null)
     const showAddServiceDialog = ref(false)
     const showNuevaAtencionDialog = ref(false)
     
@@ -546,17 +830,8 @@ export default {
     const showSearchDialog = ref(false)
     const listaPropietariosBusqueda = ref([])
     const busquedaFormData = reactive({
-      propietario: { 
-        nombre: '', 
-        primerapellido: '',
-        segundoapellido: '',
-        email: '',
-        telefono1: ''
-      },
-      mascota: { 
-        nombre: '',
-        historia_clinica: ''
-      }
+      propietario: { nombre: '', primerapellido: '' },
+      mascota: { nombre: '' }
     })
 
     const buscarPacientes = async () => {
@@ -571,11 +846,7 @@ export default {
             id_sitio: 1, // Valor por defecto
             nombre: busquedaFormData.propietario.nombre,
             primerapellido: busquedaFormData.propietario.primerapellido,
-            segundoapellido: busquedaFormData.propietario.segundoapellido,
-            email: busquedaFormData.propietario.email,
-            telefono1: busquedaFormData.propietario.telefono1,
-            nombre_mascota: busquedaFormData.mascota.nombre,
-            historia_clinica: busquedaFormData.mascota.historia_clinica
+            nombre_mascota: busquedaFormData.mascota.nombre
         }
 
         const respuesta = await _peticion.invocarMetodo('filtropropietariomascota/filtro', 'post', _unDtoParametros)
@@ -595,11 +866,7 @@ export default {
     const limpiarFiltrosBusqueda = () => {
       busquedaFormData.propietario.nombre = ''
       busquedaFormData.propietario.primerapellido = ''
-      busquedaFormData.propietario.segundoapellido = ''
-      busquedaFormData.propietario.email = ''
-      busquedaFormData.propietario.telefono1 = ''
       busquedaFormData.mascota.nombre = ''
-      busquedaFormData.mascota.historia_clinica = ''
       listaPropietariosBusqueda.value = []
     }
 
@@ -690,12 +957,6 @@ export default {
         fechaFinalizacion: '', horaFinalizacion: '',
         veterinario: '', estado: 'En curso', servicios: []
       }
-    })
-
-    // Servicio seleccionado actualmente para mostrar en el Workspace
-    const servicioSeleccionado = computed(() => {
-      if (!servicioActivoTab.value || servicioActivoTab.value === 'resumen') return null
-      return serviciosAplicados.value.find(s => s.id === servicioActivoTab.value)
     })
 
      // Watcher para actualizar la pestaña activa y cargar esquema si es necesario
@@ -857,23 +1118,6 @@ export default {
         return
       }
 
-      const idNuevo = servicio.id_servicio || servicio.id
-      const tipoNuevo = (servicio.componente_clave || servicio.tipo || servicio.identificador)?.toLowerCase()
-      
-      const yaExiste = serviciosAplicados.value.some(s => 
-        (s.id_servicio_def && s.id_servicio_def === idNuevo) || 
-        (s.tipo && s.tipo === tipoNuevo)
-      )
-      
-      if (yaExiste) {
-        $q.notify({
-          type: 'warning',
-          message: `El servicio ${servicio.nombre} ya ha sido agregado a esta atención`,
-          position: 'top'
-        })
-        return
-      }
-
       if (atenciones.value[atencionActual.value].estado === 'Finalizada') {
         $q.notify({
           type: 'negative',
@@ -896,7 +1140,6 @@ export default {
         const nuevoServicio = {
           id:               String(registrado?.id || `${servicio.tipo}_${Date.now()}`),  // ID de BD como string
           idBD:             registrado?.id,          // guardamos el int de BD para operaciones REST
-          id_servicio_def:  servicio.id_servicio || servicio.id, // ID real de catálogo para validación
           tipo:             (servicio.componente_clave || servicio.tipo || servicio.identificador)?.toLowerCase(),
           nombre:           servicio.nombre,
           icono:            servicio.icono,
@@ -1175,7 +1418,6 @@ export default {
     const { imprimirPlantilla, imprimirVacunacion, imprimirConsulta } = useReportes()
 
     const imprimirDocumentoServicio = async (servicio, tipo = 'especial', idPlantillaManual = null) => {
-      console.log('🖨️ Imprimiendo servicio:', servicio.nombre, 'Tipo:', tipo)
       // Especial: Si es un servicio de Vacunación, usamos el backend con diseño programático
       const esVacunacion = servicio.tipo?.toLowerCase() === 'vacunacion' || servicio.componente_clave === 'vacunacion'
       
@@ -1266,7 +1508,6 @@ export default {
     }
 
     const imprimirResumenAtencion = async () => {
-      console.log('🖨️ Generando resumen de atención...')
       $q.loading.show({ message: 'Generando resumen de atención...' })
       try {
         // Cargar plantilla por código predeterminado para resumen
@@ -1451,7 +1692,6 @@ export default {
               return {
                 id:               String(s.id),
                 idBD:             s.id,
-                id_servicio_def:  s.id_servicio,
                 tipo:             tipo,
                 nombre:           nombreMostrar,
                 icono:            s.servicio?.icono || serviceDef?.icono || 'medical_services',
@@ -1563,10 +1803,6 @@ export default {
       catalogoServiciosBD,
       imprimirDocumentoServicio,
       imprimirResumenAtencion,
-      firmarServicio,
-      showFirmaDialog,
-      datosFirma,
-      procesarGuardadoFirma,
       // Buscador
       showSearchDialog,
       listaPropietariosBusqueda,
@@ -1579,242 +1815,408 @@ export default {
       showFirmaDialog,
       datosFirma,
       firmarServicio,
-      procesarGuardadoFirma,
-      sidebarCollapsed,
-      servicioSeleccionado
+      procesarGuardadoFirma
     }
   }
 }
 </script>
 
 <style scoped>
-/* ==========================================================================
-   ATENCIÓN 2.0 - DESIGN SYSTEM (PREMIUM VETERINARY UI)
-   ========================================================================== */
-
-/* Layout & Root */
+/* Layout principal */
 .fullscreen-atencion {
   height: 100vh;
-  width: 100%;
-  background: #f1f5f9;
+  background: #f8fafc;
   overflow: hidden;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-.app-shell {
-  display: flex;
-  height: 100vh;
-  width: 100%;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* SIDEBAR LUX */
-.atencion-sidebar {
-  width: 270px;
-  background: white;
-  border-right: 1px solid #e2e8f0;
+.app-column-layout {
   display: flex;
   flex-direction: column;
-  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 1000;
-  position: relative;
-  box-shadow: 4px 0 10px rgba(0,0,0,0.02);
+  height: 100vh;
+  width: 100%;
 }
 
-.app-shell.is-collapsed .atencion-sidebar {
-  width: 80px;
+/* Cabecera Premium Rediseñada */
+.main-header-premium {
+  height: auto;
+  min-height: 85px;
+  padding: 12px 24px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  z-index: 100;
 }
 
-.sidebar-header {
-  height: 70px;
-  border-bottom: 1px solid #f1f5f9;
+.header-profile-section {
+  display: flex;
+  align-items: center;
 }
 
-.sidebar-main {
-  flex: 1;
-  overflow-y: auto;
+.patient-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 12px;
+  border-radius: 12px;
 }
 
-.sidebar-main::-webkit-scrollbar {
-  width: 4px;
+.profile-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.sidebar-main::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
+.bg-primary-soft {
+  background: rgba(25, 118, 210, 0.08);
 }
 
+.patient-name {
+  font-size: 1.4rem;
+  margin: 0;
+  color: #1a202c;
+  line-height: 1.2;
+}
 
-
-/* Nav Buttons */
-.nav-btn {
-  margin: 4px 10px;
+.patient-brief {
   color: #64748b;
-  transition: all 0.2s ease;
-  min-height: 44px;
+  font-size: 0.85rem;
 }
 
-.nav-btn:hover {
-  background: #f1f5f9;
-  color: #1976d2;
+.header-v-divider {
+  width: 1px;
+  height: 40px;
+  background: #e2e8f0;
+  margin: 0 20px;
 }
 
-.nav-active {
-  background: rgba(25, 118, 210, 0.1) !important;
-  color: #1976d2 !important;
-  font-weight: 700 !important;
-}
-
-.nav-btn-add {
-  background: rgba(211, 47, 47, 0.05);
-  color: #d32f2f !important;
-  border: 1px dashed rgba(211, 47, 47, 0.3);
-  margin: 15px 12px;
-  transition: all 0.3s ease;
-  min-height: 48px;
-}
-
-.nav-btn-add:hover {
-  background: rgba(211, 47, 47, 0.1);
-  border-color: #d32f2f;
-  border-style: solid;
-  transform: translateY(-2px);
-}
-
-.nav-btn-add .q-item__section--avatar {
-  color: #d32f2f !important;
-}
-
-.nav-btn-add .q-item__label {
-  font-weight: 600;
-  letter-spacing: 0.3px;
-}
-
-/* History Items (Premium Cards) */
-.history-card-item {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 10px 14px !important;
+.owner-info .label-tiny, 
+.attention-id-card .label-tiny {
+  font-size: 9px;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
   margin-bottom: 2px;
 }
 
-.history-card-item:hover {
-  background: #ffffff;
-  border-color: #1976d2;
-  transform: translateX(4px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+.owner-fullname {
+  font-size: 0.95rem;
+  color: #334155;
+  white-space: nowrap;
 }
 
-.history-card-active {
-  background: white !important;
-  border-left: 4px solid #1976d2 !important;
-  border-color: #1976d2 !important;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+.attention-number {
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
-.history-card-active .text-primary {
-  color: #1976d2 !important;
+.veterinario-card .label-tiny {
+  font-size: 9px;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 2px;
 }
 
-/* Workspace Luxe */
-.main-workspace {
-  flex: 1;
-  min-width: 0;
+.pointer-cursor {
+  cursor: pointer;
+}
+
+/* Barra de Historial Timeline Ultra-Compacta */
+.attentions-timeline-bar {
+  background: white;
+  border-bottom: 1px solid #eef2f6;
+  padding: 8px 24px;
+  transition: all 0.3s ease;
+  z-index: 90;
+}
+
+.attentions-timeline-bar.is-collapsed {
+  padding: 4px 24px;
+}
+
+.timeline-layout {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-height: 40px;
+}
+
+.timeline-header-side {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.history-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.history-label:hover {
   background: #f1f5f9;
+}
+
+.timeline-wrapper-compact {
+  flex: 1;
+  display: flex;
+  align-items: center;
   position: relative;
+  overflow: hidden;
+  padding: 10px 0;
 }
 
-/* Header Premium Modernized - Sincronizado con Profesional.vue */
-.workspace-header--premium {
-  height: auto !important;
-  min-height: 85px;
-  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
-  border-bottom: none !important;
+.timeline-track {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #e2e8f0;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.timeline-scroll-container {
+  display: flex;
+  gap: 30px;
+  overflow-x: auto;
   position: relative;
-  box-shadow: 0 4px 15px rgba(25, 118, 210, 0.2);
+  z-index: 2;
+  scrollbar-width: none;
 }
 
-.gap-xs { gap: 8px; }
-
-.border-right-glass {
-  border-right: 1px solid rgba(255, 255, 255, 0.2);
+.timeline-scroll-container::-webkit-scrollbar {
+  display: none;
 }
 
-.folio-badge {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(4px);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  font-size: 13px;
+.timeline-node {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  min-width: fit-content;
+  transition: all 0.3s ease;
 }
 
-.status-indicator {
-  width: 8px;
-  height: 8px;
+.node-marker {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.marker-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
-  background: #34d399;
-  margin-right: 8px;
-  box-shadow: 0 0 8px rgba(52, 211, 153, 0.8);
+  background: white;
+  border: 2px solid #cbd5e1;
+  transition: all 0.3s ease;
 }
 
-.status-indicator.is-finalized {
-  background: rgba(255, 255, 255, 0.4);
-  box-shadow: none;
+.marker-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  transition: all 0.3s ease;
+  z-index: 2;
 }
 
-.patient-name-glow {
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  letter-spacing: -0.5px;
+.timeline-node:hover .marker-ring {
+  border-color: #3b82f6;
+  transform: scale(1.1);
 }
 
-.professional-pill {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(8px);
+.timeline-node.active .marker-ring {
+  border-color: #3b82f6;
+  border-width: 5px;
 }
 
-.leading-none { line-height: 1; }
-.max-width-250 { max-width: 250px; }
+.timeline-node.active .marker-dot {
+  background: white;
+  transform: scale(0.5);
+}
 
-.opacity-80 { opacity: 0.8; }
-.opacity-90 { opacity: 1; font-weight: 500; }
-.opacity-40 { opacity: 0.4; }
+.timeline-node.is-current .marker-ring {
+  border-color: #f59e0b;
+}
 
-.workspace-viewport {
-  padding: 0;
+.timeline-node.is-current .marker-dot {
+  background: #f59e0b;
+}
+
+.pulse-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid #f59e0b;
+  animation: timeline-pulse 2s infinite;
+}
+
+@keyframes timeline-pulse {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+.node-content {
   display: flex;
   flex-direction: column;
 }
 
-/* Content Rendering */
-.service-view-port {
-  border: 1px solid #eef2f5;
-  transition: all 0.3s ease;
+.node-number {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #475569;
 }
 
-/* Utilities */
-.br-md { border-radius: 10px; }
-.br-lg { border-radius: 14px; }
-.br-xl { border-radius: 20px; }
-.br-pill { border-radius: 9999px; }
-
-.truncate {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.node-date {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #94a3b8;
+  margin-top: -2px;
 }
 
-.letter-spacing-1 { letter-spacing: 1px; }
+.timeline-summary-view {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #64748b;
+  background: #f8fafc;
+  padding: 4px 12px;
+  border-radius: 6px;
+}
+
+.timeline-tooltip {
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(4px);
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+/* Área de Contenido */
+.content-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  background: #f8fafc;
+}
+
+.status-banner {
+  border-radius: 16px;
+  color: white;
+  margin-bottom: 24px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.status-banner.in-progress {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.status-banner.completed {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.status-label {
+  font-size: 0.7rem;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* Servicios */
+.services-card {
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f1f5f9;
+}
+
+.modern-tabs {
+  background: #f8fafc;
+  padding: 8px 8px 0 8px;
+}
+
+.modern-tab {
+  border-radius: 12px 12px 0 0;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-right: 4px;
+}
+
+.resumen-tab {
+  background: white !important;
+  color: #1a202c !important;
+}
+
+.modern-tab-panels {
+  background: white;
+  min-height: 600px;
+}
+
+/* Empty States */
+.empty-atención-state {
+  max-width: 500px;
+}
+
+.empty-services {
+  height: 300px;
+}
+
+/* Floating Actions */
+.floating-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.action-btn {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.action-btn:hover {
+  transform: scale(1.1) rotate(2deg);
+}
 
 /* Animations */
-.animate-fade-in {
-  animation: fadeIn 0.35s ease-out forwards;
+.animate-pop {
+  animation: pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes pop {
+  0% { transform: scale(0.9); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 .animate-pulse {
@@ -1823,23 +2225,59 @@ export default {
 
 @keyframes pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: .6; }
-}
-
-/* Scroll Customizer */
-.scroll::-webkit-scrollbar {
-  width: 6px;
-}
-.scroll::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
+  50% { opacity: .5; }
 }
 
 /* Responsive */
-@media (max-width: 900px) {
-  .hide-mobile { display: none; }
+@media (max-width: 1024px) {
+  .header-v-divider {
+    margin: 0 10px;
+  }
 }
 
-.border-bottom { border-bottom: 1px solid #eef2f5; }
-.max-width-1000 { max-width: 1000px; }
+@media (max-width: 768px) {
+  .main-header-premium {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 15px;
+  }
+  .header-actions {
+    margin-top: 15px;
+    justify-content: center;
+  }
+}
+
+/* Servicios Dialog */
+.servicios-dialog .q-dialog__inner > div {
+  width: 95vw;
+  max-width: 1200px;
+  min-width: 320px;
+  border-radius: 20px;
+}
+
+.dialog-content {
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.generic-service {
+  padding: 60px 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.generic-service-content {
+  text-align: center;
+}
+
+.service-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.service-status {
+  color: #64748b;
+  margin: 10px 0;
+}
 </style>
