@@ -19,7 +19,7 @@
           <!-- Navegación de Servicios Activos -->
           <q-list class="q-px-sm" padding>
             <q-item-label header v-if="!sidebarCollapsed" class="text-uppercase text-weight-bold text-caption text-grey-5 letter-spacing-1">Servicios de Atención</q-item-label>
-            
+
             <q-item
               clickable v-ripple
               :active="servicioActivoTab === 'resumen'"
@@ -70,11 +70,11 @@
               <q-icon name="history" color="grey-6" size="18px" class="q-mr-sm" />
               <div class="text-uppercase text-weight-bold text-caption text-grey-7 letter-spacing-1">Historial de Atención</div>
             </div>
-            
+
             <q-list class="q-gutter-y-xs">
-              <q-item 
-                v-for="(atenc, idx) in atenciones.slice(0, 5)" 
-                :key="'hist-' + atenc.id" 
+              <q-item
+                v-for="(atenc, idx) in atenciones.slice(0, 5)"
+                :key="'hist-' + atenc.id"
                 clickable v-ripple
                 @click="atencionActual = idx"
                 :active="atencionActual === idx"
@@ -91,7 +91,7 @@
                     {{ atenc.veterinario }}
                   </q-item-label>
                 </q-item-section>
-                
+
                 <q-item-section side v-if="atenc.estado === 'Finalizada'">
                   <q-icon name="check_circle" color="grey-4" size="16px" />
                 </q-item-section>
@@ -111,7 +111,7 @@
         <!-- Header Premium Modernizado (Atención 2.0 - Refined) -->
         <header class="workspace-header workspace-header--premium q-px-lg q-py-md text-white border-bottom shadow-2">
           <div class="row items-center no-wrap full-width">
-            
+
             <!-- Columna 1: Folio y Estado -->
             <div class="col-auto q-pr-lg border-right-glass">
               <div class="flex items-center q-mb-xs">
@@ -191,17 +191,17 @@
                 <q-btn unelevated color="primary" label="Iniciar Nueva Atención" class="q-mt-lg br-xl q-px-xl" size="lg" icon="add" @click="nuevaAtencion" />
              </div>
           </div>
-          
+
           <!-- Contenido Activo -->
           <div v-else class="active-content-render q-pa-lg">
              <!-- RENDERIZADOR ESTABILIZADO (Atención 2.0) -->
-             <div class="service-view-port br-xl bg-white shadow-2 q-pa-none overflow-hidden" 
-                  style="min-height: 500px" 
+             <div class="service-view-port br-xl bg-white shadow-2 q-pa-none overflow-hidden"
+                  style="min-height: 500px"
                   :key="'service-container-' + (servicioSeleccionado?.id || 'resumen')">
-                
+
                 <!-- 1. RESUMEN CLÍNICO -->
                 <div v-if="servicioActivoTab === 'resumen'" key="resumen-content" class="animate-fade-in">
-                  <ServicioResumen 
+                  <ServicioResumen
                     :atencion="atencionActualData"
                     :paciente="paciente"
                     :servicios-aplicados="serviciosAplicados"
@@ -215,7 +215,7 @@
 
                 <!-- 2. SERVICIO SELECCIONADO (Sin v-for para mayor estabilidad) -->
                 <div v-else-if="servicioSeleccionado" :key="'content-' + servicioSeleccionado.id" class="animate-fade-in full-width">
-                  
+
                   <ServicioConsultaGeneral
                     v-if="servicioSeleccionado.componente_clave === 'consulta'"
                     :atencion-id="String(atencionActualData.id)"
@@ -312,7 +312,7 @@
       </q-card>
     </q-dialog>
 
-    <q-dialog v-model="showAddServiceDialog" position="right" maximized transition-show="slide-left" transition-hide="slide-right">
+    <!--<q-dialog v-model="showAddServiceDialog" position="right" maximized transition-show="slide-left" transition-hide="slide-right">
       <q-card style="width: 500px; max-width: 90vw; background-color: #f8fafd;" class="column full-height">
         <q-card-section class="flex items-center q-pa-lg">
           <div class="text-h6 text-weight-bold">Servicios Disponibles</div>
@@ -330,7 +330,28 @@
           />
         </q-card-section>
       </q-card>
-    </q-dialog>
+    </q-dialog>-->
+
+    <q-dialog v-model="showAddServiceDialog" transition-show="scale" transition-hide="scale">
+  <q-card style="width: 860px; max-width: 95vw; max-height: 88vh; background-color: #f8fafc;" class="column overflow-hidden br-xl">
+    <q-card-section class="flex items-center q-pa-md bg-white border-bottom">
+      <q-icon name="medical_services" color="blue-8" size="22px" class="q-mr-sm" />
+      <div class="text-subtitle1 text-weight-bold text-dark">Servicios Disponibles</div>
+      <q-space />
+      <q-btn icon="close" flat round dense color="grey-6" v-close-popup />
+    </q-card-section>
+    <q-card-section class="col q-pa-none overflow-hidden">
+      <ServiciosDisponibles
+        :servicios-aplicados="serviciosAplicados"
+        :servicios-dinamicos="serviciosDinamicosParaLista"
+        :servicios-catalogo="catalogoServiciosBD"
+        :atencion-finalizada="atencionActualData?.estado === 'Finalizada'"
+        @agregar-servicio="agregarServicioEnDialogo"
+        @close="showAddServiceDialog = false"
+      />
+    </q-card-section>
+  </q-card>
+</q-dialog>
 
     <q-dialog v-model="showSearchDialog" transition-show="scale" transition-hide="scale">
        <q-card style="width: 1400px; max-width: 98vw; height: 90vh;" class="bg-grey-1 br-xl overflow-hidden column">
@@ -387,7 +408,7 @@
                         <template v-slot:prepend><q-icon name="assignment" color="primary" /></template>
                       </q-input>
                     </div>
-                    
+
                     <div class="col-12 col-md-2">
                       <q-btn color="primary" label="Buscar" class="full-width br-lg q-py-sm" icon="search" @click="buscarPacientes" unelevated />
                     </div>
@@ -474,11 +495,11 @@ export default {
     const store = useDialogStore()
 
     // Flujo de Firma Electrónica (Modularizado)
-    const { 
-      showFirmaDialog, 
-      datosFirma, 
-      visualizarYFirmar, 
-      procesarGuardadoFirma 
+    const {
+      showFirmaDialog,
+      datosFirma,
+      visualizarYFirmar,
+      procesarGuardadoFirma
     } = useSignatureFlow({
       onSaved: (adjunto, servicio) => {
         if (!servicio.datos.archivos_adjuntos) {
@@ -504,7 +525,7 @@ export default {
     const sidebarCollapsed = ref(false)
     const showAddServiceDialog = ref(false)
     const showNuevaAtencionDialog = ref(false)
-    
+
     // Formulario para nueva atención
     const formNuevaAtencion = reactive({
       veterinario_id: null,
@@ -532,7 +553,7 @@ export default {
     const esquemasActivos = ref({})
     const cargandoEsquema = ref(false)
     const catalogoServiciosBD = ref([])
-    
+
     // Estados para catálogos
     const profesionalesDisponibles = ref([])
     const motivosDisponibles = ref([])
@@ -546,14 +567,14 @@ export default {
     const showSearchDialog = ref(false)
     const listaPropietariosBusqueda = ref([])
     const busquedaFormData = reactive({
-      propietario: { 
-        nombre: '', 
+      propietario: {
+        nombre: '',
         primerapellido: '',
         segundoapellido: '',
         email: '',
         telefono1: ''
       },
-      mascota: { 
+      mascota: {
         nombre: '',
         historia_clinica: ''
       }
@@ -566,7 +587,7 @@ export default {
         // Usando fetch directo o servicio genérico por simplicidad y consistencia con lo previo
         const _peticion = new NdPeticionControl()
         const _unDtoParametros = new DtoParametros()
-        
+
         _unDtoParametros.filtro = {
             id_sitio: 1, // Valor por defecto
             nombre: busquedaFormData.propietario.nombre,
@@ -580,7 +601,7 @@ export default {
 
         const respuesta = await _peticion.invocarMetodo('filtropropietariomascota/filtro', 'post', _unDtoParametros)
         listaPropietariosBusqueda.value = respuesta || []
-        
+
         if (listaPropietariosBusqueda.value.length === 0) {
             $q.notify({ type: 'info', message: 'No se encontraron resultados' })
         }
@@ -721,8 +742,8 @@ export default {
       if (!id) return null
       const prof = profesionalesDisponibles.value.find(p => String(p.id) === String(id))
       if (!prof) return null
-      
-      return prof.nombre_completo || 
+
+      return prof.nombre_completo ||
              `${prof.poblador_nombre || prof.nombre || ''} ${prof.poblador_primerapellido || prof.primerapellido || ''} ${prof.poblador_segundoapellido || prof.segundoapellido || ''}`.trim() ||
              'Sin nombre'
     }
@@ -764,7 +785,7 @@ export default {
     // Función para cargar esquema de servicio bajo demanda
     const cargarEsquema = async (identificador, idServicioDef) => {
       if (esquemasActivos.value[identificador]) return
-      
+
       cargandoEsquema.value = true
       try {
         const esquema = await servicioDinamicoService.getEsquemaServicio(idServicioDef)
@@ -816,21 +837,21 @@ export default {
     const crearNuevaAtencion = async () => {
       try {
         $q.loading.show()
-        
+
         const datosNuevaAtencion = {
           id_paciente: paciente.value.paciente_id,
           id_profesional: formNuevaAtencion.veterinario_id,
-          id_motivo: formNuevaAtencion.motivo_id, 
+          id_motivo: formNuevaAtencion.motivo_id,
           observacion: formNuevaAtencion.observaciones,
           estado: 'En curso',
           activo: 'S',
           id_sucursal: store.sucursalSeleccionada.id,
           fechaalta: new Date().toISOString(),
-          
+
         }
 
         const respuesta = await atencionService.crearAtencion(datosNuevaAtencion)
-        
+
         if (respuesta) {
             // Cerrar el diálogo primero para que el usuario no espere bloqueado
             showNuevaAtencionDialog.value = false
@@ -859,12 +880,12 @@ export default {
 
       const idNuevo = servicio.id_servicio || servicio.id
       const tipoNuevo = (servicio.componente_clave || servicio.tipo || servicio.identificador)?.toLowerCase()
-      
-      const yaExiste = serviciosAplicados.value.some(s => 
-        (s.id_servicio_def && s.id_servicio_def === idNuevo) || 
+
+      const yaExiste = serviciosAplicados.value.some(s =>
+        (s.id_servicio_def && s.id_servicio_def === idNuevo) ||
         (s.tipo && s.tipo === tipoNuevo)
       )
-      
+
       if (yaExiste) {
         $q.notify({
           type: 'warning',
@@ -955,7 +976,7 @@ export default {
 
           if (clave === 'vacunacion') {
             const vacunas = datosFinales.vacunas || []
-            
+
             for (const v of vacunas) {
               const payloadVacuna = {
                 id_atencion_servicio: servicio.idBD,
@@ -1001,8 +1022,8 @@ export default {
               lote: datosFinales.lote || '',
               dosis: String(datosFinales.dosisAplicada || ''),
               via_administracion: datosFinales.viaAdministracion || '',
-              parasitos_objetivo: Array.isArray(datosFinales.tipoParasitos) 
-                                 ? datosFinales.tipoParasitos.join(', ') 
+              parasitos_objetivo: Array.isArray(datosFinales.tipoParasitos)
+                                 ? datosFinales.tipoParasitos.join(', ')
                                  : (datosFinales.tipoParasitos || ''),
               proxima_desparasitacion: datosFinales.proximaDesparacitacion,
               observaciones: datosFinales.observaciones || ''
@@ -1140,21 +1161,21 @@ export default {
         try {
             $q.loading.show()
             const atencion = atenciones.value[atencionActual.value]
-            
+
             const fechaFin = new Date()
             const datosUpdate = {
                 estado: 'Finalizada',
                 fecha_finalizacion: fechaFin.toISOString().split('T')[0],
                 hora_finalizacion: fechaFin.toTimeString().split(' ')[0].substring(0, 5)
             }
-            
+
             const respuesta = await atencionService.actualizarAtencion(atencion.id, datosUpdate)
-            
+
             if (respuesta) {
                 atencion.estado = 'Finalizada'
                 atencion.fechaFinalizacion = datosUpdate.fecha_finalizacion
                 atencion.horaFinalizacion = datosUpdate.hora_finalizacion
-    
+
                 $q.notify({
                   type: 'positive',
                   message: 'Atención finalizada correctamente',
@@ -1178,7 +1199,7 @@ export default {
       console.log('🖨️ Imprimiendo servicio:', servicio.nombre, 'Tipo:', tipo)
       // Especial: Si es un servicio de Vacunación, usamos el backend con diseño programático
       const esVacunacion = servicio.tipo?.toLowerCase() === 'vacunacion' || servicio.componente_clave === 'vacunacion'
-      
+
       if (esVacunacion && tipo === 'especial') {
         const datosGeneracion = {
           paciente: {
@@ -1211,7 +1232,7 @@ export default {
 
       // Especial: Si es un servicio de Consulta, usamos el backend con diseño programático
       const esConsulta = servicio.tipo?.toLowerCase() === 'consulta' || servicio.componente_clave === 'consulta'
-      
+
       if (esConsulta && tipo === 'especial') {
         const datosGeneracion = {
           paciente: {
@@ -1243,7 +1264,7 @@ export default {
 
       // Otras plantillas de la base de datos (Ej: Desparasitacion, etc)
       let idPlantilla = idPlantillaManual || servicio.id_plantilla || (esquemasActivos.value && esquemasActivos.value[servicio.tipo]?.id_plantilla)
-      
+
       // Si no tenemos ID pero hay plantillas_servicio, tomar la primera por defecto
       if (!idPlantilla && servicio.plantillas_servicio?.length > 0) {
         idPlantilla = servicio.plantillas_servicio[0].id_plantilla
@@ -1261,7 +1282,7 @@ export default {
         fecha_atencion: atenciones.value[atencionActual.value].fecha,
         atencion_numero: atenciones.value[atencionActual.value].numero
       }
-      
+
       await imprimirPlantilla(idPlantilla, datosVariables)
     }
 
@@ -1317,7 +1338,7 @@ export default {
           const nombreProfesional = a.profesional?.nombre_completo ||
             `${a.profesional?.poblador_nombre || ''} ${a.profesional?.poblador_primerapellido || ''}`.trim() ||
             obtenerNombreProfesional(a.id_profesional) ||
-            a.veterinario || 
+            a.veterinario ||
             'Sin asignar'
 
           return {
@@ -1360,7 +1381,7 @@ export default {
             .map(async s => {
               const defClave = s.servicio?.componente_clave || s.servicio?.identificador || String(s.id_servicio)
               const serviceDef = catalogoServiciosBD.value.find(c => c.id === s.id_servicio)
-              
+
               let nombreMostrar = s.servicio?.nombre || serviceDef?.nombre || `Servicio ${s.id_servicio}`
               if (nombreMostrar.toUpperCase().startsWith('SERVICIO ') && serviceDef?.componente_clave) {
                   nombreMostrar = serviceDef.componente_clave.charAt(0).toUpperCase() + serviceDef.componente_clave.slice(1)
@@ -1485,13 +1506,13 @@ export default {
             cargarProfesionalesParaAtencion()
           ])
         ])
-        
+
         // No cargamos los esquemas aquí (Optimización Lazy Loading)
         // Solo guardamos la lista básica de servicios disponibles
 
         // Guardar catálogo completo para ServiciosDisponibles
         catalogoServiciosBD.value = serviciosDinamicos
-        
+
         // Si ya hay mascota seleccionada, cargar sus atenciones
         const idPaciente = paciente.value.paciente_id || paciente.value.id
         if (idPaciente) {
@@ -1499,10 +1520,10 @@ export default {
         }
       } catch (error) {
         console.error('Error al cargar la configuración inicial:', error)
-        $q.notify({ 
-          type: 'warning', 
-          message: 'Error al iniciar el módulo', 
-          caption: 'Algunos componentes podrían no funcionar correctamente' 
+        $q.notify({
+          type: 'warning',
+          message: 'Error al iniciar el módulo',
+          caption: 'Algunos componentes podrían no funcionar correctamente'
         })
       } finally {
         cargandoConfiguracion.value = false

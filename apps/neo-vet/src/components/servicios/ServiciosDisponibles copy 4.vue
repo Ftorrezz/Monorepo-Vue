@@ -65,7 +65,7 @@
     </div>
 
     <!-- GRID VIEW -->
-    <div class="scroll-area custom-scrollbar" style="height: calc(75vh - 200px); overflow-y: auto; overflow-x: hidden; padding: 2px 6px 6px;">
+    <div class="scroll-area custom-scrollbar" style="height: calc(75vh - 200px); overflow-y: auto;">
 
       <!-- Grid de Tarjetas -->
       <div v-if="viewMode === 'grid'" class="cards-grid q-pa-md">
@@ -73,19 +73,28 @@
           <div
             v-for="(servicio, index) in serviciosFiltrados"
             :key="servicio.id"
-            class="service-card-wrapper"
+            class="service-card"
+            :class="{
+              'service-card--added': isServicioYaAgregado(servicio.tipo, servicio.id),
+              'service-card--available': !isServicioYaAgregado(servicio.tipo, servicio.id)
+            }"
             :style="{ '--card-color': getServiceHex(servicio), '--delay': (index * 0.04) + 's' }"
+            @click="seleccionarServicio(servicio)"
           >
-            <div
-              class="service-card"
-              :class="{
-                'service-card--added': isServicioYaAgregado(servicio.tipo, servicio.id),
-                'service-card--available': !isServicioYaAgregado(servicio.tipo, servicio.id)
-              }"
-              @click="seleccionarServicio(servicio)"
-            >
             <!-- Fondo decorativo -->
             <div class="card-bg-shape"></div>
+
+            <!-- Badge estado -->
+            <div class="card-status-badge">
+              <div v-if="isServicioYaAgregado(servicio.tipo, servicio.id)" class="badge-added">
+                <q-icon name="check" size="11px" />
+                <span>Agregado</span>
+              </div>
+              <div v-else class="badge-available">
+                <q-icon name="add" size="11px" />
+                <span>Agregar</span>
+              </div>
+            </div>
 
             <!-- Icono principal -->
             <div class="card-icon-wrap">
@@ -103,22 +112,33 @@
 
             <!-- Footer de la tarjeta -->
             <div class="card-footer">
-              <span class="card-categoria-label">
-                <q-chip v-if="servicio.premium" size="xs" color="amber-2" text-color="amber-10" icon="star" label="PREMIUM" class="text-weight-bolder" dense />
-                <span v-else>{{ getCategoriaLabel(servicio) }}</span>
+              <q-chip
+                v-if="servicio.premium"
+                size="xs"
+                color="amber-2"
+                text-color="amber-10"
+                icon="star"
+                label="PREMIUM"
+                class="text-weight-bolder q-px-sm"
+              />
+              <span v-else class="card-categoria-label">
+                {{ getCategoriaLabel(servicio) }}
               </span>
-
-              <!-- Botón estado -->
-              <div v-if="isServicioYaAgregado(servicio.tipo, servicio.id)" class="card-btn card-btn--done">
-                <q-icon name="check" size="12px" />
-                <span>Listo</span>
-              </div>
-              <div v-else class="card-btn card-btn--add">
-                <q-icon name="add" size="12px" />
-                <span>Agregar</span>
-              </div>
+              <q-icon
+                :name="isServicioYaAgregado(servicio.tipo, servicio.id) ? 'block' : 'arrow_forward'"
+                size="16px"
+                class="card-arrow"
+              />
             </div>
-          </div>
+
+            <!-- Overlay hover -->
+            <div class="card-hover-overlay">
+              <q-icon
+                :name="isServicioYaAgregado(servicio.tipo, servicio.id) ? 'remove_circle_outline' : 'add_circle_outline'"
+                size="28px"
+              />
+              <span>{{ isServicioYaAgregado(servicio.tipo, servicio.id) ? 'Ya agregado' : 'Agregar servicio' }}</span>
+            </div>
           </div>
         </transition-group>
 
@@ -387,25 +407,6 @@ export default defineComponent({
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
   gap: 10px;
-  overflow: visible;
-}
-
-.cards-grid {
-  overflow: visible;
-}
-
-/* ─── CARD WRAPPER (handles scale) ──────────────────────────────── */
-.service-card-wrapper {
-  animation: cardAppear 0.4s ease both;
-  animation-delay: var(--delay, 0s);
-  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
-  will-change: transform;
-}
-
-.service-card-wrapper:has(.service-card--available):hover {
-  transform: scale(1.07);
-  z-index: 10;
-  position: relative;
 }
 
 /* ─── SERVICE CARD ──────────────────────────────────────────────── */
@@ -415,13 +416,15 @@ export default defineComponent({
   padding: 13px 12px 11px;
   cursor: pointer;
   overflow: hidden;
-  transition: box-shadow 0.28s ease, border-color 0.2s ease;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.25s ease;
+  animation: cardAppear 0.4s ease both;
+  animation-delay: var(--delay, 0s);
   display: flex;
   flex-direction: column;
   gap: 7px;
   min-height: 148px;
   border: 1.5px solid transparent;
-  height: 100%;
 }
 
 @keyframes cardAppear {
@@ -436,8 +439,9 @@ export default defineComponent({
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
-.service-card-wrapper:hover .service-card--available {
-  box-shadow: 0 20px 36px rgba(0,0,0,0.15);
+.service-card--available:hover {
+  transform: translateY(-5px) scale(1.01);
+  box-shadow: 0 16px 30px rgba(0,0,0,0.12);
   border-color: var(--card-color, #1d4ed8);
 }
 
@@ -467,7 +471,7 @@ export default defineComponent({
   pointer-events: none;
 }
 
-.service-card-wrapper:hover .service-card--available .card-bg-shape {
+.service-card--available:hover .card-bg-shape {
   transform: scale(1.5);
   opacity: 0.08;
 }
@@ -477,74 +481,34 @@ export default defineComponent({
   opacity: 0.06;
 }
 
-/* Status badge — removed, replaced by footer button */
-
-/* Footer */
-.card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-top: 7px;
-  border-top: 1px solid #f1f5f9;
-  gap: 6px;
-}
-
-.service-card--added .card-footer {
-  border-top-color: #fee2e2;
-}
-
-.card-categoria-label {
-  font-size: 10px;
-  font-weight: 600;
-  color: #cbd5e1;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Card action buttons */
-.card-btn {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+/* Status badge */
+.card-status-badge {
+  position: absolute;
+  top: 11px;
+  right: 11px;
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.3px;
-  padding: 4px 9px;
+  letter-spacing: 0.4px;
   border-radius: 20px;
-  white-space: nowrap;
-  flex-shrink: 0;
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
-              box-shadow 0.2s ease,
-              background 0.2s ease;
+  padding: 3px 8px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
 }
 
-.card-btn--add {
-  background: color-mix(in srgb, var(--card-color) 10%, white);
+.badge-available {
+  background: rgba(var(--card-color, #1d4ed8), 0.1);
+  color: var(--card-color, #1d4ed8);
+  background: color-mix(in srgb, var(--card-color) 12%, transparent);
   color: var(--card-color);
-  border: 1px solid color-mix(in srgb, var(--card-color) 25%, transparent);
 }
 
-.service-card-wrapper:hover .card-btn--add {
-  background: var(--card-color);
-  color: white;
-  border-color: var(--card-color);
-  transform: scale(1.06);
-  box-shadow: 0 3px 10px color-mix(in srgb, var(--card-color) 40%, transparent);
-}
-
-.card-btn--done {
+.badge-added {
   background: #fee2e2;
   color: #dc2626;
-  border: 1px solid #fca5a5;
 }
 
-/* Remove old overlay */
-.card-hover-overlay { display: none; }
-.card-arrow { display: none; }
+/* Icon */
 .card-icon-wrap {
   position: relative;
   width: 40px;
@@ -560,7 +524,7 @@ export default defineComponent({
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.service-card-wrapper:hover .service-card--available .card-icon-ring {
+.service-card--available:hover .card-icon-ring {
   transform: scale(1.12) rotate(-6deg);
   background: color-mix(in srgb, var(--card-color) 18%, white);
 }
@@ -618,9 +582,8 @@ export default defineComponent({
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 7px;
+  padding-top: 8px;
   border-top: 1px solid #f1f5f9;
-  gap: 6px;
 }
 
 .service-card--added .card-footer {
@@ -633,48 +596,53 @@ export default defineComponent({
   color: #cbd5e1;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-/* Card action buttons */
-.card-btn {
+.card-arrow {
+  color: #cbd5e1;
+  transition: transform 0.2s ease, color 0.2s;
+}
+
+.service-card--available:hover .card-arrow {
+  transform: translateX(3px);
+  color: var(--card-color, #1d4ed8);
+}
+
+.service-card--added .card-arrow {
+  color: #fca5a5;
+}
+
+/* Hover overlay */
+.card-hover-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 4px;
-  font-size: 10px;
+  justify-content: center;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.3px;
-  padding: 4px 9px;
-  border-radius: 20px;
-  white-space: nowrap;
-  flex-shrink: 0;
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
-              box-shadow 0.2s ease,
-              background 0.2s ease,
-              color 0.2s ease;
+  pointer-events: none;
 }
 
-.card-btn--add {
-  background: color-mix(in srgb, var(--card-color) 10%, white);
-  color: var(--card-color);
-  border: 1px solid color-mix(in srgb, var(--card-color) 25%, transparent);
-}
-
-.service-card--available:hover .card-btn--add {
-  background: var(--card-color);
+.service-card--available .card-hover-overlay {
+  background: color-mix(in srgb, var(--card-color) 92%, white);
   color: white;
-  border-color: var(--card-color);
-  transform: scale(1.06);
-  box-shadow: 0 3px 10px color-mix(in srgb, var(--card-color) 40%, transparent);
 }
 
-.card-btn--done {
-  background: #fee2e2;
-  color: #dc2626;
-  border: 1px solid #fca5a5;
+.service-card--added .card-hover-overlay {
+  background: rgba(220,38,38, 0.88);
+  color: white;
+}
+
+.service-card--available:hover .card-hover-overlay,
+.service-card--added:hover .card-hover-overlay {
+  opacity: 0.92;
 }
 
 /* ─── LIST VIEW ─────────────────────────────────────────────────── */
