@@ -58,6 +58,7 @@
         align="left"
         narrow-indicator
       >
+        <q-tab name="dashboard" icon="dashboard" label="Dashboard" />
         <q-tab name="productos" icon="inventory_2" label="Inventario" />
         <q-tab name="proveedores" icon="local_shipping" label="Proveedores" />
         <q-tab name="movimientos" icon="history" label="Movimientos" />
@@ -65,6 +66,109 @@
     </q-card>
 
     <q-tab-panels v-model="tabSeleccionada" animated class="bg-transparent">
+      <!-- PANEL DE DASHBOARD -->
+      <q-tab-panel name="dashboard" class="q-pa-none">
+        <div class="row q-col-gutter-md q-mb-xl">
+          <!-- KPI 1 -->
+          <div class="col-12 col-md-3">
+            <q-card class="kpi-card glass-panel kpi-primary" v-ripple>
+              <q-card-section>
+                <div class="row items-center justify-between">
+                  <div class="kpi-icon-wrapper"><q-icon name="attach_money" size="lg" /></div>
+                  <div class="text-right">
+                    <div class="text-caption text-uppercase q-mb-xs opacity-70">Inversión Total</div>
+                    <div class="text-h4 text-weight-bolder">${{ estadisticasGenerales.valorTotal.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+          <!-- KPI 2 -->
+          <div class="col-12 col-md-3">
+            <q-card class="kpi-card glass-panel kpi-secondary" v-ripple @click="tabSeleccionada = 'productos'" style="cursor:pointer">
+              <q-card-section>
+                <div class="row items-center justify-between">
+                  <div class="kpi-icon-wrapper"><q-icon name="inventory_2" size="lg" /></div>
+                  <div class="text-right">
+                    <div class="text-caption text-uppercase q-mb-xs opacity-70">Prod. Activos</div>
+                    <div class="text-h4 text-weight-bolder">{{ estadisticasGenerales.totalProductos }}</div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+          <!-- KPI 3 -->
+          <div class="col-12 col-md-3">
+            <q-card class="kpi-card glass-panel kpi-warning" v-ripple @click="tabSeleccionada = 'productos'; filtroEstado = estadosStock.find(e => e.value === 'stock_bajo')" style="cursor:pointer">
+              <q-card-section>
+                <div class="row items-center justify-between">
+                  <div class="kpi-icon-wrapper"><q-icon name="warning" size="lg" /></div>
+                  <div class="text-right">
+                    <div class="text-caption text-uppercase q-mb-xs opacity-70">Stock Bajo</div>
+                    <div class="text-h4 text-weight-bolder">{{ estadisticasGenerales.stockBajo }}</div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+          <!-- KPI 4 -->
+          <div class="col-12 col-md-3">
+            <q-card class="kpi-card glass-panel kpi-danger" v-ripple @click="tabSeleccionada = 'productos'; filtroEstado = estadosStock.find(e => e.value === 'proximo_vencer')" style="cursor:pointer">
+              <q-card-section>
+                <div class="row items-center justify-between">
+                  <div class="kpi-icon-wrapper"><q-icon name="event_busy" size="lg" /></div>
+                  <div class="text-right">
+                    <div class="text-caption text-uppercase q-mb-xs opacity-70">Por Vencer</div>
+                    <div class="text-h4 text-weight-bolder">{{ estadisticasGenerales.proximosVencer }}</div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+        </div>
+
+        <!-- Seccion Inferior Dashboard: Alertas y Mover rápidos -->
+        <div class="row q-col-gutter-md">
+           <div class="col-12 col-md-7">
+             <q-card flat bordered class="rounded-16">
+                <q-card-section class="bg-grey-1 row items-center">
+                   <q-icon name="notifications_active" color="deep-orange" size="sm" class="q-mr-sm"/>
+                   <span class="text-h6 text-weight-medium">Atención Inmediata</span>
+                   <q-space />
+                   <q-btn flat dense icon="arrow_forward" color="primary" label="Ver Farmacia" @click="tabSeleccionada = 'productos'" />
+                </q-card-section>
+                <q-list separator>
+                   <q-item v-for="prod in productosProximosYAgotados.slice(0, 5)" :key="prod.id">
+                      <q-item-section avatar>
+                         <q-avatar :color="getStockColor(prod)" text-color="white" icon="warning" />
+                      </q-item-section>
+                      <q-item-section>
+                         <q-item-label class="text-weight-bold">{{ prod.nombre }}</q-item-label>
+                         <q-item-label caption>{{ getStockLabel(prod) }} (Stock actual: {{ prod.stockUnidades }})</q-item-label>
+                      </q-item-section>
+                      <q-item-section side>
+                         <q-btn outline color="primary" label="Reponer" size="sm" @click="ajustarStock(prod)" />
+                      </q-item-section>
+                   </q-item>
+                   <q-item v-if="productosProximosYAgotados.length === 0">
+                      <q-item-section class="text-center text-grey q-py-lg">Todo excelente. Ningún producto en nivel crítico.</q-item-section>
+                   </q-item>
+                </q-list>
+             </q-card>
+           </div>
+           <div class="col-12 col-md-5">
+             <q-card flat bordered class="rounded-16 shadow-gradient cursor-pointer" v-ripple @click="mostrarModalImpresion = true">
+                <q-card-section class="q-pa-lg text-center text-white bg-gradient-print">
+                   <q-icon name="print" size="xl" class="q-mb-md opacity-90"/>
+                   <div class="text-h5 q-mb-sm text-weight-bold">Módulo de Reportería</div>
+                   <div class="text-body2 opacity-80 q-mb-xl">Genera documentos PDF de existencias de farmacia, kárdex y alertas de caducidad.</div>
+                   <q-btn color="white" text-color="primary" class="full-width q-py-sm shadow-1" unelevated label="Abrir Generador de PDF" icon="picture_as_pdf" />
+                </q-card-section>
+             </q-card>
+           </div>
+        </div>
+      </q-tab-panel>
+
       <!-- PANEL DE PRODUCTOS -->
       <q-tab-panel name="productos" class="q-pa-none">
         <!-- Filtros y estadísticas -->
@@ -766,6 +870,47 @@
       </q-card>
     </q-dialog>
 
+    <!-- Modal Impresión -->
+    <q-dialog v-model="mostrarModalImpresion">
+      <q-card style="min-width: 450px" class="rounded-16">
+        <q-card-section class="bg-gradient-print text-white row items-center">
+          <div class="text-h6"><q-icon name="print" class="q-mr-sm" /> Módulo de Reportería</div>
+          <q-space />
+          <q-btn flat round icon="close" v-close-popup />
+        </q-card-section>
+        <q-card-section class="q-pa-md q-gutter-y-md">
+           <p class="text-body2 text-grey-8">Selecciona qué documento necesitas emitir en formato PDF para formalizar las existencias farmacéuticas.</p>
+           
+           <q-list bordered separator class="rounded-borders">
+             <q-item clickable @click="imprimirReporte('inventario_completo')" v-ripple>
+               <q-item-section avatar><q-avatar color="primary" text-color="white" icon="inventory_2" /></q-item-section>
+               <q-item-section>
+                 <q-item-label class="text-weight-bold">Inventario Completo</q-item-label>
+                 <q-item-label caption>Genera un PDF con todas las existencias actuales.</q-item-label>
+               </q-item-section>
+               <q-item-section side><q-icon name="chevron_right" /></q-item-section>
+             </q-item>
+             <q-item clickable @click="imprimirReporte('stock_bajo')" v-ripple>
+               <q-item-section avatar><q-avatar color="warning" text-color="white" icon="warning" /></q-item-section>
+               <q-item-section>
+                 <q-item-label class="text-weight-bold">Productos con Stock Bajo</q-item-label>
+                 <q-item-label caption>Útil para órdenes de compra.</q-item-label>
+               </q-item-section>
+               <q-item-section side><q-icon name="chevron_right" /></q-item-section>
+             </q-item>
+             <q-item clickable @click="imprimirReporte('proximos_vencer')" v-ripple>
+               <q-item-section avatar><q-avatar color="deep-orange" text-color="white" icon="event_busy" /></q-item-section>
+               <q-item-section>
+                 <q-item-label class="text-weight-bold">Lotes a Caducar</q-item-label>
+                 <q-item-label caption>Identifica frascos o empaques que deben salir.</q-item-label>
+               </q-item-section>
+               <q-item-section side><q-icon name="chevron_right" /></q-item-section>
+             </q-item>
+           </q-list>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
     <q-inner-loading :showing="cargando">
       <q-spinner-gears size="50px" color="primary" />
     </q-inner-loading>
@@ -791,7 +936,7 @@ const props = defineProps({
 const emit = defineEmits(['inventario-actualizado', 'venta-procesada', 'movimiento-registrado'])
 
 // Estados de navegación
-const tabSeleccionada = ref('productos')
+const tabSeleccionada = ref('dashboard')
 
 // Estados principales poblados desde API
 const productos = ref([])
@@ -817,6 +962,7 @@ const mostrarModalLote = ref(false)
 const mostrarModalVenta = ref(false)
 const mostrarModalAjusteStock = ref(false)
 const mostrarModalHistorial = ref(false)
+const mostrarModalImpresion = ref(false)
 const productoEditando = ref(null)
 const proveedorEditando = ref(null)
 const loteEditando = ref(null)
@@ -997,6 +1143,12 @@ const productosFiltrados = computed(() => {
   }
   
   return listado
+})
+
+const productosProximosYAgotados = computed(() => {
+  return productosFiltrados.value
+    .filter(p => getEstadoStock(p) !== 'normal')
+    .sort((a,b) => a.stockUnidades - b.stockUnidades)
 })
 
 const estadisticasGenerales = computed(() => {
@@ -1677,6 +1829,39 @@ const verHistorialMovimientos = () => {
   mostrarModalHistorial.value = true
 }
 
+const imprimirReporte = async (tipo) => {
+  try {
+    $q.loading.show({
+      message: 'Construyendo documento PDF, por favor espera...',
+      spinnerColor: 'primary'
+    })
+    
+    const response = await inventarioService.reportes.descargarPdf(tipo)
+    
+    // Crear objeto Blob con la data del PDF
+    const blob = new Blob([response.data], { type: 'application/pdf' })
+    const url = window.URL.createObjectURL(blob)
+    
+    // Abrir en otra pestaña
+    window.open(url, '_blank')
+    
+    $q.notify({ 
+      type: 'positive', 
+      message: 'Reporte generado con éxito', 
+      icon: 'check_circle'
+    })
+  } catch (error) {
+    console.error('Error generando reporte PDF:', error)
+    $q.notify({ 
+      type: 'negative', 
+      message: 'Hubo un error al generar el reporte en el backend', 
+      icon: 'error'
+    })
+  } finally {
+    $q.loading.hide()
+  }
+}
+
 // Métodos de persistencia
 const cargarDatos = async () => {
   cargando.value = true
@@ -1942,5 +2127,58 @@ defineExpose({
   padding: 8px !important;
   border-top: 1px solid #f0f0f0;
   background: #fafafa;
+}
+
+/* Dashboard Premium Styles */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}
+
+.kpi-card {
+  border-radius: 16px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.kpi-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.15);
+}
+
+.kpi-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; width: 6px; height: 100%;
+}
+
+.kpi-primary::before { background: linear-gradient(180deg, #2196f3, #0d47a1); }
+.kpi-secondary::before { background: linear-gradient(180deg, #9c27b0, #4a148c); }
+.kpi-warning::before { background: linear-gradient(180deg, #ff9800, #e65100); }
+.kpi-danger::before { background: linear-gradient(180deg, #f44336, #b71c1c); }
+
+.kpi-icon-wrapper {
+  background: rgba(0,0,0,0.03);
+  border-radius: 50%;
+  padding: 12px;
+  color: #555;
+}
+
+.kpi-primary .kpi-icon-wrapper { color: #1976d2; background: rgba(25, 118, 210, 0.1); }
+.kpi-secondary .kpi-icon-wrapper { color: #9c27b0; background: rgba(156, 39, 176, 0.1); }
+.kpi-warning .kpi-icon-wrapper { color: #ff9800; background: rgba(255, 152, 0, 0.1); }
+.kpi-danger .kpi-icon-wrapper { color: #f44336; background: rgba(244, 67, 54, 0.1); }
+
+.rounded-16 { border-radius: 16px; }
+
+.bg-gradient-print {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+}
+.shadow-gradient {
+  box-shadow: 0 10px 30px -10px rgba(30, 60, 114, 0.5);
 }
 </style>

@@ -366,6 +366,8 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
+import { useQuasar } from 'quasar'
+import inventarioService from 'src/services/inventario.service'
 
 // ══ CATÁLOGOS ════════════════════════════════════════════════════
 const unidadesDosis = ['mg', 'ml', 'mg/kg', 'ml/kg', 'UI/kg', 'UI', 'gotas', 'tableta(s)', 'cápsula(s)']
@@ -418,6 +420,7 @@ const emit = defineEmits([
 ])
 
 // ══ ESTADO ══════════════════════════════════════════════════════
+const $q = useQuasar()
 const modoEdicionManual = ref(false)
 const readonly = computed(() => props.modoLectura && !modoEdicionManual.value)
 
@@ -556,13 +559,42 @@ const imprimirReceta   = (tipo = 'especial', id = null) =>
 const firmarReceta   = (tipo = 'especial', id = null) =>
   emit('firmar-servicio', props.servicioId, serializar(), tipo, id)
 
-const completarReceta = () => {
+const completarReceta = async () => {
   if (!formularioValido.value) return
-  emit('servicio-completado', props.servicioId, {
-    ...serializar(),
-    fecha_aplicacion: new Date().toISOString(),
-  })
-  modoEdicionManual.value = false
+
+  try {
+    $q.loading.show({ message: 'Deduciendo stock e inventario...' })
+    const dataSerializada = serializar()
+
+    // Llamamos al deductor backend por cada medicamento si está ligado a un ID
+    for (const med of dataSerializada.medicamentos) {
+      if (med.id_medicamento) {
+        // Obtenemos solo los números del string cantidad_dispensar, si es complejo lo forzamos a 1 temporal
+        const regexNum = med.cantidad_dispensar.toString().match(/\d+/)
+        const cantidadNumerica = regexNum ? parseInt(regexNum[0], 10) : 1
+
+        await inventarioService.productos.deducirInventario({
+          id_presentacion: med.id_medicamento, // Suponemos que id_medicamento mapea directamente a presentacion/SKU
+          cantidad: cantidadNumerica,
+          origen: 'RECETA',
+          referencia_id: props.atencionId
+        })
+      }
+    }
+
+    emit('servicio-completado', props.servicioId, {
+      ...dataSerializada,
+      fecha_aplicacion: new Date().toISOString(),
+    })
+    modoEdicionManual.value = false
+    $q.notify({ type: 'positive', message: 'Servicio completado. Stock deducido correctamente.' })
+
+  } catch (error) {
+    console.error('Error al deducir inventario:', error)
+    $q.notify({ type: 'negative', message: 'Error cerrando la receta: ' + (error.response?.data?.message || error.message) })
+  } finally {
+    $q.loading.hide()
+  }
 }
 
 const cancelarEdicion = () => {

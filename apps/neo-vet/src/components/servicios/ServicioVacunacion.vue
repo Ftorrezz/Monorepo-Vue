@@ -632,13 +632,14 @@
         procesando.value = true
         $q.loading.show({ message: 'Procesando aplicaciones e inventario...' })
         
-        // Descontar inventario para cada vacuna que tenga lote
+        // Descontar inventario usando el sistema centralizado de deducción
         for (const v of vacunasAgregadas.value) {
-          if (v.lote) {
-            await inventarioService.lotes.ajustarCantidad(v.lote.id, {
-              tipo: 'salida',
+          if (v.producto && v.producto.value) {
+            await inventarioService.productos.deducirInventario({
+              id_presentacion: v.producto.value,
               cantidad: 1,
-              motivo: `Atención #${props.atencionId} (Vacunación: ${v.tipoVacuna?.label || v.tipoVacuna})`
+              origen: 'VACUNACION',
+              referencia_id: props.atencionId
             })
           }
         }

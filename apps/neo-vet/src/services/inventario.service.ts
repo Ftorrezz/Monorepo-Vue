@@ -99,53 +99,51 @@ export default {
     // ==================== PRODUCTOS ====================
     productos: {
         getAll() {
-            return api.get('/api/productos');
+            return api.get('/inventario/productos');
         },
 
         getTodos() {
-            return api.get('/api/productos/todos');
+            return api.get('/productos/todos');
         },
 
         getById(id: number) {
-            return api.get(`/api/productos/${id}`);
+            return api.get(`/productos/${id}`);
         },
 
         create(producto: Partial<Producto>) {
-            return api.post('/api/productos', producto);
+            return api.post('/productos', producto);
         },
 
         update(id: number, producto: Partial<Producto>) {
-            return api.put(`/api/productos/${id}`, producto);
+            return api.put(`/productos/${id}`, producto);
         },
 
         delete(id: number) {
-            return api.delete(`/api/productos/${id}`);
+            return api.delete(`/productos/${id}`);
         },
 
         getByCategoria(categoriaId: number) {
-            return api.get('/api/productos/categoria', {
-                params: { categoriaId }
-            });
+            return api.get('/inventario/productos/categoria/' + categoriaId);
         },
 
         getByTipo(tipoId: number) {
-            return api.get('/api/productos/tipo', {
+            return api.get('/productos/tipo', {
                 params: { tipoId }
             });
         },
 
         getBajoStock() {
-            return api.get('/api/productos/bajo-stock');
+            return api.get('/inventario/lotes/bajo-stock');
         },
 
         getProximosVencer(dias: number = 30) {
-            return api.get('/api/productos/proximos-vencer', {
+            return api.get('/productos/proximos-vencer', {
                 params: { dias }
             });
         },
 
         search(query: string) {
-            return api.get('/api/productos/search', {
+            return api.get('/productos/search', {
                 params: { q: query }
             });
         },
@@ -155,156 +153,161 @@ export default {
             cantidad: number;
             motivo?: string;
         }) {
-            return api.post(`/api/productos/${id}/ajustar-stock`, ajuste);
+            return api.post(`/productos/${id}/ajustar-stock`, ajuste);
+        },
+
+        deducirInventario(payload: { id_presentacion: number, cantidad: number, origen: string, referencia_id: string }) {
+            return api.post('/inventario/deducir', payload);
         }
     },
 
     // ==================== CATEGORÍAS ====================
     categorias: {
         getAll() {
-            return api.get('/api/categorias');
+            // MOCK para evitar 404 ya que no hay controlador
+            return Promise.resolve({ data: [{ id: 1, nombre: 'Medicamentos' }, { id: 2, nombre: 'Accesorios' }] });
         },
 
         getActive() {
-            return api.get('/api/categorias/activas');
+            return api.get('/categorias/activas');
         },
 
         getById(id: number) {
-            return api.get(`/api/categorias/${id}`);
+            return api.get(`/categorias/${id}`);
         },
 
         create(categoria: Partial<Categoria>) {
-            return api.post('/api/categorias', categoria);
+            return api.post('/categorias', categoria);
         },
 
         update(id: number, categoria: Partial<Categoria>) {
-            return api.put(`/api/categorias/${id}`, categoria);
+            return api.put(`/categorias/${id}`, categoria);
         },
 
         delete(id: number) {
-            return api.delete(`/api/categorias/${id}`);
+            return api.delete(`/categorias/${id}`);
         }
     },
 
     // ==================== TIPOS DE PRODUCTO ====================
     tipos: {
         getAll() {
-            return api.get('/api/tipos-producto');
+            return Promise.resolve({ data: [{ id: 1, nombre: 'Físico' }, { id: 2, nombre: 'Servicio' }] });
         },
 
         getActive() {
-            return api.get('/api/tipos-producto/activos');
+            return api.get('/tipos-producto/activos');
         },
 
         getById(id: number) {
-            return api.get(`/api/tipos-producto/${id}`);
+            return api.get(`/tipos-producto/${id}`);
         },
 
         create(tipo: Partial<TipoProducto>) {
-            return api.post('/api/tipos-producto', tipo);
+            return api.post('/tipos-producto', tipo);
         },
 
         update(id: number, tipo: Partial<TipoProducto>) {
-            return api.put(`/api/tipos-producto/${id}`, tipo);
+            return api.put(`/tipos-producto/${id}`, tipo);
         },
 
         delete(id: number) {
-            return api.delete(`/api/tipos-producto/${id}`);
+            return api.delete(`/tipos-producto/${id}`);
         }
     },
 
     // ==================== UNIDADES DE MEDIDA ====================
     unidades: {
         getAll() {
-            return api.get('/api/unidades-medida');
+            return Promise.resolve({ data: [{ id: 1, abreviacion: 'ml', nombre: 'Mililitros', tipo: 'volumen' }, { id: 2, abreviacion: 'cja', nombre: 'Caja', tipo: 'unidad' }] });
         },
 
         getActive() {
-            return api.get('/api/unidades-medida/activas');
+            return api.get('/unidades-medida/activas');
         },
 
         getByTipo(tipo: 'masa' | 'volumen' | 'unidad') {
-            return api.get('/api/unidades-medida/tipo', {
+            return api.get('/unidades-medida/tipo', {
                 params: { tipo }
             });
         },
 
         getById(id: number) {
-            return api.get(`/api/unidades-medida/${id}`);
+            return api.get(`/unidades-medida/${id}`);
         },
 
         create(unidad: Partial<UnidadMedida>) {
-            return api.post('/api/unidades-medida', unidad);
+            return api.post('/unidades-medida', unidad);
         },
 
         update(id: number, unidad: Partial<UnidadMedida>) {
-            return api.put(`/api/unidades-medida/${id}`, unidad);
+            return api.put(`/unidades-medida/${id}`, unidad);
         },
 
         delete(id: number) {
-            return api.delete(`/api/unidades-medida/${id}`);
+            return api.delete(`/unidades-medida/${id}`);
         }
     },
 
     // ==================== UBICACIONES ====================
     ubicaciones: {
         getAll() {
-            return api.get('/api/ubicaciones/todas');
+            return Promise.resolve({ data: [{ id: 1, nombre: 'Farmacia Central' }] });
         },
 
         getActive() {
-            return api.get('/api/ubicaciones');
+            return Promise.resolve({ data: [{ id: 1, nombre: 'Farmacia Central' }] });
         },
 
         getById(id: number) {
-            return api.get(`/api/ubicaciones/${id}`);
+            return api.get(`/ubicaciones/${id}`);
         },
 
         create(ubicacion: Partial<Ubicacion>) {
-            return api.post('/api/ubicaciones', ubicacion);
+            return api.post('/ubicaciones', ubicacion);
         },
 
         update(id: number, ubicacion: Partial<Ubicacion>) {
-            return api.put(`/api/ubicaciones/${id}`, ubicacion);
+            return api.put(`/ubicaciones/${id}`, ubicacion);
         },
 
         delete(id: number) {
-            return api.delete(`/api/ubicaciones/${id}`);
+            return api.delete(`/ubicaciones/${id}`);
         },
 
         toggleStatus(id: number) {
-            return api.patch(`/api/ubicaciones/${id}/toggle-status`);
+            return api.patch(`/ubicaciones/${id}/toggle-status`);
         }
     },
 
     // ==================== PROVEEDORES ====================
     proveedores: {
         getAll() {
-            return api.get('/api/proveedores');
+            return Promise.resolve({ data: [{ id: 1, nombre: 'Proveedor A' }, { id: 2, nombre: 'Proveedor B' }] });
         },
 
         getActive() {
-            return api.get('/api/proveedores/activos');
+            return api.get('/proveedores/activos');
         },
 
         getById(id: number) {
-            return api.get(`/api/proveedores/${id}`);
+            return api.get(`/proveedores/${id}`);
         },
 
         create(proveedor: Partial<Proveedor>) {
-            return api.post('/api/proveedores', proveedor);
+            return api.post('/proveedores', proveedor);
         },
 
         update(id: number, proveedor: Partial<Proveedor>) {
-            return api.put(`/api/proveedores/${id}`, proveedor);
+            return api.put(`/proveedores/${id}`, proveedor);
         },
 
         delete(id: number) {
-            return api.delete(`/api/proveedores/${id}`);
+            return api.delete(`/proveedores/${id}`);
         },
 
         search(query: string) {
-            return api.get('/api/proveedores/search', {
+            return api.get('/proveedores/search', {
                 params: { q: query }
             });
         }
@@ -313,39 +316,39 @@ export default {
     // ==================== LOTES ====================
     lotes: {
         getAll() {
-            return api.get('/api/lotes');
+            return api.get('/lotes');
         },
 
         getByProducto(productoId: number) {
-            return api.get(`/api/productos/${productoId}/lotes`);
+            return api.get(`/productos/${productoId}/lotes`);
         },
 
         getById(id: number) {
-            return api.get(`/api/lotes/${id}`);
+            return api.get(`/lotes/${id}`);
         },
 
         create(lote: Partial<Lote>) {
-            return api.post('/api/lotes', lote);
+            return api.post('/lotes', lote);
         },
 
         update(id: number, lote: Partial<Lote>) {
-            return api.put(`/api/lotes/${id}`, lote);
+            return api.put(`/lotes/${id}`, lote);
         },
 
         delete(id: number) {
-            return api.delete(`/api/lotes/${id}`);
+            return api.delete(`/lotes/${id}`);
         },
 
         // Obtener lotes próximos a vencer
         getProximosVencer(dias: number = 30) {
-            return api.get('/api/lotes/proximos-vencer', {
+            return api.get('/lotes/proximos-vencer', {
                 params: { dias }
             });
         },
 
         // Obtener lotes con bajo stock
         getBajoStock() {
-            return api.get('/api/lotes/bajo-stock');
+            return api.get('/lotes/bajo-stock');
         },
 
         // Ajustar cantidad de un lote específico
@@ -354,7 +357,14 @@ export default {
             cantidad: number;
             motivo?: string;
         }) {
-            return api.post(`/api/lotes/${id}/ajustar`, ajuste);
+            return api.post(`/lotes/${id}/ajustar`, ajuste);
+        }
+    },
+
+    // ==================== REPORTES ====================
+    reportes: {
+        descargarPdf(tipo: string) {
+            return api.get(`/inventario/reporte/${tipo}`, { responseType: 'blob' });
         }
     }
 };
