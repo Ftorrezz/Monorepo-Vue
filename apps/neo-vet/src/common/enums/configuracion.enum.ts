@@ -36,10 +36,18 @@ export enum Tabla {
     TIPO_VACUNA = 14,
     VIA_ADMINISTRACION = 15,
     LABORATORIO = 16,
+
+    // Inventario
+    CATEGORIA_PRODUCTO = 18,
+    TIPO_PRODUCTO = 19,
+    UNIDAD_MEDIDA = 20,
+    FORMA_FARMACEUTICA = 21,
+    UBICACION = 22,
 }
 
 export const RelacionModuloTipo = {
     [Modulo.MASCOTA]: [Tabla.DIETA, Tabla.ESPECIE, Tabla.COLOR, Tabla.COMPORTAMIENTO, Tabla.HABITAT, Tabla.RAZA, Tabla.SEXO, Tabla.TAMANIO, Tabla.DIAGNOSTICO],
     [Modulo.PROPIETARIO]: [Tabla.ESCOLARIDAD, Tabla.ESTADO_CIVIL, Tabla.GENERO, Tabla.PROFESION, Tabla.RELIGION],
     [Modulo.VACUNA]: [Tabla.TIPO_VACUNA, Tabla.VIA_ADMINISTRACION, Tabla.LABORATORIO],
+    [Modulo.INVENTARIO]: [Tabla.CATEGORIA_PRODUCTO, Tabla.TIPO_PRODUCTO, Tabla.UNIDAD_MEDIDA, Tabla.FORMA_FARMACEUTICA, Tabla.UBICACION],
 };

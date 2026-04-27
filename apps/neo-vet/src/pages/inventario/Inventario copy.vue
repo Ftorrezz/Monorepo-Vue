@@ -173,75 +173,82 @@
       <!-- PANEL DE PRODUCTOS -->
       <q-tab-panel name="productos" class="q-pa-none">
         <!-- Filtros y estadísticas -->
-        <q-card flat class="q-mb-md rounded-12 bg-white shadow-1 overflow-hidden">
+        <q-card flat class="q-mb-md">
       <q-card-section class="q-pa-md">
-        <div class="row items-center q-col-gutter-md">
-          <div class="col-12 col-md-4">
+        <div class="row items-center q-gutter-md">
+          <div class="col-12 col-md-3">
             <q-input
               v-model="filtroTexto"
               label="Buscar productos..."
               outlined
               dense
-              bg-color="grey-1"
-              class="rounded-8"
               clearable
             >
               <template v-slot:prepend>
-                <q-icon name="search" color="primary" />
+                <q-icon name="search" />
               </template>
             </q-input>
           </div>
           
-          <div class="col-6 col-md-2">
+          <div class="col-12 col-md-2">
             <q-select
               v-model="filtroCategoria"
               :options="categoriasDisponibles"
               label="Categoría"
               outlined
               dense
-              bg-color="grey-1"
-              class="rounded-8"
               clearable
-            >
-              <template v-slot:prepend><q-icon name="category" color="primary" size="xs" /></template>
-            </q-select>
+              option-label="label"
+              option-value="value"
+            />
           </div>
           
-          <div class="col-6 col-md-2">
+          <div class="col-12 col-md-2">
             <q-select
               v-model="filtroTipo"
               :options="tiposDisponibles"
               label="Tipo"
               outlined
               dense
-              bg-color="grey-1"
-              class="rounded-8"
               clearable
-            >
-              <template v-slot:prepend><q-icon name="inventory" color="primary" size="xs" /></template>
-            </q-select>
+              option-label="label"
+              option-value="value"
+            />
           </div>
           
-          <div class="col-12 col-md-4">
-            <div class="row q-gutter-x-sm no-wrap items-center">
-              <q-select
-                v-model="filtroEstado"
-                :options="estadosStock"
-                label="Estado Stock"
-                outlined
-                dense
-                bg-color="grey-1"
-                class="rounded-8 col-grow"
-                clearable
+          <div class="col-12 col-md-2">
+            <q-select
+              v-model="filtroEstado"
+              :options="estadosStock"
+              label="Estado Stock"
+              outlined
+              dense
+              clearable
+              option-label="label"
+              option-value="value"
+            />
+          </div>
+
+          <q-space />
+          
+          <!-- Tarjetas de estadísticas compactas -->
+          <div class="col-auto">
+            <div class="row q-gutter-xs">
+              <q-chip 
+                :color="estadisticasGenerales.stockBajo > 0 ? 'warning' : 'positive'"
+                text-color="white"
+                :label="`${estadisticasGenerales.stockBajo} Stock Bajo`"
+                icon="trending_down"
+                clickable
+                @click="filtroEstado = 'stock_bajo'"
               />
-              <q-btn 
-                color="primary" 
-                icon="add" 
-                label="Producto" 
-                @click="mostrarModalProducto = true" 
-                unelevated 
-                class="rounded-8 q-px-md"
-                v-if="!modoLectura"
+              <q-chip 
+                :color="estadisticasGenerales.proximosVencer > 0 ? 'deep-orange' : 'blue'"
+                text-color="white"
+                :label="`${estadisticasGenerales.proximosVencer} Por Vencer`"
+                icon="event"
+                clickable
+                @click="filtroEstado = 'proximo_vencer'"
               />
             </div>
           </div>
@@ -267,8 +274,7 @@
               <div class="col-grow">
                 <div class="producto-nombre text-truncate">{{ producto.nombre }}</div>
                 <div class="producto-categoria">
-                  <q-icon :name="getCategoriaIcon(producto.categoriaId)" size="xs" class="q-mr-xs" />
-                  {{ getCategoriaLabel(producto.categoriaId) }} • {{ getTipoLabel(producto.tipoId) }}
+                  {{ getCategoriaLabel(producto.categoria) }} • {{ getTipoLabel(producto.tipo) }}
                 </div>
               </div>
               <q-chip 
@@ -408,297 +414,269 @@
     </div>
 
     <!-- Modal para agregar/editar producto -->
-    <q-dialog v-model="mostrarModalProducto" persistent maximized transition-show="slide-up" transition-hide="slide-down">
-      <q-card class="bg-grey-1">
-        <q-card-section class="bg-primary text-white row items-center q-py-sm">
+    <q-dialog v-model="mostrarModalProducto" persistent maximized>
+      <q-card>
+        <q-card-section class="bg-primary text-white">
           <div class="text-h6">
-            <q-icon :name="productoEditando ? 'edit' : 'add_circle'" class="q-mr-sm" />
             {{ productoEditando ? 'Editar Producto' : 'Nuevo Producto' }}
           </div>
-          <q-space />
-          <q-btn flat round dense icon="close" @click="cancelarProducto" />
+          <q-btn 
+            flat 
+            round 
+            icon="close" 
+            @click="cancelarProducto"
+            class="absolute-top-right q-ma-sm"
+          />
         </q-card-section>
 
-        <q-tabs
-          v-model="tabProducto"
-          dense
-          class="text-grey"
-          active-color="primary"
-          indicator-color="primary"
-          align="justify"
-          narrow-indicator
-          bordered
-          bg-color="white"
-        >
-          <q-tab name="general" label="General" icon="info" />
-          <q-tab name="stock" label="Stock & Ubicación" icon="inventory_2" />
-          <q-tab name="precios" label="Precios" icon="payments" />
-          <q-tab name="adicional" label="Adicional & Lotes" icon="more_horiz" />
-        </q-tabs>
+        <q-card-section class="q-pa-md">
+          <div class="row q-col-gutter-md">
+            <!-- Información básica -->
+            <div class="col-12">
+              <div class="text-h6 text-primary q-mb-md">Información Básica</div>
+            </div>
+            
+            <div class="col-12 col-md-6">
+              <q-input
+                v-model="productoTemporal.nombre"
+                label="Nombre del Producto *"
+                outlined
+                dense
+                :rules="[val => !!val || 'El nombre es requerido']"
+              />
+            </div>
+            
+            <div class="col-12 col-md-3">
+              <q-select
+                v-model="productoTemporal.categoria"
+                :options="categoriasDisponibles"
+                label="Categoría *"
+                outlined
+                dense
+                option-label="label"
+                option-value="value"
+                :rules="[val => !!val || 'La categoría es requerida']"
+              />
+            </div>
+            
+            <div class="col-12 col-md-3">
+              <q-select
+                v-model="productoTemporal.tipo"
+                :options="tiposDisponibles"
+                label="Tipo *"
+                outlined
+                dense
+                option-label="label"
+                option-value="value"
+                :rules="[val => !!val || 'El tipo es requerido']"
+              />
+            </div>
+            
+            <div class="col-12">
+              <q-input
+                v-model="productoTemporal.descripcion"
+                label="Descripción"
+                outlined
+                dense
+                type="textarea"
+                rows="2"
+              />
+            </div>
 
-        <q-separator />
+            <!-- Información de stock -->
+            <div class="col-12">
+              <q-separator class="q-my-md"/>
+              <div class="text-h6 text-primary q-mb-md">Información de Stock</div>
+            </div>
+            
+            <div class="col-12 col-md-3">
+              <q-input
+                v-model.number="productoTemporal.stockUnidades"
+                label="Stock Actual *"
+                outlined
+                dense
+                type="number"
+                min="0"
+              />
+            </div>
+            
+            <div class="col-12 col-md-3">
+              <q-input
+                v-model.number="productoTemporal.stockMinimo"
+                label="Stock Mínimo *"
+                outlined
+                dense
+                type="number"
+                min="0"
+              />
+            </div>
+            
+            <div class="col-12 col-md-3">
+              <q-input
+                v-model="productoTemporal.unidadMedida"
+                label="Unidad de Medida *"
+                outlined
+                dense
+                placeholder="ej: piezas, ml, gr, kg"
+              />
+            </div>
+            
+            <div class="col-12 col-md-3">
+              <q-input
+                v-model="productoTemporal.ubicacion"
+                label="Ubicación"
+                outlined
+                dense
+                placeholder="ej: Estante A1, Refrigerador"
+              />
+            </div>
 
-        <q-tab-panels v-model="tabProducto" animated class="bg-grey-1">
-          <!-- PANEL GENERAL -->
-          <q-tab-panel name="general" class="q-pa-md">
-            <div class="row q-col-gutter-md">
-              <div class="col-12">
-                <q-card flat bordered class="rounded-12">
-                  <q-card-section class="q-gutter-y-md">
-                    <div class="text-subtitle1 text-weight-bold text-primary">Información Principal</div>
-                    
-                    <q-input
-                      v-model="productoTemporal.nombre"
-                      label="Nombre del Producto *"
-                      outlined
-                      dense
-                      class="rounded-8"
-                      :rules="[val => !!val || 'El nombre es requerido']"
-                    >
-                      <template v-slot:prepend><q-icon name="label" color="primary" /></template>
-                    </q-input>
-
-                    <div class="row q-col-gutter-sm">
-                      <div class="col-12 col-sm-6">
-                        <q-select
-                          v-model="productoTemporal.categoriaId"
-                          :options="categoriasDisponibles"
-                          label="Categoría *"
-                          outlined
-                          dense
-                          emit-value
-                          map-options
-                          :rules="[val => !!val || 'La categoría es requerida']"
-                        >
-                          <template v-slot:prepend><q-icon name="category" color="primary" /></template>
-                        </q-select>
-                      </div>
-                      <div class="col-12 col-sm-6">
-                        <q-select
-                          v-model="productoTemporal.tipoId"
-                          :options="tiposDisponibles"
-                          label="Tipo de Producto *"
-                          outlined
-                          dense
-                          emit-value
-                          map-options
-                          :rules="[val => !!val || 'El tipo es requerido']"
-                        >
-                          <template v-slot:prepend><q-icon name="inventory" color="primary" /></template>
-                        </q-select>
-                      </div>
-                    </div>
-
-                    <q-input
-                      v-model="productoTemporal.descripcion"
-                      label="Descripción"
-                      outlined
-                      dense
-                      type="textarea"
-                      rows="3"
-                      class="rounded-8"
-                    />
-
-                    <div class="row q-col-gutter-sm">
-                      <div class="col-12 col-sm-6">
-                        <q-input v-model="productoTemporal.codigo" label="Código SKU" outlined dense icon="qr_code" />
-                      </div>
-                      <div class="col-12 col-sm-6">
-                        <q-input v-model="productoTemporal.codigoBarras" label="Código de Barras" outlined dense icon="barcode" />
-                      </div>
-                    </div>
-                  </q-card-section>
-                </q-card>
+            <!-- Manejo fraccionado (solo para medicamentos) -->
+            <div class="col-12" v-if="productoTemporal.tipo === 'medicamento'">
+              <q-separator class="q-my-md"/>
+              <div class="text-h6 text-primary q-mb-md">Manejo por Dosis</div>
+              <q-toggle
+                v-model="productoTemporal.manejoFraccionado"
+                label="¿Este medicamento se administra por dosis individuales?"
+                color="primary"
+              />
+            </div>
+            
+            <div v-if="productoTemporal.tipo === 'medicamento' && productoTemporal.manejoFraccionado" class="col-12">
+              <div class="row q-col-gutter-md">
+                <div class="col-12 col-md-3">
+                  <q-input
+                    v-model.number="productoTemporal.contenidoPorEnvase"
+                    label="Contenido por Envase *"
+                    outlined
+                    dense
+                    type="number"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+                
+                <div class="col-12 col-md-3">
+                  <q-input
+                    v-model="productoTemporal.unidadEnvase"
+                    label="Unidad del Envase *"
+                    outlined
+                    dense
+                    placeholder="ej: ml, mg, gr"
+                  />
+                </div>
+                
+                <div class="col-12 col-md-3">
+                  <q-input
+                    v-model.number="productoTemporal.dosisPorAplicacion"
+                    label="Dosis por Aplicación *"
+                    outlined
+                    dense
+                    type="number"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+                
+                <div class="col-12 col-md-3">
+                  <q-input
+                    v-model="productoTemporal.unidadDosis"
+                    label="Unidad de Dosis *"
+                    outlined
+                    dense
+                    placeholder="ej: ml, mg, gr"
+                  />
+                </div>
               </div>
             </div>
-          </q-tab-panel>
 
-          <!-- PANEL STOCK -->
-          <q-tab-panel name="stock" class="q-pa-md">
-            <div class="row q-col-gutter-md">
-              <div class="col-12">
-                <q-card flat bordered class="rounded-12">
-                  <q-card-section class="q-gutter-y-md">
-                    <div class="text-subtitle1 text-weight-bold text-primary">Gestión de Existencias</div>
-                    
-                    <div class="row q-col-gutter-sm">
-                      <div class="col-12 col-sm-6">
-                        <q-input
-                          v-model.number="productoTemporal.stockUnidades"
-                          label="Stock Inicial *"
-                          outlined
-                          dense
-                          type="number"
-                          min="0"
-                          bg-color="blue-1"
-                        />
-                      </div>
-                      <div class="col-12 col-sm-6">
-                        <q-input
-                          v-model.number="productoTemporal.stockMinimo"
-                          label="Punto de Reorden (Mínimo) *"
-                          outlined
-                          dense
-                          type="number"
-                          min="0"
-                          bg-color="orange-1"
-                        />
-                      </div>
-                    </div>
-
-                    <div class="row q-col-gutter-sm">
-                      <div class="col-12 col-sm-6">
-                        <q-select
-                          v-model="productoTemporal.unidadMedidaId"
-                          :options="unidadesDisponibles"
-                          label="Unidad de Medida *"
-                          outlined
-                          dense
-                          emit-value
-                          map-options
-                        />
-                      </div>
-                      <div class="col-12 col-sm-6">
-                        <q-select
-                          v-model="productoTemporal.ubicacionId"
-                          :options="catalogos.ubicaciones"
-                          option-label="nombre"
-                          option-value="id"
-                          label="Ubicación Física"
-                          outlined
-                          dense
-                          emit-value
-                          map-options
-                        />
-                      </div>
-                    </div>
-
-                    <q-separator q-my-sm />
-
-                    <!-- Manejo fraccionado -->
-                    <div class="bg-indigo-1 q-pa-md rounded-8">
-                      <div class="row items-center no-wrap">
-                        <q-icon name="science" color="primary" size="md" class="q-mr-md" />
-                        <div>
-                          <div class="text-weight-bold">Fraccionamiento y Dosis</div>
-                          <q-toggle
-                            v-model="productoTemporal.manejoFraccionado"
-                            label="Permitir venta/uso fraccionado"
-                            color="primary"
-                          />
-                        </div>
-                      </div>
-
-                      <div v-if="productoTemporal.manejoFraccionado" class="row q-col-gutter-sm q-mt-sm">
-                        <div class="col-6">
-                          <q-input v-model.number="productoTemporal.contenidoPorEnvase" label="Contenido/Envase" outlined dense type="number" />
-                        </div>
-                        <div class="col-6">
-                          <q-input v-model="productoTemporal.unidadEnvase" label="Unidad (ml, gr, etc)" outlined dense />
-                        </div>
-                        <div class="col-6">
-                          <q-input v-model.number="productoTemporal.dosisPorAplicacion" label="Dosis Estándar" outlined dense type="number" />
-                        </div>
-                        <div class="col-6">
-                          <q-input v-model="productoTemporal.unidadDosis" label="Unidad Dosis" outlined dense />
-                        </div>
-                      </div>
-                    </div>
-                  </q-card-section>
-                </q-card>
-              </div>
+            <!-- Información de precios -->
+            <div class="col-12">
+              <q-separator class="q-my-md"/>
+              <div class="text-h6 text-primary q-mb-md">Precios</div>
             </div>
-          </q-tab-panel>
-
-          <!-- PANEL PRECIOS -->
-          <q-tab-panel name="precios" class="q-pa-md">
-            <div class="row q-col-gutter-md">
-              <div class="col-12">
-                <q-card flat bordered class="rounded-12">
-                  <q-card-section class="q-gutter-y-md text-center">
-                    <div class="text-subtitle1 text-weight-bold text-primary text-left">Estructura de Costeo</div>
-                    
-                    <q-input
-                      v-model.number="productoTemporal.costoUnitario"
-                      label="Costo de Adquisición *"
-                      outlined
-                      dense
-                      type="number"
-                      prefix="$"
-                      input-class="text-h6 text-weight-bold"
-                    />
-
-                    <q-input
-                      v-model.number="productoTemporal.precioVenta"
-                      label="Precio de Venta Sugerido *"
-                      outlined
-                      dense
-                      type="number"
-                      prefix="$"
-                      color="positive"
-                      input-class="text-h6 text-weight-bold text-positive"
-                    />
-
-                    <div class="q-pa-md bg-grey-2 rounded-8 row items-center justify-between">
-                      <div class="text-subtitle2">Margen Estimado:</div>
-                      <div class="text-h6 text-primary">{{ calcularMargenGanancia() }}%</div>
-                    </div>
-                  </q-card-section>
-                </q-card>
-              </div>
+            
+            <div class="col-12 col-md-4">
+              <q-input
+                v-model.number="productoTemporal.costoUnitario"
+                label="Costo Unitario *"
+                outlined
+                dense
+                type="number"
+                min="0"
+                step="0.01"
+                prefix="$"
+              />
             </div>
-          </q-tab-panel>
-
-          <!-- PANEL ADICIONAL -->
-          <q-tab-panel name="adicional" class="q-pa-md">
-            <div class="row q-col-gutter-md">
-              <div class="col-12">
-                <q-card flat bordered class="rounded-12">
-                  <q-card-section class="q-gutter-y-md">
-                    <div class="text-subtitle1 text-weight-bold text-primary">Lote de Entrada Inicial</div>
-                    <div class="row q-col-gutter-sm">
-                      <div class="col-12 col-sm-6">
-                        <q-input v-model="productoTemporal.lote" label="Número de Lote" outlined dense />
-                      </div>
-                      <div class="col-12 col-sm-6">
-                        <q-input v-model="productoTemporal.fechaVencimiento" label="Fecha de Vencimiento" outlined dense type="date" stack-label />
-                      </div>
-                    </div>
-
-                    <q-select
-                      v-model="productoTemporal.proveedorId"
-                      :options="proveedoresOpciones"
-                      label="Proveedor Predeterminado"
-                      outlined
-                      dense
-                      emit-value
-                      map-options
-                    >
-                      <template v-slot:prepend><q-icon name="local_shipping" color="primary" /></template>
-                    </q-select>
-
-                    <q-separator class="q-my-md" />
-                    
-                    <div class="text-subtitle1 text-weight-bold text-primary">Estado del Registro</div>
-                    <q-toggle v-model="productoTemporal.activo" label="Producto habilitado para venta y receta" color="positive" />
-                  </q-card-section>
-                </q-card>
-              </div>
+            
+            <div class="col-12 col-md-4">
+              <q-input
+                v-model.number="productoTemporal.precioVenta"
+                label="Precio de Venta *"
+                outlined
+                dense
+                type="number"
+                min="0"
+                step="0.01"
+                prefix="$"
+              />
             </div>
-          </q-tab-panel>
-        </q-tab-panels>
+            
+            <div class="col-12 col-md-4">
+              <q-input
+                :model-value="calcularMargenGanancia()"
+                label="Margen de Ganancia"
+                outlined
+                dense
+                readonly
+                suffix="%"
+              />
+            </div>
 
-        <q-separator />
+            <!-- Información adicional -->
+            <div class="col-12">
+              <q-separator class="q-my-md"/>
+              <div class="text-h6 text-primary q-mb-md">Información Adicional</div>
+            </div>
+            
+            <div class="col-12 col-md-4">
+              <q-input
+                v-model="productoTemporal.lote"
+                label="Lote"
+                outlined
+                dense
+              />
+            </div>
+            
+            <div class="col-12 col-md-4">
+              <q-input
+                v-model="productoTemporal.fechaVencimiento"
+                label="Fecha de Vencimiento"
+                outlined
+                dense
+                type="date"
+              />
+            </div>
+            
+            <div class="col-12 col-md-4">
+              <q-input
+                v-model="productoTemporal.proveedor"
+                label="Proveedor"
+                outlined
+                dense
+              />
+            </div>
+          </div>
+        </q-card-section>
 
-        <q-card-actions align="right" class="q-pa-md bg-white">
-          <q-btn flat label="Cancelar" color="grey-7" @click="cancelarProducto" class="q-px-md" />
+        <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="Cancelar" @click="cancelarAjusteStock"/>
           <q-btn 
-            color="primary" 
-            :label="productoEditando ? 'Actualizar Producto' : 'Registrar Producto'" 
-            @click="guardarProducto" 
-            unelevated 
-            class="q-px-lg rounded-8"
-            :loading="cargando"
+            color="blue"
+            label="Confirmar Ajuste" 
+            @click="confirmarAjusteStock"
+            :disable="!ajusteStock.cantidad || !ajusteStock.motivo"
+            unelevated
           />
         </q-card-actions>
       </q-card>
@@ -872,234 +850,28 @@
     </q-tab-panel>
     </q-tab-panels>
 
-    <!-- Modal para Proveedor Rediseñado -->
+    <!-- Modal para Proveedor -->
     <q-dialog v-model="mostrarModalProveedor" persistent>
-      <q-card style="width: 600px; max-width: 90vw;" class="rounded-12 shadow-10">
-        <q-card-section class="bg-gradient-primary text-white q-py-md">
-          <div class="row items-center">
-            <q-icon name="local_shipping" size="md" class="q-mr-md" />
-            <div class="col">
-              <div class="text-h6">{{ proveedorEditando ? 'Editar Proveedor' : 'Nuevo Proveedor' }}</div>
-              <div class="text-caption">Registra la información de tus aliados comerciales</div>
-            </div>
-            <q-btn flat round dense icon="close" v-close-popup />
-          </div>
+      <q-card style="min-width: 400px">
+        <q-card-section class="bg-primary text-white">
+          <div class="text-h6">{{ proveedorEditando ? 'Editar Proveedor' : 'Nuevo Proveedor' }}</div>
         </q-card-section>
-
-        <q-card-section class="q-pa-md q-gutter-y-sm">
-          <div class="text-subtitle2 text-primary q-mb-none"><q-icon name="business" /> Datos Fiscales</div>
-          <div class="row q-col-gutter-sm">
-            <div class="col-12">
-              <q-input v-model="proveedorTemporal.nombre" label="Nombre Comercial *" outlined dense class="rounded-8" :rules="[val => !!val || 'Requerido']" />
-            </div>
-            <div class="col-12 col-sm-6">
-              <q-input v-model="proveedorTemporal.razonSocial" label="Razón Social" outlined dense />
-            </div>
-            <div class="col-12 col-sm-6">
-              <q-input v-model="proveedorTemporal.rfc" label="RFC / Tax ID" outlined dense />
-            </div>
-          </div>
-
-          <q-separator class="q-my-sm" />
-          <div class="text-subtitle2 text-primary q-mb-none"><q-icon name="contact_phone" /> Medios de Contacto</div>
-          <div class="row q-col-gutter-sm">
-            <div class="col-12 col-sm-6">
-              <q-input v-model="proveedorTemporal.telefono" label="Teléfono" outlined dense mask="(###) ###-####" hint="Formato: (000) 000-0000" />
-            </div>
-            <div class="col-12 col-sm-6">
-              <q-input v-model="proveedorTemporal.email" label="Email Corporativo" outlined dense type="email" />
-            </div>
-            <div class="col-12 col-sm-6">
-              <q-input v-model="proveedorTemporal.contacto" label="Persona de Contacto" outlined dense />
-            </div>
-            <div class="col-12 col-sm-6">
-              <q-input v-model="proveedorTemporal.direccion" label="Dirección" outlined dense />
-            </div>
-          </div>
-
-          <q-input v-model="proveedorTemporal.notas" label="Notas Adicionales" outlined dense type="textarea" rows="2" />
+        <q-card-section class="q-gutter-sm">
+          <q-input v-model="proveedorTemporal.nombre" label="Nombre *" outlined dense />
+          <q-input v-model="proveedorTemporal.razonSocial" label="Razón Social" outlined dense />
+          <q-input v-model="proveedorTemporal.rfc" label="RFC" outlined dense />
+          <q-input v-model="proveedorTemporal.telefono" label="Teléfono" outlined dense />
+          <q-input v-model="proveedorTemporal.email" label="Email" outlined dense />
+          <q-input v-model="proveedorTemporal.contacto" label="Persona de Contacto" outlined dense />
         </q-card-section>
-
-        <q-separator />
-        
-        <q-card-actions align="right" class="q-pa-md">
-          <q-btn flat label="Cancelar" color="grey-7" v-close-popup />
-          <q-btn 
-            color="primary" 
-            :label="proveedorEditando ? 'Actualizar' : 'Registrar'" 
-            @click="guardarProveedor" 
-            unelevated 
-            class="q-px-lg rounded-8"
-            :loading="cargando"
-          />
+        <q-card-actions align="right">
+          <q-btn flat label="Cancelar" v-close-popup />
+          <q-btn color="primary" label="Guardar" @click="guardarProveedor" unelevated />
         </q-card-actions>
       </q-card>
     </q-dialog>
 
-    <!-- Modal Selección de Productos (Nueva Venta / Ajuste) -->
-    <q-dialog v-model="mostrarModalVenta" maximized transition-show="slide-up" transition-hide="slide-down">
-      <q-card class="bg-grey-2">
-        <q-card-section class="bg-primary text-white q-py-sm">
-          <div class="row items-center no-wrap">
-            <q-icon name="add_shopping_cart" size="md" class="q-mr-md" />
-            <div class="col">
-              <div class="text-h6 text-weight-bold">Selector de Productos</div>
-              <div class="text-caption opacity-80">Selecciona productos del catálogo para agregar a la transacción</div>
-            </div>
-            <q-btn flat round dense icon="close" @click="cancelarVenta" />
-          </div>
-        </q-card-section>
-
-        <q-card-section class="q-pa-md">
-          <div class="row q-col-gutter-md">
-            <!-- Panel Izquierdo: Buscador y Catálogo -->
-            <div class="col-12 col-md-8">
-              <q-card flat bordered class="rounded-16 shadow-2">
-                <q-card-section class="q-pa-md bg-white">
-                  <div class="row q-col-gutter-sm items-center">
-                    <div class="col-grow">
-                      <q-input 
-                        v-model="filtroTextoVenta" 
-                        placeholder="Buscar por nombre o código..." 
-                        outlined 
-                        dense 
-                        bg-color="grey-1"
-                        @keyup.enter="buscarEnCatalogo"
-                      >
-                        <template v-slot:prepend><q-icon name="search" color="primary" /></template>
-                      </q-input>
-                    </div>
-                    <div class="col-auto">
-                      <q-select 
-                        v-model="filtroCategoriaVenta" 
-                        :options="categoriasDisponibles" 
-                        label="Categoría" 
-                        outlined 
-                        dense 
-                        clearable 
-                        style="min-width: 150px"
-                      />
-                    </div>
-                  </div>
-                </q-card-section>
-
-                <q-separator />
-
-                <q-card-section class="q-pa-md scroll" style="height: 60vh">
-                  <div class="row q-col-gutter-md">
-                    <div 
-                      v-for="producto in productosFiltradosParaVenta" 
-                      :key="producto.id"
-                      class="col-12 col-sm-6 col-lg-4"
-                    >
-                      <q-card 
-                        flat 
-                        bordered 
-                        class="producto-item-card cursor-pointer hover-shadow"
-                        @click="seleccionarProductoParaVenta(producto)"
-                      >
-                        <q-card-section class="q-pa-sm">
-                          <div class="row items-center no-wrap">
-                            <q-avatar size="40px" font-size="20px" color="indigo-1" text-color="primary" icon="inventory_2" />
-                            <div class="col q-ml-sm">
-                              <div class="text-weight-bold text-blue-9 text-truncate">{{ producto.nombre }}</div>
-                              <div class="text-caption text-grey-7">{{ getCategoriaLabel(producto.categoriaId) }}</div>
-                            </div>
-                          </div>
-                        </q-card-section>
-                        <q-separator />
-                        <q-card-section class="q-pa-xs bg-grey-1 row items-center justify-between">
-                          <div class="q-px-sm">
-                            <span class="text-caption text-grey-6">Stock: </span>
-                            <span :class="producto.stockUnidades <= producto.stockMinimo ? 'text-negative text-weight-bold' : 'text-positive'">{{ producto.stockUnidades }}</span>
-                          </div>
-                          <div class="text-weight-bold text-primary q-px-sm">${{ producto.precioVenta?.toFixed(2) }}</div>
-                        </q-card-section>
-                        <q-btn 
-                          flat 
-                          dense 
-                          round 
-                          icon="add" 
-                          color="primary" 
-                          class="absolute-top-right q-ma-xs bg-white shadow-1" 
-                          size="sm"
-                        />
-                      </q-card>
-                    </div>
-                  </div>
-                </q-card-section>
-              </q-card>
-            </div>
-
-            <!-- Panel Derecho: Detalle de Venta / Carrito -->
-            <div class="col-12 col-md-4">
-              <q-card flat bordered class="rounded-16 shadow-4 bg-white sticky-cart">
-                <q-card-section class="bg-indigo-9 text-white q-py-sm">
-                  <div class="text-subtitle1 text-weight-bold row items-center">
-                    <q-icon name="receipt_long" class="q-mr-sm" />
-                    Detalle de Transacción
-                  </div>
-                </q-card-section>
-
-                <q-card-section class="q-pa-none scroll" style="height: 50vh">
-                  <q-list separator>
-                    <q-item v-for="(item, index) in ventaTemporal.productos" :key="item.id">
-                      <q-item-section>
-                        <q-item-label class="text-weight-bold">{{ item.nombre }}</q-item-label>
-                        <q-item-label caption>
-                          <div class="row items-center q-gutter-x-sm">
-                            <q-input 
-                              v-model.number="item.cantidad" 
-                              type="number" 
-                              dense 
-                              outlined 
-                              style="width: 70px" 
-                              size="xs"
-                              @update:model-value="calcularTotalVenta"
-                            />
-                            <span>{{ item.unidadMedida }} x ${{ item.precioUnitario?.toFixed(2) }}</span>
-                          </div>
-                        </q-item-label>
-                      </q-item-section>
-                      <q-item-section side>
-                        <div class="column items-end">
-                          <span class="text-weight-bold text-blue-10">${{ item.subtotal?.toFixed(2) }}</span>
-                          <q-btn flat round dense icon="delete" color="negative" size="sm" @click="removerProductoDeVenta(index)" />
-                        </div>
-                      </q-item-section>
-                    </q-item>
-                    <q-item v-if="ventaTemporal.productos.length === 0" class="q-py-xl text-center text-grey">
-                      <q-item-section>
-                        <q-icon name="shopping_basket" size="xl" class="q-mx-auto q-mb-md opacity-20" />
-                        No hay productos seleccionados
-                      </q-item-section>
-                    </q-item>
-                  </q-list>
-                </q-card-section>
-
-                <q-separator />
-
-                <q-card-section class="q-pa-md bg-grey-1">
-                  <div class="row items-center justify-between q-mb-md">
-                    <div class="text-h6">TOTAL:</div>
-                    <div class="text-h4 text-weight-bolder text-primary">${{ ventaTemporal.total?.toFixed(2) }}</div>
-                  </div>
-                  <q-btn 
-                    color="positive" 
-                    label="Procesar Transacción" 
-                    icon="check_circle" 
-                    class="full-width q-py-md rounded-8 text-weight-bold shadow-2"
-                    :disable="ventaTemporal.productos.length === 0"
-                    @click="procesarVenta"
-                    unelevated
-                  />
-                </q-card-section>
-              </q-card>
-            </div>
-          </div>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
+    <!-- Modal Impresión -->
     <q-dialog v-model="mostrarModalImpresion">
       <q-card style="min-width: 450px" class="rounded-16">
         <q-card-section class="bg-gradient-print text-white row items-center">
@@ -1150,11 +922,8 @@
 import { ref, computed, watch, onMounted, reactive } from 'vue'
 import { useQuasar } from 'quasar'
 import inventarioService from 'src/services/inventario.service'
-import useCatalogos from 'src/composables/useCatalogos'
-import { Modulo, Tabla } from 'src/common/enums/configuracion.enum'
 
 const $q = useQuasar()
-const { obtenerCatalogo } = useCatalogos()
 
 // Props
 const props = defineProps({
@@ -1210,10 +979,6 @@ const filtroHistorial = ref('')
 const filtroTipoMovimiento = ref('')
 const filtroFechaDesde = ref('')
 const filtroFechaHasta = ref('')
-
-// Filtros para el Selector de Productos en Grid
-const filtroTextoVenta = ref('')
-const filtroCategoriaVenta = ref(null)
 
 // Estados temporales para formularios
 const productoTemporal = ref({
@@ -1295,51 +1060,44 @@ const loteTemporal = ref({
   activo: true
 })
 
-// Catálogos dinámicos
-const catalogos = ref({
-  categorias: [],
-  tipos: [],
-  unidades: [],
-  ubicaciones: [],
-  proveedores: []
-})
+// Opciones para selects
+const categoriasDisponibles = [
+  { label: 'Medicamentos', value: 'medicamentos' },
+  { label: 'Alimentos', value: 'alimentos' },
+  { label: 'Suplementos', value: 'suplementos' },
+  { label: 'Accesorios', value: 'accesorios' },
+  { label: 'Higiene', value: 'higiene' },
+  { label: 'Juguetes', value: 'juguetes' },
+  { label: 'Otros', value: 'otros' }
+]
 
-// Opciones calculadas para selects
-const categoriasDisponibles = computed(() => catalogos.value.categorias)
-const tiposDisponibles = computed(() => catalogos.value.tipos)
-const unidadesDisponibles = computed(() => catalogos.value.unidades)
-const proveedoresOpciones = computed(() => 
-  catalogos.value.proveedores.map(p => ({
-    label: p.nombre,
-    value: p.id,
-    contacto: p.contacto
-  }))
-)
+const tiposDisponibles = [
+  { label: 'Medicamento', value: 'medicamento' },
+  { label: 'Alimento', value: 'alimento' },
+  { label: 'Producto', value: 'producto' }
+]
 
-// Opciones estáticas (se mantienen por ser de lógica interna)
 const estadosStock = [
-  { label: 'Disponible', value: 'disponible', color: 'positive' },
-  { label: 'Stock Bajo', value: 'bajo_stock', color: 'warning' },
-  { label: 'Agotado', value: 'agotado', color: 'negative' },
-  { label: 'Vencido', value: 'vencido', color: 'grey-8' }
+  { label: 'Stock Normal', value: 'normal' },
+  { label: 'Stock Bajo', value: 'stock_bajo' },
+  { label: 'Sin Stock', value: 'sin_stock' },
+  { label: 'Próximo a Vencer', value: 'proximo_vencer' }
 ]
 
 const tiposAjuste = [
-  { label: 'Entrada manual', value: 'entrada', icon: 'add_circle' },
-  { label: 'Salida manual', value: 'salida', icon: 'remove_circle' },
-  { label: 'Ajuste de inventario (+)', value: 'ajuste_positivo', icon: 'trending_up' },
-  { label: 'Ajuste de inventario (-)', value: 'ajuste_negativo', icon: 'trending_down' }
+  { label: 'Entrada (Compra)', value: 'entrada' },
+  { label: 'Salida (Pérdida/Daño)', value: 'salida' },
+  { label: 'Ajuste Positivo', value: 'ajuste_positivo' },
+  { label: 'Ajuste Negativo', value: 'ajuste_negativo' }
 ]
 
 const tiposMovimiento = [
-  { label: 'Compra', value: 'COMPRA' },
-  { label: 'Venta', value: 'VENTA' },
-  { label: 'Ajuste', value: 'AJUSTE' },
-  { label: 'Merma', value: 'MERMA' },
-  { label: 'Devolución', value: 'DEVOLUCION' }
+  { label: 'Entrada', value: 'entrada' },
+  { label: 'Salida', value: 'salida' },
+  { label: 'Venta', value: 'venta' },
+  { label: 'Ajuste Positivo', value: 'ajuste_positivo' },
+  { label: 'Ajuste Negativo', value: 'ajuste_negativo' }
 ]
-
-const tabProducto = ref('general') // Control de tabs en modal producto
 
 // Pacientes disponibles (esto vendría de otro módulo)
 const pacientesDisponibles = ref([
@@ -1383,25 +1141,6 @@ const productosFiltrados = computed(() => {
       const estadoProducto = getEstadoStock(p)
       return estadoProducto === filtroEstado.value.value
     })
-  }
-  
-  return listado
-})
-
-const productosFiltradosParaVenta = computed(() => {
-  let listado = productos.value.filter(p => p.activo && p.stockUnidades > 0)
-  
-  if (filtroTextoVenta.value) {
-    const texto = filtroTextoVenta.value.toLowerCase()
-    listado = listado.filter(p => 
-      p.nombre.toLowerCase().includes(texto) ||
-      p.codigo?.toLowerCase().includes(texto) ||
-      p.codigoBarras?.toLowerCase().includes(texto)
-    )
-  }
-  
-  if (filtroCategoriaVenta.value) {
-    listado = listado.filter(p => p.categoriaId === filtroCategoriaVenta.value.value)
   }
   
   return listado
@@ -1572,19 +1311,14 @@ const formatDateTime = (fechaISO) => {
   })
 }
 
-const getCategoriaLabel = (id) => {
-  const cat = catalogos.value.categorias.find(c => c.id === id)
-  return cat?.nombre || 'Sin Categoría'
+const getCategoriaLabel = (categoria) => {
+  const cat = categoriasDisponibles.find(c => c.value === categoria)
+  return cat?.label || categoria
 }
 
-const getCategoriaIcon = (id) => {
-  const cat = catalogos.value.categorias.find(c => c.id === id)
-  return cat?.icono || 'category'
-}
-
-const getTipoLabel = (id) => {
-  const t = catalogos.value.tipos.find(t => t.id === id)
-  return t?.nombre || 'Sin Tipo'
+const getTipoLabel = (tipo) => {
+  const t = tiposDisponibles.find(t => t.value === tipo)
+  return t?.label || tipo
 }
 
 const getEstadoStock = (producto) => {
@@ -1663,19 +1397,7 @@ const getTipoMovimientoLabel = (tipo) => {
 // Métodos para productos
 const editarProducto = (producto) => {
   productoEditando.value = producto
-  // Aseguramos que los campos de ID estén correctamente asignados
-  productoTemporal.value = { 
-    ...producto,
-    categoriaId: producto.categoriaId || null,
-    tipoId: producto.tipoId || null,
-    unidadMedidaId: producto.unidadMedidaId || null,
-    ubicacionId: producto.ubicacionId || null,
-    proveedorId: producto.proveedorId || null
-  }
-  
-  // Resetear tab al abrir
-  tabProducto.value = 'general'
-  
+  productoTemporal.value = { ...producto }
   // Calcular propiedades derivadas para medicamentos fraccionados
   if (producto.manejoFraccionado) {
     productoTemporal.value.dosisTotal = Math.floor(
@@ -1686,29 +1408,21 @@ const editarProducto = (producto) => {
 }
 
 const guardarProducto = async () => {
-  if (!validarProducto()) {
-    $q.notify({ color: 'warning', message: 'Por favor completa los campos requeridos (*)' })
-    return
-  }
+  if (!validarProducto()) return
   
   cargando.value = true
   try {
     const payload = { ...productoTemporal.value }
+    // Mapear campos si es necesario
+    payload.categoriaId = payload.categoria?.value || payload.categoriaId
+    payload.tipoId = payload.tipo?.value || payload.tipoId
     
     if (productoEditando.value) {
       await inventarioService.productos.update(productoEditando.value.id, payload)
-      $q.notify({ 
-        color: 'positive', 
-        message: 'Producto actualizado con éxito',
-        icon: 'check_circle'
-      })
+      $q.notify({ color: 'positive', message: 'Producto actualizado con éxito' })
     } else {
       await inventarioService.productos.create(payload)
-      $q.notify({ 
-        color: 'positive', 
-        message: 'Producto registrado con éxito',
-        icon: 'add_task'
-      })
+      $q.notify({ color: 'positive', message: 'Producto creado con éxito' })
     }
     
     await cargarDatos()
@@ -1724,11 +1438,17 @@ const guardarProducto = async () => {
 }
 
 const validarProducto = () => {
-  return !!(
-    productoTemporal.value.nombre && 
-    productoTemporal.value.categoriaId && 
-    productoTemporal.value.tipoId
-  )
+  if (!productoTemporal.value.nombre || !productoTemporal.value.categoria || !productoTemporal.value.tipo) {
+    return false
+  }
+  
+  if (productoTemporal.value.manejoFraccionado) {
+    if (!productoTemporal.value.contenidoPorEnvase || !productoTemporal.value.dosisPorAplicacion) {
+      return false
+    }
+  }
+  
+  return true
 }
 
 const cancelarProducto = () => {
@@ -1742,25 +1462,25 @@ const limpiarProductoTemporal = () => {
     id: '',
     nombre: '',
     descripcion: '',
-    categoriaId: null,
-    tipoId: null,
+    categoria: '',
+    tipo: '',
     stockUnidades: 0,
     stockMinimo: 0,
-    unidadMedidaId: null,
-    ubicacionId: null,
+    unidadMedida: '',
+    ubicacion: '',
     costoUnitario: 0,
     precioVenta: 0,
     lote: '',
     fechaVencimiento: '',
-    proveedorId: null,
+    proveedor: '',
     manejoFraccionado: false,
     contenidoPorEnvase: 0,
     unidadEnvase: '',
     dosisPorAplicacion: 0,
     unidadDosis: '',
+    fechaCreacion: '',
     activo: true
   }
-  tabProducto.value = 'general'
 }
 
 const eliminarProducto = (productoId) => {
@@ -1809,45 +1529,6 @@ const iniciarVentaProducto = (producto) => {
   tipoVentaSeleccionado.value = 'completo'
   
   mostrarModalVenta.value = true
-}
-
-const seleccionarProductoParaVenta = (producto) => {
-  // Verificar si ya está en la lista
-  const existente = ventaTemporal.value.productos.find(p => p.productoId === producto.id)
-  if (existente) {
-    existente.cantidad++
-    calcularTotalVenta()
-  } else {
-    // Agregar nuevo
-    ventaTemporal.value.productos.push({
-      id: `item_${Date.now()}_${producto.id}`,
-      productoId: producto.id,
-      nombre: producto.nombre,
-      tipoVenta: 'completo',
-      cantidad: 1,
-      unidadMedida: getUnidadMedidaLabel(producto.unidadMedidaId),
-      precioUnitario: producto.precioVenta,
-      subtotal: producto.precioVenta
-    })
-    calcularTotalVenta()
-  }
-  
-  $q.notify({
-    message: `${producto.nombre} agregado`,
-    color: 'positive',
-    icon: 'add_shopping_cart',
-    timeout: 500,
-    position: 'bottom-right'
-  })
-}
-
-const buscarEnCatalogo = () => {
-  // El computed ya maneja el filtrado reactivo
-}
-
-const getUnidadMedidaLabel = (id) => {
-  const unidad = catalogos.value.unidades.find(u => u.id === id)
-  return unidad?.nombre || 'Unid'
 }
 
 const getTiposVentaDisponibles = () => {
@@ -2189,28 +1870,25 @@ const cargarDatos = async () => {
     const [
       resProd, 
       resProv, 
+      resCat, 
+      resTip, 
+      resUni, 
       resUbi
     ] = await Promise.all([
       inventarioService.productos.getAll(),
       inventarioService.proveedores.getAll(),
+      inventarioService.categorias.getAll(),
+      inventarioService.tipos.getAll(),
+      inventarioService.unidades.getAll(),
       inventarioService.ubicaciones.getActive()
     ])
 
     productos.value = resProd.data
-    
-    // Asignar catálogos usando useCatalogos
-    catalogos.value.categorias = await obtenerCatalogo(Modulo.INVENTARIO, Tabla.CATEGORIA_PRODUCTO)
-    catalogos.value.tipos = await obtenerCatalogo(Modulo.INVENTARIO, Tabla.TIPO_PRODUCTO)
-    catalogos.value.unidades = await obtenerCatalogo(Modulo.INVENTARIO, Tabla.UNIDAD_MEDIDA)
-    catalogos.value.ubicaciones = resUbi.data || []
-    
-    catalogos.value.proveedores = resProv.data || []
-
-    proveedores.value = resProv.data || []
-    categorias.value = resCat.data || []
-    tiposProducto.value = resTip.data || []
-    unidadesMedida.value = resUni.data || []
-    ubicaciones.value = resUbi.data || []
+    proveedores.value = resProv.data
+    categorias.value = resCat.data
+    tiposProducto.value = resTip.data
+    unidadesMedida.value = resUni.data
+    ubicaciones.value = resUbi.data
 
     // Si hay lotes por cargar para el producto seleccionado o general
     // resLotes = await inventarioService.lotes.getAll()

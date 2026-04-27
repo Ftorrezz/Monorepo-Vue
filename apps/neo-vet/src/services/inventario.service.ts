@@ -1,4 +1,7 @@
 import { api } from 'boot/axios';
+import PeticionService from 'src/services/peticion.service';
+
+const peticionService = new PeticionService();
 
 // ============================================
 // INTERFACES
@@ -91,6 +94,14 @@ export interface Producto {
     lotes?: Lote[];  // Relación con lotes
 }
 
+// Helper to extract data from PeticionService response
+const mapPeticionResponse = (response: any) => {
+    if (Array.isArray(response) && response[0]?.elemento) {
+        return { data: Array.isArray(response[0].elemento) ? response[0].elemento : [] };
+    }
+    return { data: Array.isArray(response) ? response : (response?.data || []) };
+};
+
 // ============================================
 // SERVICIO CONSOLIDADO DE INVENTARIO
 // ============================================
@@ -163,147 +174,224 @@ export default {
 
     // ==================== CATEGORÍAS ====================
     categorias: {
-        getAll() {
-            // MOCK para evitar 404 ya que no hay controlador
-            return Promise.resolve({ data: [{ id: 1, nombre: 'Medicamentos' }, { id: 2, nombre: 'Accesorios' }] });
+        async getAll() {
+            // Modulo 2 (Inventario), Tabla 18 (Categoria Producto)
+            const response = await peticionService.obtenerGet('configuracionparametros', {
+                filtro: { id_modulo: 2, id_tabla: 18 }
+            });
+            return mapPeticionResponse(response);
         },
 
-        getActive() {
-            return api.get('/categorias/activas');
+        async getActive() {
+            // Filter locally if endpoint doesn't support it, or use a specific endpoint if exists
+            const { data } = await this.getAll();
+            return { data: data.filter((c: any) => c.activo === 'S' || c.activo === true) };
         },
 
         getById(id: number) {
-            return api.get(`/categorias/${id}`);
+            return peticionService.obtenerGet(`configuracionparametros/${id}`);
         },
 
         create(categoria: Partial<Categoria>) {
-            return api.post('/categorias', categoria);
+            return peticionService.crear('configuracionparametros', {
+                ...categoria,
+                id_modulo: 2,
+                id_tabla: 18,
+                id_configuracion: 1
+            });
         },
 
         update(id: number, categoria: Partial<Categoria>) {
-            return api.put(`/categorias/${id}`, categoria);
+            return peticionService.actualizar(`configuracionparametros/${id}`, categoria);
         },
 
         delete(id: number) {
-            return api.delete(`/categorias/${id}`);
+            return peticionService.eliminar('configuracionparametros', { id });
         }
     },
 
     // ==================== TIPOS DE PRODUCTO ====================
     tipos: {
-        getAll() {
-            return Promise.resolve({ data: [{ id: 1, nombre: 'Físico' }, { id: 2, nombre: 'Servicio' }] });
+        async getAll() {
+            // Modulo 2 (Inventario), Tabla 19 (Tipo Producto)
+            const response = await peticionService.obtenerGet('configuracionparametros', {
+                filtro: { id_modulo: 2, id_tabla: 19 }
+            });
+            return mapPeticionResponse(response);
         },
 
-        getActive() {
-            return api.get('/tipos-producto/activos');
+        async getActive() {
+            const { data } = await this.getAll();
+            return { data: data.filter((t: any) => t.activo === 'S' || t.activo === true) };
         },
 
         getById(id: number) {
-            return api.get(`/tipos-producto/${id}`);
+            return peticionService.obtenerGet(`configuracionparametros/${id}`);
         },
 
         create(tipo: Partial<TipoProducto>) {
-            return api.post('/tipos-producto', tipo);
+            return peticionService.crear('configuracionparametros', {
+                ...tipo,
+                id_modulo: 2,
+                id_tabla: 19,
+                id_configuracion: 1
+            });
         },
 
         update(id: number, tipo: Partial<TipoProducto>) {
-            return api.put(`/tipos-producto/${id}`, tipo);
+            return peticionService.actualizar(`configuracionparametros/${id}`, tipo);
         },
 
         delete(id: number) {
-            return api.delete(`/tipos-producto/${id}`);
+            return peticionService.eliminar('configuracionparametros', { id });
         }
     },
 
     // ==================== UNIDADES DE MEDIDA ====================
     unidades: {
-        getAll() {
-            return Promise.resolve({ data: [{ id: 1, abreviacion: 'ml', nombre: 'Mililitros', tipo: 'volumen' }, { id: 2, abreviacion: 'cja', nombre: 'Caja', tipo: 'unidad' }] });
-        },
-
-        getActive() {
-            return api.get('/unidades-medida/activas');
-        },
-
-        getByTipo(tipo: 'masa' | 'volumen' | 'unidad') {
-            return api.get('/unidades-medida/tipo', {
-                params: { tipo }
+        async getAll() {
+            // Modulo 2 (Inventario), Tabla 20 (Unidad Medida)
+            const response = await peticionService.obtenerGet('configuracionparametros', {
+                filtro: { id_modulo: 2, id_tabla: 20 }
             });
+            return mapPeticionResponse(response);
+        },
+
+        async getActive() {
+            const { data } = await this.getAll();
+            return { data: data.filter((u: any) => u.activo === 'S' || u.activo === true) };
+        },
+
+        async getByTipo(tipo: 'masa' | 'volumen' | 'unidad') {
+            const { data } = await this.getAll();
+            return { data: data.filter((u: any) => u.tipo === tipo) };
         },
 
         getById(id: number) {
-            return api.get(`/unidades-medida/${id}`);
+            return peticionService.obtenerGet(`configuracionparametros/${id}`);
         },
 
         create(unidad: Partial<UnidadMedida>) {
-            return api.post('/unidades-medida', unidad);
+            return peticionService.crear('configuracionparametros', {
+                ...unidad,
+                id_modulo: 2,
+                id_tabla: 20,
+                id_configuracion: 1
+            });
         },
 
         update(id: number, unidad: Partial<UnidadMedida>) {
-            return api.put(`/unidades-medida/${id}`, unidad);
+            return peticionService.actualizar(`configuracionparametros/${id}`, unidad);
         },
 
         delete(id: number) {
-            return api.delete(`/unidades-medida/${id}`);
+            return peticionService.eliminar('configuracionparametros', { id });
         }
     },
 
     // ==================== UBICACIONES ====================
     ubicaciones: {
-        getAll() {
-            return Promise.resolve({ data: [{ id: 1, nombre: 'Farmacia Central' }] });
+        async getAll() {
+            // Modulo 2 (Inventario), Tabla 22 (Ubicacion)
+            const response = await peticionService.obtenerGet('configuracionparametros', {
+                filtro: { id_modulo: 2, id_tabla: 22 }
+            });
+            return mapPeticionResponse(response);
         },
 
-        getActive() {
-            return Promise.resolve({ data: [{ id: 1, nombre: 'Farmacia Central' }] });
+        async getActive() {
+            const { data } = await this.getAll();
+            return { data: data.filter((u: any) => u.activo === 'S' || u.activo === true) };
         },
 
         getById(id: number) {
-            return api.get(`/ubicaciones/${id}`);
+            return peticionService.obtenerGet(`configuracionparametros/${id}`);
         },
 
         create(ubicacion: Partial<Ubicacion>) {
-            return api.post('/ubicaciones', ubicacion);
+            return peticionService.crear('configuracionparametros', {
+                ...ubicacion,
+                id_modulo: 2,
+                id_tabla: 22,
+                id_configuracion: 1
+            });
         },
 
         update(id: number, ubicacion: Partial<Ubicacion>) {
-            return api.put(`/ubicaciones/${id}`, ubicacion);
+            return peticionService.actualizar(`configuracionparametros/${id}`, ubicacion);
         },
 
         delete(id: number) {
-            return api.delete(`/ubicaciones/${id}`);
+            return peticionService.eliminar('configuracionparametros', { id });
         },
 
         toggleStatus(id: number) {
-            return api.patch(`/ubicaciones/${id}/toggle-status`);
+            return peticionService.actualizar(`configuracionparametros/toggle/${id}`, {});
+        }
+    },
+
+    formasFarmaceuticas: {
+        async getAll() {
+            // Modulo 2 (Inventario), Tabla 21 (Forma Farmaceutica)
+            const response = await peticionService.obtenerGet('configuracionparametros', {
+                filtro: { id_modulo: 2, id_tabla: 21 }
+            });
+            return mapPeticionResponse(response);
+        },
+
+        async getActive() {
+            const { data } = await this.getAll();
+            return { data: data.filter((f: any) => f.activo === 'S' || f.activo === true) };
+        },
+
+        getById(id: number) {
+            return peticionService.obtenerGet(`configuracionparametros/${id}`);
+        },
+
+        create(forma: any) {
+            return peticionService.crear('configuracionparametros', {
+                ...forma,
+                id_modulo: 2,
+                id_tabla: 21,
+                id_configuracion: 1
+            });
+        },
+
+        update(id: number, forma: any) {
+            return peticionService.actualizar(`configuracionparametros/${id}`, forma);
+        },
+
+        delete(id: number) {
+            return peticionService.eliminar('configuracionparametros', { id });
         }
     },
 
     // ==================== PROVEEDORES ====================
     proveedores: {
-        getAll() {
-            return Promise.resolve({ data: [{ id: 1, nombre: 'Proveedor A' }, { id: 2, nombre: 'Proveedor B' }] });
+        async getAll() {
+            const response = await peticionService.obtenerGet('proveedor');
+            return mapPeticionResponse(response);
         },
 
-        getActive() {
-            return api.get('/proveedores/activos');
+        async getActive() {
+            const { data } = await this.getAll();
+            return { data: data.filter((p: any) => p.activo === 'S' || p.activo === true) };
         },
 
         getById(id: number) {
-            return api.get(`/proveedores/${id}`);
+            return peticionService.obtenerGet(`proveedor/${id}`);
         },
 
         create(proveedor: Partial<Proveedor>) {
-            return api.post('/proveedores', proveedor);
+            return peticionService.crear('proveedor', proveedor);
         },
 
         update(id: number, proveedor: Partial<Proveedor>) {
-            return api.put(`/proveedores/${id}`, proveedor);
+            return peticionService.actualizar(`proveedor/${id}`, proveedor);
         },
 
         delete(id: number) {
-            return api.delete(`/proveedores/${id}`);
+            return peticionService.eliminar('proveedor', { id });
         },
 
         search(query: string) {
