@@ -1,16 +1,16 @@
 <template>
-  <div class="pensiones-container">
+  <div class="pensiones-container q-pa-md">
     <!-- Header principal -->
-    <q-card flat class="bg-gradient-primary text-white q-mb-md">
+    <q-card flat class="bg-gradient-primary text-white q-mb-md rounded-16 shadow-2">
       <q-card-section class="q-pa-md">
         <div class="row items-center no-wrap">
           <q-icon name="hotel" size="md" class="q-mr-md"/>
           <div class="col-grow">
-            <div class="text-h5 text-weight-medium">Gestión de Pensiones</div>
+            <div class="text-h5 text-weight-medium">Módulo de Pensión Veterinaria</div>
             <div class="text-subtitle2 opacity-80">
-              {{ estadisticasGenerales.totalPensiones }} pensiones • 
-              {{ estadisticasGenerales.activas }} activas • 
-              {{ estadisticasGenerales.proximasSalida }} próximas a salir
+              {{ estadisticas.activas }} mascotas hospedadas - 
+              {{ estadisticas.jaulasLibres }} jaulas disponibles - 
+              {{ estadisticas.reservadas }} reservas pendientes
             </div>
           </div>
           <div class="col-auto">
@@ -19,26 +19,18 @@
                 flat
                 round
                 icon="add_circle"
-                @click="mostrarModalPension = true"
+                @click="abrirNuevaPension"
                 :disable="modoLectura"
               >
-                <q-tooltip>Nueva Pensión</q-tooltip>
+                <q-tooltip>Nueva Reservación/Ingreso</q-tooltip>
               </q-btn>
               <q-btn 
                 flat
                 round
-                icon="event"
-                @click="verCalendarioPensiones"
+                icon="picture_as_pdf"
+                @click="mostrarModalReportes = true"
               >
-                <q-tooltip>Calendario</q-tooltip>
-              </q-btn>
-              <q-btn 
-                flat
-                round
-                icon="receipt_long"
-                @click="verHistorialPensiones"
-              >
-                <q-tooltip>Historial</q-tooltip>
+                <q-tooltip>Generar Reportes</q-tooltip>
               </q-btn>
             </div>
           </div>
@@ -46,1834 +38,880 @@
       </q-card-section>
     </q-card>
 
-    <!-- Filtros y vista rápida -->
-    <q-card flat class="q-mb-md">
-      <q-card-section class="q-pa-md">
-        <div class="row items-center q-gutter-md">
-          <div class="col-12 col-md-3">
-            <q-input
-              v-model="filtroTexto"
-              label="Buscar pensiones..."
-              outlined
-              dense
-              clearable
-            >
-              <template v-slot:prepend>
-                <q-icon name="search" />
-              </template>
-            </q-input>
-          </div>
-          
-          <div class="col-12 col-md-2">
-            <q-select
-              v-model="filtroEstado"
-              :options="estadosDisponibles"
-              label="Estado"
-              outlined
-              dense
-              clearable
-              option-label="label"
-              option-value="value"
-            />
-          </div>
-          
-          <div class="col-12 col-md-2">
-            <q-select
-              v-model="filtroTipo"
-              :options="tiposPension"
-              label="Tipo"
-              outlined
-              dense
-              clearable
-              option-label="label"
-              option-value="value"
-            />
-          </div>
-
-          <div class="col-12 col-md-2">
-            <q-input
-              v-model="filtroFechaDesde"
-              label="Desde"
-              outlined
-              dense
-              type="date"
-            />
-          </div>
-
-          <div class="col-12 col-md-2">
-            <q-input
-              v-model="filtroFechaHasta"
-              label="Hasta"
-              outlined
-              dense
-              type="date"
-            />
-          </div>
-
-          <q-space />
-          
-          <!-- Tarjetas de estadísticas -->
-          <div class="col-auto">
-            <div class="row q-gutter-xs">
-              <q-chip 
-                color="positive"
-                text-color="white"
-                :label="estadisticasGenerales.activas + ' Activas'"
-                icon="pets"
-                clickable
-                @click="filtroEstado = { value: 'activa', label: 'Activa' }"
-              />
-              <q-chip 
-                color="warning"
-                text-color="white"
-                :label="estadisticasGenerales.proximasSalida + ' Por Salir'"
-                icon="schedule"
-                clickable
-                @click="filtroEstado = { value: 'proxima_salida', label: 'Próxima Salida' }"
-              />
-              <q-chip 
-                color="blue"
-                text-color="white"
-                :label="`${estadisticasGenerales.reservadas} Reservadas`"
-                icon="book_online"
-                clickable
-                @click="filtroEstado = { value: 'reservada', label: 'Reservada' }"
-              />
-            </div>
-          </div>
-        </div>
-      </q-card-section>
-    </q-card>
-
-    <!-- Grid de pensiones -->
-    <div class="row q-col-gutter-md">
-      <div 
-        class="col-12 col-sm-6 col-md-4 col-lg-3"
-        v-for="pension in pensionesFiltradas"
-        :key="pension.id"
+    <!-- Tabs de navegación -->
+    <q-card flat class="q-mb-md rounded-12 shadow-1">
+      <q-tabs
+        v-model="tabSeleccionada"
+        dense
+        no-caps
+        class="text-grey-7"
+        active-color="primary"
+        indicator-color="primary"
+        align="left"
+        narrow-indicator
       >
-        <q-card 
-          flat 
-          :class="getCardClass(pension)"
-          class="pension-card"
-        >
-          <!-- Header con mascota y estado -->
-          <q-card-section class="q-pa-sm pension-header">
-            <div class="row items-center justify-between no-wrap">
-              <div class="col-grow">
-                <div class="mascota-nombre text-truncate">{{ pension.mascota.nombre }}</div>
-                <div class="propietario-info">
-                  {{ pension.propietario }} • {{ pension.mascota.especie }}
-                </div>
-              </div>
-              <q-chip 
-                dense
-                square
-                :color="getEstadoColor(pension)"
-                text-color="white"
-                :label="getEstadoLabel(pension.estado)"
-                size="sm"
-                :icon="getEstadoIcon(pension.estado)"
-              />
-            </div>
-          </q-card-section>
+        <q-tab name="dashboard" icon="dashboard" label="Dashboard" />
+        <q-tab name="pensiones" icon="pets" label="Pensiones Activas" />
+        <q-tab name="jaulas" icon="grid_view" label="Mapa de Jaulas" />
+        <q-tab name="turnos" icon="assignment" label="Turnos y Cuidados" />
+        <q-tab name="historial" icon="history" label="Historial" />
+      </q-tabs>
+    </q-card>
 
-          <!-- Contenido principal -->
-          <q-card-section class="info-container">
-            <!-- Fechas -->
-            <div class="fechas-info">
-              <div class="fecha-item">
-                <div class="fecha-label">Entrada</div>
-                <div class="fecha-valor">{{ formatDate(pension.fechaEntrada) }}</div>
-              </div>
-              <div class="fecha-item" v-if="pension.fechaSalida">
-                <div class="fecha-label">{{ pension.estado === 'activa' ? 'Salida Est.' : 'Salida' }}</div>
-                <div class="fecha-valor">{{ formatDate(pension.fechaSalida) }}</div>
-              </div>
-            </div>
-
-            <!-- Duración y tipo -->
-            <div class="duracion-info">
-              <div class="row items-center justify-between">
-                <div class="col">
-                  <div class="text-caption text-grey-7">Duración</div>
-                  <div class="text-subtitle2 text-weight-medium">
-                    {{ calcularDuracion(pension) }}
-                    <q-icon name="schedule" size="xs" class="q-ml-xs"/>
+    <q-tab-panels v-model="tabSeleccionada" animated class="bg-transparent">
+      <!-- PANEL DE DASHBOARD -->
+      <q-tab-panel name="dashboard" class="q-pa-none">
+        <div class="row q-col-gutter-md q-mb-md">
+          <div class="col-12 col-md-3">
+            <q-card class="kpi-card glass-panel kpi-primary" v-ripple>
+              <q-card-section>
+                <div class="row items-center justify-between">
+                  <div class="kpi-icon-wrapper"><q-icon name="pets" size="lg" /></div>
+                  <div class="text-right">
+                    <div class="text-caption text-uppercase q-mb-xs opacity-70">Activas</div>
+                    <div class="text-h4 text-weight-bolder">{{ estadisticas.activas }}</div>
                   </div>
                 </div>
-                <div class="col-auto">
-                  <q-chip 
-                    dense
-                    outline
-                    :color="getTipoColor(pension.tipo)"
-                    :label="getTipoLabel(pension.tipo)"
-                    size="sm"
-                  />
+              </q-card-section>
+            </q-card>
+          </div>
+          <div class="col-12 col-md-3">
+            <q-card class="kpi-card glass-panel kpi-secondary" v-ripple>
+              <q-card-section>
+                <div class="row items-center justify-between">
+                  <div class="kpi-icon-wrapper"><q-icon name="door_front" size="lg" /></div>
+                  <div class="text-right">
+                    <div class="text-caption text-uppercase q-mb-xs opacity-70">Jaulas Libres</div>
+                    <div class="text-h4 text-weight-bolder">{{ estadisticas.jaulasLibres }}</div>
+                  </div>
                 </div>
-              </div>
-            </div>
-
-            <!-- Servicios incluidos -->
-            <div class="servicios-container" v-if="pension.servicios && pension.servicios.length > 0">
-              <div class="text-caption text-grey-7 q-mb-xs">Servicios incluidos</div>
-              <div class="row q-gutter-x-xs">
-                <q-chip
-                  v-for="servicio in pension.servicios.slice(0, 2)"
-                  :key="servicio"
-                  dense
-                  outline
-                  color="teal"
-                  :label="servicio"
-                  size="xs"
-                />
-                <q-chip
-                  v-if="pension.servicios.length > 2"
-                  dense
-                  outline
-                  color="grey"
-                  :label="'+' + (pension.servicios.length - 2)"
-                  size="xs"
-                />
-              </div>
-            </div>
-
-            <!-- Precio -->
-            <div class="precio-info" v-if="pension.precioTotal">
-              <div class="row items-center justify-between">
-                <div class="text-caption text-grey-7">Total</div>
-                <div class="text-h6 text-positive text-weight-bold">
-                  ${{ pension.precioTotal.toFixed(2) }}
+              </q-card-section>
+            </q-card>
+          </div>
+          <div class="col-12 col-md-3">
+            <q-card class="kpi-card glass-panel kpi-warning" v-ripple>
+              <q-card-section>
+                <div class="row items-center justify-between">
+                  <div class="kpi-icon-wrapper"><q-icon name="event" size="lg" /></div>
+                  <div class="text-right">
+                    <div class="text-caption text-uppercase q-mb-xs opacity-70">Próximas Entradas</div>
+                    <div class="text-h4 text-weight-bolder">{{ estadisticas.reservadas }}</div>
+                  </div>
                 </div>
-              </div>
-              <div class="row items-center justify-between" v-if="pension.precioPorDia">
-                <div class="text-caption text-grey-7">Por día</div>
-                <div class="text-body2 text-grey-8">
-                  ${{ pension.precioPorDia.toFixed(2) }}
+              </q-card-section>
+            </q-card>
+          </div>
+          <div class="col-12 col-md-3">
+            <q-card class="kpi-card glass-panel kpi-danger" v-ripple>
+              <q-card-section>
+                <div class="row items-center justify-between">
+                  <div class="kpi-icon-wrapper"><q-icon name="payments" size="lg" /></div>
+                  <div class="text-right">
+                    <div class="text-caption text-uppercase q-mb-xs opacity-70">Ingresos Mes</div>
+                    <div class="text-h4 text-weight-bolder">${{ estadisticas.ingresosMes }}</div>
+
+                  </div>
                 </div>
-              </div>
-            </div>
+              </q-card-section>
+            </q-card>
+          </div>
+        </div>
 
-            <!-- Notas importantes -->
-            <div class="notas-importantes" v-if="pension.observaciones">
-              <q-icon name="info" size="xs" color="blue" class="q-mr-xs"/>
-              <span class="text-caption text-grey-7 text-truncate">
-                {{ pension.observaciones }}
-              </span>
-            </div>
-          </q-card-section>
+        <div class="row q-col-gutter-md">
+          <div class="col-12 col-md-7">
+            <q-card flat bordered class="rounded-16 shadow-1">
+              <q-card-section class="bg-grey-1 row items-center">
+                <q-icon name="notifications_active" color="primary" size="sm" class="q-mr-sm"/>
+                <span class="text-h6 text-weight-medium">Actividades de Hoy</span>
+              </q-card-section>
+              <q-list separator class="scroll" style="max-height: 400px">
+                <template v-if="turnosHoy.length > 0">
+                  <q-item v-for="act in turnosHoy" :key="act.id">
+                    <q-item-section avatar>
+                      <q-avatar color="indigo-1" text-color="primary" icon="schedule" />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label class="text-weight-bold">{{ act.actividad }}</q-item-label>
+                      <q-item-label caption>{{ act.jaula ? act.jaula.nombre : 'S/J' }} - {{ act.personal_nombre }}</q-item-label>
+                    </q-item-section>
 
-          <!-- Acciones -->
-          <q-card-actions align="right" class="q-pa-sm" v-if="!modoLectura">
-            <q-btn 
-              flat 
-              dense
-              :color="pension.estado === 'activa' ? 'negative' : 'positive'" 
-              :icon="pension.estado === 'activa' ? 'logout' : 'login'"
-              @click="pension.estado === 'activa' ? procesarSalida(pension) : procesarEntrada(pension)"
-              size="sm"
-              :disable="pension.estado === 'finalizada' || pension.estado === 'cancelada'"
-            >
-              <q-tooltip>
-                {{ pension.estado === 'activa' ? 'Procesar Salida' : 'Procesar Entrada' }}
-              </q-tooltip>
-            </q-btn>
-            <q-space />
-            <q-btn-dropdown flat dense round icon="more_vert" size="sm">
-              <q-list dense>
-                <q-item clickable @click="editarPension(pension)">
-                  <q-item-section avatar mini>
-                    <q-icon name="edit" color="primary"/>
-                  </q-item-section>
-                  <q-item-section>Editar</q-item-section>
-                </q-item>
-                <q-item clickable @click="verDetalleCompleto(pension)">
-                  <q-item-section avatar mini>
-                    <q-icon name="visibility" color="blue"/>
-                  </q-item-section>
-                  <q-item-section>Ver Detalle</q-item-section>
-                </q-item>
-                <q-item clickable @click="duplicarPension(pension)">
-                  <q-item-section avatar mini>
-                    <q-icon name="content_copy" color="teal"/>
-                  </q-item-section>
-                  <q-item-section>Duplicar</q-item-section>
-                </q-item>
-                <q-item clickable @click="generarFactura(pension)" v-if="pension.estado === 'finalizada'">
-                  <q-item-section avatar mini>
-                    <q-icon name="receipt" color="green"/>
-                  </q-item-section>
-                  <q-item-section>Generar Factura</q-item-section>
-                </q-item>
-                <q-separator />
-                <q-item clickable @click="cancelarPensionAction(pension)" v-if="pension.estado !== 'finalizada'">
-                  <q-item-section avatar mini>
-                    <q-icon name="cancel" color="negative"/>
-                  </q-item-section>
-                  <q-item-section>Cancelar</q-item-section>
+                    <q-item-section side>
+                      <q-chip dense :color="getTurnoEstadoColor(act.estado)" text-color="white" size="sm">
+                        {{ act.estado }}
+                      </q-chip>
+                    </q-item-section>
+                  </q-item>
+                </template>
+                <q-item v-else class="text-center text-grey q-py-lg">
+                  <q-item-section>No hay actividades programadas para hoy</q-item-section>
                 </q-item>
               </q-list>
-            </q-btn-dropdown>
-          </q-card-actions>
-        </q-card>
-      </div>
-    </div>
 
-    <!-- Estado vacío -->
-    <div v-if="pensionesFiltradas.length === 0" class="text-center q-py-xl">
-      <q-icon name="hotel" size="64px" color="grey-4" class="q-mb-md"/>
-      <div class="text-h6 text-grey-6 q-mb-sm">
-        {{ hayFiltros ? 'No se encontraron pensiones' : 'No hay pensiones registradas' }}
-      </div>
-      <div class="text-body2 text-grey-5 q-mb-md">
-        {{ hayFiltros ? 'Intenta cambiar los filtros de búsqueda' : 'Comienza registrando la primera pensión' }}
-      </div>
-      <q-btn 
-        v-if="!modoLectura && !hayFiltros"
-        color="primary" 
-        icon="add" 
-        label="Nueva Pensión" 
-        @click="mostrarModalPension = true"
-        unelevated
-      />
-    </div>
-
-    <!-- Modal para agregar/editar pensión -->
-    <q-dialog v-model="mostrarModalPension" persistent maximized>
-      <q-card>
-        <q-card-section class="bg-primary text-white">
-          <div class="text-h6">
-            {{ pensionEditando ? 'Editar Pensión' : 'Nueva Pensión' }}
+            </q-card>
           </div>
-          <q-btn 
-            flat 
-            round 
-            icon="close" 
-            @click="cancelarModal"
-            class="absolute-top-right q-ma-sm"
-          />
+          <div class="col-12 col-md-5">
+            <q-card flat bordered class="rounded-16 shadow-1 bg-gradient-info text-white">
+              <q-card-section class="q-pa-lg text-center">
+                <q-icon name="picture_as_pdf" size="xl" class="q-mb-md opacity-90"/>
+                <div class="text-h5 q-mb-sm text-weight-bold">Reportes de Pensión</div>
+                <p class="opacity-80">Genera reportes de ocupación, historial y cortes de caja específicos del módulo.</p>
+                <q-btn color="white" text-color="primary" unelevated label="Abrir Reportes" icon="description" @click="mostrarModalReportes = true" class="full-width rounded-8" />
+              </q-card-section>
+            </q-card>
+          </div>
+        </div>
+      </q-tab-panel>
+
+      <!-- PANEL DE PENSIONES -->
+      <q-tab-panel name="pensiones" class="q-pa-none">
+        <q-card flat class="q-mb-md rounded-12 shadow-1">
+          <q-card-section class="q-pa-md">
+            <div class="row items-center q-col-gutter-md">
+              <div class="col-12 col-md-4">
+                <q-input v-model="filtroTexto" placeholder="Buscar mascota o propietario..." outlined dense bg-color="grey-1">
+                  <template v-slot:prepend><q-icon name="search" color="primary" /></template>
+                </q-input>
+              </div>
+              <div class="col-12 col-md-2">
+                <q-select v-model="filtroEstado" :options="opcionesEstado" label="Estado" outlined dense bg-color="grey-1" emit-value map-options clearable />
+              </div>
+              <q-space />
+              <q-btn color="primary" icon="add" label="Ingreso" @click="abrirNuevaPension" unelevated class="rounded-8" />
+            </div>
+          </q-card-section>
+        </q-card>
+
+        <div class="row q-col-gutter-md">
+          <div v-for="pension in pensionesFiltradas" :key="pension.id" class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <q-card flat bordered class="pension-card hover-shadow rounded-16 shadow-1">
+              <div class="status-bar" :style="{ backgroundColor: getEstadoColor(pension.estado) }"></div>
+              <q-card-section class="q-pa-md">
+                <div class="row items-start no-wrap justify-between">
+                  <div class="col">
+                    <div class="text-h6 text-primary text-weight-bold text-truncate">{{ pension.mascota?.nombre || 'Sin nombre' }}</div>
+                    <div class="text-caption text-grey-7">{{ pension.mascota?.especie }} • {{ pension.mascota?.raza || 'Mestizo' }}</div>
+                  </div>
+                  <q-chip dense :color="getEstadoColor(pension.estado)" text-color="white" size="xs" class="text-weight-bold">
+                    {{ pension.estado }}
+                  </q-chip>
+                </div>
+
+                <q-separator class="q-my-sm" />
+
+                <div class="info-row">
+                  <q-icon name="person" size="xs" color="grey-6" />
+                  <span class="text-body2 q-ml-sm text-grey-9">{{ pension.propietario?.nombre || 'Desconocido' }}</span>
+                </div>
+                <div class="info-row">
+                  <q-icon name="door_front" size="xs" color="grey-6" />
+                  <span class="text-body2 q-ml-sm text-grey-9">{{ pension.jaula?.nombre || 'No asignada' }}</span>
+                </div>
+                <div class="info-row">
+                  <q-icon name="login" size="xs" color="grey-6" />
+                  <span class="text-body2 q-ml-sm text-grey-9">Entrada: {{ formatDate(pension.fecha_entrada_estimada) }}</span>
+                </div>
+                <div class="info-row">
+                  <q-icon name="logout" size="xs" color="grey-6" />
+                  <span class="text-body2 q-ml-sm text-grey-9">Salida: {{ formatDate(pension.fecha_salida_estimada) }}</span>
+                </div>
+
+                <div class="row q-mt-md justify-between items-center">
+                  <div class="text-subtitle1 text-weight-bolder text-primary">${{ pension.precio_total?.toFixed(2) || '0.00' }}</div>
+                  <div class="row q-gutter-xs">
+                    <q-btn flat round dense icon="visibility" color="blue" @click="verDetalle(pension)">
+                      <q-tooltip>Ver Detalles</q-tooltip>
+                    </q-btn>
+                    <q-btn flat round dense icon="login" color="positive" v-if="pension.estado === 'RESERVADA'" @click="procesarCheckIn(pension)">
+                      <q-tooltip>Registrar Entrada</q-tooltip>
+                    </q-btn>
+                    <q-btn flat round dense icon="logout" color="negative" v-if="pension.estado === 'ACTIVA'" @click="procesarCheckOut(pension)">
+                      <q-tooltip>Registrar Salida</q-tooltip>
+                    </q-btn>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+        </div>
+      </q-tab-panel>
+
+      <!-- PANEL DE JAULAS -->
+      <q-tab-panel name="jaulas" class="q-pa-none">
+        <q-card flat class="q-mb-md rounded-12 shadow-1">
+          <q-card-section class="q-pa-md row items-center justify-between">
+            <div class="text-h6 text-primary"><q-icon name="grid_view" class="q-mr-sm" />Estado de Jaulas</div>
+            <div class="row q-gutter-sm">
+               <q-chip dense outline color="positive">Disponibles: {{ jaulas.filter(j => j.estado === 'DISPONIBLE').length }}</q-chip>
+               <q-chip dense outline color="negative">Ocupadas: {{ jaulas.filter(j => j.estado === 'OCUPADA').length }}</q-chip>
+               <q-btn color="primary" label="Nueva Jaula" icon="add" unelevated size="sm" @click="abrirModalJaula" />
+            </div>
+          </q-card-section>
+        </q-card>
+
+        <div class="row q-col-gutter-md">
+          <div v-for="jaula in jaulas" :key="jaula.id" class="col-12 col-sm-4 col-md-3">
+            <q-card flat bordered :class="['jaula-card', jaula.estado.toLowerCase(), 'rounded-16 shadow-1 transition-all']">
+              <q-card-section class="text-center">
+                <div class="text-h6 text-weight-bold">{{ jaula.nombre }}</div>
+                <div class="text-caption">{{ jaula.tipo_label || 'Estándar' }}</div>
+                <q-icon :name="jaula.estado === 'OCUPADA' ? 'pets' : 'door_front'" size="3rem" :color="jaula.estado === 'OCUPADA' ? 'negative' : 'positive'" class="q-my-md" />
+                <div class="text-weight-bold" :class="jaula.estado === 'OCUPADA' ? 'text-negative' : 'text-positive'">
+                  {{ jaula.estado }}
+                </div>
+                <div v-if="jaula.estado === 'OCUPADA'" class="text-caption text-grey-8 q-mt-sm">
+                  Ocupado por: <strong>{{ jaula.pensionActual?.mascota?.nombre }}</strong>
+                </div>
+              </q-card-section>
+              <q-card-actions align="center">
+                <q-btn flat dense round icon="edit" color="grey-7" @click="editarJaula(jaula)" />
+              </q-card-actions>
+            </q-card>
+          </div>
+        </div>
+      </q-tab-panel>
+
+      <!-- PANEL DE TURNOS -->
+      <q-tab-panel name="turnos" class="q-pa-none">
+        <q-card flat class="rounded-12 shadow-1">
+          <q-card-section class="row items-center justify-between">
+            <div class="text-h6 text-primary">Agenda de Cuidados</div>
+            <div class="row q-gutter-sm">
+              <q-input v-model="fechaTurnos" type="date" outlined dense dense-label label="Fecha" />
+              <q-btn color="primary" icon="add" label="Nuevo Turno" unelevated @click="abrirModalTurno" />
+            </div>
+          </q-card-section>
+          <q-table
+            :rows="turnos"
+            :columns="columnasTurnos"
+            row-key="id"
+            flat
+            bordered
+            :loading="cargando"
+          >
+            <template v-slot:body-cell-estado="props">
+              <q-td :props="props">
+                <q-chip :color="getTurnoEstadoColor(props.value)" text-color="white" dense size="sm">
+                  {{ props.value }}
+                </q-chip>
+              </q-td>
+            </template>
+            <template v-slot:body-cell-acciones="props">
+              <q-td :props="props" class="text-right">
+                <q-btn flat round dense icon="check" color="positive" v-if="props.row.estado !== 'COMPLETADO'" @click="completarTurno(props.row)" />
+                <q-btn flat round dense icon="edit" color="primary" @click="editarTurno(props.row)" />
+                <q-btn flat round dense icon="delete" color="negative" @click="eliminarTurno(props.row.id)" />
+              </q-td>
+            </template>
+          </q-table>
+        </q-card>
+      </q-tab-panel>
+
+      <!-- PANEL DE HISTORIAL -->
+      <q-tab-panel name="historial" class="q-pa-none">
+         <q-card flat class="rounded-12 shadow-1">
+           <q-table
+            :rows="historial"
+            :columns="columnasHistorial"
+            row-key="id"
+            flat
+            bordered
+            :filter="filtroHistorial"
+          >
+            <template v-slot:top>
+              <div class="text-h6 text-primary">Historial de Estancias</div>
+              <q-space />
+              <q-input v-model="filtroHistorial" placeholder="Buscar..." outlined dense>
+                <template v-slot:append><q-icon name="search" /></template>
+              </q-input>
+            </template>
+            <template v-slot:body-cell-total="props">
+              <q-td :props="props" class="text-weight-bold text-primary">
+                ${{ props.value?.toFixed(2) }}
+              </q-td>
+            </template>
+          </q-table>
+         </q-card>
+      </q-tab-panel>
+    </q-tab-panels>
+
+    <!-- MODALES -->
+
+    <!-- Modal Nueva Pensión -->
+    <q-dialog v-model="modalPension" maximized transition-show="slide-up" transition-hide="slide-down" persistent>
+      <q-card class="bg-grey-2">
+        <q-card-section class="bg-primary text-white q-py-sm">
+          <div class="row items-center no-wrap">
+            <q-icon name="hotel" size="md" class="q-mr-md" />
+            <div class="col">
+              <div class="text-h6 text-weight-bold">{{ pensionEditando ? 'Editar Pensión' : 'Nueva Reservación / Ingreso' }}</div>
+            </div>
+            <q-btn flat round icon="close" @click="cerrarModalPension" />
+          </div>
         </q-card-section>
 
         <q-card-section class="q-pa-md">
           <div class="row q-col-gutter-md">
-            <!-- Información de la mascota -->
-            <div class="col-12">
-              <div class="text-h6 text-primary q-mb-md">Información de la Mascota</div>
-            </div>
-            
-            <div class="col-12 col-md-6">
-              <q-select
-                v-model="pensionTemporal.mascota"
-                :options="mascotasDisponibles"
-                label="Mascota *"
-                outlined
-                dense
-                option-label="nombre"
-                option-value="id"
-                use-input
-                @filter="filtrarMascotas"
-                :rules="[val => !!val || 'La mascota es requerida']"
-              >
-                <template v-slot:option="scope">
-                  <q-item v-bind="scope.itemProps">
-                    <q-item-section>
-                      <q-item-label>{{ scope.opt.nombre }}</q-item-label>
-                      <q-item-label caption>{{ scope.opt.propietario }} - {{ scope.opt.especie }}</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                </template>
-              </q-select>
-            </div>
-            
-            <div class="col-12 col-md-6">
-              <q-input
-                v-model="pensionTemporal.propietario"
-                label="Propietario *"
-                outlined
-                dense
-                readonly
-              />
+            <div class="col-12 col-md-4">
+              <q-card flat bordered class="rounded-16 shadow-1 full-height">
+                <q-card-section>
+                  <div class="text-subtitle1 text-weight-bold text-primary q-mb-md">Información del Paciente</div>
+                  <q-select
+                    v-model="pensionForm.mascota"
+                    :options="mascotasOpciones"
+                    label="Seleccionar Mascota *"
+                    outlined
+                    dense
+                    use-input
+                    @filter="filtrarMascotas"
+                    class="q-mb-md"
+                  />
+                  <div v-if="pensionForm.mascota" class="bg-indigo-1 q-pa-md rounded-12 q-mb-md">
+                     <div class="row items-center no-wrap">
+                        <q-avatar size="60px" color="white" text-color="primary" icon="pets" />
+                        <div class="q-ml-md">
+                           <div class="text-h6 text-primary">{{ pensionForm.mascota.nombre }}</div>
+                           <div class="text-caption text-grey-8">{{ pensionForm.mascota.especie }} • {{ pensionForm.mascota.propietario }}</div>
+                        </div>
+                     </div>
+                  </div>
+                  <q-input v-model="pensionForm.contacto_emergencia_nombre" label="Contacto de Emergencia" outlined dense class="q-mb-sm" />
+                  <q-input v-model="pensionForm.contacto_emergencia_telefono" label="Teléfono Emergencia" outlined dense class="q-mb-sm" />
+                </q-card-section>
+              </q-card>
             </div>
 
-            <!-- Tipo y fechas -->
-            <div class="col-12">
-              <q-separator class="q-my-md"/>
-              <div class="text-h6 text-primary q-mb-md">Tipo y Duración</div>
-            </div>
-            
-            <div class="col-12 col-md-4">
-              <q-select
-                v-model="pensionTemporal.tipo"
-                :options="tiposPension"
-                label="Tipo de Pensión *"
-                outlined
-                dense
-                option-label="label"
-                option-value="value"
-                :rules="[val => !!val || 'El tipo es requerido']"
-              />
-            </div>
-            
-            <div class="col-12 col-md-4">
-              <q-input
-                v-model="pensionTemporal.fechaEntrada"
-                label="Fecha de Entrada *"
-                outlined
-                dense
-                type="datetime-local"
-                :rules="[val => !!val || 'La fecha de entrada es requerida']"
-              />
-            </div>
-            
-            <div class="col-12 col-md-4">
-              <q-input
-                v-model="pensionTemporal.fechaSalida"
-                label="Fecha de Salida Estimada"
-                outlined
-                dense
-                type="datetime-local"
-              />
+            <div class="col-12 col-md-5">
+               <q-card flat bordered class="rounded-16 shadow-1">
+                 <q-card-section class="q-gutter-y-md">
+                    <div class="text-subtitle1 text-weight-bold text-primary">Detalles de la Estancia</div>
+                    <div class="row q-col-gutter-sm">
+                       <div class="col-6">
+                          <q-select v-model="pensionForm.id_tipo_pension" :options="tiposPensionOpciones" label="Tipo de Pensión *" outlined dense emit-value map-options />
+                       </div>
+                       <div class="col-6">
+                          <q-select v-model="pensionForm.id_jaula" :options="jaulasOpciones" label="Jaula Asignada *" outlined dense emit-value map-options :option-disable="opt => opt.estado === 'OCUPADA' && opt.id !== pensionEditando?.id_jaula" />
+                       </div>
+                    </div>
+                    <div class="row q-col-gutter-sm">
+                       <div class="col-6">
+                          <q-input v-model="pensionForm.fecha_entrada_estimada" label="Entrada Estimada *" outlined dense type="datetime-local" stack-label />
+                       </div>
+                       <div class="col-6">
+                          <q-input v-model="pensionForm.fecha_salida_estimada" label="Salida Estimada *" outlined dense type="datetime-local" stack-label />
+                       </div>
+                    </div>
+                    <q-input v-model="pensionForm.instrucciones_especiales" label="Instrucciones de Alimentación / Cuidados" outlined dense type="textarea" rows="3" />
+                    <q-input v-model="pensionForm.observaciones" label="Observaciones Médicas" outlined dense type="textarea" rows="2" />
+                 </q-card-section>
+               </q-card>
             </div>
 
-            <!-- Servicios incluidos -->
-            <div class="col-12">
-              <q-separator class="q-my-md"/>
-              <div class="text-h6 text-primary q-mb-md">Servicios Incluidos</div>
-            </div>
-            
-            <div class="col-12">
-              <q-option-group
-                v-model="pensionTemporal.servicios"
-                :options="serviciosDisponibles"
-                color="primary"
-                type="checkbox"
-                inline
-              />
-            </div>
-
-            <!-- Precios -->
-            <div class="col-12">
-              <q-separator class="q-my-md"/>
-              <div class="text-h6 text-primary q-mb-md">Información de Precios</div>
-            </div>
-            
-            <div class="col-12 col-md-4">
-              <q-input
-                v-model.number="pensionTemporal.precioPorDia"
-                label="Precio por Día *"
-                outlined
-                dense
-                type="number"
-                min="0"
-                step="0.01"
-                prefix="$"
-                :rules="[val => val > 0 || 'El precio debe ser mayor a 0']"
-              />
-            </div>
-            
-            <div class="col-12 col-md-4">
-              <q-input
-                v-model.number="pensionTemporal.descuento"
-                label="Descuento"
-                outlined
-                dense
-                type="number"
-                min="0"
-                max="100"
-                step="0.01"
-                suffix="%"
-              />
-            </div>
-            
-            <div class="col-12 col-md-4">
-              <q-input
-                :model-value="calcularPrecioTotal()"
-                label="Precio Total Estimado"
-                outlined
-                dense
-                readonly
-                prefix="$"
-              />
-            </div>
-
-            <!-- Habitación y ubicación -->
-            <div class="col-12">
-              <q-separator class="q-my-md"/>
-              <div class="text-h6 text-primary q-mb-md">Ubicación</div>
-            </div>
-            
-            <div class="col-12 col-md-6">
-              <q-select
-                v-model="pensionTemporal.habitacion"
-                :options="habitacionesDisponibles"
-                label="Habitación Asignada"
-                outlined
-                dense
-                option-label="nombre"
-                option-value="id"
-              />
-            </div>
-            
-            <div class="col-12 col-md-6">
-              <q-input
-                v-model="pensionTemporal.ubicacionEspecial"
-                label="Ubicación Especial"
-                outlined
-                dense
-                placeholder="ej: Junto a la ventana, área tranquila"
-              />
-            </div>
-
-            <!-- Observaciones -->
-            <div class="col-12">
-              <q-separator class="q-my-md"/>
-              <div class="text-h6 text-primary q-mb-md">Observaciones y Notas</div>
-            </div>
-            
-            <div class="col-12 col-md-6">
-              <q-input
-                v-model="pensionTemporal.observaciones"
-                label="Observaciones Generales"
-                outlined
-                dense
-                type="textarea"
-                rows="3"
-              />
-            </div>
-            
-            <div class="col-12 col-md-6">
-              <q-input
-                v-model="pensionTemporal.instruccionesEspeciales"
-                label="Instrucciones Especiales"
-                outlined
-                dense
-                type="textarea"
-                rows="3"
-                placeholder="Cuidados especiales, medicamentos, dieta, etc."
-              />
-            </div>
-
-            <!-- Contacto de emergencia -->
-            <div class="col-12">
-              <q-separator class="q-my-md"/>
-              <div class="text-h6 text-primary q-mb-md">Contacto de Emergencia</div>
-            </div>
-            
-            <div class="col-12 col-md-4">
-              <q-input
-                v-model="pensionTemporal.contactoEmergencia.nombre"
-                label="Nombre del Contacto"
-                outlined
-                dense
-              />
-            </div>
-            
-            <div class="col-12 col-md-4">
-              <q-input
-                v-model="pensionTemporal.contactoEmergencia.telefono"
-                label="Teléfono"
-                outlined
-                dense
-                type="tel"
-              />
-            </div>
-            
-            <div class="col-12 col-md-4">
-              <q-input
-                v-model="pensionTemporal.contactoEmergencia.relacion"
-                label="Relación"
-                outlined
-                dense
-                placeholder="ej: Familiar, Amigo, Vecino"
-              />
+            <div class="col-12 col-md-3">
+              <q-card flat bordered class="rounded-16 shadow-4 bg-white sticky-summary">
+                 <q-card-section class="bg-indigo-9 text-white q-py-sm">
+                    <div class="text-subtitle1 text-weight-bold">Resumen de Cuenta</div>
+                 </q-card-section>
+                 <q-card-section class="q-pa-md">
+                    <div class="row justify-between q-mb-sm">
+                       <span class="text-grey-7">Precio por Día:</span>
+                       <q-input v-model.number="pensionForm.precio_dia" type="number" dense borderless input-class="text-right text-weight-bold" style="width: 100px" />
+                    </div>
+                    <div class="row justify-between q-mb-sm">
+                       <span class="text-grey-7">Estancia (días):</span>
+                       <span class="text-weight-bold">{{ calcularDiasEstancia }}</span>
+                    </div>
+                    <div class="row justify-between q-mb-sm">
+                       <span class="text-grey-7">Subtotal:</span>
+                       <span class="text-weight-bold">${{ (calcularDiasEstancia * pensionForm.precio_dia).toFixed(2) }}</span>
+                    </div>
+                    <div class="row justify-between q-mb-sm">
+                       <span class="text-grey-7">Descuento (%):</span>
+                       <q-input v-model.number="pensionForm.descuento" type="number" dense borderless input-class="text-right" style="width: 60px" />
+                    </div>
+                    <q-separator class="q-my-md" />
+                    <div class="row justify-between items-center q-mb-lg">
+                       <span class="text-h6">TOTAL:</span>
+                       <span class="text-h5 text-weight-bolder text-primary">${{ calcularTotalFinal.toFixed(2) }}</span>
+                    </div>
+                    <q-btn color="primary" :label="pensionEditando ? 'Actualizar' : 'Registrar'" class="full-width q-py-md rounded-12 text-weight-bold" unelevated @click="guardarPension" :loading="cargando" />
+                    <q-btn flat color="grey-7" label="Cancelar" class="full-width q-mt-sm" @click="cerrarModalPension" />
+                 </q-card-section>
+              </q-card>
             </div>
           </div>
         </q-card-section>
+      </q-card>
+    </q-dialog>
 
+    <!-- Modal Reportes -->
+    <q-dialog v-model="mostrarModalReportes">
+      <q-card style="min-width: 400px" class="rounded-16">
+        <q-card-section class="bg-gradient-info text-white row items-center">
+          <div class="text-h6"><q-icon name="description" class="q-mr-sm" /> Módulo de Reportería</div>
+          <q-space />
+          <q-btn flat round icon="close" v-close-popup />
+        </q-card-section>
+        <q-card-section class="q-pa-md">
+           <q-list bordered separator class="rounded-borders">
+             <q-item clickable v-ripple @click="descargarReporte('activas')">
+               <q-item-section avatar><q-avatar color="primary" text-color="white" icon="pets" /></q-item-section>
+               <q-item-section>
+                 <q-item-label class="text-weight-bold">Pensiones Activas</q-item-label>
+                 <q-item-label caption>Listado de mascotas hospedadas actualmente.</q-item-label>
+               </q-item-section>
+             </q-item>
+             <q-item clickable v-ripple @click="descargarReporte('historial_mes')">
+               <q-item-section avatar><q-avatar color="secondary" text-color="white" icon="history" /></q-item-section>
+               <q-item-section>
+                 <q-item-label class="text-weight-bold">Historial Mensual</q-item-label>
+                 <q-item-label caption>Resumen de todas las estancias cerradas este mes.</q-item-label>
+               </q-item-section>
+             </q-item>
+           </q-list>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
+    <!-- Modal Proceso (Check-in / Check-out) -->
+    <q-dialog v-model="modalProceso" persistent>
+       <q-card style="width: 450px" class="rounded-16 shadow-10">
+          <q-card-section :class="[procesoTipo === 'IN' ? 'bg-positive' : 'bg-negative', 'text-white']">
+             <div class="text-h6">{{ procesoTipo === 'IN' ? 'Confirmar Entrada' : 'Confirmar Salida' }}</div>
+             <div class="text-caption opacity-80">{{ procesoPension?.mascota?.nombre }}</div>
+          </q-card-section>
+          <q-card-section class="q-pa-md q-gutter-y-md">
+             <q-input v-model="procesoForm.fecha" type="datetime-local" label="Fecha y Hora Real" outlined dense stack-label />
+             <q-input v-model="procesoForm.observaciones" type="textarea" label="Observaciones del Proceso" outlined dense rows="3" />
+             <div v-if="procesoTipo === 'OUT'" class="bg-grey-2 q-pa-sm rounded-8">
+                <q-input v-model.number="procesoForm.costo_adicional" type="number" label="Cargos Extra / Adicionales" outlined dense prefix="$" />
+             </div>
+          </q-card-section>
+          <q-card-actions align="right" class="q-pa-md">
+             <q-btn flat label="Cancelar" v-close-popup />
+             <q-btn :color="procesoTipo === 'IN' ? 'positive' : 'negative'" :label="procesoTipo === 'IN' ? 'Ingresar' : 'Dar de Alta'" unelevated @click="confirmarProceso" />
+          </q-card-actions>
+       </q-card>
+    </q-dialog>
+
+    <!-- Modal Jaula -->
+    <q-dialog v-model="modalJaula" persistent>
+      <q-card style="width: 400px" class="rounded-16 shadow-5">
+        <q-card-section class="bg-primary text-white row items-center">
+          <div class="text-h6">{{ jaulaForm.id ? 'Editar Jaula' : 'Nueva Jaula' }}</div>
+          <q-space />
+          <q-btn flat round icon="close" v-close-popup />
+        </q-card-section>
+        <q-card-section class="q-pa-md q-gutter-y-md">
+          <q-input v-model="jaulaForm.nombre" label="Nombre / Identificador *" outlined dense />
+          <q-input v-model="jaulaForm.numero" label="Número (opcional)" outlined dense />
+          <q-select v-model="jaulaForm.id_tipo_jaula" :options="tiposJaula" label="Tipo de Jaula" outlined dense emit-value map-options :option-label="opt => opt.nombre" :option-value="opt => opt.id" />
+          <q-input v-model.number="jaulaForm.capacidad" type="number" label="Capacidad" outlined dense />
+          <q-select v-model="jaulaForm.estado" :options="['DISPONIBLE', 'MANTENIMIENTO']" label="Estado Inicial" outlined dense />
+        </q-card-section>
         <q-card-actions align="right" class="q-pa-md">
-          <q-btn flat label="Cancelar" @click="cancelarModal"/>
-          <q-btn 
-            color="primary"
-            label="Guardar Pensión" 
-            @click="guardarPension"
-            unelevated
-          />
+          <q-btn flat label="Cancelar" v-close-popup />
+          <q-btn color="primary" label="Guardar" unelevated @click="guardarJaula" />
         </q-card-actions>
       </q-card>
     </q-dialog>
 
-    <!-- Modal para procesar entrada/salida -->
-    <q-dialog v-model="mostrarModalProceso" persistent>
-      <q-card style="min-width: 500px">
-        <q-card-section class="bg-primary text-white">
-          <div class="text-h6">
-            {{ procesoPension?.tipo === 'entrada' ? 'Procesar Entrada' : 'Procesar Salida' }}
-          </div>
+    <!-- Modal Turno -->
+    <q-dialog v-model="modalTurno" persistent>
+      <q-card style="width: 450px" class="rounded-16 shadow-5">
+        <q-card-section class="bg-primary text-white row items-center">
+          <div class="text-h6">{{ turnoForm.id ? 'Editar Turno' : 'Programar Actividad' }}</div>
+          <q-space />
+          <q-btn flat round icon="close" v-close-popup />
         </q-card-section>
-
-        <q-card-section class="q-pa-md">
-          <div class="text-subtitle1 q-mb-md">
-            {{ procesoPension?.pension?.mascota?.nombre }} - {{ procesoPension?.pension?.propietario }}
+        <q-card-section class="q-pa-md q-gutter-y-md">
+          <q-select v-model="turnoForm.id_jaula" :options="jaulasOpciones" label="Jaula *" outlined dense emit-value map-options />
+          <q-input v-model="turnoForm.personal_nombre" label="Personal a cargo *" outlined dense />
+          <q-input v-model="turnoForm.actividad" label="Actividad / Tarea *" outlined dense placeholder="Ej: Alimentación, Paseo..." />
+          <div class="row q-col-gutter-sm">
+            <div class="col-6">
+              <q-input v-model="turnoForm.fecha" type="date" label="Fecha" outlined dense stack-label />
+            </div>
+            <div class="col-6">
+              <q-input v-model="turnoForm.hora_inicio" type="time" label="Hora" outlined dense stack-label />
+            </div>
           </div>
-
-          <q-input
-            v-model="procesoPension.fechaProceso"
-            label="Fecha y Hora de Proceso"
-            outlined
-            dense
-            type="datetime-local"
-            class="q-mb-md"
-          />
-
-          <q-input
-            v-model="procesoPension.observacionesProceso"
-            label="Observaciones del Proceso"
-            outlined
-            dense
-            type="textarea"
-            rows="3"
-            class="q-mb-md"
-          />
-
-          <div v-if="procesoPension?.tipo === 'salida'">
-            <q-input
-              v-model.number="procesoPension.costoAdicional"
-              label="Costo Adicional"
-              outlined
-              dense
-              type="number"
-              min="0"
-              step="0.01"
-              prefix="$"
-              class="q-mb-md"
-            />
-            
-            <q-input
-              v-model="procesoPension.motivoCostoAdicional"
-              label="Motivo del Costo Adicional"
-              outlined
-              dense
-              placeholder="ej: Servicios extra, daños, medicamentos"
-            />
-          </div>
+          <q-input v-model="turnoForm.notas" label="Instrucciones adicionales" outlined dense type="textarea" rows="2" />
         </q-card-section>
-
         <q-card-actions align="right" class="q-pa-md">
-          <q-btn flat label="Cancelar" @click="mostrarModalProceso = false"/>
-          <q-btn 
-            :color="procesoPension?.tipo === 'entrada' ? 'positive' : 'negative'"
-            :label="procesoPension?.tipo === 'entrada' ? 'Confirmar Entrada' : 'Confirmar Salida'"
-            @click="confirmarProceso"
-            unelevated
-          />
+          <q-btn flat label="Cancelar" v-close-popup />
+          <q-btn color="primary" label="Agendar" unelevated @click="guardarTurno" />
         </q-card-actions>
       </q-card>
     </q-dialog>
 
-    <!-- Modal de calendario -->
-    <q-dialog v-model="mostrarModalCalendario" maximized>
-      <q-card>
-        <q-card-section class="bg-primary text-white">
-          <div class="text-h6">Calendario de Pensiones</div>
-          <q-btn 
-            flat 
-            round 
-            icon="close" 
-            @click="mostrarModalCalendario = false"
-            class="absolute-top-right q-ma-sm"
-          />
-        </q-card-section>
-
-        <q-card-section class="q-pa-md">
-          <!-- Aquí iría el componente de calendario -->
-          <div class="text-center q-py-xl">
-            <q-icon name="calendar_month" size="64px" color="grey-4" class="q-mb-md"/>
-            <div class="text-h6 text-grey-6">Vista de Calendario</div>
-            <div class="text-body2 text-grey-5">Próximamente disponible</div>
-          </div>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
-
-    <!-- Modal de historial -->
-    <q-dialog v-model="mostrarModalHistorial" maximized>
-      <q-card>
-        <q-card-section class="bg-primary text-white">
-          <div class="text-h6">Historial de Pensiones</div>
-          <q-btn 
-            flat 
-            round 
-            icon="close" 
-            @click="mostrarModalHistorial = false"
-            class="absolute-top-right q-ma-sm"
-          />
-        </q-card-section>
-
-        <q-card-section class="q-pa-md">
-          <q-table
-            :rows="historialPensiones"
-            :columns="columnasHistorial"
-            row-key="id"
-            :pagination="paginacionHistorial"
-            :filter="filtroHistorialGeneral"
-            binary-state-sort
-            dense
-          >
-            <template v-slot:top>
-              <q-input
-                v-model="filtroHistorialGeneral"
-                debounce="300"
-                placeholder="Buscar en historial..."
-                class="col-12 col-md-6"
-                outlined
-                dense
-              >
-                <template v-slot:append>
-                  <q-icon name="search" />
-                </template>
-              </q-input>
-            </template>
-
-            <template v-slot:body-cell-estado="props">
-              <q-td :props="props">
-                <q-chip 
-                  :color="getEstadoColor({ estado: props.value })"
-                  text-color="white"
-                  :label="getEstadoLabel(props.value)"
-                  size="sm"
-                  dense
-                />
-              </q-td>
-            </template>
-
-            <template v-slot:body-cell-duracion="props">
-              <q-td :props="props">
-                {{ calcularDuracion(props.row) }}
-              </q-td>
-            </template>
-
-            <template v-slot:body-cell-total="props">
-              <q-td :props="props">
-                ${{ props.value?.toFixed(2) || '0.00' }}
-              </q-td>
-            </template>
-          </q-table>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
+    <q-inner-loading :showing="cargando">
+      <q-spinner-tail size="50px" color="primary" />
+    </q-inner-loading>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, onMounted, reactive, watch } from 'vue'
+import { useQuasar, date } from 'quasar'
+import pensionService from 'src/services/pension.service'
+import PeticionService from 'src/services/peticion.service'
+import { Modulo, Tabla } from 'src/common/enums/configuracion.enum'
 
-// Props
+const $q = useQuasar()
+const peticionService = new PeticionService()
+
+// PROPS
 const props = defineProps({
-  modoLectura: {
-    type: Boolean,
-    default: false
-  }
+  modoLectura: { type: Boolean, default: false }
 })
 
-// Emits
-const emit = defineEmits(['pension-creada', 'pension-actualizada', 'entrada-procesada', 'salida-procesada'])
+// ESTADOS DE NAVEGACIÓN
+const tabSeleccionada = ref('dashboard')
+const cargando = ref(false)
 
-// Estados principales
+// DATOS PRINCIPALES
 const pensiones = ref([])
-const historialPensiones = ref([])
+const jaulas = ref([])
+const turnos = ref([])
+const historial = ref([])
+const estadisticas = ref({
+  activas: 0,
+  reservadas: 0,
+  ingresosMes: 0,
+  totalJaulas: 0,
+  jaulasLibres: 0,
+  jaulasOcupadas: 0
+})
 
-// Estados de modales
-const mostrarModalPension = ref(false)
-const mostrarModalProceso = ref(false)
-const mostrarModalCalendario = ref(false)
-const mostrarModalHistorial = ref(false)
-const pensionEditando = ref(null)
+// CATALOGOS
+const tiposPension = ref([])
+const tiposJaula = ref([])
+const serviciosAdicionales = ref([])
 
-// Estados de filtros
+// FILTROS
 const filtroTexto = ref('')
-const filtroEstado = ref('')
-const filtroTipo = ref('')
-const filtroFechaDesde = ref('')
-const filtroFechaHasta = ref('')
-const filtroHistorialGeneral = ref('')
+const filtroEstado = ref(null)
+const fechaTurnos = ref(new Date().toISOString().split('T')[0])
+const filtroHistorial = ref('')
 
-// Estados temporales
-const pensionTemporal = ref({
-  id: '',
+// MODALES Y FORMULARIOS
+const modalPension = ref(false)
+const pensionEditando = ref(null)
+const pensionForm = reactive({
+  id: null,
   mascota: null,
-  propietario: '',
-  tipo: '',
-  estado: 'reservada',
-  fechaEntrada: '',
-  fechaSalida: '',
-  fechaEntradaReal: '',
-  fechaSalidaReal: '',
-  servicios: [],
-  precioPorDia: 0,
+  id_mascota: null,
+  id_propietario: null,
+  id_jaula: null,
+  id_tipo_pension: null,
+  fecha_entrada_estimada: '',
+  fecha_salida_estimada: '',
+  precio_dia: 150,
   descuento: 0,
-  precioTotal: 0,
-  costosAdicionales: 0,
-  habitacion: null,
-  ubicacionEspecial: '',
+  instrucciones_especiales: '',
   observaciones: '',
-  instruccionesEspeciales: '',
-  contactoEmergencia: {
-    nombre: '',
-    telefono: '',
-    relacion: ''
-  },
-  fechaCreacion: '',
-  usuario: 'Usuario Actual'
+  contacto_emergencia_nombre: '',
+  contacto_emergencia_telefono: ''
 })
 
-const procesoPension = ref({
-  pension: null,
-  tipo: '',
-  fechaProceso: '',
-  observacionesProceso: '',
-  costoAdicional: 0,
-  motivoCostoAdicional: ''
+const modalProceso = ref(false)
+const procesoTipo = ref('IN') // 'IN' o 'OUT'
+const procesoPension = ref(null)
+const procesoForm = reactive({
+  fecha: '',
+  observaciones: '',
+  costo_adicional: 0
 })
 
-// Opciones para selects
-const estadosDisponibles = [
-  { label: 'Reservada', value: 'reservada' },
-  { label: 'Activa', value: 'activa' },
-  { label: 'Finalizada', value: 'finalizada' },
-  { label: 'Cancelada', value: 'cancelada' },
-  { label: 'Próxima Salida', value: 'proxima_salida' }
+const modalJaula = ref(false)
+const jaulaForm = reactive({ id: null, nombre: '', numero: '', capacidad: 1, id_tipo_jaula: null, estado: 'DISPONIBLE' })
+
+const modalTurno = ref(false)
+const turnoForm = reactive({ id: null, id_jaula: null, personal_nombre: '', fecha: '', hora_inicio: '', actividad: '', notas: '' })
+
+const mostrarModalReportes = ref(false)
+
+// OPCIONES PARA SELECTS
+const opcionesEstado = [
+  { label: 'Reservada', value: 'RESERVADA' },
+  { label: 'Activa', value: 'ACTIVA' },
+  { label: 'Finalizada', value: 'FINALIZADA' },
+  { label: 'Cancelada', value: 'CANCELADA' }
 ]
 
-const tiposPension = [
-  { label: 'Corta (1-3 días)', value: 'corta' },
-  { label: 'Media (4-7 días)', value: 'media' },
-  { label: 'Larga (más de 7 días)', value: 'larga' },
-  { label: 'Diaria (entrada/salida diaria)', value: 'diaria' },
-  { label: 'Fin de Semana', value: 'fin_semana' },
-  { label: 'Mensual', value: 'mensual' }
+const mascotasDisponibles = ref([])
+const mascotasOpciones = ref([])
+
+const tiposPensionOpciones = computed(() => tiposPension.value.map(t => ({ label: t.nombre, value: t.id })))
+const jaulasOpciones = computed(() => jaulas.value.map(j => ({ 
+  label: `${j.nombre} ${j.numero ? '#' + j.numero : ''} (${j.estado})`, 
+  value: j.id,
+  estado: j.estado 
+})))
+
+// COLUMNAS TABLAS
+const columnasTurnos = [
+  { name: 'hora', label: 'Hora', field: 'hora_inicio', align: 'left', sortable: true },
+  { name: 'actividad', label: 'Actividad', field: 'actividad', align: 'left' },
+  { name: 'jaula', label: 'Jaula', field: row => row.jaula?.nombre, align: 'left' },
+  { name: 'personal', label: 'Encargado', field: 'personal_nombre', align: 'left' },
+  { name: 'estado', label: 'Estado', field: 'estado', align: 'center' },
+  { name: 'acciones', label: '', field: 'acciones', align: 'right' }
 ]
 
-const serviciosDisponibles = [
-  { label: 'Alimentación Premium', value: 'alimentacion_premium' },
-  { label: 'Paseos Diarios', value: 'paseos' },
-  { label: 'Baño y Aseo', value: 'bano_aseo' },
-  { label: 'Medicación', value: 'medicacion' },
-  { label: 'Juego y Socialización', value: 'juego_socializacion' },
-  { label: 'Cuidado Especial', value: 'cuidado_especial' },
-  { label: 'Monitoreo Veterinario', value: 'monitoreo_vet' },
-  { label: 'Llamadas de Seguimiento', value: 'llamadas_seguimiento' }
-]
-
-const habitacionesDisponibles = [
-  { id: 'hab_001', nombre: 'Habitación A1 - Individual', tipo: 'individual', capacidad: 1 },
-  { id: 'hab_002', nombre: 'Habitación A2 - Individual', tipo: 'individual', capacidad: 1 },
-  { id: 'hab_003', nombre: 'Habitación B1 - Doble', tipo: 'doble', capacidad: 2 },
-  { id: 'hab_004', nombre: 'Habitación B2 - Doble', tipo: 'doble', capacidad: 2 },
-  { id: 'hab_005', nombre: 'Suite Premium', tipo: 'premium', capacidad: 1 },
-  { id: 'hab_006', nombre: 'Área Común - Perros Grandes', tipo: 'compartida', capacidad: 5 },
-  { id: 'hab_007', nombre: 'Área Común - Perros Pequeños', tipo: 'compartida', capacidad: 8 },
-  { id: 'hab_008', nombre: 'Área Gatos', tipo: 'gatos', capacidad: 6 }
-]
-
-// Mascotas disponibles (esto vendría de otro módulo)
-const mascotasDisponibles = ref([
-  { 
-    id: 1, 
-    nombre: 'Max', 
-    especie: 'Perro Golden', 
-    propietario: 'Juan Pérez',
-    telefono: '555-0101',
-    edad: '3 años'
-  },
-  { 
-    id: 2, 
-    nombre: 'Luna', 
-    especie: 'Gata Persa', 
-    propietario: 'María García',
-    telefono: '555-0102',
-    edad: '2 años'
-  },
-  { 
-    id: 3, 
-    nombre: 'Rocky', 
-    especie: 'Perro Bulldog', 
-    propietario: 'Carlos López',
-    telefono: '555-0103',
-    edad: '4 años'
-  },
-  { 
-    id: 4, 
-    nombre: 'Mia', 
-    especie: 'Gata Siamesa', 
-    propietario: 'Ana Martínez',
-    telefono: '555-0104',
-    edad: '1 año'
-  }
-])
-
-const formatDate = (fechaISO) => {
-  if (!fechaISO) return ''
-  return new Date(fechaISO).toLocaleDateString('es-MX')
-}
-
-const formatDateTime = (fechaISO) => {
-  if (!fechaISO) return ''
-  return new Date(fechaISO).toLocaleString('es-MX', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
-
-const getTipoLabel = (tipo) => {
-  const t = tiposPension.find(tp => tp.value === tipo)
-  return t?.label || tipo
-}
-
-const getTipoColor = (tipo) => {
-  const colores = {
-    'corta': 'blue',
-    'media': 'teal',
-    'larga': 'purple',
-    'diaria': 'orange',
-    'fin_semana': 'indigo',
-    'mensual': 'deep-purple'
-  }
-  return colores[tipo] || 'grey'
-}
-
-const getEstadoLabel = (estado) => {
-  const e = estadosDisponibles.find(est => est.value === estado)
-  return e?.label || estado
-}
-
-const getEstadoColor = (pension) => {
-  if (isProximaSalida(pension)) return 'warning'
-  
-  const colores = {
-    'reservada': 'blue',
-    'activa': 'positive',
-    'finalizada': 'grey',
-    'cancelada': 'negative'
-  }
-  return colores[pension.estado] || 'grey'
-}
-
-const getEstadoIcon = (estado) => {
-  const iconos = {
-    'reservada': 'book_online',
-    'activa': 'pets',
-    'finalizada': 'check_circle',
-    'cancelada': 'cancel'
-  }
-  return iconos[estado] || 'help'
-}
-
-const getCardClass = (pension) => {
-  const color = getEstadoColor(pension)
-  return {
-    'pension-card': true,
-    [`border-${color}`]: true
-  }
-}
-
-const isProximaSalida = (pension) => {
-  if (pension.estado !== 'activa' || !pension.fechaSalida) return false
-  const fechaSalida = new Date(pension.fechaSalida)
-  const ahora = new Date()
-  const diffHoras = Math.floor((fechaSalida - ahora) / (1000 * 60 * 60))
-  return diffHoras <= 24 && diffHoras >= 0
-}
-
-const esMesActual = (fechaISO) => {
-  if (!fechaISO) return false
-  const fecha = new Date(fechaISO)
-  const ahora = new Date()
-  return fecha.getMonth() === ahora.getMonth() && fecha.getFullYear() === ahora.getFullYear()
-}
-
-const calcularDuracion = (pension) => {
-  if (!pension.fechaEntrada) return '---'
-  
-  const fechaInicio = new Date(pension.fechaEntradaReal || pension.fechaEntrada)
-  const fechaFin = pension.fechaSalidaReal ? 
-    new Date(pension.fechaSalidaReal) : 
-    (pension.fechaSalida ? new Date(pension.fechaSalida) : new Date())
-  
-  const diffMs = fechaFin - fechaInicio
-  const diffDias = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
-  
-  if (diffDias < 1) return 'Menos de 1 día'
-  if (diffDias === 1) return '1 día'
-  if (diffDias < 7) return `${diffDias} días`
-  
-  const semanas = Math.floor(diffDias / 7)
-  const diasExtra = diffDias % 7
-  
-  if (semanas === 1 && diasExtra === 0) return '1 semana'
-  if (diasExtra === 0) return `${semanas} semanas`
-  
-  return `${semanas} sem, ${diasExtra} días`
-}
-
-const calcularPrecioTotal = () => {
-  if (!pensionTemporal.value.precioPorDia || !pensionTemporal.value.fechaEntrada) return '0.00'
-  
-  const fechaInicio = new Date(pensionTemporal.value.fechaEntrada)
-  const fechaFin = pensionTemporal.value.fechaSalida ? 
-    new Date(pensionTemporal.value.fechaSalida) : 
-    new Date(fechaInicio.getTime() + 24 * 60 * 60 * 1000) // Al menos 1 día
-  
-  const diffMs = fechaFin - fechaInicio
-  const dias = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)))
-  
-  const subtotal = dias * pensionTemporal.value.precioPorDia
-  const descuento = (pensionTemporal.value.descuento || 0) / 100
-  const total = subtotal * (1 - descuento)
-  
-  return total.toFixed(2)
-}
-
-// Computed properties
-const pensionesFiltradas = computed(() => {
-  let pensionesFilt = [...pensiones.value]
-  
-  if (filtroTexto.value) {
-    const texto = filtroTexto.value.toLowerCase()
-    pensionesFilt = pensionesFilt.filter(p => 
-      p.mascota.nombre.toLowerCase().includes(texto) ||
-      p.propietario.toLowerCase().includes(texto) ||
-      p.observaciones?.toLowerCase().includes(texto)
-    )
-  }
-  
-  if (filtroEstado.value) {
-    if (filtroEstado.value.value === 'proxima_salida') {
-      pensionesFilt = pensionesFilt.filter(p => isProximaSalida(p))
-    } else {
-      pensionesFilt = pensionesFilt.filter(p => p.estado === filtroEstado.value.value)
-    }
-  }
-  
-  if (filtroTipo.value) {
-    pensionesFilt = pensionesFilt.filter(p => p.tipo === filtroTipo.value.value)
-  }
-  
-  if (filtroFechaDesde.value) {
-    pensionesFilt = pensionesFilt.filter(p => 
-      new Date(p.fechaEntrada) >= new Date(filtroFechaDesde.value)
-    )
-  }
-  
-  if (filtroFechaHasta.value) {
-    pensionesFilt = pensionesFilt.filter(p => 
-      new Date(p.fechaEntrada) <= new Date(filtroFechaHasta.value + 'T23:59:59')
-    )
-  }
-  
-  return pensionesFilt.sort((a, b) => {
-    // Ordenar por estado: activas primero, luego reservadas, etc.
-    const ordenEstados = { 'activa': 1, 'reservada': 2, 'proxima_salida': 3, 'finalizada': 4, 'cancelada': 5 }
-    return ordenEstados[a.estado] - ordenEstados[b.estado]
-  })
-})
-
-const estadisticasGenerales = computed(() => {
-  return {
-    totalPensiones: pensiones.value.length,
-    activas: pensiones.value.filter(p => p.estado === 'activa').length,
-    reservadas: pensiones.value.filter(p => p.estado === 'reservada').length,
-    proximasSalida: pensiones.value.filter(p => isProximaSalida(p)).length,
-    finalizadas: pensiones.value.filter(p => p.estado === 'finalizada').length,
-    ingresosMes: pensiones.value
-      .filter(p => p.estado === 'finalizada' && esMesActual(p.fechaSalidaReal))
-      .reduce((acc, p) => acc + (p.precioTotal || 0), 0)
-  }
-})
-
-const hayFiltros = computed(() => {
-  return !!(filtroTexto.value || filtroEstado.value || filtroTipo.value || filtroFechaDesde.value || filtroFechaHasta.value)
-})
-
-// Columnas para tabla de historial
 const columnasHistorial = [
-  {
-    name: 'fechaEntrada',
-    label: 'Entrada',
-    field: 'fechaEntrada',
-    align: 'left',
-    sortable: true,
-    format: val => formatDateTime(val)
-  },
-  {
-    name: 'mascota',
-    label: 'Mascota',
-    field: row => row.mascota.nombre,
-    align: 'left',
-    sortable: true
-  },
-  {
-    name: 'propietario',
-    label: 'Propietario',
-    field: 'propietario',
-    align: 'left',
-    sortable: true
-  },
-  {
-    name: 'tipo',
-    label: 'Tipo',
-    field: 'tipo',
-    align: 'center',
-    format: val => getTipoLabel(val)
-  },
-  {
-    name: 'estado',
-    label: 'Estado',
-    field: 'estado',
-    align: 'center'
-  },
-  {
-    name: 'duracion',
-    label: 'Duración',
-    field: row => row,
-    align: 'center'
-  },
-  {
-    name: 'total',
-    label: 'Total',
-    field: 'precioTotal',
-    align: 'right'
-  }
+  { name: 'fecha', label: 'Fecha Entrada', field: row => formatDate(row.fecha_entrada_real || row.fecha_entrada_estimada), align: 'left', sortable: true },
+  { name: 'mascota', label: 'Mascota', field: row => row.mascota?.nombre, align: 'left' },
+  { name: 'dias', label: 'Días', field: row => calcularDiasEntre(row.fecha_entrada_real || row.fecha_entrada_estimada, row.fecha_salida_real || row.fecha_salida_estimada), align: 'center' },
+  { name: 'total', label: 'Total Cobrado', field: 'precio_total', align: 'right', sortable: true },
+  { name: 'estado', label: 'Estado Final', field: 'estado', align: 'center' }
 ]
 
-const paginacionHistorial = ref({
-  rowsPerPage: 15
+// COMPUTED
+const pensionesFiltradas = computed(() => {
+  return pensiones.value.filter(p => {
+    const cumpleTexto = !filtroTexto.value || 
+      p.mascota?.nombre?.toLowerCase().includes(filtroTexto.value.toLowerCase()) ||
+      p.propietario?.nombre?.toLowerCase().includes(filtroTexto.value.toLowerCase());
+    const cumpleEstado = !filtroEstado.value || p.estado === filtroEstado.value;
+    return cumpleTexto && cumpleEstado && p.estado !== 'FINALIZADA' && p.estado !== 'CANCELADA';
+  });
 })
 
-// Métodos de utilidad
-// Métodos de pensiones
-const editarPension = (pension) => {
-  pensionEditando.value = pension
-  pensionTemporal.value = { ...pension }
-  mostrarModalPension.value = true
+const turnosHoy = computed(() => turnos.value.filter(t => t.estado !== 'COMPLETADO').slice(0, 5))
+
+const calcularDiasEstancia = computed(() => {
+  if (!pensionForm.fecha_entrada_estimada || !pensionForm.fecha_salida_estimada) return 1;
+  const d = calcularDiasEntre(pensionForm.fecha_entrada_estimada, pensionForm.fecha_salida_estimada);
+  return d > 0 ? d : 1;
+})
+
+const calcularTotalFinal = computed(() => {
+  const subtotal = calcularDiasEstancia.value * pensionForm.precio_dia;
+  const desc = (pensionForm.descuento || 0) / 100;
+  return subtotal * (1 - desc);
+})
+
+// MÉTODOS DE CARGA
+const cargarDatos = async () => {
+  cargando.value = true;
+  try {
+    const [resP, resE, resJ, resT] = await Promise.all([
+      pensionService.pensiones.getAll(),
+      pensionService.pensiones.getEstadisticas(),
+      pensionService.jaulas.getAll(),
+      pensionService.turnos.getByFecha(fechaTurnos.value)
+    ]);
+    pensiones.value = resP.data || [];
+    estadisticas.value = resE.data || estadisticas.value;
+    jaulas.value = resJ.data || [];
+    turnos.value = resT.data || [];
+    historial.value = pensiones.value.filter(p => p.estado === 'FINALIZADA' || p.estado === 'CANCELADA');
+    await cargarCatalogos();
+    await cargarMascotas();
+  } catch (e) {
+    console.error(e);
+    $q.notify({ type: 'negative', message: 'Error al cargar datos' });
+  } finally {
+    cargando.value = false;
+  }
 }
 
-const guardarPension = () => {
-  if (!validarPension()) return
-  
-  const ahora = new Date().toISOString()
-  
-  // Calcular precio total
-  pensionTemporal.value.precioTotal = parseFloat(calcularPrecioTotal())
-  
-  if (pensionEditando.value) {
-    // Editar pensión existente
-    const index = pensiones.value.findIndex(p => p.id === pensionEditando.value.id)
-    if (index !== -1) {
-      pensiones.value[index] = { 
-        ...pensionTemporal.value,
-        fechaModificacion: ahora
-      }
-      emit('pension-actualizada', pensiones.value[index])
+const cargarMascotas = async () => {
+  try {
+    const response = await peticionService.obtenerGet('mascota');
+    if (Array.isArray(response) && response[0]?.elemento) {
+       mascotasDisponibles.value = response[0].elemento.map(m => ({
+          id: m.id,
+          nombre: m.nombre,
+          especie: m.especie?.nombre || 'Mascota',
+          propietario: m.propietario?.poblador?.nombre || 'S/P',
+          id_propietario: m.id_propietario
+       }));
     }
-  } else {
-    // Nueva pensión
-    const nuevaPension = {
-      ...pensionTemporal.value,
-      id: `pension_${Date.now()}`,
-      fechaCreacion: ahora,
-      fechaModificacion: ahora
-    }
-    
-    // Establecer propietario basado en la mascota seleccionada
-    if (nuevaPension.mascota) {
-      nuevaPension.propietario = nuevaPension.mascota.propietario
-    }
-    
-    pensiones.value.push(nuevaPension)
-    emit('pension-creada', nuevaPension)
-  }
-  
-  mostrarModalPension.value = false
-  pensionEditando.value = null
-  limpiarPensionTemporal()
-  guardarDatos()
-}
-
-const validarPension = () => {
-  if (!pensionTemporal.value.mascota || !pensionTemporal.value.tipo || !pensionTemporal.value.fechaEntrada) {
-    return false
-  }
-  
-  if (pensionTemporal.value.precioPorDia <= 0) {
-    return false
-  }
-  
-  return true
-}
-
-const cancelarModal = () => {
-  mostrarModalPension.value = false
-  pensionEditando.value = null
-  limpiarPensionTemporal()
-}
-
-const limpiarPensionTemporal = () => {
-  pensionTemporal.value = {
-    id: '',
-    mascota: null,
-    propietario: '',
-    tipo: '',
-    estado: 'reservada',
-    fechaEntrada: '',
-    fechaSalida: '',
-    fechaEntradaReal: '',
-    fechaSalidaReal: '',
-    servicios: [],
-    precioPorDia: 0,
-    descuento: 0,
-    precioTotal: 0,
-    costosAdicionales: 0,
-    habitacion: null,
-    ubicacionEspecial: '',
-    observaciones: '',
-    instruccionesEspeciales: '',
-    contactoEmergencia: {
-      nombre: '',
-      telefono: '',
-      relacion: ''
-    },
-    fechaCreacion: '',
-    usuario: 'Usuario Actual'
+    mascotasOpciones.value = [...mascotasDisponibles.value];
+  } catch (e) {
+    console.warn('Error al cargar mascotas', e);
   }
 }
 
-// Métodos para procesos de entrada/salida
-const procesarEntrada = (pension) => {
-  procesoPension.value = {
-    pension: pension,
-    tipo: 'entrada',
-    fechaProceso: new Date().toISOString().slice(0, 16),
-    observacionesProceso: '',
-    costoAdicional: 0,
-    motivoCostoAdicional: ''
+const cargarCatalogos = async () => {
+  try {
+    const [resT, resJ, resS] = await Promise.all([
+      pensionService.catalogos.getTiposPension(),
+      pensionService.catalogos.getTiposJaula(),
+      pensionService.catalogos.getServiciosAdicionales()
+    ]);
+    tiposPension.value = resT.data || [];
+    tiposJaula.value = resJ.data || [];
+    serviciosAdicionales.value = resS.data || [];
+  } catch (e) {
+    console.warn('Algunos catálogos no pudieron cargarse', e);
   }
-  mostrarModalProceso.value = true
 }
 
-const procesarSalida = (pension) => {
-  procesoPension.value = {
-    pension: pension,
-    tipo: 'salida',
-    fechaProceso: new Date().toISOString().slice(0, 16),
-    observacionesProceso: '',
-    costoAdicional: 0,
-    motivoCostoAdicional: ''
-  }
-  mostrarModalProceso.value = true
+// ACCIONES
+const abrirNuevaPension = () => {
+  pensionEditando.value = null;
+  Object.assign(pensionForm, {
+    id: null, mascota: null, id_mascota: null, id_propietario: null,
+    id_jaula: null, id_tipo_pension: null,
+    fecha_entrada_estimada: date.formatDate(Date.now(), 'YYYY-MM-DDTHH:mm'),
+    fecha_salida_estimada: date.formatDate(date.addToDate(Date.now(), { days: 1 }), 'YYYY-MM-DDTHH:mm'),
+    precio_dia: 150, descuento: 0, instrucciones_especiales: '', observaciones: '',
+    contacto_emergencia_nombre: '', contacto_emergencia_telefono: ''
+  });
+  modalPension.value = true;
 }
 
-const confirmarProceso = () => {
-  const pension = procesoPension.value.pension
-  const ahora = new Date().toISOString()
-  
-  if (procesoPension.value.tipo === 'entrada') {
-    pension.estado = 'activa'
-    pension.fechaEntradaReal = procesoPension.value.fechaProceso
-    pension.observacionesEntrada = procesoPension.value.observacionesProceso
-    
-    emit('entrada-procesada', {
-      pension: pension,
-      fechaProceso: procesoPension.value.fechaProceso,
-      observaciones: procesoPension.value.observacionesProceso
-    })
-  } else {
-    pension.estado = 'finalizada'
-    pension.fechaSalidaReal = procesoPension.value.fechaProceso
-    pension.observacionesSalida = procesoPension.value.observacionesProceso
-    
-    // Agregar costos adicionales si existen
-    if (procesoPension.value.costoAdicional > 0) {
-      pension.costosAdicionales = (pension.costosAdicionales || 0) + procesoPension.value.costoAdicional
-      pension.precioTotal = (pension.precioTotal || 0) + procesoPension.value.costoAdicional
-      pension.motivoCostosAdicionales = procesoPension.value.motivoCostoAdicional
-    }
-    
-    // Mover al historial
-    historialPensiones.value.push({ ...pension })
-    
-    emit('salida-procesada', {
-      pension: pension,
-      fechaProceso: procesoPension.value.fechaProceso,
-      observaciones: procesoPension.value.observacionesProceso,
-      costoAdicional: procesoPension.value.costoAdicional,
-      motivoCostoAdicional: procesoPension.value.motivoCostoAdicional
-    })
-  }
-  
-  pension.fechaModificacion = ahora
-  mostrarModalProceso.value = false
-  guardarDatos()
-}
-
-// Otros métodos
-const duplicarPension = (pension) => {
-  pensionTemporal.value = {
+const verDetalle = (pension) => {
+  pensionEditando.value = pension;
+  Object.assign(pensionForm, {
     ...pension,
-    id: '',
-    estado: 'reservada',
-    fechaEntrada: '',
-    fechaSalida: '',
-    fechaEntradaReal: '',
-    fechaSalidaReal: '',
-    observacionesEntrada: '',
-    observacionesSalida: '',
-    costosAdicionales: 0
+    mascota: mascotasDisponibles.value.find(m => m.id === pension.id_mascota),
+    fecha_entrada_estimada: date.formatDate(pension.fecha_entrada_estimada, 'YYYY-MM-DDTHH:mm'),
+    fecha_salida_estimada: pension.fecha_salida_estimada ? date.formatDate(pension.fecha_salida_estimada, 'YYYY-MM-DDTHH:mm') : ''
+  });
+  modalPension.value = true;
+}
+
+const guardarPension = async () => {
+  if (!pensionForm.mascota || !pensionForm.id_jaula) {
+    $q.notify({ type: 'warning', message: 'Mascota y Jaula son obligatorias' });
+    return;
   }
-  pensionEditando.value = null
-  mostrarModalPension.value = true
+  cargando.value = true;
+  try {
+    const payload = { ...pensionForm, id_mascota: pensionForm.mascota.id, id_propietario: pensionForm.mascota.id_propietario, precio_total: calcularTotalFinal.value, estado: pensionEditando.value ? pensionEditando.value.estado : 'RESERVADA' };
+    delete payload.mascota;
+    if (pensionEditando.value) await pensionService.pensiones.update(pensionEditando.value.id, payload);
+    else await pensionService.pensiones.create(payload);
+    modalPension.value = false;
+    await cargarDatos();
+    $q.notify({ type: 'positive', message: 'Guardado con éxito' });
+  } catch (e) {
+    $q.notify({ type: 'negative', message: 'Error al guardar' });
+  } finally {
+    cargando.value = false;
+  }
 }
 
-const cancelarPensionAction = (pension) => {
-  pension.estado = 'cancelada'
-  pension.fechaCancelacion = new Date().toISOString()
-  guardarDatos()
+const procesarCheckIn = (pension) => {
+  procesoTipo.value = 'IN'; procesoPension.value = pension;
+  procesoForm.fecha = date.formatDate(Date.now(), 'YYYY-MM-DDTHH:mm');
+  procesoForm.observaciones = ''; modalProceso.value = true;
 }
 
-const verDetalleCompleto = (pension) => {
-  // Aquí se abriría un modal con todos los detalles de la pensión
-  console.log('Ver detalle completo:', pension)
+const procesarCheckOut = (pension) => {
+  procesoTipo.value = 'OUT'; procesoPension.value = pension;
+  procesoForm.fecha = date.formatDate(Date.now(), 'YYYY-MM-DDTHH:mm');
+  procesoForm.observaciones = ''; procesoForm.costo_adicional = 0; modalProceso.value = true;
 }
 
-const generarFactura = (pension) => {
-  // Aquí se generaría la factura de la pensión
-  console.log('Generar factura:', pension)
+const confirmarProceso = async () => {
+  cargando.value = true;
+  try {
+    if (procesoTipo.value === 'IN') await pensionService.pensiones.checkIn(procesoPension.value.id, { fecha_real: procesoForm.fecha, observaciones: procesoForm.observaciones });
+    else await pensionService.pensiones.checkOut(procesoPension.value.id, { fecha_real: procesoForm.fecha, observaciones: procesoForm.observaciones, costo_adicional: procesoForm.costo_adicional });
+    modalProceso.value = false;
+    await cargarDatos();
+    $q.notify({ type: 'positive', message: 'Proceso completado' });
+  } catch (e) {
+    $q.notify({ type: 'negative', message: 'Error al procesar' });
+  } finally {
+    cargando.value = false;
+  }
 }
 
-const verCalendarioPensiones = () => {
-  mostrarModalCalendario.value = true
+const abrirModalJaula = () => { Object.assign(jaulaForm, { id: null, nombre: '', numero: '', capacidad: 1, id_tipo_jaula: null, estado: 'DISPONIBLE' }); modalJaula.value = true; }
+const editarJaula = (jaula) => { Object.assign(jaulaForm, jaula); modalJaula.value = true; }
+const guardarJaula = async () => {
+  try {
+    if (jaulaForm.id) await pensionService.jaulas.update(jaulaForm.id, jaulaForm);
+    else await pensionService.jaulas.create(jaulaForm);
+    modalJaula.value = false; await cargarDatos();
+  } catch (e) { $q.notify({ type: 'negative', message: 'Error al guardar jaula' }); }
 }
 
-const verHistorialPensiones = () => {
-  mostrarModalHistorial.value = true
+const abrirModalTurno = () => { Object.assign(turnoForm, { id: null, id_jaula: null, personal_nombre: '', fecha: fechaTurnos.value, hora_inicio: '', actividad: '', notas: '' }); modalTurno.value = true; }
+const editarTurno = (turno) => { Object.assign(turnoForm, turno); modalTurno.value = true; }
+const guardarTurno = async () => {
+  if (!turnoForm.id_jaula || !turnoForm.personal_nombre) { $q.notify({ type: 'warning', message: 'Datos incompletos' }); return; }
+  try {
+    if (turnoForm.id) await pensionService.turnos.update(turnoForm.id, turnoForm);
+    else await pensionService.turnos.create(turnoForm);
+    modalTurno.value = false; await cargarDatos();
+    $q.notify({ type: 'positive', message: 'Turno guardado' });
+  } catch (e) { $q.notify({ type: 'negative', message: 'Error al guardar turno' }); }
 }
+
+const completarTurno = async (turno) => {
+  try {
+    await pensionService.turnos.update(turno.id, { estado: 'COMPLETADO' });
+    await cargarDatos();
+    $q.notify({ type: 'positive', message: 'Actividad completada' });
+  } catch (e) { $q.notify({ type: 'negative', message: 'Error al completar' }); }
+}
+
+const eliminarTurno = async (id) => {
+  $q.dialog({ title: 'Confirmar', message: '¿Eliminar este turno?', cancel: true, persistent: true }).onOk(async () => {
+    try { await pensionService.turnos.delete(id); await cargarDatos(); } catch (e) { $q.notify({ type: 'negative', message: 'Error al eliminar' }); }
+  })
+}
+
+const descargarReporte = async (tipo) => {
+  try {
+    const res = await pensionService.reportes.descargarPdf(tipo);
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement('a');
+    link.href = url; link.setAttribute('download', `Reporte_Pension_${tipo}.pdf`);
+    document.body.appendChild(link); link.click();
+  } catch (e) { $q.notify({ type: 'negative', message: 'Error al generar PDF' }); }
+}
+
+const formatDate = (f) => f ? date.formatDate(f, 'DD/MM/YYYY HH:mm') : '---'
+const calcularDiasEntre = (f1, f2) => {
+  if (!f1 || !f2) return 1;
+  const diff = date.getDateDiff(f2, f1, 'days');
+  return diff <= 0 ? 1 : diff;
+}
+const getEstadoColor = (est) => { const map = { 'RESERVADA': 'blue', 'ACTIVA': 'positive', 'FINALIZADA': 'grey-7', 'CANCELADA': 'negative' }; return map[est] || 'primary'; }
+const getTurnoEstadoColor = (est) => { const map = { 'PENDIENTE': 'orange', 'EN_CURSO': 'blue', 'COMPLETADO': 'positive' }; return map[est] || 'grey'; }
 
 const filtrarMascotas = (val, update) => {
+  if (val === '') { update(() => { mascotasOpciones.value = mascotasDisponibles.value }); return; }
   update(() => {
-    const texto = val.toLowerCase()
-    mascotasDisponibles.value = mascotasDisponibles.value.filter(m => 
-      m.nombre.toLowerCase().includes(texto) ||
-      m.propietario.toLowerCase().includes(texto) ||
-      m.especie.toLowerCase().includes(texto)
-    )
-  })
+    const needle = val.toLowerCase();
+    mascotasOpciones.value = mascotasDisponibles.value.filter(v => v.nombre.toLowerCase().includes(needle) || v.propietario.toLowerCase().includes(needle));
+  });
 }
+const cerrarModalPension = () => { modalPension.value = false; }
 
-// Watchers
-watch(() => pensionTemporal.value.mascota, (nuevaMascota) => {
-  if (nuevaMascota) {
-    pensionTemporal.value.propietario = nuevaMascota.propietario
-  }
-})
-
-// Método de persistencia
-const guardarDatos = () => {
-  // Aquí se guardarían los datos en el backend
-  console.log('Guardando pensiones:', pensiones.value)
-  console.log('Guardando historial:', historialPensiones.value)
-}
-
-const cargarDatos = () => {
-  // Datos de ejemplo
-  pensiones.value = [
-    {
-      id: 'pension_001',
-      mascota: { id: 1, nombre: 'Max', especie: 'Perro Golden' },
-      propietario: 'Juan Pérez',
-      tipo: 'media',
-      estado: 'activa',
-      fechaEntrada: '2024-02-15T09:00:00.000Z',
-      fechaSalida: '2024-02-22T17:00:00.000Z',
-      fechaEntradaReal: '2024-02-15T09:15:00.000Z',
-      servicios: ['alimentacion_premium', 'paseos', 'monitoreo_vet'],
-      precioPorDia: 150,
-      precioTotal: 1050,
-      habitacion: { id: 'hab_001', nombre: 'Habitación A1 - Individual' },
-      observaciones: 'Perro muy sociable, le gusta jugar con otros perros.',
-      instruccionesEspeciales: 'Medicación para artritis cada 12 horas.',
-      contactoEmergencia: {
-        nombre: 'María Pérez',
-        telefono: '555-0201',
-        relacion: 'Esposa'
-      },
-      fechaCreacion: '2024-02-10T14:30:00.000Z',
-      usuario: 'Dr. Veterinario'
-    },
-    {
-      id: 'pension_002',
-      mascota: { id: 2, nombre: 'Luna', especie: 'Gata Persa' },
-      propietario: 'María García',
-      tipo: 'corta',
-      estado: 'reservada',
-      fechaEntrada: '2024-02-25T16:00:00.000Z',
-      fechaSalida: '2024-02-27T10:00:00.000Z',
-      servicios: ['alimentacion_premium', 'cuidado_especial'],
-      precioPorDia: 120,
-      precioTotal: 240,
-      habitacion: { id: 'hab_008', nombre: 'Área Gatos' },
-      observaciones: 'Gata muy tímida, necesita ambiente tranquilo.',
-      instruccionesEspeciales: 'Dieta especial para problemas renales.',
-      contactoEmergencia: {
-        nombre: 'Carlos García',
-        telefono: '555-0202',
-        relacion: 'Hermano'
-      },
-      fechaCreacion: '2024-02-20T10:15:00.000Z',
-      usuario: 'Asistente Ana'
-    },
-    {
-      id: 'pension_003',
-      mascota: { id: 3, nombre: 'Rocky', especie: 'Perro Bulldog' },
-      propietario: 'Carlos López',
-      tipo: 'fin_semana',
-      estado: 'activa',
-      fechaEntrada: '2024-02-16T18:00:00.000Z',
-      fechaSalida: '2024-02-18T12:00:00.000Z',
-      fechaEntradaReal: '2024-02-16T18:30:00.000Z',
-      servicios: ['alimentacion_premium', 'bano_aseo'],
-      precioPorDia: 100,
-      precioTotal: 200,
-      habitacion: { id: 'hab_003', nombre: 'Habitación B1 - Doble' },
-      observaciones: 'Problemas respiratorios leves, evitar ejercicio intenso.',
-      fechaCreacion: '2024-02-14T16:45:00.000Z',
-      usuario: 'Dr. Veterinario'
-    }
-  ]
-  
-  historialPensiones.value = [
-    {
-      id: 'pension_hist_001',
-      mascota: { id: 4, nombre: 'Mia', especie: 'Gata Siamesa' },
-      propietario: 'Ana Martínez',
-      tipo: 'corta',
-      estado: 'finalizada',
-      fechaEntrada: '2024-02-01T14:00:00.000Z',
-      fechaSalida: '2024-02-03T11:00:00.000Z',
-      fechaEntradaReal: '2024-02-01T14:15:00.000Z',
-      fechaSalidaReal: '2024-02-03T10:45:00.000Z',
-      servicios: ['alimentacion_premium'],
-      precioPorDia: 90,
-      precioTotal: 180,
-      costosAdicionales: 0,
-      fechaCreacion: '2024-01-28T09:30:00.000Z',
-      usuario: 'Asistente Ana'
-    }
-  ]
-}
-
-// Inicialización
-onMounted(() => {
-  cargarDatos()
-})
-
-// Exponer métodos públicos
-defineExpose({
-  cargarDatos,
-  guardarDatos,
-  procesarEntradaPension: (pensionId) => {
-    const pension = pensiones.value.find(p => p.id === pensionId)
-    if (pension) procesarEntrada(pension)
-  },
-  procesarSalidaPension: (pensionId) => {
-    const pension = pensiones.value.find(p => p.id === pensionId)
-    if (pension) procesarSalida(pension)
-  },
-  obtenerPensionPorId: (pensionId) => {
-    return pensiones.value.find(p => p.id === pensionId) || 
-           historialPensiones.value.find(p => p.id === pensionId)
-  },
-  obtenerPensionesPorMascota: (mascotaId) => {
-    return [...pensiones.value, ...historialPensiones.value].filter(p => p.mascota.id === mascotaId)
-  }
-})
+onMounted(() => { cargarDatos(); })
+watch(fechaTurnos, () => { pensionService.turnos.getByFecha(fechaTurnos.value).then(res => { turnos.value = res.data }); })
 </script>
 
 <style scoped>
-/* Estilos del header - mismo estilo que inventario */
-.bg-gradient-primary {
-  background: linear-gradient(145deg, #1976d2 0%, #2196f3 100%) !important;
-  color: white !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-  border-radius: 8px !important;
-}
-
-.q-card.bg-gradient-primary .q-card-section {
-  padding: 20px !important;
-}
-
-.text-h5 {
-  font-size: 1.5rem !important;
-  font-weight: 500 !important;
-  color: white !important;
-  margin: 0 !important;
-  line-height: 1.2 !important;
-}
-
-.text-subtitle2 {
-  color: rgba(255, 255, 255, 0.9) !important;
-  font-size: 0.875rem !important;
-  margin-top: 4px !important;
-}
-
-.q-btn.flat {
-  color: white !important;
-}
-
-.q-btn.flat:hover {
-  background: rgba(255, 255, 255, 0.2) !important;
-}
-
-.q-icon {
-  color: inherit !important;
-}
-
-/* Contenedor principal */
-.pensiones-container {
-  padding: 16px;
-  width: 100%;
-  min-height: 100vh;
-  background-color: #f5f5f5;
-}
-
-.q-mb-md {
-  margin-bottom: 16px !important;
-}
-
-/* Estilos para las tarjetas de pensiones */
-.pension-card {
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
-  background: white;
-  min-height: 280px;
-}
-
-.pension-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-/* Header de la pensión */
-.pension-header {
-  padding: 12px !important;
-  border-bottom: 1px solid #f0f0f0;
-  background: #fafafa;
-}
-
-.mascota-nombre {
-  font-size: 1.1rem;
-  font-weight: 600;
-  line-height: 1.2;
-  color: #2c3e50;
-  margin-bottom: 4px;
-}
-
-.propietario-info {
-  font-size: 0.75rem;
-  color: #64748b;
-}
-
-/* Contenedor de información */
-.info-container {
-  padding: 12px !important;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  flex-grow: 1;
-}
-
-/* Sección de fechas */
-.fechas-info {
-  display: flex;
-  gap: 12px;
-  background: #f8fafc;
-  padding: 10px;
-  border-radius: 6px;
-}
-
-.fecha-item {
-  flex: 1;
-}
-
-.fecha-label {
-  font-size: 0.7rem;
-  color: #64748b;
-  margin-bottom: 2px;
-  text-transform: uppercase;
-  font-weight: 500;
-}
-
-.fecha-valor {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #334155;
-}
-
-/* Sección de duración */
-.duracion-info {
-  background: #f1f5f9;
-  padding: 10px;
-  border-radius: 6px;
-}
-
-/* Sección de servicios */
-.servicios-container {
-  background: #f0fdf4;
-  padding: 10px;
-  border-radius: 6px;
-}
-
-/* Sección de precio */
-.precio-info {
-  background: #fef7f0;
-  padding: 10px;
-  border-radius: 6px;
-  border-left: 3px solid #f59e0b;
-}
-
-/* Notas importantes */
-.notas-importantes {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-  background: #eff6ff;
-  padding: 8px;
-  border-radius: 6px;
-  border-left: 2px solid #3b82f6;
-}
-
-/* Estados de borde según estado */
-.border-positive { border-color: var(--q-positive) !important; }
-.border-warning { border-color: var(--q-warning) !important; }
-.border-negative { border-color: var(--q-negative) !important; }
-.border-blue { border-color: var(--q-blue) !important; }
-.border-grey { border-color: var(--q-grey) !important; }
-
-/* Footer de acciones */
-.q-card-actions {
-  padding: 8px !important;
-  border-top: 1px solid #f0f0f0;
-  background: #fafafa;
-  margin-top: auto;
-}
-
-/* Estilos responsivos */
-@media (max-width: 768px) {
-  .fechas-info {
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .fecha-item {
-    flex: none;
-  }
-  
-  .pension-card {
-    min-height: auto;
-  }
-}
-
-/* Chips personalizados */
-.q-chip {
-  font-size: 0.7rem;
-  padding: 2px 8px;
-  font-weight: 500;
-}
-
-.q-chip.dense {
-  padding: 1px 6px;
-}
-
-/* Animaciones para los estados */
-.pension-card.border-positive {
-  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.2);
-}
-
-.pension-card.border-warning {
-  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.2);
-}
-
-.pension-card.border-blue {
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2);
-}
-
-/* Estilos para el modal */
-.q-dialog .q-card {
-  max-width: none;
-}
-
-/* Tabla de historial */
-.q-table {
-  background: white;
-  border-radius: 8px;
-}
-
-.q-table thead tr {
-  background: #f8fafc;
-}
-
-.q-table thead th {
-  font-weight: 600;
-  color: #374151;
-}
-
-/* Formulario en el modal */
-.q-input, .q-select {
-  margin-bottom: 8px;
-}
-
-.q-field--outlined .q-field__control {
-  border-radius: 6px;
-}
-
-/* Sección headers en el modal */
-.text-h6.text-primary {
-  color: #1976d2 !important;
-  font-weight: 600;
-  margin-bottom: 16px;
-  padding-bottom: 8px;
-  border-bottom: 2px solid #e3f2fd;
-}
-
-/* Grupos de opciones */
-.q-option-group {
-  background: #f8fafc;
-  padding: 12px;
-  border-radius: 6px;
-}
-
-.q-option-group .q-checkbox {
-  margin-right: 16px;
-  margin-bottom: 8px;
-}
-
-/* Estados especiales en las tarjetas */
-.pension-card.border-positive .mascota-nombre {
-  color: #059669;
-}
-
-.pension-card.border-warning .mascota-nombre {
-  color: #d97706;
-}
-
-.pension-card.border-blue .mascota-nombre {
-  color: #2563eb;
-}
-
-/* Indicadores visuales */
-.pension-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: currentColor;
-  border-radius: 8px 8px 0 0;
-  opacity: 0.7;
-}
-
-.pension-card.border-positive::before {
-  background: var(--q-positive);
-}
-
-.pension-card.border-warning::before {
-  background: var(--q-warning);
-}
-
-.pension-card.border-blue::before {
-  background: var(--q-blue);
-}
-
-.pension-card.border-grey::before {
-  background: var(--q-grey);
-}
-
-/* Espaciado mejorado */
-.row.q-col-gutter-md > * {
-  padding: 8px;
-}
-
-/* Texto truncado mejorado */
-.text-truncate {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Mejoras para dispositivos táctiles */
-@media (hover: none) {
-  .pension-card:hover {
-    transform: none;
-  }
-  
-  .pension-card:active {
-    transform: scale(0.98);
-  }
-}
-
-/* Estados de carga y vacío */
-.text-center.q-py-xl {
-  padding: 64px 16px;
-}
-
-.text-center.q-py-xl .q-icon {
-  opacity: 0.3;
-}
-
-/* Mejoras de accesibilidad */
-.q-btn:focus {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
-}
-
-.q-chip:focus {
-  outline: 2px solid #3b82f6;
-  outline-offset: 1px;
-}
-
-/* Animaciones suaves */
-* {
-  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
-}
-
-.pension-card {
-  position: relative;
-  overflow: hidden;
-}
-
-/* Efectos de hover mejorados */
-.q-btn-dropdown:hover {
-  background: rgba(0, 0, 0, 0.05) !important;
-}
-
-/* Consistencia en el diseño */
-.q-separator {
-  margin: 16px 0;
-}
-
-.q-card-section.q-pa-md {
-  padding: 20px !important;
-}
-
-/* Mejoras para formularios largos */
-.col-12:has(.text-h6.text-primary) {
-  margin-top: 24px;
-}
-
-.col-12:has(.text-h6.text-primary):first-child {
-  margin-top: 0;
-}
+.bg-gradient-primary { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); }
+.bg-gradient-info { background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%); }
+.kpi-card { border-radius: 16px; color: white; min-height: 110px; transition: transform 0.3s; }
+.kpi-card:hover { transform: translateY(-5px); }
+.glass-panel { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
+.kpi-primary { background: linear-gradient(45deg, #2196F3, #21CBF3); }
+.kpi-secondary { background: linear-gradient(45deg, #4CAF50, #8BC34A); }
+.kpi-warning { background: linear-gradient(45deg, #FF9800, #FFC107); }
+.kpi-danger { background: linear-gradient(45deg, #F44336, #E91E63); }
+.kpi-icon-wrapper { background: rgba(255, 255, 255, 0.2); padding: 10px; border-radius: 12px; }
+.pension-card { position: relative; overflow: hidden; border-left: 5px solid transparent; }
+.status-bar { position: absolute; top: 0; left: 0; height: 100%; width: 4px; }
+.info-row { display: flex; align-items: center; margin-bottom: 4px; }
+.jaula-card { border-radius: 16px; border: 2px solid transparent; }
+.jaula-card.disponible { border-color: rgba(76, 175, 80, 0.2); background-color: #f1f8e9; }
+.jaula-card.ocupada { border-color: rgba(244, 67, 54, 0.2); background-color: #ffebee; }
+.rounded-16 { border-radius: 16px; }
+.rounded-12 { border-radius: 12px; }
+.shadow-2 { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+.hover-shadow:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
+.transition-all { transition: all 0.3s ease; }
+.sticky-summary { position: sticky; top: 20px; }
 </style>

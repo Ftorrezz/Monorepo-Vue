@@ -43,6 +43,13 @@ export enum Tabla {
     UNIDAD_MEDIDA = 20,
     FORMA_FARMACEUTICA = 21,
     UBICACION = 22,
+
+    // Pensión
+    TIPO_PENSION = 23,
+    TIPO_JAULA = 24,
+    SERVICIO_ADICIONAL_PENSION = 25,
+    MOTIVO_CANCELACION_PENSION = 26,
+    ACTIVIDAD_TURNO = 27,
 }
 
 export const RelacionModuloTipo = {
