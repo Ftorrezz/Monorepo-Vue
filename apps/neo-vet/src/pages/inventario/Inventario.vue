@@ -665,17 +665,34 @@
                       </div>
                     </div>
 
-                    <q-select
-                      v-model="productoTemporal.proveedorId"
-                      :options="proveedoresOpciones"
-                      label="Proveedor Predeterminado"
-                      outlined
-                      dense
-                      emit-value
-                      map-options
-                    >
-                      <template v-slot:prepend><q-icon name="local_shipping" color="primary" /></template>
-                    </q-select>
+                    <div class="row q-col-gutter-sm">
+                      <div class="col-12 col-sm-6">
+                        <q-select
+                          v-model="productoTemporal.id_proveedor"
+                          :options="proveedoresOpciones"
+                          label="Proveedor Predeterminado"
+                          outlined
+                          dense
+                          emit-value
+                          map-options
+                        >
+                          <template v-slot:prepend><q-icon name="local_shipping" color="primary" /></template>
+                        </q-select>
+                      </div>
+                      <div class="col-12 col-sm-6">
+                        <q-select
+                          v-model="productoTemporal.id_fabricante"
+                          :options="fabricantesOpciones"
+                          label="Fabricante / Marca"
+                          outlined
+                          dense
+                          emit-value
+                          map-options
+                        >
+                          <template v-slot:prepend><q-icon name="factory" color="primary" /></template>
+                        </q-select>
+                      </div>
+                    </div>
 
                     <q-separator class="q-my-md" />
                     
@@ -1236,6 +1253,8 @@ const productoTemporal = ref({
   unidadEnvase: '',
   dosisPorAplicacion: 0,
   unidadDosis: '',
+  id_fabricante: null,
+  id_proveedor: null,
   fechaCreacion: '',
   activo: true
 })
@@ -1301,7 +1320,8 @@ const catalogos = ref({
   tipos: [],
   unidades: [],
   ubicaciones: [],
-  proveedores: []
+  proveedores: [],
+  fabricantes: []
 })
 
 // Opciones calculadas para selects
@@ -1313,6 +1333,13 @@ const proveedoresOpciones = computed(() =>
     label: p.nombre,
     value: p.id,
     contacto: p.contacto
+  }))
+)
+
+const fabricantesOpciones = computed(() => 
+  catalogos.value.fabricantes.map(f => ({
+    label: f.nombre,
+    value: f.id
   }))
 )
 
@@ -1670,7 +1697,8 @@ const editarProducto = (producto) => {
     tipoId: producto.tipoId || null,
     unidadMedidaId: producto.unidadMedidaId || null,
     ubicacionId: producto.ubicacionId || null,
-    proveedorId: producto.proveedorId || null
+    id_proveedor: producto.id_proveedor || null,
+    id_fabricante: producto.id_fabricante || null
   }
   
   // Resetear tab al abrir
@@ -2205,6 +2233,9 @@ const cargarDatos = async () => {
     catalogos.value.ubicaciones = resUbi.data || []
     
     catalogos.value.proveedores = resProv.data || []
+    
+    const resFab = await inventarioService.fabricantes.getActive()
+    catalogos.value.fabricantes = resFab.data || []
 
     proveedores.value = resProv.data || []
     categorias.value = resCat.data || []

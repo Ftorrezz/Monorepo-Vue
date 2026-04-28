@@ -1,4 +1,3 @@
-import { api } from 'boot/axios';
 import PeticionService from 'src/services/peticion.service';
 
 const peticionService = new PeticionService();
@@ -74,10 +73,15 @@ export interface Producto {
     descripcion?: string;
     codigo?: string;
     codigoBarras?: string;
-    categoriaId?: number;
-    tipoId?: number;
+    id_categoria?: number;
+    id_tipo?: number;
+    id_unidad_medida?: number;
+    id_fabricante?: number;
+    id_proveedor?: number;
     categoria?: Categoria;
     tipo?: TipoProducto;
+    fabricante?: any;
+    proveedor?: Proveedor;
     unidadMedidaId?: number;
     unidadMedida?: UnidadMedida;
     stockMinimo: number;
@@ -109,66 +113,45 @@ const mapPeticionResponse = (response: any) => {
 export default {
     // ==================== PRODUCTOS ====================
     productos: {
-        getAll() {
-            return api.get('/inventario/productos');
+        async getAll() {
+            const response = await peticionService.obtenerGet('inventario/productos');
+            return mapPeticionResponse(response);
         },
 
-        getTodos() {
-            return api.get('/productos/todos');
+        async getTodos() {
+            const response = await peticionService.obtenerGet('inventario/productos');
+            return mapPeticionResponse(response);
         },
 
-        getById(id: number) {
-            return api.get(`/productos/${id}`);
+        async getById(id: number) {
+            const response = await peticionService.obtenerGet(`inventario/productos/${id}`);
+            return mapPeticionResponse(response);
         },
 
-        create(producto: Partial<Producto>) {
-            return api.post('/productos', producto);
+        async create(producto: Partial<Producto>) {
+            return peticionService.crear('inventario/productos', producto);
         },
 
-        update(id: number, producto: Partial<Producto>) {
-            return api.put(`/productos/${id}`, producto);
+        async update(id: number, producto: Partial<Producto>) {
+            return peticionService.actualizar(`inventario/productos/${id}`, producto);
         },
 
-        delete(id: number) {
-            return api.delete(`/productos/${id}`);
+        async delete(id: number) {
+            return peticionService.eliminar('inventario/productos', { id });
         },
 
-        getByCategoria(categoriaId: number) {
-            return api.get('/inventario/productos/categoria/' + categoriaId);
+        async getByCategoria(categoriaId: number) {
+            const response = await peticionService.obtenerGet(`inventario/productos/categoria/${categoriaId}`);
+            return mapPeticionResponse(response);
         },
 
-        getByTipo(tipoId: number) {
-            return api.get('/productos/tipo', {
-                params: { tipoId }
-            });
+        async getBajoStock() {
+            const response = await peticionService.obtenerGet('inventario/lotes/bajo-stock');
+            return mapPeticionResponse(response);
         },
 
-        getBajoStock() {
-            return api.get('/inventario/lotes/bajo-stock');
-        },
-
-        getProximosVencer(dias: number = 30) {
-            return api.get('/productos/proximos-vencer', {
-                params: { dias }
-            });
-        },
-
-        search(query: string) {
-            return api.get('/productos/search', {
-                params: { q: query }
-            });
-        },
-
-        ajustarStock(id: number, ajuste: {
-            tipo: 'entrada' | 'salida' | 'ajuste_positivo' | 'ajuste_negativo';
-            cantidad: number;
-            motivo?: string;
-        }) {
-            return api.post(`/productos/${id}/ajustar-stock`, ajuste);
-        },
-
-        deducirInventario(payload: { id_presentacion: number, cantidad: number, origen: string, referencia_id: string }) {
-            return api.post('/inventario/deducir', payload);
+        async deducirInventario(payload: { id_presentacion: number, cantidad: number, origen: string, referencia_id: string }) {
+            return peticionService.crear('inventario/deducir', payload);
         }
     },
 
@@ -183,7 +166,6 @@ export default {
         },
 
         async getActive() {
-            // Filter locally if endpoint doesn't support it, or use a specific endpoint if exists
             const { data } = await this.getAll();
             return { data: data.filter((c: any) => c.activo === 'S' || c.activo === true) };
         },
@@ -213,7 +195,6 @@ export default {
     // ==================== TIPOS DE PRODUCTO ====================
     tipos: {
         async getAll() {
-            // Modulo 2 (Inventario), Tabla 19 (Tipo Producto)
             const response = await peticionService.obtenerGet('configuracionparametros', {
                 filtro: { id_modulo: 2, id_tabla: 19 }
             });
@@ -250,7 +231,6 @@ export default {
     // ==================== UNIDADES DE MEDIDA ====================
     unidades: {
         async getAll() {
-            // Modulo 2 (Inventario), Tabla 20 (Unidad Medida)
             const response = await peticionService.obtenerGet('configuracionparametros', {
                 filtro: { id_modulo: 2, id_tabla: 20 }
             });
@@ -292,7 +272,6 @@ export default {
     // ==================== UBICACIONES ====================
     ubicaciones: {
         async getAll() {
-            // Modulo 2 (Inventario), Tabla 22 (Ubicacion)
             const response = await peticionService.obtenerGet('configuracionparametros', {
                 filtro: { id_modulo: 2, id_tabla: 22 }
             });
@@ -330,9 +309,9 @@ export default {
         }
     },
 
+    // ==================== FORMAS FARMACÉUTICAS ====================
     formasFarmaceuticas: {
         async getAll() {
-            // Modulo 2 (Inventario), Tabla 21 (Forma Farmaceutica)
             const response = await peticionService.obtenerGet('configuracionparametros', {
                 filtro: { id_modulo: 2, id_tabla: 21 }
             });
@@ -394,65 +373,82 @@ export default {
             return peticionService.eliminar('proveedor', { id });
         },
 
-        search(query: string) {
-            return api.get('/proveedores/search', {
-                params: { q: query }
+        async search(query: string) {
+            const response = await peticionService.obtenerGet('inventario/productos/search', {
+                filtro: { q: query }
             });
+            return mapPeticionResponse(response);
+        }
+    },
+
+    // ==================== FABRICANTES ====================
+    fabricantes: {
+        async getAll() {
+            const response = await peticionService.obtenerGet('fabricante');
+            return mapPeticionResponse(response);
+        },
+
+        async getActive() {
+            const { data } = await this.getAll();
+            return { data: data.filter((f: any) => f.activo === 'S' || f.activo === true) };
+        },
+
+        getById(id: number) {
+            return peticionService.obtenerGet(`fabricante/${id}`);
+        },
+
+        create(fabricante: any) {
+            return peticionService.crear('fabricante', fabricante);
+        },
+
+        update(id: number, fabricante: any) {
+            return peticionService.actualizar(`fabricante/${id}`, fabricante);
+        },
+
+        delete(id: number) {
+            return peticionService.eliminar('fabricante', { id });
         }
     },
 
     // ==================== LOTES ====================
     lotes: {
-        getAll() {
-            return api.get('/lotes');
+        async getAll() {
+            const response = await peticionService.obtenerGet('inventario/lotes');
+            return mapPeticionResponse(response);
         },
 
-        getByProducto(productoId: number) {
-            return api.get(`/productos/${productoId}/lotes`);
+        async getByProducto(productoId: number) {
+            const response = await peticionService.obtenerGet(`inventario/productos/${productoId}/lotes`);
+            return mapPeticionResponse(response);
         },
 
-        getById(id: number) {
-            return api.get(`/lotes/${id}`);
+        async getById(id: number) {
+            const response = await peticionService.obtenerGet(`inventario/lotes/${id}`);
+            return mapPeticionResponse(response);
         },
 
-        create(lote: Partial<Lote>) {
-            return api.post('/lotes', lote);
+        async create(lote: Partial<Lote>) {
+            return peticionService.crear('inventario/lotes', lote);
         },
 
-        update(id: number, lote: Partial<Lote>) {
-            return api.put(`/lotes/${id}`, lote);
+        async update(id: number, lote: Partial<Lote>) {
+            return peticionService.actualizar(`inventario/lotes/${id}`, lote);
         },
 
-        delete(id: number) {
-            return api.delete(`/lotes/${id}`);
+        async delete(id: number) {
+            return peticionService.eliminar('inventario/lotes', { id });
         },
 
-        // Obtener lotes próximos a vencer
-        getProximosVencer(dias: number = 30) {
-            return api.get('/lotes/proximos-vencer', {
-                params: { dias }
-            });
-        },
-
-        // Obtener lotes con bajo stock
-        getBajoStock() {
-            return api.get('/lotes/bajo-stock');
-        },
-
-        // Ajustar cantidad de un lote específico
-        ajustarCantidad(id: number, ajuste: {
-            tipo: 'entrada' | 'salida' | 'ajuste';
-            cantidad: number;
-            motivo?: string;
-        }) {
-            return api.post(`/lotes/${id}/ajustar`, ajuste);
+        async getBajoStock() {
+            const response = await peticionService.obtenerGet('inventario/lotes/bajo-stock');
+            return mapPeticionResponse(response);
         }
     },
 
     // ==================== REPORTES ====================
     reportes: {
         descargarPdf(tipo: string) {
-            return api.get(`/inventario/reporte/${tipo}`, { responseType: 'blob' });
+            return peticionService.obtenerGet(`inventario/reporte/${tipo}`);
         }
     }
 };
