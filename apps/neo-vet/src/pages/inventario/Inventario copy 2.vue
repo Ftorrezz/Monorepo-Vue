@@ -2238,9 +2238,9 @@ const cargarDatos = async () => {
     catalogos.value.fabricantes = resFab.data || []
 
     proveedores.value = resProv.data || []
-    categorias.value = catalogos.value.categorias || []
-    tiposProducto.value = catalogos.value.tipos || []
-    unidadesMedida.value = catalogos.value.unidades || []
+    categorias.value = resCat.data || []
+    tiposProducto.value = resTip.data || []
+    unidadesMedida.value = resUni.data || []
     ubicaciones.value = resUbi.data || []
 
     // Si hay lotes por cargar para el producto seleccionado o general

@@ -1,258 +1,255 @@
 <template>
-  <q-card class="servicio-card">
-    <q-card-section class="bg-blue-1">
-      <div class="row items-center">
-        <q-icon name="medical_services" color="blue" size="md" class="q-mr-md"/>
-        <div class="col">
-          <div class="text-h6">Exploración Física</div>
-          <div class="text-caption text-grey-7">{{ configuracionCargada ? 'Configuración personalizada cargada' : 'Cargando configuración...' }}</div>
+  <q-card class="servicio-card overflow-hidden br-xl shadow-2">
+    <q-card-section class="bg-blue-1 q-pa-md">
+      <div class="row items-center no-wrap">
+        <div class="service-icon-wrap bg-blue-2 q-mr-md flex flex-center br-lg">
+          <q-icon name="medical_services" color="blue-8" size="24px" />
         </div>
-        <q-btn-dropdown 
-          flat round 
-          icon="more_vert"
-          :disable="modoLectura"
-        >
-          <q-list>
-            <q-item clickable @click="completarExploracion" :disable="!formularioValido">
-              <q-item-section avatar>
-                <q-icon name="check_circle" color="positive"/>
-              </q-item-section>
-              <q-item-section>Marcar como Completada</q-item-section>
-            </q-item>
-            <q-item clickable @click="abrirConfiguracion" v-if="!modoLectura">
-              <q-item-section avatar>
-                <q-icon name="settings" color="primary"/>
-              </q-item-section>
-              <q-item-section>Ir a Configuración</q-item-section>
-            </q-item>
-            <q-item clickable @click="recargarConfiguracion">
-              <q-item-section avatar>
-                <q-icon name="refresh" color="info"/>
-              </q-item-section>
-              <q-item-section>Recargar Configuración</q-item-section>
-            </q-item>
-            <q-item clickable @click="eliminarServicio">
-              <q-item-section avatar>
-                <q-icon name="delete" color="negative"/>
-              </q-item-section>
-              <q-item-section>Eliminar</q-item-section>
-            </q-item>
-          </q-list>
-        </q-btn-dropdown>
+        <div class="col">
+          <div class="text-subtitle1 text-weight-bolder text-blue-10">Exploración Física</div>
+          <div class="text-caption text-blue-7 opacity-80">{{ configuracionCargada ? 'Configuración personalizada' : 'Cargando configuración...' }}</div>
+        </div>
+        
+        <div class="row items-center q-gutter-xs">
+          <q-btn 
+            v-if="modoLectura && !modoEdicionManual"
+            flat dense round 
+            color="blue-7" 
+            icon="edit" 
+            size="sm" 
+            @click="modoEdicionManual = true"
+          >
+            <q-tooltip>Habilitar Edición</q-tooltip>
+          </q-btn>
+          
+          <q-btn 
+            v-if="modoEdicionManual"
+            flat dense round 
+            color="grey-7" 
+            icon="close" 
+            size="sm" 
+            @click="cancelarEdicion"
+          >
+            <q-tooltip>Cancelar Edición</q-tooltip>
+          </q-btn>
+
+          <q-btn-dropdown flat round icon="more_vert" color="blue-7" dropdown-icon="none">
+            <q-list dense style="min-width: 200px" class="br-md">
+              <q-item clickable @click="imprimirReporte('especial')">
+                <q-item-section avatar><q-icon name="print" color="blue" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Imprimir Reporte</q-item-section>
+              </q-item>
+
+              <q-item clickable @click="firmarDocumento('especial')">
+                <q-item-section avatar><q-icon name="history_edu" color="orange-8" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Visualizar y Firmar</q-item-section>
+              </q-item>
+
+              <q-separator v-if="plantillasServicio && plantillasServicio.length > 0" />
+              
+              <q-item v-if="plantillasServicio && plantillasServicio.length > 0" clickable>
+                <q-item-section avatar><q-icon name="description" color="secondary" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Imprimir Plantilla</q-item-section>
+                <q-item-section side><q-icon name="chevron_right" /></q-item-section>
+                
+                <q-menu anchor="top end" self="top start">
+                  <q-list style="min-width: 200px">
+                    <q-item v-for="p in plantillasServicio" :key="p.id_plantilla" clickable v-close-popup @click="imprimirReporte('plantilla', p.id_plantilla)">
+                      <q-item-section avatar><q-icon name="description" color="secondary" size="xs" /></q-item-section>
+                      <q-item-section>{{ p.nombre_plantilla }}</q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-item>
+
+              <q-separator />
+              <q-item clickable @click="recargarConfiguracion">
+                <q-item-section avatar><q-icon name="refresh" color="info" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Recargar Configuración</q-item-section>
+              </q-item>
+
+              <q-item clickable @click="completarExploracion" class="text-positive" :disable="!formularioValido">
+                <q-item-section avatar><q-icon name="check_circle" color="positive" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-bold">Finalizar Exploración</q-item-section>
+              </q-item>
+
+              <q-item clickable @click="eliminarServicio" class="text-negative">
+                <q-item-section avatar><q-icon name="delete" color="negative" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Eliminar Servicio</q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+        </div>
       </div>
     </q-card-section>
-    
-    <q-card-section v-if="!configuracionCargada" class="text-center">
-      <q-spinner-dots size="50px" color="primary"/>
-      <div class="text-body2 q-mt-md">Cargando configuración del sitio...</div>
+
+    <q-card-section v-if="!configuracionCargada" class="text-center q-pa-xl">
+      <q-spinner-dots size="40px" color="blue-7"/>
+      <div class="text-body2 q-mt-md text-grey-7">Cargando parámetros...</div>
     </q-card-section>
 
-    <q-card-section v-else-if="gruposActivos.length === 0" class="text-center">
-      <q-icon name="settings" size="50px" color="grey-5"/>
-      <div class="text-body1 q-mt-md">No hay grupos configurados</div>
-      <div class="text-caption text-grey-7 q-mb-md">Configure los grupos de exploración física para este sitio</div>
-      <q-btn 
-        color="primary" 
-        label="Configurar Ahora" 
-        @click="abrirConfiguracion"
-        v-if="!modoLectura"
-      />
+    <q-card-section v-else-if="gruposActivos.length === 0" class="text-center q-pa-xl">
+      <q-icon name="settings" size="48px" color="grey-4"/>
+      <div class="text-body1 q-mt-md text-grey-8">No hay grupos configurados</div>
+      <q-btn flat color="blue-7" label="Reintentar Carga" @click="recargarConfiguracion" class="q-mt-md" no-caps />
     </q-card-section>
     
-    <q-card-section v-else>
-      <!-- Grupos dinámicos -->
+    <q-card-section v-else class="q-pa-lg">
       <div 
         v-for="(grupo, grupoIndex) in gruposActivos" 
         :key="grupo.id"
-        class="grupo-exploracion"
+        class="grupo-exploracion q-mb-xl"
       >
-        <!-- Header del grupo -->
-        <div class="row items-center q-mb-md" v-if="grupoIndex > 0">
-          <q-separator class="col"/>
-        </div>
-        
-        <div class="text-subtitle2 q-mb-md">
-          <q-icon :name="grupo.icono" :color="grupo.color" class="q-mr-sm"/>
-          {{ grupo.nombre }}
-          <span v-if="grupo.descripcion" class="text-caption text-grey-7 q-ml-sm">
-            - {{ grupo.descripcion }}
-          </span>
+        <div class="row items-center q-mb-md">
+          <div class="service-icon-wrap bg-grey-1 q-mr-sm flex flex-center br-md" style="width: 32px; height: 32px">
+            <q-icon :name="grupo.icono" :color="grupo.color" size="18px"/>
+          </div>
+          <div class="text-subtitle1 text-weight-bold text-grey-9">
+            {{ grupo.nombre }}
+          </div>
+          <q-space />
+          <div v-if="grupo.descripcion" class="text-caption text-grey-6 italic">
+            {{ grupo.descripcion }}
+          </div>
         </div>
 
-        <!-- Preguntas del grupo -->
-        <div class="row q-col-gutter-md">
+        <div class="row q-col-gutter-lg">
           <div 
             v-for="pregunta in grupo.preguntas"
             :key="pregunta.id"
             :class="getColSize(pregunta)"
           >
-            <!-- Campo de texto simple -->
             <q-input
               v-if="pregunta.tipo === 'texto'"
               v-model="datosExploracion[pregunta.codigo]"
               :label="pregunta.etiqueta"
-              outlined
-              :readonly="modoLectura"
+              outlined dense
+              class="br-md"
+              :readonly="modoLectura && !modoEdicionManual"
               :placeholder="pregunta.placeholder"
-              :rules="pregunta.requerido ? [val => !!val || `${pregunta.etiqueta} es requerido`] : []"
             />
             
-            <!-- Campo de área de texto -->
             <q-input
               v-else-if="pregunta.tipo === 'textarea'"
               v-model="datosExploracion[pregunta.codigo]"
               :label="pregunta.etiqueta"
-              outlined
+              outlined dense
               type="textarea"
               rows="2"
-              :readonly="modoLectura"
+              class="br-md"
+              :readonly="modoLectura && !modoEdicionManual"
               :placeholder="pregunta.placeholder"
-              :rules="pregunta.requerido ? [val => !!val || `${pregunta.etiqueta} es requerido`] : []"
             />
             
-            <!-- Campo numérico -->
             <q-input
               v-else-if="pregunta.tipo === 'numerico'"
               v-model.number="datosExploracion[pregunta.codigo]"
               :label="pregunta.etiqueta"
-              outlined
+              outlined dense
               type="number"
               :step="pregunta.paso || '1'"
-              :min="pregunta.minimo"
-              :max="pregunta.maximo"
-              :readonly="modoLectura"
+              class="br-md"
+              :readonly="modoLectura && !modoEdicionManual"
               :suffix="pregunta.unidad"
               :placeholder="pregunta.placeholder"
-              :rules="pregunta.requerido ? [val => val !== null && val !== '' || `${pregunta.etiqueta} es requerido`] : []"
             />
             
-            <!-- Campo de selección -->
             <q-select
               v-else-if="pregunta.tipo === 'select'"
               v-model="datosExploracion[pregunta.codigo]"
               :options="pregunta.opciones"
               :label="pregunta.etiqueta"
-              outlined
-              option-label="label"
-              option-value="value"
-              :readonly="modoLectura"
-              :rules="pregunta.requerido ? [val => !!val || `${pregunta.etiqueta} es requerido`] : []"
+              outlined dense
+              class="br-md"
+              :readonly="modoLectura && !modoEdicionManual"
               clearable
             />
             
-            <!-- Campo de checkbox -->
             <q-checkbox
               v-else-if="pregunta.tipo === 'checkbox'"
               v-model="datosExploracion[pregunta.codigo]"
               :label="pregunta.etiqueta"
-              :disable="modoLectura"
+              :disable="modoLectura && !modoEdicionManual"
+              class="q-mt-xs"
             />
           </div>
         </div>
       </div>
 
-      <!-- Observaciones Generales (siempre presente) -->
-      <div class="row q-col-gutter-md q-mt-md">
-        <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">Observaciones Generales</div>
-        </div>
-        
-        <div class="col-12">
-          <q-input
-            v-model="datosExploracion.observaciones_generales"
-            label="Observaciones y Hallazgos Adicionales"
-            outlined
-            type="textarea"
-            rows="3"
-            :readonly="modoLectura"
-            placeholder="Registre cualquier observación adicional no contemplada en los campos anteriores..."
-          />
-        </div>
+      <div class="col-12 q-mt-lg">
+        <q-separator class="q-my-md opacity-20"/>
+        <div class="text-subtitle2 text-grey-8 q-mb-md">Observaciones Generales</div>
+        <q-input
+          v-model="datosExploracion.observaciones_generales"
+          label="Hallazgos Adicionales"
+          outlined
+          type="textarea"
+          rows="3"
+          class="br-md bg-blue-0"
+          :readonly="modoLectura && !modoEdicionManual"
+          placeholder="..."
+        />
       </div>
     </q-card-section>
     
-    <!-- Estado y acciones -->
-    <q-card-section v-if="!modoLectura && configuracionCargada && gruposActivos.length > 0" class="bg-grey-1">
+    <q-card-section v-if="(!modoLectura || modoEdicionManual) && configuracionCargada && gruposActivos.length > 0" class="bg-grey-1 q-pa-md border-top">
       <div class="row items-center justify-between">
-        <div class="col-auto">
+        <div class="col">
           <div class="row items-center q-gutter-sm">
             <q-chip 
-              :color="formularioValido ? 'green' : 'orange'"
+              dense
+              :color="formularioValido ? 'positive' : 'warning'"
               text-color="white"
-              :icon="formularioValido ? 'check_circle' : 'warning'"
-              :label="formularioValido ? 'Exploración Completa' : 'Exploración Incompleta'"
-            />
-            <div class="text-caption text-grey-7">
-              {{ camposCompletados }}/{{ totalCamposRequeridos }} campos requeridos completados
-            </div>
+              class="br-md"
+              :icon="formularioValido ? 'check' : 'priority_high'"
+            >
+              {{ camposCompletados }}/{{ totalCamposRequeridos }} campos requeridos
+            </q-chip>
           </div>
         </div>
         
-        <div class="col-auto">
-          <q-btn
-            color="positive"
-            icon="check"
-            label="Completar Exploración"
-            @click="completarExploracion"
-            :disable="!formularioValido"
+        <div class="row items-center q-gutter-sm">
+          <q-btn v-if="modoEdicionManual" flat color="grey-7" label="Descartar" @click="cancelarEdicion" no-caps />
+          <q-btn 
+            color="blue-8" 
+            icon="check" 
+            :label="modoEdicionManual ? 'Guardar Cambios' : 'Completar Exploración'" 
+            @click="completarExploracion" 
+            :disable="!formularioValido || procesando"
+            :loading="procesando"
+            class="br-lg q-px-lg shadow-1"
+            no-caps
           />
         </div>
       </div>
     </q-card-section>
-
-    <!-- Modal de progreso -->
-    <q-dialog v-model="mostrandoProgreso" persistent>
-      <q-card>
-        <q-card-section class="text-center">
-          <q-spinner-dots size="50px" color="primary"/>
-          <div class="text-h6 q-mt-md">{{ mensajeProgreso }}</div>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
   </q-card>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useQuasar } from 'quasar'
 
-// Props
 const props = defineProps({
-  atencionId: {
-    type: String,
-    required: true
-  },
-  servicioId: {
-    type: String,
-    required: true
-  },
-  modoLectura: {
-    type: Boolean,
-    default: false
-  },
-  sitioId: {
-    type: String,
-    required: true
-  }
+  atencionId: { type: String, required: true },
+  servicioId: { type: String, required: true },
+  modoLectura: { type: Boolean, default: false },
+  sitioId: { type: String, required: true },
+  datosIniciales: { type: Object, default: () => ({}) },
+  plantillasServicio: { type: Array, default: () => [] }
 })
 
-// Emits
-const emit = defineEmits(['servicio-actualizado', 'servicio-completado', 'servicio-eliminado'])
-
-// Router
+const emit = defineEmits(['servicio-actualizado', 'servicio-completado', 'servicio-eliminado', 'imprimir-servicio', 'firmar-servicio'])
 const router = useRouter()
+const $q = useQuasar()
 
-// Estados principales
 const configuracionCargada = ref(false)
 const configuracionSitio = ref([])
-const datosExploracion = ref({
-  observaciones_generales: ''
-})
-const mostrandoProgreso = ref(false)
-const mensajeProgreso = ref('')
+const datosExploracion = ref({ observaciones_generales: '' })
+const procesando = ref(false)
+const modoEdicionManual = ref(false)
 
-// Computed properties
 const gruposActivos = computed(() => {
   return configuracionSitio.value
     .filter(grupo => grupo.activo)
@@ -271,14 +268,8 @@ const camposCompletados = computed(() => {
   let completados = 0
   gruposActivos.value.forEach(grupo => {
     grupo.preguntas.forEach(pregunta => {
-      if (pregunta.requerido && datosExploracion.value[pregunta.codigo]) {
-        const valor = datosExploracion.value[pregunta.codigo]
-        if (pregunta.tipo === 'checkbox') {
-          // Para checkboxes, cualquier valor booleano es válido
-          completados++
-        } else if (valor !== null && valor !== '' && valor !== undefined) {
-          completados++
-        }
+      if (pregunta.requerido && (datosExploracion.value[pregunta.codigo] !== null && datosExploracion.value[pregunta.codigo] !== '' && datosExploracion.value[pregunta.codigo] !== undefined)) {
+        completados++
       }
     })
   })
@@ -286,197 +277,61 @@ const camposCompletados = computed(() => {
 })
 
 const formularioValido = computed(() => {
-  if (totalCamposRequeridos.value === 0) {
-    // Si no hay campos requeridos, el formulario es válido si tiene al menos una observación
-    return datosExploracion.value.observaciones_generales?.trim() || 
-           Object.keys(datosExploracion.value).some(key => {
-             const valor = datosExploracion.value[key]
-             return key !== 'observaciones_generales' && valor !== null && valor !== '' && valor !== undefined
-           })
-  }
-  
-  // Si hay campos requeridos, deben estar todos completados
+  if (totalCamposRequeridos.value === 0) return true
   return camposCompletados.value === totalCamposRequeridos.value
 })
 
-// Métodos
 const getColSize = (pregunta) => {
-  // Determina el tamaño de columna basado en el tipo de pregunta
   switch (pregunta.tipo) {
-    case 'textarea':
-      return 'col-12'
-    case 'checkbox':
-      return 'col-12 col-md-6'
-    case 'numerico':
-      return 'col-6 col-md-3'
-    default:
-      return 'col-12 col-md-6'
+    case 'textarea': return 'col-12'
+    case 'checkbox': return 'col-12 col-md-6'
+    case 'numerico': return 'col-6 col-md-3'
+    default: return 'col-12 col-md-6'
   }
 }
 
 const cargarConfiguracionSitio = async () => {
   try {
-    mostrandoProgreso.value = true
-    mensajeProgreso.value = 'Cargando configuración del sitio...'
+    procesando.value = true
+    // Simulación - En un entorno real se llamaría al servicio factory o API
+    await new Promise(resolve => setTimeout(resolve, 500))
     
-    // Simulación de llamada API
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // Aquí harías la llamada real al API
-    // const response = await api.get(`/sitios/${props.sitioId}/configuracion-exploracion`)
-    // configuracionSitio.value = response.data
-    
-    // Datos de ejemplo para demostración
     configuracionSitio.value = [
       {
-        id: '1',
-        nombre: 'Signos Vitales',
-        descripcion: 'Mediciones básicas de signos vitales',
-        icono: 'thermostat',
-        color: 'red',
-        orden: 1,
-        activo: true,
+        id: '1', nombre: 'Signos Vitales', descripcion: 'Mediciones básicas', icono: 'thermostat', color: 'red', orden: 1, activo: true,
         preguntas: [
-          {
-            id: '1-1',
-            etiqueta: 'Temperatura (°C)',
-            codigo: 'temperatura',
-            tipo: 'numerico',
-            requerido: true,
-            minimo: 35,
-            maximo: 42,
-            unidad: '°C',
-            paso: '0.1',
-            orden: 1,
-            placeholder: 'Ej: 38.5'
-          },
-          {
-            id: '1-2',
-            etiqueta: 'Frecuencia Cardíaca (lpm)',
-            codigo: 'frecuencia_cardiaca',
-            tipo: 'numerico',
-            requerido: true,
-            minimo: 40,
-            maximo: 250,
-            unidad: 'lpm',
-            orden: 2
-          },
-          {
-            id: '1-3',
-            etiqueta: 'Peso (kg)',
-            codigo: 'peso',
-            tipo: 'numerico',
-            requerido: false,
-            minimo: 0,
-            unidad: 'kg',
-            paso: '0.1',
-            orden: 3
-          }
+          { id: '1-1', etiqueta: 'Temperatura', codigo: 'temperatura', tipo: 'numerico', requerido: true, unidad: '°C', paso: '0.1', orden: 1 },
+          { id: '1-2', etiqueta: 'Frecuencia Cardíaca', codigo: 'frecuencia_cardiaca', tipo: 'numerico', requerido: true, unidad: 'lpm', orden: 2 },
+          { id: '1-3', etiqueta: 'Frecuencia Respiratoria', codigo: 'frecuencia_respiratoria', tipo: 'numerico', requerido: true, unidad: 'rpm', orden: 3 },
+          { id: '1-4', etiqueta: 'Peso', codigo: 'peso', tipo: 'numerico', unidad: 'kg', paso: '0.1', orden: 4 }
         ]
       },
       {
-        id: '2',
-        nombre: 'Sistema Respiratorio',
-        descripcion: 'Evaluación del sistema respiratorio',
-        icono: 'air',
-        color: 'blue',
-        orden: 2,
-        activo: true,
+        id: '2', nombre: 'Estado General', descripcion: 'Evaluación macroxcópica', icono: 'visibility', color: 'blue', orden: 2, activo: true,
         preguntas: [
-          {
-            id: '2-1',
-            etiqueta: 'Patrón Respiratorio',
-            codigo: 'patron_respiratorio',
-            tipo: 'select',
-            requerido: true,
-            orden: 1,
-            opciones: [
-              { label: 'Normal', value: 'normal' },
-              { label: 'Taquipnea', value: 'taquipnea' },
-              { label: 'Bradipnea', value: 'bradipnea' },
-              { label: 'Disnea', value: 'disnea' }
-            ]
-          },
-          {
-            id: '2-2',
-            etiqueta: 'Auscultación Pulmonar',
-            codigo: 'auscultacion_pulmonar',
-            tipo: 'textarea',
-            requerido: false,
-            orden: 2,
-            placeholder: 'Describa los hallazgos en la auscultación pulmonar...'
-          },
-          {
-            id: '2-3',
-            etiqueta: 'Presencia de tos',
-            codigo: 'tos',
-            tipo: 'checkbox',
-            requerido: false,
-            orden: 3
-          }
-        ]
-      },
-      {
-        id: '3',
-        nombre: 'Sistema Cardiovascular',
-        descripcion: 'Evaluación cardiovascular',
-        icono: 'favorite',
-        color: 'red',
-        orden: 3,
-        activo: true,
-        preguntas: [
-          {
-            id: '3-1',
-            etiqueta: 'Auscultación Cardíaca',
-            codigo: 'auscultacion_cardiaca',
-            tipo: 'textarea',
-            requerido: false,
-            orden: 1,
-            placeholder: 'R1 R2, soplos, arritmias...'
-          },
-          {
-            id: '3-2',
-            etiqueta: 'Color de Mucosas',
-            codigo: 'mucosas',
-            tipo: 'select',
-            requerido: true,
-            orden: 2,
-            opciones: [
-              { label: 'Rosadas', value: 'rosadas' },
-              { label: 'Pálidas', value: 'palidas' },
-              { label: 'Cianóticas', value: 'cianoticas' },
-              { label: 'Ictéricas', value: 'ictericas' }
-            ]
-          }
+          { id: '2-1', etiqueta: 'Condición Corporal', codigo: 'condicion_corporal', tipo: 'select', requerido: true, opciones: ['1/5', '2/5', '3/5', '4/5', '5/5'], orden: 1 },
+          { id: '2-2', etiqueta: 'Mucosas', codigo: 'mucosas', tipo: 'select', requerido: true, opciones: ['Rosadas', 'Pálidas', 'Cianóticas', 'Ictéricas'], orden: 2 },
+          { id: '2-3', etiqueta: 'TLLC', codigo: 'tllc', tipo: 'numerico', unidad: 'seg', orden: 3 }
         ]
       }
     ]
     
-    // Inicializar los datos de exploración con los campos de la configuración
     inicializarDatosExploracion()
-    
     configuracionCargada.value = true
-    
   } catch (error) {
     console.error('Error al cargar configuración:', error)
-    // Mostrar notificación de error
   } finally {
-    mostrandoProgreso.value = false
+    procesando.value = false
   }
 }
 
 const inicializarDatosExploracion = () => {
-  // Inicializar todos los campos según la configuración
   configuracionSitio.value.forEach(grupo => {
-    if (grupo.activo) {
-      grupo.preguntas.forEach(pregunta => {
-        if (datosExploracion.value[pregunta.codigo] === undefined) {
-          datosExploracion.value[pregunta.codigo] = 
-            pregunta.tipo === 'checkbox' ? false : 
-            pregunta.tipo === 'numerico' ? null : ''
-        }
-      })
-    }
+    grupo.preguntas.forEach(pregunta => {
+      if (datosExploracion.value[pregunta.codigo] === undefined) {
+        datosExploracion.value[pregunta.codigo] = pregunta.tipo === 'checkbox' ? false : pregunta.tipo === 'numerico' ? null : ''
+      }
+    })
   })
 }
 
@@ -485,87 +340,68 @@ const recargarConfiguracion = async () => {
   await cargarConfiguracionSitio()
 }
 
-const abrirConfiguracion = () => {
-  // Navegar a la página de configuración
-  router.push({
-    name: 'ConfiguracionExploracion',
-    params: { sitioId: props.sitioId }
-  })
-}
-
-const guardarDatos = async () => {
-  if (!configuracionCargada.value) return
-  
-  try {
-    // Aquí harías la llamada al API para guardar
-    // await api.put(`/atenciones/${props.atencionId}/servicios/${props.servicioId}`, {
-    //   datos: datosExploracion.value
-    // })
-    
-    emit('servicio-actualizado', props.servicioId, datosExploracion.value)
-  } catch (error) {
-    console.error('Error al guardar datos:', error)
+const cancelarEdicion = () => {
+  if (props.datosIniciales) {
+    datosExploracion.value = JSON.parse(JSON.stringify(props.datosIniciales))
   }
+  modoEdicionManual.value = false
 }
 
 const completarExploracion = async () => {
   if (!formularioValido.value) return
-  
+  procesando.value = true
   try {
-    mostrandoProgreso.value = true
-    mensajeProgreso.value = 'Completando exploración física...'
-    
-    const datosCompletos = {
-      ...datosExploracion.value,
-      fechaExploracion: new Date().toISOString(),
-      realizadaPor: 'Dr. Usuario Actual', // Obtener del contexto de usuario
-      configuracionUsada: configuracionSitio.value.map(g => ({
-        id: g.id,
-        nombre: g.nombre,
-        version: g.version || '1.0'
-      }))
-    }
-    
-    // Simular guardado
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    emit('servicio-completado', props.servicioId, datosCompletos)
-    
-  } catch (error) {
-    console.error('Error al completar exploración:', error)
+    emit('servicio-completado', props.servicioId, { ...datosExploracion.value })
+    modoEdicionManual.value = false
   } finally {
-    mostrandoProgreso.value = false
+    procesando.value = false
   }
+}
+
+const imprimirReporte = (tipo, idPlantilla = null) => {
+  emit('imprimir-servicio', props.servicioId, { ...datosExploracion.value }, tipo, idPlantilla)
+}
+
+const firmarDocumento = (tipo, idPlantilla = null) => {
+  emit('firmar-servicio', props.servicioId, { ...datosExploracion.value }, tipo, idPlantilla)
 }
 
 const eliminarServicio = () => {
-  if (confirm('¿Está seguro de eliminar este servicio de exploración física?')) {
+  $q.dialog({
+    title: 'Eliminar Servicio',
+    message: '¿Estás seguro de eliminar esta Exploración Física?',
+    cancel: true,
+    persistent: true
+  }).onOk(() => {
     emit('servicio-eliminado', props.servicioId)
-  }
+  })
 }
 
-// Lifecycle
 onMounted(async () => {
+  if (props.datosIniciales && Object.keys(props.datosIniciales).length > 0) {
+    datosExploracion.value = { ...datosExploracion.value, ...JSON.parse(JSON.stringify(props.datosIniciales)) }
+  }
   await cargarConfiguracionSitio()
 })
 
-// Watchers
 watch(datosExploracion, () => {
-  if (configuracionCargada.value && !modoLectura) {
-    guardarDatos()
+  if (configuracionCargada.value && !props.modoLectura) {
+    emit('servicio-actualizado', props.servicioId, datosExploracion.value)
   }
 }, { deep: true })
-
-// Watch para cambios en sitioId (si el componente se reutiliza)
-watch(() => props.sitioId, async () => {
-  if (props.sitioId) {
-    configuracionCargada.value = false
-    await cargarConfiguracionSitio()
-  }
-})
 </script>
 
 <style scoped>
+.service-icon-wrap {
+  width: 44px;
+  height: 44px;
+}
+.br-xl { border-radius: 20px; }
+.br-lg { border-radius: 12px; }
+.br-md { border-radius: 8px; }
+.border-top { border-top: 1px solid rgba(0,0,0,0.05); }
+.bg-blue-0 { background: rgba(225, 245, 254, 0.3); }
+
 .servicio-card {
   margin-bottom: 16px;
 }

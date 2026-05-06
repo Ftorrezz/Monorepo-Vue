@@ -1,7 +1,7 @@
 <template>
   <q-layout view="hHh Lpr lFf">
     <!-- HEADER MODERNO CON GRADIENTE -->
-    <q-header flat class="lab-header shadow-2">
+    <q-header flat class="lab-header">
       <q-toolbar class="header-toolbar">
         <!-- Botón de regreso -->
         <q-btn
@@ -20,12 +20,28 @@
             src="/static/VetDimioMenuMini.png"
             alt="Logo"
             class="logo-header cursor-pointer"
-            @click="router.push('/')"
+            @click="$router.push('/')"
           />
           <div class="brand-info">
             <div class="brand-name">VetDimio</div>
             <div class="brand-subtitle">Laboratorio Clínico</div>
           </div>
+        </div>
+
+        <q-separator vertical inset class="q-mx-md header-separator" />
+
+        <!-- Navegación con pills modernos -->
+        <div class="nav-pills">
+          <button
+            v-for="tab in navTabs"
+            :key="tab.name"
+            class="nav-pill"
+            :class="{ 'nav-pill--active': tabActiva === tab.name }"
+            @click="navegarA(tab)"
+          >
+            <q-icon :name="tab.icon" size="18px" />
+            <span class="nav-pill__label">{{ tab.label }}</span>
+          </button>
         </div>
 
         <q-space />
@@ -36,7 +52,7 @@
             round
             flat
             icon="notifications_none"
-            class="action-icon-btn text-white"
+            class="action-icon-btn"
           >
             <q-badge color="red" floating rounded>3</q-badge>
             <q-tooltip>Notificaciones</q-tooltip>
@@ -50,31 +66,6 @@
     <!-- PAGE CONTAINER -->
     <q-page-container>
       <q-page class="lab-page-container">
-        
-        <!-- NAVEGACIÓN MODERNA DESACOPLADA (PILL STYLE) -->
-        <div class="nav-container q-mb-lg flex justify-center">
-          <div class="modern-nav-bar shadow-5">
-            <q-tabs
-              v-model="tabActiva"
-              no-caps
-              inline-label
-              active-color="primary"
-              indicator-color="transparent"
-              class="modern-tabs"
-              @update:model-value="alCambiarTab"
-            >
-              <q-tab
-                v-for="tab in navTabs"
-                :key="tab.name"
-                :name="tab.name"
-                :icon="tab.icon"
-                :label="tab.label"
-                class="modern-tab br-pill"
-              />
-            </q-tabs>
-          </div>
-        </div>
-
         <router-view></router-view>
       </q-page>
     </q-page-container>
@@ -118,12 +109,12 @@ const volverAModulos = () => {
   router.push('/');
 };
 
-const alCambiarTab = (nombre: string) => {
-  const tab = navTabs.find(t => t.name === nombre);
-  if (tab) {
-    router.push(tab.path);
-  }
+const navegarA = (tab: { name: string; path: string }) => {
+  tabActiva.value = tab.name;
+  router.push(tab.path);
 };
+
+
 </script>
 
 <style lang="scss" scoped>
@@ -135,70 +126,19 @@ const alCambiarTab = (nombre: string) => {
 }
 
 .header-toolbar {
-  min-height: 64px;
-}
-
-// ── MODERN DETACHED NAV ──
-.nav-container {
-  position: sticky;
-  top: 10px;
-  z-index: 100;
-  margin-top: -12px; // Sube un poco para solaparse visualmente si se desea o dejar espacio
-}
-
-.modern-nav-bar {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 40px;
-  padding: 4px;
-}
-
-.modern-tabs {
-  height: 52px;
-}
-
-:deep(.modern-tab) {
-  min-height: 44px;
-  margin: 0 4px;
-  border-radius: 30px !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  color: #5c6b89;
-
-  .q-tab__content {
-    padding: 0 16px;
-  }
-
-  .q-tab__icon {
-    font-size: 20px;
-    margin-right: 8px;
-  }
-
-  .q-tab__label {
-    font-weight: 600;
-    font-size: 13px;
-  }
-
-  &:hover {
-    background: rgba(68, 138, 255, 0.08);
-    color: #283593;
-  }
-
-  &.q-tab--active {
-    background: white;
-    color: #1a237e;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    
-    .q-tab__icon {
-      color: #1a237e;
-    }
-  }
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
 }
 
 .back-btn {
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.85);
+  transition: all 0.2s ease;
+
   &:hover {
+    color: white;
     background: rgba(255, 255, 255, 0.15);
   }
 }
@@ -206,50 +146,154 @@ const alCambiarTab = (nombre: string) => {
 .brand-section {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .logo-header {
-  height: 38px;
+  height: 36px;
+  width: auto;
+  border-radius: 8px;
+  transition: transform 0.2s ease;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+
+  &:hover {
+    transform: scale(1.08);
+  }
 }
 
 .brand-info {
+  display: flex;
+  flex-direction: column;
+
   .brand-name {
-    font-size: 16px;
-    font-weight: 800;
+    font-size: 15px;
+    font-weight: 700;
     color: white;
-    line-height: 1;
+    letter-spacing: 0.5px;
+    line-height: 1.1;
   }
+
   .brand-subtitle {
     font-size: 11px;
+    font-weight: 500;
     color: rgba(255, 255, 255, 0.7);
+    letter-spacing: 0.3px;
   }
 }
 
+.header-separator {
+  opacity: 0.3;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+// ── NAVIGATION PILLS ──
+.nav-pills {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.nav-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  background: transparent;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  position: relative;
+  outline: none;
+
+  &:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  &--active {
+    color: #1a237e;
+    background: white;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+    &:hover {
+      color: #1a237e;
+      background: white;
+    }
+  }
+
+  &__label {
+    letter-spacing: 0.2px;
+  }
+}
+
+// ── HEADER ACTIONS ──
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-right: 4px;
+}
+
+.action-icon-btn {
+  color: rgba(255, 255, 255, 0.8);
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.12);
+  }
+}
+
+// ── PAGE CONTAINER ──
 .lab-page-container {
-  background: #f4f7fa;
-  padding: 24px;
-  min-height: calc(100vh - 64px);
+  background: #f0f4f8;
+  padding: 20px 24px;
+  min-height: calc(100vh - 56px);
+}
+
+// ── RESPONSIVE ──
+@media (max-width: 1200px) {
+  .nav-pill__label {
+    display: none;
+  }
+
+  .nav-pill {
+    padding: 8px 10px;
+  }
 }
 
 @media (max-width: 768px) {
-  .brand-info, .header-actions {
+  .brand-info {
     display: none;
   }
-  
+
+  .header-separator {
+    display: none;
+  }
+
+  .nav-pills {
+    overflow-x: auto;
+    max-width: 50vw;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
   .lab-page-container {
     padding: 12px;
-  }
-  
-  .modern-nav-bar {
-    width: 95%;
-    border-radius: 12px;
-    overflow-x: auto;
-  }
-  
-  .modern-tabs {
-    align-items: center;
   }
 }
 </style>

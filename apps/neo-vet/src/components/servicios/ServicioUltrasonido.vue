@@ -1,47 +1,93 @@
 <template>
-  <q-card class="servicio-card">
-    <q-card-section class="bg-purple-1">
-      <div class="row items-center">
-        <q-icon name="monitor_heart" color="purple" size="md" class="q-mr-md"/>
-        <div class="col">
-          <div class="text-h6">Ultrasonido</div>
-          <div class="text-caption text-grey-7">Estudio ecográfico diagnóstico</div>
+  <q-card class="servicio-card overflow-hidden br-xl shadow-2">
+    <q-card-section class="bg-purple-1 q-pa-md">
+      <div class="row items-center no-wrap">
+        <div class="service-icon-wrap bg-purple-2 q-mr-md flex flex-center br-lg">
+          <q-icon name="monitor_heart" color="purple-8" size="24px" />
         </div>
-        <q-btn-dropdown 
-          flat round 
-          icon="more_vert"
-          :disable="modoLectura"
-        >
-          <q-list>
-            <q-item clickable @click="completarUltrasonido" :disable="!formularioValido">
-              <q-item-section avatar>
-                <q-icon name="check_circle" color="positive"/>
-              </q-item-section>
-              <q-item-section>Marcar como Completado</q-item-section>
-            </q-item>
-            <q-item clickable @click="eliminarServicio">
-              <q-item-section avatar>
-                <q-icon name="delete" color="negative"/>
-              </q-item-section>
-              <q-item-section>Eliminar</q-item-section>
-            </q-item>
-          </q-list>
-        </q-btn-dropdown>
+        <div class="col">
+          <div class="text-subtitle1 text-weight-bolder text-purple-10">Ultrasonido</div>
+          <div class="text-caption text-purple-7 opacity-80">Estudio ecográfico diagnóstico</div>
+        </div>
+        
+        <div class="row items-center q-gutter-xs">
+          <q-btn 
+            v-if="modoLectura && !modoEdicionManual"
+            flat dense round 
+            color="purple-7" 
+            icon="edit" 
+            size="sm" 
+            @click="modoEdicionManual = true"
+          >
+            <q-tooltip>Habilitar Edición</q-tooltip>
+          </q-btn>
+          
+          <q-btn 
+            v-if="modoEdicionManual"
+            flat dense round 
+            color="grey-7" 
+            icon="close" 
+            size="sm" 
+            @click="cancelarEdicion"
+          >
+            <q-tooltip>Cancelar Edición</q-tooltip>
+          </q-btn>
+
+          <q-btn-dropdown flat round icon="more_vert" color="purple-7" dropdown-icon="none">
+            <q-list dense style="min-width: 200px" class="br-md">
+              <q-item clickable @click="imprimirReporte('especial')">
+                <q-item-section avatar><q-icon name="print" color="purple" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Imprimir Reporte</q-item-section>
+              </q-item>
+
+              <q-item clickable @click="firmarDocumento('especial')">
+                <q-item-section avatar><q-icon name="history_edu" color="orange-8" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Visualizar y Firmar</q-item-section>
+              </q-item>
+
+              <q-separator v-if="plantillasServicio && plantillasServicio.length > 0" />
+              
+              <q-item v-if="plantillasServicio && plantillasServicio.length > 0" clickable>
+                <q-item-section avatar><q-icon name="description" color="secondary" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Imprimir Plantilla</q-item-section>
+                <q-item-section side><q-icon name="chevron_right" /></q-item-section>
+                
+                <q-menu anchor="top end" self="top start">
+                  <q-list style="min-width: 200px">
+                    <q-item v-for="p in plantillasServicio" :key="p.id_plantilla" clickable v-close-popup @click="imprimirReporte('plantilla', p.id_plantilla)">
+                      <q-item-section avatar><q-icon name="description" color="secondary" size="xs" /></q-item-section>
+                      <q-item-section>{{ p.nombre_plantilla }}</q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-item>
+
+              <q-separator />
+              <q-item clickable @click="completarUltrasonido" class="text-positive" :disable="!formularioValido">
+                <q-item-section avatar><q-icon name="check_circle" color="positive" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-bold">Finalizar Estudio</q-item-section>
+              </q-item>
+
+              <q-item clickable @click="eliminarServicio" class="text-negative">
+                <q-item-section avatar><q-icon name="delete" color="negative" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Eliminar Servicio</q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+        </div>
       </div>
     </q-card-section>
-    
-    <q-card-section>
-      <div class="row q-col-gutter-md">
-        <!-- Información básica del estudio -->
+
+    <q-card-section class="q-pa-lg">
+      <div class="row q-col-gutter-lg">
         <div class="col-12 col-md-6">
           <q-select
             v-model="datosUltrasonido.tipoEstudio"
             :options="tiposEstudio"
             label="Tipo de Estudio *"
-            outlined
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura"
+            outlined dense
+            class="br-md"
+            :readonly="modoLectura && !modoEdicionManual"
           />
         </div>
         
@@ -50,11 +96,11 @@
             v-model="datosUltrasonido.regionEstudiada"
             :options="regionesAnatomicas"
             label="Región Estudiada *"
-            outlined
+            outlined dense
             multiple
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura"
+            use-chips
+            class="br-md"
+            :readonly="modoLectura && !modoEdicionManual"
           />
         </div>
         
@@ -63,10 +109,9 @@
             v-model="datosUltrasonido.indicacion"
             :options="indicacionesClinicas"
             label="Indicación Clínica *"
-            outlined
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura"
+            outlined dense
+            class="br-md"
+            :readonly="modoLectura && !modoEdicionManual"
           />
         </div>
         
@@ -75,10 +120,9 @@
             v-model="datosUltrasonido.tipoTransductor"
             :options="tiposTransductor"
             label="Tipo de Transductor"
-            outlined
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura"
+            outlined dense
+            class="br-md"
+            :readonly="modoLectura && !modoEdicionManual"
           />
         </div>
         
@@ -86,682 +130,243 @@
           <q-input
             v-model="datosUltrasonido.frecuencia"
             label="Frecuencia (MHz)"
-            outlined
+            outlined dense
             type="number"
             step="0.5"
-            min="2"
-            max="15"
-            :readonly="modoLectura"
+            class="br-md"
+            :readonly="modoLectura && !modoEdicionManual"
           />
         </div>
-        
-        <!-- Preparación del paciente -->
+
         <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">Preparación del Paciente</div>
+          <div class="row items-center q-gutter-sm q-mb-md">
+            <q-checkbox v-model="datosUltrasonido.ayuno" label="Ayuno" :disable="modoLectura && !modoEdicionManual" />
+            <q-checkbox v-model="datosUltrasonido.sedacion" label="Sedación" :disable="modoLectura && !modoEdicionManual" />
+            <q-checkbox v-model="datosUltrasonido.rasurado" label="Rasurado" :disable="modoLectura && !modoEdicionManual" />
+          </div>
         </div>
-        
-        <div class="col-12 col-md-4">
-          <q-checkbox
-            v-model="datosUltrasonido.ayuno"
-            label="Ayuno previo"
-            :disable="modoLectura"
-          />
-        </div>
-        
-        <div class="col-12 col-md-4">
-          <q-checkbox
-            v-model="datosUltrasonido.sedacion"
-            label="Sedación utilizada"
-            :disable="modoLectura"
-          />
-        </div>
-        
-        <div class="col-12 col-md-4">
-          <q-checkbox
-            v-model="datosUltrasonido.rasurado"
-            label="Rasurado de la zona"
-            :disable="modoLectura"
-          />
-        </div>
-        
-        <div v-if="datosUltrasonido.sedacion" class="col-12 col-md-6">
-          <q-input
-            v-model="datosUltrasonido.tipoSedacion"
-            label="Tipo de Sedación"
-            outlined
-            placeholder="Ej: Acepromazina, Diazepam..."
-            :readonly="modoLectura"
-          />
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <q-input
-            v-model="datosUltrasonido.posicionPaciente"
-            label="Posición del Paciente"
-            outlined
-            placeholder="Decúbito dorsal, lateral..."
-            :readonly="modoLectura"
-          />
-        </div>
-        
-        <!-- Hallazgos por sistema -->
-        <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">Hallazgos por Sistema</div>
-        </div>
-        
-        <!-- Sistema Cardiovascular -->
-        <div v-if="incluirSistema('cardiovascular')" class="col-12">
-          <q-expansion-item
-            icon="favorite"
-            label="Sistema Cardiovascular"
-            :default-opened="false"
-          >
-            <div class="q-pa-md">
-              <div class="row q-col-gutter-md">
-                <div class="col-12 col-md-6">
-                  <q-input
-                    v-model="datosUltrasonido.cardiovascular.frecuenciaCardiaca"
-                    label="Frecuencia Cardíaca (lpm)"
-                    outlined
-                    type="number"
-                    :readonly="modoLectura"
-                  />
-                </div>
-                <div class="col-12 col-md-6">
-                  <q-select
-                    v-model="datosUltrasonido.cardiovascular.ritmo"
-                    :options="ritmosCardiacos"
-                    label="Ritmo Cardíaco"
-                    outlined
-                    :readonly="modoLectura"
-                  />
-                </div>
-                <div class="col-12">
-                  <q-input
-                    v-model="datosUltrasonido.cardiovascular.hallazgos"
-                    label="Hallazgos Cardiovasculares"
-                    outlined
-                    type="textarea"
-                    rows="2"
-                    :readonly="modoLectura"
-                  />
-                </div>
-              </div>
-            </div>
-          </q-expansion-item>
-        </div>
-        
-        <!-- Sistema Hepatobiliar -->
-        <div v-if="incluirSistema('hepatobiliar')" class="col-12">
-          <q-expansion-item
-            icon="water_drop"
-            label="Sistema Hepatobiliar"
-            :default-opened="false"
-          >
-            <div class="q-pa-md">
-              <div class="row q-col-gutter-md">
-                <div class="col-12 col-md-6">
-                  <q-input
-                    v-model="datosUltrasonido.hepatobiliar.tamanoHigado"
-                    label="Tamaño del Hígado"
-                    outlined
-                    placeholder="Normal, aumentado, disminuido"
-                    :readonly="modoLectura"
-                  />
-                </div>
-                <div class="col-12 col-md-6">
-                  <q-input
-                    v-model="datosUltrasonido.hepatobiliar.ecogenicidad"
-                    label="Ecogenicidad Hepática"
-                    outlined
-                    placeholder="Normal, aumentada, disminuida"
-                    :readonly="modoLectura"
-                  />
-                </div>
-                <div class="col-12">
-                  <q-input
-                    v-model="datosUltrasonido.hepatobiliar.hallazgos"
-                    label="Hallazgos Hepatobiliares"
-                    outlined
-                    type="textarea"
-                    rows="2"
-                    :readonly="modoLectura"
-                  />
-                </div>
-              </div>
-            </div>
-          </q-expansion-item>
-        </div>
-        
-        <!-- Sistema Urogenital -->
-        <div v-if="incluirSistema('urogenital')" class="col-12">
-          <q-expansion-item
-            icon="healing"
-            label="Sistema Urogenital"
-            :default-opened="false"
-          >
-            <div class="q-pa-md">
-              <div class="row q-col-gutter-md">
-                <div class="col-12 col-md-4">
-                  <q-input
-                    v-model="datosUltrasonido.urogenital.tamanoRinones"
-                    label="Tamaño Renal"
-                    outlined
-                    placeholder="Derecho/Izquierdo"
-                    :readonly="modoLectura"
-                  />
-                </div>
-                <div class="col-12 col-md-4">
-                  <q-input
-                    v-model="datosUltrasonido.urogenital.ecogenicidadRenal"
-                    label="Ecogenicidad Renal"
-                    outlined
-                    :readonly="modoLectura"
-                  />
-                </div>
-                <div class="col-12 col-md-4">
-                  <q-input
-                    v-model="datosUltrasonido.urogenital.vejiga"
-                    label="Vejiga Urinaria"
-                    outlined
-                    placeholder="Repleta, vacía, alteraciones"
-                    :readonly="modoLectura"
-                  />
-                </div>
-                <div class="col-12">
-                  <q-input
-                    v-model="datosUltrasonido.urogenital.hallazgos"
-                    label="Hallazgos Urogenitales"
-                    outlined
-                    type="textarea"
-                    rows="2"
-                    :readonly="modoLectura"
-                  />
-                </div>
-              </div>
-            </div>
-          </q-expansion-item>
-        </div>
-        
-        <!-- Sistema Reproductivo -->
-        <div v-if="incluirSistema('reproductivo')" class="col-12">
-          <q-expansion-item
-            icon="pets"
-            label="Sistema Reproductivo"
-            :default-opened="false"
-          >
-            <div class="q-pa-md">
-              <div class="row q-col-gutter-md">
-                <div class="col-12 col-md-6">
-                  <q-input
-                    v-model="datosUltrasonido.reproductivo.utero"
-                    label="Útero"
-                    outlined
-                    placeholder="Tamaño, contenido, paredes"
-                    :readonly="modoLectura"
-                  />
-                </div>
-                <div class="col-12 col-md-6">
-                  <q-input
-                    v-model="datosUltrasonido.reproductivo.ovarios"
-                    label="Ovarios"
-                    outlined
-                    placeholder="Tamaño, folículos, cuerpos lúteos"
-                    :readonly="modoLectura"
-                  />
-                </div>
-                <div class="col-12 col-md-6">
-                  <q-checkbox
-                    v-model="datosUltrasonido.reproductivo.gestacion"
-                    label="¿Gestación detectada?"
-                    :disable="modoLectura"
-                  />
-                </div>
-                <div v-if="datosUltrasonido.reproductivo.gestacion" class="col-12 col-md-6">
-                  <q-input
-                    v-model="datosUltrasonido.reproductivo.numeroFetos"
-                    label="Número de Fetos"
-                    outlined
-                    type="number"
-                    min="1"
-                    :readonly="modoLectura"
-                  />
-                </div>
-                <div class="col-12">
-                  <q-input
-                    v-model="datosUltrasonido.reproductivo.hallazgos"
-                    label="Hallazgos Reproductivos"
-                    outlined
-                    type="textarea"
-                    rows="2"
-                    :readonly="modoLectura"
-                  />
-                </div>
-              </div>
-            </div>
-          </q-expansion-item>
-        </div>
-        
-        <!-- Hallazgos generales y conclusiones -->
-        <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">Conclusiones del Estudio</div>
-        </div>
-        
-        <div class="col-12">
-          <q-select
-            v-model="datosUltrasonido.calidadEstudio"
-            :options="calidadEstudioOpciones"
-            label="Calidad del Estudio"
-            outlined
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura"
-          />
-        </div>
-        
+
         <div class="col-12">
           <q-input
             v-model="datosUltrasonido.hallazgosGenerales"
-            label="Hallazgos Generales *"
+            label="Hallazgos Ecográficos *"
             outlined
             type="textarea"
-            rows="3"
-            placeholder="Resumen de los principales hallazgos del estudio..."
-            :readonly="modoLectura"
+            rows="4"
+            class="br-md"
+            placeholder="Describa los hallazgos observados en los diferentes órganos..."
+            :readonly="modoLectura && !modoEdicionManual"
           />
         </div>
-        
+
         <div class="col-12">
           <q-input
             v-model="datosUltrasonido.diagnostico"
-            label="Diagnóstico Ecográfico *"
+            label="Interpretación y Diagnóstico *"
             outlined
             type="textarea"
             rows="3"
-            placeholder="Diagnóstico basado en los hallazgos ecográficos..."
-            :readonly="modoLectura"
+            class="br-md bg-purple-0"
+            placeholder="Conclusión diagnóstica..."
+            :readonly="modoLectura && !modoEdicionManual"
           />
         </div>
-        
+
         <div class="col-12">
-          <q-input
-            v-model="datosUltrasonido.recomendaciones"
-            label="Recomendaciones"
-            outlined
-            type="textarea"
-            rows="2"
-            placeholder="Estudios complementarios, seguimiento, tratamiento..."
-            :readonly="modoLectura"
-          />
-        </div>
-        
-        <!-- Mediciones realizadas -->
-        <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">Mediciones Realizadas</div>
-        </div>
-        
-        <div class="col-12" v-if="!modoLectura">
-          <q-btn
-            flat
-            icon="add"
-            label="Agregar Medición"
-            color="primary"
-            @click="agregarMedicion"
-          />
-        </div>
-        
-        <div v-if="datosUltrasonido.mediciones.length > 0" class="col-12">
-          <q-list bordered>
-            <q-item 
-              v-for="(medicion, index) in datosUltrasonido.mediciones" 
-              :key="index"
-              class="q-pa-md"
-            >
-              <q-item-section>
-                <div class="row q-col-gutter-md">
-                  <div class="col-12 col-md-4">
-                    <q-input
-                      v-model="medicion.estructura"
-                      label="Estructura"
-                      outlined
-                      dense
-                      placeholder="Ej: Riñón derecho"
-                      :readonly="modoLectura"
-                    />
-                  </div>
-                  <div class="col-12 col-md-4">
-                    <q-input
-                      v-model="medicion.dimension"
-                      label="Dimensión"
-                      outlined
-                      dense
-                      placeholder="Ej: Longitud, ancho..."
-                      :readonly="modoLectura"
-                    />
-                  </div>
-                  <div class="col-12 col-md-3">
-                    <q-input
-                      v-model="medicion.valor"
-                      label="Valor (cm)"
-                      outlined
-                      dense
-                      type="number"
-                      step="0.1"
-                      :readonly="modoLectura"
-                    />
-                  </div>
-                  <div class="col-12 col-md-1" v-if="!modoLectura">
-                    <q-btn
-                      flat
-                      round
-                      icon="delete"
-                      color="negative"
-                      @click="eliminarMedicion(index)"
-                    />
-                  </div>
-                </div>
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </div>
-        
-        <!-- Archivos de imagen -->
-        <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">Archivos de Imagen</div>
-        </div>
-        
-        <div class="col-12" v-if="!modoLectura">
           <q-file
-            v-model="datosUltrasonido.archivos"
-            label="Subir Imágenes Ecográficas"
-            outlined
+            v-if="!modoLectura || modoEdicionManual"
+            v-model="nuevosArchivos"
+            label="Adjuntar Imágenes Ecográficas"
+            outlined dense
             multiple
-            accept=".jpg,.jpeg,.png,.dicom,.dcm"
-            max-file-size="10485760"
-            @rejected="onRejected"
+            use-chips
+            class="br-md"
+            accept=".jpg,.jpeg,.png,.pdf"
+            @update:model-value="alAdjuntarArchivos"
           >
-            <template v-slot:prepend>
-              <q-icon name="cloud_upload" />
-            </template>
+            <template v-slot:prepend><q-icon name="cloud_upload" color="primary" /></template>
           </q-file>
-        </div>
-        
-        <div v-if="datosUltrasonido.archivos && datosUltrasonido.archivos.length > 0" class="col-12">
-          <q-list bordered>
-            <q-item v-for="(archivo, index) in datosUltrasonido.archivos" :key="index">
-              <q-item-section avatar>
-                <q-icon name="image" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label>{{ archivo.name }}</q-item-label>
-                <q-item-label caption>{{ formatFileSize(archivo.size) }}</q-item-label>
-              </q-item-section>
-              <q-item-section side v-if="!modoLectura">
-                <q-btn flat round icon="delete" color="negative" @click="removeFile(index)" />
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </div>
-        
-        <!-- Observaciones generales -->
-        <div class="col-12">
-          <q-input
-            v-model="datosUltrasonido.observaciones"
-            label="Observaciones Generales"
-            outlined
-            type="textarea"
-            rows="2"
-            :readonly="modoLectura"
-          />
+
+          <div v-if="datosUltrasonido.archivos_adjuntos?.length > 0" class="q-mt-md">
+             <div class="row q-col-gutter-sm">
+                <div v-for="(file, idx) in datosUltrasonido.archivos_adjuntos" :key="idx" class="col-auto">
+                   <q-chip
+                    removable
+                    @remove="eliminarAdjunto(idx)"
+                    color="grey-2"
+                    text-color="grey-9"
+                    class="br-md"
+                    icon="image"
+                    :disable="modoLectura && !modoEdicionManual"
+                   >
+                     {{ file.name || 'Archivo ' + (idx+1) }}
+                   </q-chip>
+                </div>
+             </div>
+          </div>
         </div>
       </div>
     </q-card-section>
-    
-    <!-- Estado y acciones -->
-    <q-card-section v-if="!modoLectura" class="bg-grey-1">
-      <div class="row items-center justify-between">
-        <div class="col-auto">
-          <q-chip 
-            :color="formularioValido ? 'green' : 'orange'"
-            text-color="white"
-            :icon="formularioValido ? 'check_circle' : 'warning'"
-            :label="formularioValido ? 'Datos Completos' : 'Datos Incompletos'"
-          />
-        </div>
-        
-        <div class="col-auto">
-          <q-btn
-            color="positive"
-            icon="check"
-            label="Completar Estudio"
-            @click="completarUltrasonido"
-            :disable="!formularioValido"
-          />
-        </div>
+
+    <q-card-section v-if="!modoLectura || modoEdicionManual" class="bg-grey-1 q-pa-md border-top">
+      <div class="row items-center justify-end q-gutter-sm">
+        <q-btn v-if="modoEdicionManual" flat color="grey-7" label="Descartar" @click="cancelarEdicion" no-caps />
+        <q-btn 
+          color="purple-8" 
+          icon="check" 
+          :label="modoEdicionManual ? 'Guardar Cambios' : 'Completar y Guardar'" 
+          @click="completarUltrasonido" 
+          :disable="!formularioValido || procesando"
+          :loading="procesando"
+          class="br-lg q-px-lg shadow-1"
+          no-caps
+        />
       </div>
     </q-card-section>
   </q-card>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 
-// Props
 const props = defineProps({
-  atencionId: {
-    type: String,
-    required: true
-  },
-  servicioId: {
-    type: String,
-    required: true
-  },
-  modoLectura: {
-    type: Boolean,
-    default: false
-  }
+  atencionId: { type: String, required: true },
+  servicioId: { type: String, required: true },
+  modoLectura: { type: Boolean, default: false },
+  datosIniciales: { type: Object, default: () => ({}) },
+  plantillasServicio: { type: Array, default: () => [] }
 })
 
-// Emits
-const emit = defineEmits(['servicio-actualizado', 'servicio-completado', 'servicio-eliminado'])
-
-// Quasar
+const emit = defineEmits(['servicio-actualizado', 'servicio-completado', 'servicio-eliminado', 'imprimir-servicio', 'firmar-servicio'])
 const $q = useQuasar()
 
-// Estados del formulario
+const procesando = ref(false)
+const modoEdicionManual = ref(false)
+const nuevosArchivos = ref(null)
+
 const datosUltrasonido = ref({
-  tipoEstudio: '',
+  tipoEstudio: null,
   regionEstudiada: [],
-  indicacion: '',
+  indicacion: null,
   tipoTransductor: 'convexo',
   frecuencia: '',
   ayuno: false,
   sedacion: false,
   rasurado: true,
-  tipoSedacion: '',
-  posicionPaciente: '',
-  cardiovascular: {
-    frecuenciaCardiaca: '',
-    ritmo: 'regular',
-    hallazgos: ''
-  },
-  hepatobiliar: {
-    tamanoHigado: '',
-    ecogenicidad: '',
-    hallazgos: ''
-  },
-  urogenital: {
-    tamanoRinones: '',
-    ecogenicidadRenal: '',
-    vejiga: '',
-    hallazgos: ''
-  },
-  reproductivo: {
-    utero: '',
-    ovarios: '',
-    gestacion: false,
-    numeroFetos: '',
-    hallazgos: ''
-  },
-  calidadEstudio: 'buena',
   hallazgosGenerales: '',
   diagnostico: '',
-  recomendaciones: '',
-  mediciones: [],
-  archivos: [],
-  observaciones: ''
+  archivos_adjuntos: []
 })
 
-// Opciones para selects
 const tiposEstudio = [
-  { label: 'Ultrasonido Abdominal', value: 'abdominal' },
+  { label: 'Abdominal', value: 'abdominal' },
   { label: 'Ecocardiografía', value: 'ecocardiografia' },
-  { label: 'Ultrasonido Reproductivo', value: 'reproductivo' },
-  { label: 'Ultrasonido Torácico', value: 'toracico' },
-  { label: 'Ultrasonido Musculoesquelético', value: 'musculoesqueletico' },
-  { label: 'Ultrasonido Oftálmico', value: 'oftalmico' },
-  { label: 'Estudio Doppler', value: 'doppler' },
+  { label: 'Tórax', value: 'torax' },
+  { label: 'Reproductivo', value: 'reproductivo' },
   { label: 'Otro', value: 'otro' }
 ]
 
 const regionesAnatomicas = [
-  { label: 'Hígado', value: 'higado' },
-  { label: 'Vesícula Biliar', value: 'vesicula' },
+  { label: 'Hígado/Vesícula', value: 'higado_vesicula' },
+  { label: 'Bazo', value: 'bazo' },
   { label: 'Riñones', value: 'rinones' },
   { label: 'Vejiga', value: 'vejiga' },
-  { label: 'Bazo', value: 'bazo' },
-  { label: 'Páncreas', value: 'pancreas' },
-  { label: 'Estómago', value: 'estomago' },
-  { label: 'Intestinos', value: 'intestinos' },
-  { label: 'Útero', value: 'utero' },
-  { label: 'Ovarios', value: 'ovarios' },
-  { label: 'Próstata', value: 'prostata' },
-  { label: 'Corazón', value: 'corazon' },
-  { label: 'Pulmones', value: 'pulmones' },
-  { label: 'Glándulas Adrenales', value: 'adrenales' }
+  { label: 'Tracto GI', value: 'gi' },
+  { label: 'Corazón', value: 'corazon' }
 ]
 
 const indicacionesClinicas = [
-  { label: 'Dolor Abdominal', value: 'dolor_abdominal' },
-  { label: 'Vómitos/Diarrea', value: 'vomitos_diarrea' },
-  { label: 'Distensión Abdominal', value: 'distension' },
-  { label: 'Sospecha de Gestación', value: 'gestacion' },
-  { label: 'Control Reproductivo', value: 'control_reproductivo' },
-  { label: 'Soplo Cardíaco', value: 'soplo_cardiaco' },
-  { label: 'Disnea', value: 'disnea' },
-  { label: 'Alteraciones Urinarias', value: 'alteraciones_urinarias' },
-  { label: 'Masa Palpable', value: 'masa_palpable' },
-  { label: 'Seguimiento Post-quirúrgico', value: 'seguimiento' },
-  { label: 'Otra', value: 'otra' }
+  { label: 'Dolor abdominal', value: 'dolor' },
+  { label: 'Vómitos/Diarrea', value: 'gi' },
+  { label: 'Gestación', value: 'gestacion' },
+  { label: 'Masa palpable', value: 'masa' }
 ]
 
 const tiposTransductor = [
-  { label: 'Convexo (2-5 MHz)', value: 'convexo' },
-  { label: 'Lineal (5-10 MHz)', value: 'lineal' },
-  { label: 'Sectorial (2-8 MHz)', value: 'sectorial' },
-  { label: 'Microconvexo (5-8 MHz)', value: 'microconvexo' },
-  { label: 'Endocavitario', value: 'endocavitario' }
+  { label: 'Convexo', value: 'convexo' },
+  { label: 'Lineal', value: 'lineal' },
+  { label: 'Microconvexo', value: 'microconvexo' }
 ]
 
-const ritmosCardiacos = [
-  'Regular', 'Irregular', 'Bradicardia', 'Taquicardia', 'Arritmia'
-]
-
-const calidadEstudioOpciones = [
-  { label: 'Excelente', value: 'excelente' },
-  { label: 'Buena', value: 'buena' },
-  { label: 'Regular', value: 'regular' },
-  { label: 'Limitada', value: 'limitada' }
-]
-
-// Computed
 const formularioValido = computed(() => {
   return datosUltrasonido.value.tipoEstudio && 
          datosUltrasonido.value.regionEstudiada.length > 0 && 
-         datosUltrasonido.value.indicacion &&
-         datosUltrasonido.value.hallazgosGenerales &&
+         datosUltrasonido.value.hallazgosGenerales && 
          datosUltrasonido.value.diagnostico
 })
 
-const incluirSistema = (sistema) => {
-  const regiones = datosUltrasonido.value.regionEstudiada
-  
-  switch(sistema) {
-    case 'cardiovascular':
-      return regiones.includes('corazon') || datosUltrasonido.value.tipoEstudio === 'ecocardiografia'
-    case 'hepatobiliar':
-      return regiones.includes('higado') || regiones.includes('vesicula')
-    case 'urogenital':
-      return regiones.includes('rinones') || regiones.includes('vejiga')
-    case 'reproductivo':
-      return regiones.includes('utero') || regiones.includes('ovarios') || regiones.includes('prostata') || 
-             datosUltrasonido.value.tipoEstudio === 'reproductivo'
-    default:
-      return false
-  }
-}
-
-// Métodos
-const formatFileSize = (bytes) => {
-  if (bytes === 0) return '0 Bytes'
-  const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
-}
-
-const removeFile = (index) => {
-  datosUltrasonido.value.archivos.splice(index, 1)
-}
-
-const onRejected = (rejectedEntries) => {
-  $q.notify({
-    type: 'negative',
-    message: `${rejectedEntries.length} archivo(s) no cumplieron con los criterios de selección`
-  })
-}
-
-const agregarMedicion = () => {
-  datosUltrasonido.value.mediciones.push({
-    estructura: '',
-    dimension: '',
-    valor: ''
-  })
-}
-
-const eliminarMedicion = (index) => {
-  datosUltrasonido.value.mediciones.splice(index, 1)
-}
-
-const guardarDatos = () => {
-  if (formularioValido.value) {
-    emit('servicio-actualizado', props.servicioId, datosUltrasonido.value)
-  }
-}
-
-const completarUltrasonido = () => {
-  if (formularioValido.value) {
-    emit('servicio-completado', props.servicioId, {
-      ...datosUltrasonido.value,
-      fechaRealizacion: new Date().toISOString(),
-      realizadoPor: 'Dr. Usuario Actual' // Obtener del contexto
+const alAdjuntarArchivos = (files) => {
+  if (!files) return
+  files.forEach(f => {
+    datosUltrasonido.value.archivos_adjuntos.push({
+      name: f.name,
+      size: f.size,
+      type: f.type,
+      ultimoUpdate: new Date().toISOString()
     })
+  })
+  nuevosArchivos.value = null
+}
+
+const eliminarAdjunto = (idx) => {
+  datosUltrasonido.value.archivos_adjuntos.splice(idx, 1)
+}
+
+const completarUltrasonido = async () => {
+  if (!formularioValido.value) return
+  procesando.value = true
+  try {
+    emit('servicio-completado', props.servicioId, { ...datosUltrasonido.value })
+    modoEdicionManual.value = false
+  } finally {
+    procesando.value = false
   }
+}
+
+const cancelarEdicion = () => {
+  if (props.datosIniciales) {
+    datosUltrasonido.value = JSON.parse(JSON.stringify(props.datosIniciales))
+  }
+  modoEdicionManual.value = false
+}
+
+const imprimirReporte = (tipo, idPlantilla = null) => {
+  emit('imprimir-servicio', props.servicioId, { ...datosUltrasonido.value }, tipo, idPlantilla)
+}
+
+const firmarDocumento = (tipo, idPlantilla = null) => {
+  emit('firmar-servicio', props.servicioId, { ...datosUltrasonido.value }, tipo, idPlantilla)
 }
 
 const eliminarServicio = () => {
-  emit('servicio-eliminado', props.servicioId)
+  $q.dialog({
+    title: 'Eliminar Servicio',
+    message: '¿Estás seguro de eliminar este estudio de Ultrasonido?',
+    cancel: true,
+    persistent: true
+  }).onOk(() => {
+    emit('servicio-eliminado', props.servicioId)
+  })
 }
 
-// Watchers
-watch(datosUltrasonido, guardarDatos, { deep: true })
+onMounted(() => {
+  if (props.datosIniciales && Object.keys(props.datosIniciales).length > 0) {
+    datosUltrasonido.value = { ...datosUltrasonido.value, ...JSON.parse(JSON.stringify(props.datosIniciales)) }
+  }
+})
 </script>
+
+<style scoped>
+.service-icon-wrap {
+  width: 44px;
+  height: 44px;
+}
+.br-xl { border-radius: 20px; }
+.br-lg { border-radius: 12px; }
+.br-md { border-radius: 8px; }
+.border-top { border-top: 1px solid rgba(0,0,0,0.05); }
+</style>
 
 <style scoped>
 .servicio-card {

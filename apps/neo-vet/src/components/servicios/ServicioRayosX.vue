@@ -1,47 +1,95 @@
 <template>
-  <q-card class="servicio-card">
-    <q-card-section class="bg-blue-1">
-      <div class="row items-center">
-        <q-icon name="medical_services" color="blue" size="md" class="q-mr-md"/>
-        <div class="col">
-          <div class="text-h6">Rayos X</div>
-          <div class="text-caption text-grey-7">Estudio radiográfico</div>
+  <q-card class="servicio-card overflow-hidden br-xl shadow-2">
+    <q-card-section class="bg-indigo-1 q-pa-md">
+      <div class="row items-center no-wrap">
+        <div class="service-icon-wrap bg-indigo-2 q-mr-md flex flex-center br-lg">
+          <q-icon name="medical_information" color="indigo-8" size="24px" />
         </div>
-        <q-btn-dropdown 
-          flat round 
-          icon="more_vert"
-          :disable="modoLectura"
-        >
-          <q-list>
-            <q-item clickable @click="completarRayosX" :disable="!formularioValido">
-              <q-item-section avatar>
-                <q-icon name="check_circle" color="positive"/>
-              </q-item-section>
-              <q-item-section>Marcar como Completado</q-item-section>
-            </q-item>
-            <q-item clickable @click="eliminarServicio">
-              <q-item-section avatar>
-                <q-icon name="delete" color="negative"/>
-              </q-item-section>
-              <q-item-section>Eliminar</q-item-section>
-            </q-item>
-          </q-list>
-        </q-btn-dropdown>
+        <div class="col">
+          <div class="text-subtitle1 text-weight-bolder text-indigo-10">Rayos X</div>
+          <div class="text-caption text-indigo-7 opacity-80">Estudio radiográfico y diagnóstico por imagen</div>
+        </div>
+        
+        <div class="row items-center q-gutter-xs">
+          <!-- Botón Edición (Solo modo lectura) -->
+          <q-btn 
+            v-if="modoLectura && !modoEdicionManual"
+            flat dense round 
+            color="indigo-7" 
+            icon="edit" 
+            size="sm" 
+            @click="modoEdicionManual = true"
+          >
+            <q-tooltip>Habilitar Edición</q-tooltip>
+          </q-btn>
+          
+          <q-btn 
+            v-if="modoEdicionManual"
+            flat dense round 
+            color="grey-7" 
+            icon="close" 
+            size="sm" 
+            @click="cancelarEdicion"
+          >
+            <q-tooltip>Cancelar Edición</q-tooltip>
+          </q-btn>
+
+          <q-btn-dropdown flat round icon="more_vert" color="indigo-7" dropdown-icon="none">
+            <q-list dense style="min-width: 200px" class="br-md">
+              <q-item clickable @click="imprimirReporte('especial')">
+                <q-item-section avatar><q-icon name="print" color="indigo" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Imprimir Reporte</q-item-section>
+              </q-item>
+
+              <q-item clickable @click="firmarDocumento('especial')">
+                <q-item-section avatar><q-icon name="history_edu" color="orange-8" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Visualizar y Firmar</q-item-section>
+              </q-item>
+
+              <q-separator v-if="plantillasServicio && plantillasServicio.length > 0" />
+              
+              <q-item v-if="plantillasServicio && plantillasServicio.length > 0" clickable>
+                <q-item-section avatar><q-icon name="description" color="secondary" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Imprimir Plantilla</q-item-section>
+                <q-item-section side><q-icon name="chevron_right" /></q-item-section>
+                
+                <q-menu anchor="top end" self="top start">
+                  <q-list style="min-width: 200px">
+                    <q-item v-for="p in plantillasServicio" :key="p.id_plantilla" clickable v-close-popup @click="imprimirReporte('plantilla', p.id_plantilla)">
+                      <q-item-section avatar><q-icon name="description" color="secondary" size="xs" /></q-item-section>
+                      <q-item-section>{{ p.nombre_plantilla }}</q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-item>
+
+              <q-separator />
+              <q-item clickable @click="completarRayosX" class="text-positive" :disable="!formularioValido">
+                <q-item-section avatar><q-icon name="check_circle" color="positive" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-bold">Finalizar Estudio</q-item-section>
+              </q-item>
+
+              <q-item clickable @click="eliminarServicio" class="text-negative">
+                <q-item-section avatar><q-icon name="delete" color="negative" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Eliminar Servicio</q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+        </div>
       </div>
     </q-card-section>
-    
-    <q-card-section>
-      <div class="row q-col-gutter-md">
-        <!-- Información básica del estudio -->
+
+    <q-card-section class="q-pa-lg">
+      <div class="row q-col-gutter-lg">
+        <!-- Información básica -->
         <div class="col-12 col-md-6">
           <q-select
             v-model="datosRayosX.tipoEstudio"
             :options="tiposEstudio"
             label="Tipo de Estudio *"
-            outlined
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura"
+            outlined dense
+            class="br-md"
+            :readonly="modoLectura && !modoEdicionManual"
           />
         </div>
         
@@ -50,164 +98,69 @@
             v-model="datosRayosX.regionAnatomica"
             :options="regionesAnatomicas"
             label="Región Anatómica *"
-            outlined
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura"
+            outlined dense
+            class="br-md"
+            :readonly="modoLectura && !modoEdicionManual"
           />
         </div>
         
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-6">
           <q-select
             v-model="datosRayosX.posicion"
             :options="posiciones"
             label="Posición *"
-            outlined
+            outlined dense
             multiple
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura"
+            use-chips
+            class="br-md"
+            :readonly="modoLectura && !modoEdicionManual"
           />
         </div>
         
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-3">
           <q-input
             v-model="datosRayosX.numeroPlacas"
             label="Número de Placas *"
-            outlined
+            outlined dense
             type="number"
             min="1"
-            :readonly="modoLectura"
+            class="br-md"
+            :readonly="modoLectura && !modoEdicionManual"
           />
         </div>
         
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-3">
           <q-select
             v-model="datosRayosX.contraste"
             :options="opcionesContraste"
-            label="Uso de Contraste"
-            outlined
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura"
+            label="Contraste"
+            outlined dense
+            class="br-md"
+            :readonly="modoLectura && !modoEdicionManual"
           />
         </div>
-        
-        <!-- Parámetros técnicos -->
+
         <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">Parámetros Técnicos</div>
+          <div class="row items-center q-mb-sm">
+            <q-icon name="settings" color="grey-7" size="18px" class="q-mr-sm" />
+            <div class="text-weight-bold text-grey-8 uppercase letter-spacing-1" style="font-size: 11px;">Parámetros Técnicos</div>
+          </div>
+          <div class="row q-col-gutter-md">
+            <div class="col-6 col-md-3">
+              <q-input v-model="datosRayosX.kv" label="kV" outlined dense class="br-md" :readonly="modoLectura && !modoEdicionManual" />
+            </div>
+            <div class="col-6 col-md-3">
+              <q-input v-model="datosRayosX.mas" label="mAs" outlined dense class="br-md" :readonly="modoLectura && !modoEdicionManual" />
+            </div>
+            <div class="col-6 col-md-3">
+              <q-input v-model="datosRayosX.tiempo" label="Tiempo (s)" outlined dense class="br-md" :readonly="modoLectura && !modoEdicionManual" />
+            </div>
+            <div class="col-6 col-md-3">
+              <q-input v-model="datosRayosX.distancia" label="Distancia (cm)" outlined dense class="br-md" :readonly="modoLectura && !modoEdicionManual" />
+            </div>
+          </div>
         </div>
-        
-        <div class="col-12 col-md-3">
-          <q-input
-            v-model="datosRayosX.kv"
-            label="kV"
-            outlined
-            type="number"
-            min="40"
-            max="150"
-            :readonly="modoLectura"
-          />
-        </div>
-        
-        <div class="col-12 col-md-3">
-          <q-input
-            v-model="datosRayosX.mas"
-            label="mAs"
-            outlined
-            type="number"
-            step="0.1"
-            min="0.1"
-            :readonly="modoLectura"
-          />
-        </div>
-        
-        <div class="col-12 col-md-3">
-          <q-input
-            v-model="datosRayosX.tiempo"
-            label="Tiempo (s)"
-            outlined
-            type="number"
-            step="0.01"
-            min="0.01"
-            :readonly="modoLectura"
-          />
-        </div>
-        
-        <div class="col-12 col-md-3">
-          <q-input
-            v-model="datosRayosX.distancia"
-            label="Distancia (cm)"
-            outlined
-            type="number"
-            min="40"
-            max="120"
-            placeholder="100"
-            :readonly="modoLectura"
-          />
-        </div>
-        
-        <!-- Sedación y preparación -->
-        <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">Preparación del Paciente</div>
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <q-checkbox
-            v-model="datosRayosX.sedacion"
-            label="¿Se utilizó sedación?"
-            :disable="modoLectura"
-          />
-        </div>
-        
-        <div v-if="datosRayosX.sedacion" class="col-12 col-md-6">
-          <q-input
-            v-model="datosRayosX.tipoSedacion"
-            label="Tipo de Sedación"
-            outlined
-            placeholder="Ej: Acepromazina, Diazepam..."
-            :readonly="modoLectura"
-          />
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <q-checkbox
-            v-model="datosRayosX.ayuno"
-            label="Paciente en ayuno"
-            :disable="modoLectura"
-          />
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <q-input
-            v-model="datosRayosX.preparacion"
-            label="Preparación Especial"
-            outlined
-            placeholder="Enemas, catéteres, etc."
-            :readonly="modoLectura"
-          />
-        </div>
-        
-        <!-- Hallazgos radiográficos -->
-        <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">Hallazgos Radiográficos</div>
-        </div>
-        
-        <div class="col-12">
-          <q-select
-            v-model="datosRayosX.calidadImagen"
-            :options="calidadImagenOpciones"
-            label="Calidad de la Imagen"
-            outlined
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura"
-          />
-        </div>
-        
+
         <div class="col-12">
           <q-input
             v-model="datosRayosX.hallazgos"
@@ -215,171 +168,125 @@
             outlined
             type="textarea"
             rows="3"
-            placeholder="Describa los hallazgos encontrados en el estudio..."
-            :readonly="modoLectura"
+            class="br-md"
+            placeholder="Describa los hallazgos observados..."
+            :readonly="modoLectura && !modoEdicionManual"
           />
         </div>
-        
+
         <div class="col-12">
           <q-input
             v-model="datosRayosX.interpretacion"
-            label="Interpretación/Diagnóstico Radiológico *"
+            label="Interpretación y Diagnóstico *"
             outlined
             type="textarea"
             rows="3"
-            placeholder="Interpretación de los hallazgos y diagnóstico radiológico..."
-            :readonly="modoLectura"
+            class="br-md bg-indigo-0"
+            placeholder="Conclusión diagnóstica..."
+            :readonly="modoLectura && !modoEdicionManual"
           />
         </div>
-        
+
         <div class="col-12">
-          <q-input
-            v-model="datosRayosX.recomendaciones"
-            label="Recomendaciones"
-            outlined
-            type="textarea"
-            rows="2"
-            placeholder="Estudios adicionales, seguimiento, etc."
-            :readonly="modoLectura"
-          />
-        </div>
-        
-        <!-- Archivos de imagen -->
-        <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">Archivos de Imagen</div>
-        </div>
-        
-        <div class="col-12" v-if="!modoLectura">
           <q-file
-            v-model="datosRayosX.archivos"
-            label="Subir Imágenes Radiográficas"
-            outlined
+            v-if="!modoLectura || modoEdicionManual"
+            v-model="nuevosArchivos"
+            label="Adjuntar Imágenes Radiográficas"
+            outlined dense
             multiple
-            accept=".jpg,.jpeg,.png,.dicom,.dcm"
-            max-file-size="10485760"
-            @rejected="onRejected"
+            use-chips
+            class="br-md"
+            accept=".jpg,.jpeg,.png,.pdf"
+            @update:model-value="alAdjuntarArchivos"
           >
-            <template v-slot:prepend>
-              <q-icon name="cloud_upload" />
-            </template>
+            <template v-slot:prepend><q-icon name="cloud_upload" color="primary" /></template>
           </q-file>
-        </div>
-        
-        <div v-if="datosRayosX.archivos && datosRayosX.archivos.length > 0" class="col-12">
-          <q-list bordered>
-            <q-item v-for="(archivo, index) in datosRayosX.archivos" :key="index">
-              <q-item-section avatar>
-                <q-icon name="image" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label>{{ archivo.name }}</q-item-label>
-                <q-item-label caption>{{ formatFileSize(archivo.size) }}</q-item-label>
-              </q-item-section>
-              <q-item-section side v-if="!modoLectura">
-                <q-btn flat round icon="delete" color="negative" @click="removeFile(index)" />
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </div>
-        
-        <!-- Observaciones generales -->
-        <div class="col-12">
-          <q-input
-            v-model="datosRayosX.observaciones"
-            label="Observaciones Generales"
-            outlined
-            type="textarea"
-            rows="2"
-            :readonly="modoLectura"
-          />
+
+          <div v-if="datosRayosX.archivos_adjuntos?.length > 0" class="q-mt-md">
+             <div class="text-caption text-weight-bold q-mb-sm">Archivos Adjuntos ({{ datosRayosX.archivos_adjuntos.length }})</div>
+             <div class="row q-col-gutter-sm">
+                <div v-for="(file, idx) in datosRayosX.archivos_adjuntos" :key="idx" class="col-auto">
+                   <q-chip
+                    removable
+                    @remove="eliminarAdjunto(idx)"
+                    color="grey-2"
+                    text-color="grey-9"
+                    class="br-md"
+                    icon="image"
+                    :disable="modoLectura && !modoEdicionManual"
+                   >
+                     {{ file.name || 'Archivo ' + (idx+1) }}
+                   </q-chip>
+                </div>
+             </div>
+          </div>
         </div>
       </div>
     </q-card-section>
-    
-    <!-- Estado y acciones -->
-    <q-card-section v-if="!modoLectura" class="bg-grey-1">
-      <div class="row items-center justify-between">
-        <div class="col-auto">
-          <q-chip 
-            :color="formularioValido ? 'green' : 'orange'"
-            text-color="white"
-            :icon="formularioValido ? 'check_circle' : 'warning'"
-            :label="formularioValido ? 'Datos Completos' : 'Datos Incompletos'"
-          />
-        </div>
-        
-        <div class="col-auto">
-          <q-btn
-            color="positive"
-            icon="check"
-            label="Completar Estudio"
-            @click="completarRayosX"
-            :disable="!formularioValido"
-          />
-        </div>
+
+    <!-- Footer de acciones -->
+    <q-card-section v-if="!modoLectura || modoEdicionManual" class="bg-grey-1 q-pa-md border-top">
+      <div class="row items-center justify-end q-gutter-sm">
+        <q-btn 
+          v-if="modoEdicionManual"
+          flat 
+          color="grey-7" 
+          label="Descartar" 
+          @click="cancelarEdicion" 
+          no-caps 
+        />
+        <q-btn 
+          color="indigo-8" 
+          icon="check" 
+          :label="modoEdicionManual ? 'Guardar Cambios' : 'Completar y Guardar'" 
+          @click="completarRayosX" 
+          :disable="!formularioValido || procesando"
+          :loading="procesando"
+          class="br-lg q-px-lg shadow-1"
+          no-caps
+        />
       </div>
     </q-card-section>
   </q-card>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 
-// Props
 const props = defineProps({
-  atencionId: {
-    type: String,
-    required: true
-  },
-  servicioId: {
-    type: String,
-    required: true
-  },
-  modoLectura: {
-    type: Boolean,
-    default: false
-  }
+  atencionId: { type: String, required: true },
+  servicioId: { type: String, required: true },
+  modoLectura: { type: Boolean, default: false },
+  datosIniciales: { type: Object, default: () => ({}) },
+  plantillasServicio: { type: Array, default: () => [] }
 })
 
-// Emits
-const emit = defineEmits(['servicio-actualizado', 'servicio-completado', 'servicio-eliminado'])
-
-// Quasar
+const emit = defineEmits(['servicio-actualizado', 'servicio-completado', 'servicio-eliminado', 'imprimir-servicio', 'firmar-servicio'])
 const $q = useQuasar()
 
-// Estados del formulario
+const procesando = ref(false)
+const modoEdicionManual = ref(false)
+const nuevosArchivos = ref(null)
+
 const datosRayosX = ref({
-  tipoEstudio: '',
-  regionAnatomica: '',
+  tipoEstudio: null,
+  regionAnatomica: null,
   posicion: [],
   numeroPlacas: 1,
   contraste: 'sin_contraste',
   kv: '',
   mas: '',
   tiempo: '',
-  distancia: 100,
-  sedacion: false,
-  tipoSedacion: '',
-  ayuno: false,
-  preparacion: '',
-  calidadImagen: 'buena',
+  distancia: '100',
   hallazgos: '',
   interpretacion: '',
-  recomendaciones: '',
-  archivos: [],
-  observaciones: ''
+  archivos_adjuntos: []
 })
 
-// Opciones para selects
 const tiposEstudio = [
   { label: 'Radiografía Simple', value: 'simple' },
   { label: 'Radiografía con Contraste', value: 'contraste' },
-  { label: 'Mielografía', value: 'mielografia' },
-  { label: 'Urografía', value: 'urografia' },
-  { label: 'Artrografía', value: 'artrografia' },
-  { label: 'Estudio Digestivo', value: 'digestivo' },
   { label: 'Otro', value: 'otro' }
 ]
 
@@ -387,97 +294,118 @@ const regionesAnatomicas = [
   { label: 'Tórax', value: 'torax' },
   { label: 'Abdomen', value: 'abdomen' },
   { label: 'Pelvis', value: 'pelvis' },
-  { label: 'Columna Cervical', value: 'columna_cervical' },
-  { label: 'Columna Torácica', value: 'columna_toracica' },
-  { label: 'Columna Lumbar', value: 'columna_lumbar' },
-  { label: 'Miembro Anterior Derecho', value: 'mad' },
-  { label: 'Miembro Anterior Izquierdo', value: 'mai' },
-  { label: 'Miembro Posterior Derecho', value: 'mpd' },
-  { label: 'Miembro Posterior Izquierdo', value: 'mpi' },
   { label: 'Cráneo', value: 'craneo' },
-  { label: 'Cuerpo Completo', value: 'cuerpo_completo' }
+  { label: 'Extremidades', value: 'extremidades' },
+  { label: 'Columna', value: 'columna' }
 ]
 
 const posiciones = [
-  { label: 'Ventro-Dorsal (VD)', value: 'vd' },
-  { label: 'Dorso-Ventral (DV)', value: 'dv' },
-  { label: 'Latero-Lateral Derecha', value: 'lld' },
-  { label: 'Latero-Lateral Izquierda', value: 'lli' },
-  { label: 'Oblicua', value: 'oblicua' },
-  { label: 'Rostro-Caudal', value: 'rc' },
-  { label: 'Caudo-Rostral', value: 'cr' },
-  { label: 'Medio-Lateral', value: 'ml' },
-  { label: 'Latero-Medial', value: 'lm' }
+  { label: 'VD (Ventro-Dorsal)', value: 'vd' },
+  { label: 'DV (Dorso-Ventral)', value: 'dv' },
+  { label: 'LL (Latero-Lateral)', value: 'll' },
+  { label: 'Oblicua', value: 'ob' }
 ]
 
 const opcionesContraste = [
   { label: 'Sin Contraste', value: 'sin_contraste' },
   { label: 'Bario', value: 'bario' },
-  { label: 'Yodo', value: 'yodo' },
-  { label: 'Aire (Contraste Negativo)', value: 'aire' },
-  { label: 'Doble Contraste', value: 'doble' }
+  { label: 'Yodo', value: 'yodo' }
 ]
 
-const calidadImagenOpciones = [
-  { label: 'Excelente', value: 'excelente' },
-  { label: 'Buena', value: 'buena' },
-  { label: 'Regular', value: 'regular' },
-  { label: 'Deficiente', value: 'deficiente' }
-]
-
-// Validaciones
 const formularioValido = computed(() => {
   return datosRayosX.value.tipoEstudio && 
          datosRayosX.value.regionAnatomica && 
-         datosRayosX.value.posicion.length > 0 &&
-         datosRayosX.value.numeroPlacas &&
-         datosRayosX.value.hallazgos &&
+         datosRayosX.value.hallazgos && 
          datosRayosX.value.interpretacion
 })
 
-// Métodos
-const formatFileSize = (bytes) => {
-  if (bytes === 0) return '0 Bytes'
-  const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
-}
-
-const removeFile = (index) => {
-  datosRayosX.value.archivos.splice(index, 1)
-}
-
-const onRejected = (rejectedEntries) => {
-  $q.notify({
-    type: 'negative',
-    message: `${rejectedEntries.length} archivo(s) no cumplieron con los criterios de selección`
-  })
-}
-
-const guardarDatos = () => {
-  if (formularioValido.value) {
-    emit('servicio-actualizado', props.servicioId, datosRayosX.value)
-  }
-}
-
-const completarRayosX = () => {
-  if (formularioValido.value) {
-    emit('servicio-completado', props.servicioId, {
-      ...datosRayosX.value,
-      fechaRealizacion: new Date().toISOString(),
-      realizadoPor: 'Dr. Usuario Actual' // Obtener del contexto
+const alAdjuntarArchivos = (files) => {
+  if (!files) return
+  // Aquí iría la lógica de subida real, por ahora simulamos
+  files.forEach(f => {
+    datosRayosX.value.archivos_adjuntos.push({
+      name: f.name,
+      size: f.size,
+      type: f.type,
+      ultimoUpdate: new Date().toISOString()
     })
+  })
+  nuevosArchivos.value = null
+  guardarCambiosSilenciosos()
+}
+
+const eliminarAdjunto = (idx) => {
+  datosRayosX.value.archivos_adjuntos.splice(idx, 1)
+  guardarCambiosSilenciosos()
+}
+
+const guardarCambiosSilenciosos = () => {
+  if (!props.modoLectura || modoEdicionManual.value) {
+    emit('servicio-actualizado', props.servicioId, { ...datosRayosX.value })
   }
+}
+
+const completarRayosX = async () => {
+  if (!formularioValido.value) return
+  procesando.value = true
+  try {
+    emit('servicio-completado', props.servicioId, { ...datosRayosX.value })
+    modoEdicionManual.value = false
+  } finally {
+    procesando.value = false
+  }
+}
+
+const cancelarEdicion = () => {
+  if (props.datosIniciales) {
+    datosRayosX.value = JSON.parse(JSON.stringify(props.datosIniciales))
+  }
+  modoEdicionManual.value = false
+}
+
+const imprimirReporte = (tipo, idPlantilla = null) => {
+  emit('imprimir-servicio', props.servicioId, { ...datosRayosX.value }, tipo, idPlantilla)
+}
+
+const firmarDocumento = (tipo, idPlantilla = null) => {
+  emit('firmar-servicio', props.servicioId, { ...datosRayosX.value }, tipo, idPlantilla)
 }
 
 const eliminarServicio = () => {
-  emit('servicio-eliminado', props.servicioId)
+  $q.dialog({
+    title: 'Eliminar Servicio',
+    message: '¿Estás seguro de eliminar este estudio de Rayos X?',
+    cancel: true,
+    persistent: true
+  }).onOk(() => {
+    emit('servicio-eliminado', props.servicioId)
+  })
 }
 
-// Watchers
-watch(datosRayosX, guardarDatos, { deep: true })
+onMounted(() => {
+  if (props.datosIniciales && Object.keys(props.datosIniciales).length > 0) {
+    datosRayosX.value = { ...datosRayosX.value, ...JSON.parse(JSON.stringify(props.datosIniciales)) }
+  }
+})
+
+watch(() => datosRayosX.value, () => {
+  if (!props.modoLectura || modoEdicionManual.value) {
+    // Debounce opcional aquí
+  }
+}, { deep: true })
 </script>
+
+<style scoped>
+.service-icon-wrap {
+  width: 44px;
+  height: 44px;
+}
+.br-xl { border-radius: 20px; }
+.br-lg { border-radius: 12px; }
+.br-md { border-radius: 8px; }
+.border-top { border-top: 1px solid rgba(0,0,0,0.05); }
+.letter-spacing-1 { letter-spacing: 1px; }
+</style>
 
 <style scoped>
 .servicio-card {

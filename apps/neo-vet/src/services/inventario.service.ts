@@ -1,4 +1,6 @@
 import PeticionService from 'src/services/peticion.service';
+import Api from 'src/controles/api';
+import { useDialogStore } from 'src/stores/DialogoUbicacion';
 
 const peticionService = new PeticionService();
 
@@ -447,8 +449,15 @@ export default {
 
     // ==================== REPORTES ====================
     reportes: {
-        descargarPdf(tipo: string) {
-            return peticionService.obtenerGet(`inventario/reporte/${tipo}`);
+        async descargarPdf(tipo: string) {
+            const store = useDialogStore();
+            return Api.get(`inventario/reporte/${tipo}`, {
+                responseType: 'blob',
+                headers: {
+                    'idsitio': store.id_sitio?.toString() || '0',
+                    'idsucursal': store.id_sucursal?.toString() || '0'
+                }
+            });
         }
     }
 };

@@ -1,85 +1,102 @@
 <template>
-  <q-card class="servicio-card">
-    <q-card-section class="bg-blue-1">
-      <div class="row items-center">
-        <q-icon name="accessibility_new" color="blue" size="md" class="q-mr-md"/>
-        <div class="col">
-          <div class="text-h6">Fisioterapia Veterinaria</div>
-          <div class="text-caption text-grey-7">
-            {{ datosFisioterapia.estado === 'activo' ? `Sesión ${sesionActual} de ${datosFisioterapia.totalSesiones}` : 
-               datosFisioterapia.estado === 'completado' ? 'Tratamiento completado' : 'Plan de fisioterapia' }}
-          </div>
+  <q-card class="servicio-card overflow-hidden br-xl shadow-2">
+    <q-card-section class="bg-blue-1 q-pa-md">
+      <div class="row items-center no-wrap">
+        <div class="service-icon-wrap bg-blue-2 q-mr-md flex flex-center br-lg">
+          <q-icon name="accessibility_new" color="blue-8" size="24px" />
         </div>
-        <q-btn-dropdown 
-          flat round 
-          icon="more_vert"
-          :disable="modoLectura"
-        >
-          <q-list>
-            <q-item 
-              clickable 
-              @click="iniciarTratamiento" 
-              v-if="datosFisioterapia.estado === 'planificado'"
-              :disable="!formularioValido"
-            >
-              <q-item-section avatar>
-                <q-icon name="play_arrow" color="positive"/>
-              </q-item-section>
-              <q-item-section>Iniciar Tratamiento</q-item-section>
-            </q-item>
-            
-            <q-item 
-              clickable 
-              @click="agregarSesion" 
-              v-if="datosFisioterapia.estado === 'activo'"
-            >
-              <q-item-section avatar>
-                <q-icon name="add_circle" color="primary"/>
-              </q-item-section>
-              <q-item-section>Nueva Sesión</q-item-section>
-            </q-item>
-            
-            <q-item 
-              clickable 
-              @click="finalizarTratamiento" 
-              v-if="datosFisioterapia.estado === 'activo'"
-            >
-              <q-item-section avatar>
-                <q-icon name="check_circle" color="positive"/>
-              </q-item-section>
-              <q-item-section>Finalizar Tratamiento</q-item-section>
-            </q-item>
-            
-            <q-item clickable @click="eliminarServicio">
-              <q-item-section avatar>
-                <q-icon name="delete" color="negative"/>
-              </q-item-section>
-              <q-item-section>Eliminar</q-item-section>
-            </q-item>
-          </q-list>
-        </q-btn-dropdown>
-      </div>
-    </q-card-section>
-    
-    <q-card-section>
-      <!-- Plan de tratamiento -->
-      <div class="row q-col-gutter-md">
-        <div class="col-12">
-          <div class="text-subtitle2 q-mb-md">
-            <q-icon name="assignment" color="blue" class="q-mr-sm"/>
-            Plan de Tratamiento
+        <div class="col">
+          <div class="text-subtitle1 text-weight-bolder text-blue-10">Fisioterapia</div>
+          <div class="text-caption text-blue-7 opacity-80">
+             {{ datosFisioterapia.estado === 'activo' ? `Sesión ${sesionActual} de ${datosFisioterapia.totalSesiones}` : 
+                datosFisioterapia.estado === 'completado' ? 'Tratamiento completado' : 'Plan de fisioterapia' }}
           </div>
         </div>
         
+        <div class="row items-center q-gutter-xs">
+          <q-btn 
+            v-if="modoLectura && !modoEdicionManual"
+            flat dense round 
+            color="blue-7" 
+            icon="edit" 
+            size="sm" 
+            @click="modoEdicionManual = true"
+          >
+            <q-tooltip>Habilitar Edición</q-tooltip>
+          </q-btn>
+          
+          <q-btn 
+            v-if="modoEdicionManual"
+            flat dense round 
+            color="grey-7" 
+            icon="close" 
+            size="sm" 
+            @click="cancelarEdicion"
+          >
+            <q-tooltip>Cancelar Edición</q-tooltip>
+          </q-btn>
+
+          <q-btn-dropdown flat round icon="more_vert" color="blue-7" dropdown-icon="none">
+            <q-list dense style="min-width: 200px" class="br-md">
+              <q-item clickable @click="imprimirReporte('especial')">
+                <q-item-section avatar><q-icon name="print" color="blue" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Imprimir Reporte</q-item-section>
+              </q-item>
+
+              <q-item clickable @click="firmarDocumento('especial')">
+                <q-item-section avatar><q-icon name="history_edu" color="orange-8" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Visualizar y Firmar</q-item-section>
+              </q-item>
+
+              <q-separator v-if="plantillasServicio && plantillasServicio.length > 0" />
+              
+              <q-item v-if="plantillasServicio && plantillasServicio.length > 0" clickable>
+                <q-item-section avatar><q-icon name="description" color="secondary" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Imprimir Plantilla</q-item-section>
+                <q-item-section side><q-icon name="chevron_right" /></q-item-section>
+                
+                <q-menu anchor="top end" self="top start">
+                  <q-list style="min-width: 200px">
+                    <q-item v-for="p in plantillasServicio" :key="p.id_plantilla" clickable v-close-popup @click="imprimirReporte('plantilla', p.id_plantilla)">
+                      <q-item-section avatar><q-icon name="description" color="secondary" size="xs" /></q-item-section>
+                      <q-item-section>{{ p.nombre_plantilla }}</q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-item>
+
+              <q-separator />
+              <q-item v-if="datosFisioterapia.estado === 'planificado'" clickable @click="iniciarTratamiento" class="text-positive" :disable="!formularioValido">
+                <q-item-section avatar><q-icon name="play_arrow" color="positive" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-bold">Iniciar Tratamiento</q-item-section>
+              </q-item>
+
+              <q-item v-if="datosFisioterapia.estado === 'activo'" clickable @click="agregarSesion" class="text-primary">
+                <q-item-section avatar><q-icon name="add" color="primary" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-bold">Nueva Sesión</q-item-section>
+              </q-item>
+
+              <q-item clickable @click="eliminarServicio" class="text-negative">
+                <q-item-section avatar><q-icon name="delete" color="negative" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Eliminar Servicio</q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+        </div>
+      </div>
+    </q-card-section>
+
+    <q-card-section class="q-pa-lg">
+      <div class="row q-col-gutter-lg">
         <div class="col-12 col-md-8">
           <q-input
             v-model="datosFisioterapia.indicacionMedica"
             label="Indicación Médica *"
-            outlined
+            outlined dense
             type="textarea"
             rows="2"
-            :readonly="modoLectura || datosFisioterapia.estado !== 'planificado'"
-            placeholder="Descripción del problema que requiere fisioterapia..."
+            class="br-md"
+            :readonly="(modoLectura && !modoEdicionManual) || datosFisioterapia.estado !== 'planificado'"
           />
         </div>
         
@@ -88,862 +105,206 @@
             v-model="datosFisioterapia.tipoTratamiento"
             :options="tiposTratamiento"
             label="Tipo de Tratamiento *"
-            outlined
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura || datosFisioterapia.estado !== 'planificado'"
+            outlined dense
+            class="br-md q-mb-md"
+            :readonly="(modoLectura && !modoEdicionManual) || datosFisioterapia.estado !== 'planificado'"
           />
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <q-select
-            v-model="datosFisioterapia.areaAfectada"
-            :options="areasAfectadas"
-            label="Área Afectada"
-            outlined
-            option-label="label"
-            option-value="value"
-            multiple
-            use-chips
-            :readonly="modoLectura || datosFisioterapia.estado !== 'planificado'"
-          />
-        </div>
-        
-        <div class="col-6 col-md-3">
-          <q-input
-            v-model="datosFisioterapia.totalSesiones"
-            label="Total Sesiones *"
-            outlined
-            type="number"
-            min="1"
-            max="50"
-            :readonly="modoLectura || datosFisioterapia.estado !== 'planificado'"
-          />
-        </div>
-        
-        <div class="col-6 col-md-3">
-          <q-select
-            v-model="datosFisioterapia.frecuencia"
-            :options="frecuencias"
-            label="Frecuencia"
-            outlined
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura || datosFisioterapia.estado !== 'planificado'"
-          />
-        </div>
-        
-        <div class="col-12">
-          <q-input
-            v-model="datosFisioterapia.objetivosTratamiento"
-            label="Objetivos del Tratamiento"
-            outlined
-            type="textarea"
-            rows="2"
-            :readonly="modoLectura || datosFisioterapia.estado !== 'planificado'"
-            placeholder="Objetivos específicos que se buscan alcanzar..."
-          />
-        </div>
-      </div>
-
-      <!-- Evaluación inicial -->
-      <div class="row q-col-gutter-md q-mt-md">
-        <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">
-            <q-icon name="assessment" color="orange" class="q-mr-sm"/>
-            Evaluación Inicial
-          </div>
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <q-input
-            v-model="datosFisioterapia.evaluacionInicial.movilidad"
-            label="Evaluación de Movilidad"
-            outlined
-            type="textarea"
-            rows="2"
-            :readonly="modoLectura"
-            placeholder="Descripción del rango de movimiento, limitaciones..."
-          />
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <q-input
-            v-model="datosFisioterapia.evaluacionInicial.dolor"
-            label="Evaluación del Dolor"
-            outlined
-            type="textarea"
-            rows="2"
-            :readonly="modoLectura"
-            placeholder="Áreas con dolor, intensidad, comportamiento..."
-          />
-        </div>
-        
-        <div class="col-6 col-md-3">
-          <q-select
-            v-model="datosFisioterapia.evaluacionInicial.nivelActividad"
-            :options="nivelesActividad"
-            label="Nivel de Actividad"
-            outlined
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura"
-          />
-        </div>
-        
-        <div class="col-6 col-md-3">
-          <q-select
-            v-model="datosFisioterapia.evaluacionInicial.estadoAnimo"
-            :options="estadosAnimo"
-            label="Estado de Ánimo"
-            outlined
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura"
-          />
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <q-input
-            v-model="datosFisioterapia.evaluacionInicial.peso"
-            label="Peso (kg)"
-            outlined
-            type="number"
-            step="0.1"
-            :readonly="modoLectura"
-            suffix="kg"
-          />
-        </div>
-      </div>
-
-      <!-- Progreso del tratamiento (solo si está activo o completado) -->
-      <div v-if="datosFisioterapia.estado !== 'planificado'" class="row q-col-gutter-md q-mt-md">
-        <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">
-            <q-icon name="timeline" color="green" class="q-mr-sm"/>
-            Progreso del Tratamiento
-          </div>
-        </div>
-        
-        <div class="col-12 col-md-4">
-          <q-circular-progress
-            :value="porcentajeProgreso"
-            size="120px"
-            :thickness="0.15"
-            color="primary"
-            track-color="grey-3"
-            show-value
-            class="q-ma-md"
-          >
-            {{ Math.round(porcentajeProgreso) }}%
-          </q-circular-progress>
-          <div class="text-center text-caption">Progreso General</div>
-        </div>
-        
-        <div class="col-12 col-md-8">
           <div class="row q-col-gutter-sm">
             <div class="col-6">
-              <q-input
-                :model-value="sesionActual"
-                label="Sesiones Realizadas"
-                outlined
-                readonly
-                :suffix="'/ ' + datosFisioterapia.totalSesiones"
-              />
+              <q-input v-model="datosFisioterapia.totalSesiones" label="Sesiones" outlined dense type="number" class="br-md" :readonly="(modoLectura && !modoEdicionManual) || datosFisioterapia.estado !== 'planificado'" />
             </div>
             <div class="col-6">
-              <q-input
-                v-model="datosFisioterapia.fechaInicio"
-                label="Fecha de Inicio"
-                outlined
-                type="date"
-                readonly
-              />
-            </div>
-            <div class="col-12">
-              <q-linear-progress
-                :value="porcentajeProgreso / 100"
-                size="20px"
-                color="primary"
-                track-color="grey-3"
-                class="q-mt-md"
-              >
-                <div class="absolute-full flex flex-center">
-                  <q-badge color="white" text-color="primary" :label="`${sesionActual}/${datosFisioterapia.totalSesiones} sesiones`" />
-                </div>
-              </q-linear-progress>
+              <q-select v-model="datosFisioterapia.frecuencia" :options="frecuencias" label="Frecuencia" outlined dense class="br-md" :readonly="(modoLectura && !modoEdicionManual) || datosFisioterapia.estado !== 'planificado'" />
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Sesiones realizadas -->
-      <div v-if="datosFisioterapia.sesiones.length > 0" class="row q-col-gutter-md q-mt-md">
-        <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">
-            <q-icon name="event_note" class="q-mr-sm"/>
-            Registro de Sesiones
-          </div>
+        <div v-if="datosFisioterapia.estado !== 'planificado'" class="col-12">
+           <q-separator class="q-my-md opacity-20" />
+           <div class="row items-center q-col-gutter-lg">
+              <div class="col-12 col-md-4 flex flex-center">
+                 <q-circular-progress :value="porcentajeProgreso" size="100px" :thickness="0.1" color="blue-7" track-color="blue-1" show-value class="text-blue-10 text-weight-bold br-xl shadow-1">
+                    {{ Math.round(porcentajeProgreso) }}%
+                 </q-circular-progress>
+              </div>
+              <div class="col-12 col-md-8">
+                 <div class="text-subtitle2 text-grey-8 q-mb-xs">Sesiones: {{ sesionActual }} / {{ datosFisioterapia.totalSesiones }}</div>
+                 <q-linear-progress :value="porcentajeProgreso / 100" color="blue-7" track-color="grey-2" size="10px" class="br-xl shadow-1" />
+                 <div class="row q-gutter-sm q-mt-sm">
+                    <q-chip dense outline color="blue-7" icon="calendar_today" :label="'Inicio: ' + datosFisioterapia.fechaInicio" />
+                    <q-chip v-if="datosFisioterapia.fechaFinalizacion" dense color="positive" text-color="white" icon="check" :label="'Fin: ' + datosFisioterapia.fechaFinalizacion" />
+                 </div>
+              </div>
+           </div>
         </div>
-        
-        <div class="col-12">
-          <q-timeline color="primary" layout="comfortable">
+
+        <div v-if="datosFisioterapia.sesiones.length > 0" class="col-12">
+          <q-separator class="q-my-md opacity-20" />
+          <div class="text-subtitle2 text-grey-8 q-mb-md">Historial de Sesiones</div>
+          <q-timeline color="blue" layout="comfortable" dense>
             <q-timeline-entry
               v-for="(sesion, index) in datosFisioterapia.sesiones"
               :key="index"
               :color="getSesionColor(sesion.evaluacion?.progreso || 'sin_cambio')"
               :icon="getSesionIcon(sesion.evaluacion?.progreso || 'sin_cambio')"
-              :title="`Sesión ${sesion.numeroSesion}`"
               :subtitle="formatDateTime(sesion.fecha)"
             >
-              <div class="text-body2 q-mb-sm">
-                <strong>Duración:</strong> {{ sesion.duracion }} minutos
+              <div class="row items-center justify-between">
+                 <div class="text-weight-bold text-grey-9">Sesión #{{ sesion.numeroSesion }}</div>
+                 <q-btn v-if="!modoLectura || modoEdicionManual" flat dense round color="grey-6" icon="edit" size="xs" @click="editarSesion(index)" />
               </div>
-              
-              <div v-if="sesion.tecnicasAplicadas.length > 0" class="q-mb-sm">
-                <div class="text-caption text-grey-6">Técnicas aplicadas:</div>
-                <q-chip
-                  v-for="tecnica in sesion.tecnicasAplicadas"
-                  :key="tecnica"
-                  dense
-                  color="blue"
-                  text-color="white"
-                  :label="getTecnicaLabel(tecnica)"
-                  class="q-mr-xs q-mb-xs"
-                  size="sm"
-                />
+              <div class="row q-gutter-xs q-mt-xs">
+                 <q-badge v-for="t in sesion.tecnicasAplicadas" :key="t" color="blue-1" text-color="blue-10" dense :label="t" />
               </div>
-              
-              <div v-if="sesion.observaciones" class="text-body2 q-mb-sm">
-                {{ sesion.observaciones }}
-              </div>
-              
-              <div v-if="sesion.evaluacion" class="q-mt-sm">
-                <div class="row q-col-gutter-sm">
-                  <div class="col-4">
-                    <div class="text-caption text-grey-6">Progreso</div>
-                    <q-chip 
-                      :color="getProgresoColor(sesion.evaluacion.progreso)"
-                      text-color="white"
-                      dense
-                      :label="getProgresoLabel(sesion.evaluacion.progreso)"
-                      size="sm"
-                    />
-                  </div>
-                  <div class="col-4">
-                    <div class="text-caption text-grey-6">Dolor</div>
-                    <div class="text-body2">{{ sesion.evaluacion.nivelDolor }}/10</div>
-                  </div>
-                  <div class="col-4">
-                    <div class="text-caption text-grey-6">Cooperación</div>
-                    <div class="text-body2">{{ getCooperacionLabel(sesion.evaluacion.cooperacion) }}</div>
-                  </div>
-                </div>
-              </div>
-              
-              <q-btn
-                v-if="!modoLectura && sesion.editable && datosFisioterapia.estado === 'activo'"
-                flat
-                dense
-                icon="edit"
-                size="sm"
-                @click="editarSesion(index)"
-                class="q-mt-sm"
-              />
+              <div v-if="sesion.observaciones" class="text-body2 text-grey-7 q-mt-xs">{{ sesion.observaciones }}</div>
             </q-timeline-entry>
           </q-timeline>
         </div>
       </div>
-
-      <!-- Información de finalización (solo si está completado) -->
-      <div v-if="datosFisioterapia.estado === 'completado'" class="row q-col-gutter-md q-mt-md">
-        <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">
-            <q-icon name="check_circle" color="positive" class="q-mr-sm"/>
-            Evaluación Final
-          </div>
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <q-input
-            v-model="datosFisioterapia.fechaFinalizacion"
-            label="Fecha de Finalización"
-            outlined
-            type="date"
-            readonly
-          />
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <q-select
-            v-model="datosFisioterapia.resultadoTratamiento"
-            :options="resultadosTratamiento"
-            label="Resultado del Tratamiento"
-            outlined
-            option-label="label"
-            option-value="value"
-            readonly
-          />
-        </div>
-        
-        <div class="col-12">
-          <q-input
-            v-model="datosFisioterapia.evaluacionFinal"
-            label="Evaluación Final"
-            outlined
-            type="textarea"
-            rows="3"
-            readonly
-          />
-        </div>
-        
-        <div class="col-12">
-          <q-input
-            v-model="datosFisioterapia.recomendacionesContinuas"
-            label="Recomendaciones Continuas"
-            outlined
-            type="textarea"
-            rows="3"
-            readonly
-          />
-        </div>
-      </div>
-
-      <!-- Observaciones generales -->
-      <div class="row q-col-gutter-md q-mt-md">
-        <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">Observaciones</div>
-        </div>
-        
-        <div class="col-12">
-          <q-input
-            v-model="datosFisioterapia.observacionesGenerales"
-            label="Observaciones Generales"
-            outlined
-            type="textarea"
-            rows="2"
-            :readonly="modoLectura"
-          />
-        </div>
-      </div>
     </q-card-section>
     
-    <!-- Estado y acciones -->
-    <q-card-section class="bg-grey-1">
-      <div class="row items-center justify-between">
-        <div class="col-auto">
-          <q-chip 
-            :color="getEstadoColor()"
-            text-color="white"
-            :icon="getEstadoIcon()"
-            :label="getEstadoLabel()"
-          />
-          <q-chip 
-            v-if="datosFisioterapia.estado === 'activo'"
-            color="blue"
-            text-color="white"
-            icon="timeline"
-            :label="`${sesionActual}/${datosFisioterapia.totalSesiones}`"
-            class="q-ml-sm"
-          />
-        </div>
+    <q-card-section v-if="!modoLectura || modoEdicionManual" class="bg-grey-1 q-pa-md border-top">
+      <div class="row items-center justify-end q-gutter-sm">
+        <q-btn v-if="modoEdicionManual" flat color="grey-7" label="Descartar" @click="cancelarEdicion" no-caps />
         
-        <div class="col-auto" v-if="!modoLectura">
-          <q-btn
-            v-if="datosFisioterapia.estado === 'planificado'"
-            color="positive"
-            icon="play_arrow"
-            label="Iniciar Tratamiento"
-            @click="iniciarTratamiento"
-            :disable="!formularioValido"
-          />
-          <q-btn
-            v-else-if="datosFisioterapia.estado === 'activo'"
-            color="primary"
-            icon="add"
-            label="Nueva Sesión"
-            @click="agregarSesion"
-            class="q-mr-sm"
-          />
-          <q-btn
-            v-if="datosFisioterapia.estado === 'activo'"
-            color="positive"
-            icon="check_circle"
-            label="Finalizar"
-            @click="finalizarTratamiento"
-          />
-        </div>
+        <q-btn 
+          v-if="datosFisioterapia.estado === 'planificado'"
+          color="positive" 
+          icon="play_arrow" 
+          label="Iniciar Tratamiento" 
+          @click="iniciarTratamiento" 
+          :disable="!formularioValido || procesando"
+          class="br-lg q-px-lg shadow-1"
+          no-caps
+        />
+
+        <q-btn 
+          v-if="datosFisioterapia.estado === 'activo'"
+          color="primary" 
+          icon="add" 
+          label="Siguiente Sesión" 
+          @click="agregarSesion" 
+          :disable="procesando"
+          class="br-lg q-px-lg shadow-1"
+          no-caps
+        />
+
+        <q-btn 
+          v-if="datosFisioterapia.estado === 'activo'"
+          flat
+          color="positive" 
+          icon="check_circle" 
+          label="Finalizar Tratamiento" 
+          @click="finalizarTratamiento" 
+          class="br-lg"
+          no-caps
+        />
+
+        <q-btn 
+          v-if="modoEdicionManual"
+          color="blue-8" 
+          icon="save" 
+          label="Guardar Cambios" 
+          @click="guardarLocal" 
+          :disable="!formularioValido"
+          class="br-lg q-px-lg shadow-1"
+          no-caps
+        />
       </div>
     </q-card-section>
-
-    <!-- Modal para agregar/editar sesión -->
-    <q-dialog v-model="mostrarModalSesion" persistent>
-      <q-card style="min-width: 700px; max-width: 90vw">
-        <q-card-section>
-          <div class="text-h6">
-            {{ sesionEditando !== null ? `Editar Sesión ${sesionTemporal.numeroSesion}` : `Nueva Sesión #${sesionActual + 1}` }}
-          </div>
-        </q-card-section>
-
-        <q-card-section class="q-pt-none">
-          <div class="row q-col-gutter-md">
-            <div class="col-12 col-md-6">
-              <q-input
-                v-model="sesionTemporal.fecha"
-                label="Fecha y Hora"
-                outlined
-                type="datetime-local"
-              />
-            </div>
-            
-            <div class="col-12 col-md-6">
-              <q-input
-                v-model="sesionTemporal.duracion"
-                label="Duración (minutos)"
-                outlined
-                type="number"
-                min="15"
-                max="120"
-                step="5"
-              />
-            </div>
-            
-            <div class="col-12">
-              <q-select
-                v-model="sesionTemporal.tecnicasAplicadas"
-                :options="tecnicasFisioterapia"
-                label="Técnicas Aplicadas"
-                outlined
-                option-label="label"
-                option-value="value"
-                multiple
-                use-chips
-              />
-            </div>
-            
-            <div class="col-12">
-              <q-input
-                v-model="sesionTemporal.observaciones"
-                label="Observaciones de la Sesión"
-                outlined
-                type="textarea"
-                rows="3"
-                placeholder="Describe cómo se desarrolló la sesión, reacciones del paciente..."
-              />
-            </div>
-            
-            <div class="col-12">
-              <q-separator class="q-my-md"/>
-              <div class="text-subtitle2 q-mb-md">Evaluación de la Sesión</div>
-            </div>
-            
-            <div class="col-12 col-md-4">
-              <q-select
-                v-model="sesionTemporal.evaluacion.progreso"
-                :options="tiposProgreso"
-                label="Progreso Observado"
-                outlined
-                option-label="label"
-                option-value="value"
-              />
-            </div>
-            
-            <div class="col-6 col-md-4">
-              <q-input
-                v-model="sesionTemporal.evaluacion.nivelDolor"
-                label="Nivel de Dolor (0-10)"
-                outlined
-                type="number"
-                min="0"
-                max="10"
-                step="1"
-              />
-            </div>
-            
-            <div class="col-6 col-md-4">
-              <q-select
-                v-model="sesionTemporal.evaluacion.cooperacion"
-                :options="nivelesCooperacion"
-                label="Nivel de Cooperación"
-                outlined
-                option-label="label"
-                option-value="value"
-              />
-            </div>
-            
-            <div class="col-12">
-              <q-input
-                v-model="sesionTemporal.evaluacion.observaciones"
-                label="Observaciones de Evaluación"
-                outlined
-                type="textarea"
-                rows="2"
-                placeholder="Cambios específicos observados, reacciones..."
-              />
-            </div>
-          </div>
-        </q-card-section>
-
-        <q-card-actions align="right">
-          <q-btn flat label="Cancelar" @click="cancelarSesion"/>
-          <q-btn color="primary" label="Guardar Sesión" @click="guardarSesion"/>
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
-    <!-- Modal para finalizar tratamiento -->
-    <q-dialog v-model="mostrarModalFinalizacion" persistent>
-      <q-card style="min-width: 600px">
-        <q-card-section>
-          <div class="text-h6">Finalizar Tratamiento de Fisioterapia</div>
-        </q-card-section>
-
-        <q-card-section>
-          <div class="row q-col-gutter-md">
-            <div class="col-12">
-              <q-select
-                v-model="finalizacionTemporal.resultado"
-                :options="resultadosTratamiento"
-                label="Resultado del Tratamiento"
-                outlined
-                option-label="label"
-                option-value="value"
-              />
-            </div>
-            
-            <div class="col-12">
-              <q-input
-                v-model="finalizacionTemporal.evaluacionFinal"
-                label="Evaluación Final"
-                outlined
-                type="textarea"
-                rows="4"
-                placeholder="Resumen del progreso alcanzado, estado final del paciente..."
-              />
-            </div>
-            
-            <div class="col-12">
-              <q-input
-                v-model="finalizacionTemporal.recomendaciones"
-                label="Recomendaciones Continuas"
-                outlined
-                type="textarea"
-                rows="3"
-                placeholder="Ejercicios en casa, cuidados especiales, próximas evaluaciones..."
-              />
-            </div>
-          </div>
-        </q-card-section>
-
-        <q-card-actions align="right">
-          <q-btn flat label="Cancelar" @click="cancelarFinalizacion"/>
-          <q-btn color="primary" label="Finalizar Tratamiento" @click="confirmarFinalizacion"/>
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
   </q-card>
+
+  <!-- Modales Dinámicos -->
+  <q-dialog v-model="mostrarModalSesion" persistent>
+    <q-card style="min-width: 500px" class="br-xl">
+       <q-card-section class="bg-blue text-white"><div class="text-h6">{{ sesionEditando !== null ? 'Editar' : 'Nueva' }} Sesión</div></q-card-section>
+       <q-card-section class="q-pa-lg row q-col-gutter-md">
+          <div class="col-6"><q-input v-model="sesionTemporal.fecha" label="Fecha/Hora" outlined dense type="datetime-local" class="br-md" /></div>
+          <div class="col-6"><q-input v-model="sesionTemporal.duracion" label="Duración (min)" outlined dense type="number" class="br-md" /></div>
+          <div class="col-12"><q-select v-model="sesionTemporal.tecnicasAplicadas" :options="tecnicasFisioterapia" label="Técnicas" outlined dense multiple use-chips class="br-md" /></div>
+          <div class="col-12"><q-input v-model="sesionTemporal.observaciones" label="Notas de la sesión" outlined dense type="textarea" rows="3" class="br-md" /></div>
+       </q-card-section>
+       <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="Cancelar" v-close-popup no-caps />
+          <q-btn color="blue" label="Guardar Sesión" @click="guardarSesion" class="br-lg px-lg" no-caps />
+       </q-card-actions>
+    </q-card>
+  </q-dialog>
+
+  <q-dialog v-model="mostrarModalFinalizacion" persistent>
+    <q-card style="min-width: 400px" class="br-xl">
+       <q-card-section class="bg-positive text-white"><div class="text-h6">Finalizar Tratamiento</div></q-card-section>
+       <q-card-section class="q-pa-lg">
+          <q-select v-model="finalizacionTemporal.resultado" :options="resultadosTratamiento" label="Resultado" outlined dense class="br-md q-mb-md" />
+          <q-input v-model="finalizacionTemporal.evaluacionFinal" label="Resumen Final" outlined type="textarea" rows="4" class="br-md" />
+       </q-card-section>
+       <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="Cancelar" v-close-popup no-caps />
+          <q-btn color="positive" label="Confirmar Cierre" @click="confirmarFinalizacion" class="br-lg px-lg" no-caps />
+       </q-card-actions>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useQuasar } from 'quasar'
 
-// Props
 const props = defineProps({
-  atencionId: {
-    type: String,
-    required: true
-  },
-  servicioId: {
-    type: String,
-    required: true
-  },
-  modoLectura: {
-    type: Boolean,
-    default: false
-  }
+  atencionId: { type: String, required: true },
+  servicioId: { type: String, required: true },
+  modoLectura: { type: Boolean, default: false },
+  datosIniciales: { type: Object, default: () => ({}) },
+  plantillasServicio: { type: Array, default: () => [] }
 })
 
-// Emits
-const emit = defineEmits(['servicio-actualizado', 'servicio-completado', 'servicio-eliminado'])
+const emit = defineEmits(['servicio-actualizado', 'servicio-completado', 'servicio-eliminado', 'imprimir-servicio', 'firmar-servicio'])
+const $q = useQuasar()
 
-// Estados del formulario
-const datosFisioterapia = ref({
-  estado: 'planificado', // planificado, activo, completado
-  indicacionMedica: '',
-  tipoTratamiento: '',
-  areaAfectada: [],
-  totalSesiones: 8,
-  frecuencia: 'semanal',
-  objetivosTratamiento: '',
-  fechaInicio: '',
-  fechaFinalizacion: '',
-  evaluacionInicial: {
-    movilidad: '',
-    dolor: '',
-    nivelActividad: 'moderado',
-    estadoAnimo: 'neutral',
-    peso: ''
-  },
-  sesiones: [],
-  resultadoTratamiento: '',
-  evaluacionFinal: '',
-  recomendacionesContinuas: '',
-  observacionesGenerales: ''
-})
-
-// Estados para modales
+const procesando = ref(false)
+const modoEdicionManual = ref(false)
 const mostrarModalSesion = ref(false)
 const mostrarModalFinalizacion = ref(false)
 const sesionEditando = ref(null)
 
-const sesionTemporal = ref({
-  numeroSesion: 1,
-  fecha: new Date().toISOString().slice(0, 16),
-  duracion: 30,
-  tecnicasAplicadas: [],
-  observaciones: '',
-  evaluacion: {
-    progreso: 'sin_cambio',
-    nivelDolor: 0,
-    cooperacion: 'buena',
-    observaciones: ''
-  },
-  editable: true
+const datosFisioterapia = ref({
+  estado: 'planificado', indicacionMedica: '', tipoTratamiento: 'Rehabilitación', areaAfectada: [], totalSesiones: 5, frecuencia: 'Semanal', fechaInicio: '', fechaFinalizacion: '', sesiones: []
 })
 
-const finalizacionTemporal = ref({
-  resultado: 'exitoso',
-  evaluacionFinal: '',
-  recomendaciones: ''
-})
+const sesionTemporal = ref({ numeroSesion: 1, fecha: '', duracion: 30, tecnicasAplicadas: [], observaciones: '', evaluacion: { progreso: 'sin_cambio' } })
+const finalizacionTemporal = ref({ resultado: 'Exitoso', evaluacionFinal: '' })
 
-// Opciones para selects
-const tiposTratamiento = [
-  { label: 'Rehabilitación Post-Quirúrgica', value: 'post_quirurgica' },
-  { label: 'Tratamiento de Artritis', value: 'artritis' },
-  { label: 'Recuperación de Lesiones', value: 'lesiones' },
-  { label: 'Fortalecimiento Muscular', value: 'fortalecimiento' },
-  { label: 'Mejora de Movilidad', value: 'movilidad' },
-  { label: 'Manejo del Dolor', value: 'dolor' },
-  { label: 'Neurológico', value: 'neurologico' },
-  { label: 'Geriátrico', value: 'geriatrico' },
-  { label: 'Deportivo/Performance', value: 'deportivo' }
-]
+const tiposTratamiento = ['Rehabilitación', 'Analgésico', 'Neurológico', 'Geriátrico']
+const frecuencias = ['Diaria', 'Semanal', 'Quincenal']
+const tecnicasFisioterapia = ['Masaje', 'Laser', 'Ultrasonido', 'Magneto', 'Ejercicios']
+const resultadosTratamiento = ['Exitoso', 'Parcial', 'Sin cambio']
 
-const areasAfectadas = [
-  { label: 'Miembros Anteriores', value: 'miembros_anteriores' },
-  { label: 'Miembros Posteriores', value: 'miembros_posteriores' },
-  { label: 'Columna Vertebral', value: 'columna' },
-  { label: 'Cuello', value: 'cuello' },
-  { label: 'Cadera', value: 'cadera' },
-  { label: 'Rodilla', value: 'rodilla' },
-  { label: 'Codo', value: 'codo' },
-  { label: 'Hombro', value: 'hombro' },
-  { label: 'Todo el Cuerpo', value: 'general' }
-]
+const formularioValido = computed(() => datosFisioterapia.value.indicacionMedica && datosFisioterapia.value.totalSesiones > 0)
+const sesionActual = computed(() => datosFisioterapia.value.sesiones.length)
+const porcentajeProgreso = computed(() => datosFisioterapia.value.totalSesiones > 0 ? (sesionActual.value / datosFisioterapia.value.totalSesiones) * 100 : 0)
 
-const frecuencias = [
-  { label: 'Diaria', value: 'diaria' },
-  { label: '3 veces por semana', value: 'tres_semanal' },
-  { label: '2 veces por semana', value: 'dos_semanal' },
-  { label: 'Semanal', value: 'semanal' },
-  { label: 'Quincenal', value: 'quincenal' }
-]
-
-const nivelesActividad = [
-  { label: 'Muy Bajo', value: 'muy_bajo' },
-  { label: 'Bajo', value: 'bajo' },
-  { label: 'Moderado', value: 'moderado' },
-  { label: 'Alto', value: 'alto' },
-  { label: 'Muy Alto', value: 'muy_alto' }
-]
-
-const estadosAnimo = [
-  { label: 'Deprimido', value: 'deprimido' },
-  { label: 'Ansioso', value: 'ansioso' },
-  { label: 'Neutral', value: 'neutral' },
-  { label: 'Cooperativo', value: 'cooperativo' },
-  { label: 'Energético', value: 'energetico' }
-]
-
-const tecnicasFisioterapia = [
-  { label: 'Ejercicios Pasivos', value: 'ejercicios_pasivos' },
-  { label: 'Ejercicios Activos', value: 'ejercicios_activos' },
-  { label: 'Hidroterapia', value: 'hidroterapia' },
-  { label: 'Masaje Terapéutico', value: 'masaje' },
-  { label: 'Electroterapia', value: 'electroterapia' },
-  { label: 'Termoterapia', value: 'termoterapia' },
-  { label: 'Crioterapia', value: 'crioterapia' },
-  { label: 'Ultrasonido', value: 'ultrasonido' },
-  { label: 'Laser Terapéutico', value: 'laser' },
-  { label: 'Acupuntura', value: 'acupuntura' },
-  { label: 'Ejercicios de Equilibrio', value: 'equilibrio' },
-  { label: 'Caminata Asistida', value: 'caminata_asistida' },
-  { label: 'Stretching', value: 'stretching' }
-]
-
-const tiposProgreso = [
-  { label: 'Excelente Progreso', value: 'excelente' },
-  { label: 'Buen Progreso', value: 'bueno' },
-  { label: 'Progreso Moderado', value: 'moderado' },
-  { label: 'Progreso Lento', value: 'lento' },
-  { label: 'Sin Cambio', value: 'sin_cambio' },
-  { label: 'Empeoramiento', value: 'empeoramiento' }
-]
-
-const nivelesCooperacion = [
-  { label: 'Excelente', value: 'excelente' },
-  { label: 'Buena', value: 'buena' },
-  { label: 'Regular', value: 'regular' },
-  { label: 'Pobre', value: 'pobre' },
-  { label: 'Resistente', value: 'resistente' }
-]
-
-const resultadosTratamiento = [
-  { label: 'Exitoso - Objetivos Alcanzados', value: 'exitoso' },
-  { label: 'Parcialmente Exitoso', value: 'parcial' },
-  { label: 'Sin Mejora Significativa', value: 'sin_mejora' },
-  { label: 'Interrumpido por el Cliente', value: 'interrumpido' },
-  { label: 'Requiere Tratamiento Adicional', value: 'adicional' }
-]
-
-// Computed properties
-const formularioValido = computed(() => {
-  return datosFisioterapia.value.indicacionMedica && 
-         datosFisioterapia.value.tipoTratamiento &&
-         datosFisioterapia.value.totalSesiones > 0
-})
-
-const sesionActual = computed(() => {
-  return datosFisioterapia.value.sesiones.length
-})
-
-const porcentajeProgreso = computed(() => {
-  if (datosFisioterapia.value.totalSesiones === 0) return 0
-  return (sesionActual.value / datosFisioterapia.value.totalSesiones) * 100
-})
-
-// Métodos para el estado
-const getEstadoColor = () => {
-  switch(datosFisioterapia.value.estado) {
-    case 'planificado': return 'orange'
-    case 'activo': return 'blue'
-    case 'completado': return 'green'
-    default: return 'grey'
-  }
-}
-
-const getEstadoIcon = () => {
-  switch(datosFisioterapia.value.estado) {
-    case 'planificado': return 'schedule'
-    case 'activo': return 'accessibility_new'
-    case 'completado': return 'check_circle'
-    default: return 'help'
-  }
-}
-
-const getEstadoLabel = () => {
-  switch(datosFisioterapia.value.estado) {
-    case 'planificado': return 'Planificado'
-    case 'activo': return 'En Tratamiento'
-    case 'completado': return 'Completado'
-    default: return 'Estado Desconocido'
-  }
-}
-
-// Métodos para sesiones
-const getSesionColor = (progreso) => {
-  const colores = {
-    excelente: 'green',
-    bueno: 'light-green',
-    moderado: 'blue',
-    lento: 'orange',
-    sin_cambio: 'grey',
-    empeoramiento: 'red'
-  }
-  return colores[progreso] || 'grey'
-}
-
-const getSesionIcon = (progreso) => {
-  const iconos = {
-    excelente: 'trending_up',
-    bueno: 'thumb_up',
-    moderado: 'timeline',
-    lento: 'trending_flat',
-    sin_cambio: 'remove',
-    empeoramiento: 'trending_down'
-  }
-  return iconos[progreso] || 'accessibility_new'
-}
-
-const getTecnicaLabel = (tecnicaValue) => {
-  const tecnica = tecnicasFisioterapia.find(t => t.value === tecnicaValue)
-  return tecnica ? tecnica.label : tecnicaValue
-}
-
-const getProgresoColor = (progreso) => {
-  return getSesionColor(progreso)
-}
-
-const getProgresoLabel = (progreso) => {
-  const tipo = tiposProgreso.find(t => t.value === progreso)
-  return tipo ? tipo.label : progreso
-}
-
-const getCooperacionLabel = (cooperacion) => {
-  const nivel = nivelesCooperacion.find(n => n.value === cooperacion)
-  return nivel ? nivel.label : cooperacion
-}
-
-const formatDateTime = (fechaISO) => {
-  if (!fechaISO) return ''
-  const fecha = new Date(fechaISO)
-  return fecha.toLocaleString('es-MX', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
-
-// Métodos de acción
 const iniciarTratamiento = () => {
-  if (formularioValido.value) {
-    datosFisioterapia.value.estado = 'activo'
-    datosFisioterapia.value.fechaInicio = new Date().toISOString().split('T')[0]
-    
-    guardarDatos()
-  }
+  datosFisioterapia.value.estado = 'activo'
+  datosFisioterapia.value.fechaInicio = new Date().toLocaleDateString()
+  guardarLocal()
 }
 
 const agregarSesion = () => {
-  sesionTemporal.value = {
-    numeroSesion: sesionActual.value + 1,
-    fecha: new Date().toISOString().slice(0, 16),
-    duracion: 30,
-    tecnicasAplicadas: [],
-    observaciones: '',
-    evaluacion: {
-      progreso: 'sin_cambio',
-      nivelDolor: 0,
-      cooperacion: 'buena',
-      observaciones: ''
-    },
-    editable: true
+  sesionTemporal.value = { 
+    numeroSesion: sesionActual.value + 1, 
+    fecha: new Date().toISOString().slice(0, 16), 
+    duracion: 30, 
+    tecnicasAplicadas: [], 
+    observaciones: '', 
+    evaluacion: { progreso: 'bueno' } 
   }
   sesionEditando.value = null
   mostrarModalSesion.value = true
 }
 
-const editarSesion = (index) => {
-  sesionEditando.value = index
-  sesionTemporal.value = { ...datosFisioterapia.value.sesiones[index] }
+const editarSesion = (idx) => {
+  sesionEditando.value = idx
+  sesionTemporal.value = JSON.parse(JSON.stringify(datosFisioterapia.value.sesiones[idx]))
   mostrarModalSesion.value = true
 }
 
@@ -952,72 +313,57 @@ const guardarSesion = () => {
     datosFisioterapia.value.sesiones[sesionEditando.value] = { ...sesionTemporal.value }
   } else {
     datosFisioterapia.value.sesiones.push({ ...sesionTemporal.value })
-    
-    // Verificar si se completaron todas las sesiones
-    if (datosFisioterapia.value.sesiones.length >= datosFisioterapia.value.totalSesiones) {
-      // Sugerir finalizar tratamiento automáticamente
-      setTimeout(() => {
-        if (datosFisioterapia.value.estado === 'activo') {
-          finalizarTratamiento()
-        }
-      }, 1000)
-    }
   }
-  
-  // Ordenar sesiones por número
-  datosFisioterapia.value.sesiones.sort((a, b) => a.numeroSesion - b.numeroSesion)
-  
   mostrarModalSesion.value = false
-  guardarDatos()
+  guardarLocal()
 }
 
-const cancelarSesion = () => {
-  mostrarModalSesion.value = false
-  sesionEditando.value = null
-}
-
-const finalizarTratamiento = () => {
-  finalizacionTemporal.value = {
-    resultado: 'exitoso',
-    evaluacionFinal: '',
-    recomendaciones: ''
-  }
-  mostrarModalFinalizacion.value = true
-}
+const finalizarTratamiento = () => { mostrarModalFinalizacion.value = true }
 
 const confirmarFinalizacion = () => {
   datosFisioterapia.value.estado = 'completado'
-  datosFisioterapia.value.fechaFinalizacion = new Date().toISOString().split('T')[0]
-  datosFisioterapia.value.resultadoTratamiento = finalizacionTemporal.value.resultado
-  datosFisioterapia.value.evaluacionFinal = finalizacionTemporal.value.evaluacionFinal
-  datosFisioterapia.value.recomendacionesContinuas = finalizacionTemporal.value.recomendaciones
-  
-  mostrarModalFinalizacion.value = false
-  
-  emit('servicio-completado', props.servicioId, {
-    ...datosFisioterapia.value,
-    completadaPor: 'Dr. Usuario Actual' // Obtener del contexto
-  })
-}
-
-const cancelarFinalizacion = () => {
+  datosFisioterapia.value.fechaFinalizacion = new Date().toLocaleDateString()
+  emit('servicio-completado', props.servicioId, { ...datosFisioterapia.value })
   mostrarModalFinalizacion.value = false
 }
 
-const guardarDatos = () => {
-  emit('servicio-actualizado', props.servicioId, datosFisioterapia.value)
+const formatDateTime = (iso) => iso ? new Date(iso).toLocaleString() : ''
+const getSesionColor = (p) => (p === 'bueno' ? 'positive' : 'blue')
+const getSesionIcon = (p) => (p === 'bueno' ? 'trending_up' : 'calendar_today')
+
+const cancelarEdicion = () => {
+  if (props.datosIniciales) { datosFisioterapia.value = JSON.parse(JSON.stringify(props.datosIniciales)) }
+  modoEdicionManual.value = false
+}
+
+const guardarLocal = () => { emit('servicio-actualizado', props.servicioId, { ...datosFisioterapia.value }) }
+
+const imprimirReporte = (tipo, idPlantilla = null) => {
+  emit('imprimir-servicio', props.servicioId, { ...datosFisioterapia.value }, tipo, idPlantilla)
+}
+
+const firmarDocumento = (tipo, idPlantilla = null) => {
+  emit('firmar-servicio', props.servicioId, { ...datosFisioterapia.value }, tipo, idPlantilla)
 }
 
 const eliminarServicio = () => {
-  emit('servicio-eliminado', props.servicioId)
+  $q.dialog({ title: 'Eliminar', message: '¿Eliminar fisioterapia?', cancel: true }).onOk(() => {
+    emit('servicio-eliminado', props.servicioId)
+  })
 }
 
-// Watchers
-watch(datosFisioterapia, guardarDatos, { deep: true })
+onMounted(() => {
+  if (props.datosIniciales && Object.keys(props.datosIniciales).length > 0) {
+    datosFisioterapia.value = { ...datosFisioterapia.value, ...JSON.parse(JSON.stringify(props.datosIniciales)) }
+  }
+})
 </script>
 
 <style scoped>
-.servicio-card {
-  margin-bottom: 16px;
-}
+.service-icon-wrap { width: 44px; height: 44px; }
+.br-xl { border-radius: 20px; }
+.br-lg { border-radius: 12px; }
+.br-md { border-radius: 8px; }
+.border-top { border-top: 1px solid rgba(0,0,0,0.05); }
+.bg-teal-0 { background: rgba(224, 242, 241, 0.4); }
 </style>

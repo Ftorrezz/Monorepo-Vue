@@ -246,7 +246,7 @@ export const menuConfig = [
     ],
   },
   {
-    labelKey: "administrador",
+    labelKey: "Administrador",
     icon: "person",
     items: [
       {

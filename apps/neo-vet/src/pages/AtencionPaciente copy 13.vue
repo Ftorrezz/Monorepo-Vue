@@ -16,42 +16,6 @@
         <div class="sidebar-main scroll">
 
 
-
-          <!-- Timeline de Historial Contextual (Mejorado) -->
-          <div class="history-context-section q-mt-md q-pb-md" v-if="!sidebarCollapsed && atenciones.length > 1" key="history-section">
-            <div class="flex items-center q-px-md q-mb-sm">
-              <q-icon name="history" color="grey-6" size="18px" class="q-mr-sm" />
-              <div class="text-uppercase text-weight-bold text-caption text-grey-7 letter-spacing-1">Historial de Atención</div>
-            </div>
-
-            <q-list class="q-gutter-y-xs">
-              <q-item
-                v-for="(atenc, idx) in atenciones.slice(0, 5)"
-                :key="'hist-' + atenc.id"
-                clickable v-ripple
-                @click="atencionActual = idx"
-                :active="atencionActual === idx"
-                class="br-lg q-mx-md history-card-item"
-                :class="{ 'history-card-active': atencionActual === idx }"
-              >
-                <q-item-section>
-                  <div class="row items-center justify-between no-wrap q-mb-xs">
-                    <q-item-label class="text-weight-bolder text-body2 text-primary">{{ atenc.numero }}</q-item-label>
-                    <q-item-label caption class="text-weight-bold">{{ atenc.fecha }}</q-item-label>
-                  </div>
-                  <q-item-label caption lines="1" class="text-grey-7 flex items-center">
-                    <q-icon name="person" size="12px" class="q-mr-xs" />
-                    {{ atenc.veterinario }}
-                  </q-item-label>
-                </q-item-section>
-
-                <q-item-section side v-if="atenc.estado === 'Finalizada'">
-                  <q-icon name="check_circle" color="grey-4" size="16px" />
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </div>
-
           <!-- Navegación de Servicios Activos -->
           <q-list class="q-px-sm" padding>
             <q-item-label header v-if="!sidebarCollapsed" class="text-uppercase text-weight-bold text-caption text-grey-5 letter-spacing-1">Servicios de Atención</q-item-label>
@@ -91,31 +55,54 @@
               <q-tooltip v-if="sidebarCollapsed" anchor="center right" self="center left">{{ servicio.nombre }}</q-tooltip>
             </q-item>
 
+            <!-- Boton Añadir -->
             <q-item clickable v-ripple class="nav-btn-add br-md q-mt-md" @click="showAddServiceDialog = true" key="add-service-btn">
               <q-item-section avatar>
                 <q-icon name="add_circle" color="primary" />
               </q-item-section>
               <q-item-section v-if="!sidebarCollapsed" class="text-primary text-weight-bold">Agregar Servicio</q-item-section>
             </q-item>
-
-            <!-- Boton Guardar (Movido para visibilidad) -->
-            <q-item clickable v-ripple class="nav-btn-save br-md q-mt-xs" @click="guardarAtencion" v-if="atenciones.length > 0" key="save-atencion-btn">
-              <q-item-section avatar>
-                <q-icon name="save" :color="guardandoAtencion ? 'grey-4' : 'positive'" />
-              </q-item-section>
-              <q-item-section v-if="!sidebarCollapsed" class="text-positive text-weight-bold">
-                {{ guardandoAtencion ? 'Guardando...' : 'Guardar Atención' }}
-              </q-item-section>
-              <q-item-section side v-if="guardandoAtencion">
-                <q-spinner color="positive" size="14px" />
-              </q-item-section>
-            </q-item>
           </q-list>
 
+          <!-- Timeline de Historial Contextual (Mejorado) -->
+          <div class="history-context-section q-mt-lg q-pb-md" v-if="!sidebarCollapsed && atenciones.length > 1" key="history-section">
+            <div class="flex items-center q-px-md q-mb-sm">
+              <q-icon name="history" color="grey-6" size="18px" class="q-mr-sm" />
+              <div class="text-uppercase text-weight-bold text-caption text-grey-7 letter-spacing-1">Historial de Atención</div>
+            </div>
+
+            <q-list class="q-gutter-y-xs">
+              <q-item
+                v-for="(atenc, idx) in atenciones.slice(0, 5)"
+                :key="'hist-' + atenc.id"
+                clickable v-ripple
+                @click="atencionActual = idx"
+                :active="atencionActual === idx"
+                class="br-lg q-mx-md history-card-item"
+                :class="{ 'history-card-active': atencionActual === idx }"
+              >
+                <q-item-section>
+                  <div class="row items-center justify-between no-wrap q-mb-xs">
+                    <q-item-label class="text-weight-bolder text-body2 text-primary">{{ atenc.numero }}</q-item-label>
+                    <q-item-label caption class="text-weight-bold">{{ atenc.fecha }}</q-item-label>
+                  </div>
+                  <q-item-label caption lines="1" class="text-grey-7 flex items-center">
+                    <q-icon name="person" size="12px" class="q-mr-xs" />
+                    {{ atenc.veterinario }}
+                  </q-item-label>
+                </q-item-section>
+
+                <q-item-section side v-if="atenc.estado === 'Finalizada'">
+                  <q-icon name="check_circle" color="grey-4" size="16px" />
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </div>
         </div>
 
         <div class="sidebar-actions q-pa-md" v-if="!sidebarCollapsed">
-          <q-btn outline color="primary" icon="history" label="Ver Historial" class="full-width br-lg" @click="verDetallesAtencion" />
+          <q-btn outline color="primary" icon="history" label="Ver Historial" class="full-width br-lg q-mb-sm" @click="verDetallesAtencion" />
+          <q-btn unelevated color="primary" icon="save" label="Guardar Atención" class="full-width br-lg" :loading="guardandoAtencion" @click="guardarAtencion" />
         </div>
       </aside>
 

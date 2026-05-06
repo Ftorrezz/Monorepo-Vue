@@ -1,927 +1,276 @@
 <template>
-  <q-card class="servicio-card">
-    <q-card-section class="bg-pink-1">
-      <div class="row items-center">
-        <q-icon name="pets" color="pink" size="md" class="q-mr-md"/>
+  <q-card class="servicio-card overflow-hidden br-xl shadow-2">
+    <q-card-section class="bg-pink-1 q-pa-md">
+      <div class="row items-center no-wrap">
+        <div class="service-icon-wrap bg-pink-2 q-mr-md flex flex-center br-lg">
+          <q-icon name="pets" color="pink-8" size="24px" />
+        </div>
         <div class="col">
-          <div class="text-h6">Estética Canina</div>
-          <div class="text-caption text-grey-7">
+          <div class="text-subtitle1 text-weight-bolder text-pink-10">Estética Canina</div>
+          <div class="text-caption text-pink-7 opacity-80">
             {{ datosEstetica.estado === 'completado' ? 'Servicio completado' : 
                datosEstetica.estado === 'en_proceso' ? 'En proceso' : 'Servicio programado' }}
           </div>
         </div>
-        <q-btn-dropdown 
-          flat round 
-          icon="more_vert"
-          :disable="modoLectura"
-        >
-          <q-list>
-            <q-item 
-              clickable 
-              @click="iniciarServicio" 
-              v-if="datosEstetica.estado === 'programado'"
-              :disable="!formularioValido"
-            >
-              <q-item-section avatar>
-                <q-icon name="play_arrow" color="positive"/>
-              </q-item-section>
-              <q-item-section>Iniciar Servicio</q-item-section>
-            </q-item>
-            
-            <q-item 
-              clickable 
-              @click="completarServicio" 
-              v-if="datosEstetica.estado === 'en_proceso'"
-            >
-              <q-item-section avatar>
-                <q-icon name="check_circle" color="positive"/>
-              </q-item-section>
-              <q-item-section>Completar Servicio</q-item-section>
-            </q-item>
-            
-            <q-item clickable @click="eliminarServicio">
-              <q-item-section avatar>
-                <q-icon name="delete" color="negative"/>
-              </q-item-section>
-              <q-item-section>Eliminar</q-item-section>
-            </q-item>
-          </q-list>
-        </q-btn-dropdown>
+        
+        <div class="row items-center q-gutter-xs">
+          <q-btn 
+            v-if="modoLectura && !modoEdicionManual"
+            flat dense round 
+            color="pink-7" 
+            icon="edit" 
+            size="sm" 
+            @click="modoEdicionManual = true"
+          >
+            <q-tooltip>Habilitar Edición</q-tooltip>
+          </q-btn>
+          
+          <q-btn 
+            v-if="modoEdicionManual"
+            flat dense round 
+            color="grey-7" 
+            icon="close" 
+            size="sm" 
+            @click="cancelarEdicion"
+          >
+            <q-tooltip>Cancelar Edición</q-tooltip>
+          </q-btn>
+
+          <q-btn-dropdown flat round icon="more_vert" color="pink-7" dropdown-icon="none">
+            <q-list dense style="min-width: 200px" class="br-md">
+              <q-item clickable @click="imprimirReporte('especial')">
+                <q-item-section avatar><q-icon name="print" color="pink" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Imprimir Reporte</q-item-section>
+              </q-item>
+
+              <q-item clickable @click="firmarDocumento('especial')">
+                <q-item-section avatar><q-icon name="history_edu" color="orange-8" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Visualizar y Firmar</q-item-section>
+              </q-item>
+
+              <q-separator v-if="plantillasServicio && plantillasServicio.length > 0" />
+              
+              <q-item v-if="plantillasServicio && plantillasServicio.length > 0" clickable>
+                <q-item-section avatar><q-icon name="description" color="secondary" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Imprimir Plantilla</q-item-section>
+                <q-item-section side><q-icon name="chevron_right" /></q-item-section>
+                
+                <q-menu anchor="top end" self="top start">
+                  <q-list style="min-width: 200px">
+                    <q-item v-for="p in plantillasServicio" :key="p.id_plantilla" clickable v-close-popup @click="imprimirReporte('plantilla', p.id_plantilla)">
+                      <q-item-section avatar><q-icon name="description" color="secondary" size="xs" /></q-item-section>
+                      <q-item-section>{{ p.nombre_plantilla }}</q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-item>
+
+              <q-separator />
+              <q-item v-if="datosEstetica.estado === 'programado'" clickable @click="iniciarServicio" class="text-positive" :disable="!formularioValido">
+                <q-item-section avatar><q-icon name="play_arrow" color="positive" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-bold">Iniciar Servicio</q-item-section>
+              </q-item>
+
+              <q-item clickable @click="eliminarServicio" class="text-negative">
+                <q-item-section avatar><q-icon name="delete" color="negative" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Eliminar Servicio</q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+        </div>
       </div>
     </q-card-section>
-    
-    <q-card-section>
-      <!-- Información del servicio -->
-      <div class="row q-col-gutter-md">
-        <div class="col-12">
-          <div class="text-subtitle2 q-mb-md">
-            <q-icon name="content_cut" color="pink" class="q-mr-sm"/>
-            Detalles del Servicio
-          </div>
-        </div>
-        
-        <div class="col-12 col-md-6">
+
+    <q-card-section class="q-pa-lg">
+      <div class="row q-col-gutter-lg">
+        <div class="col-12 col-md-8">
           <q-select
             v-model="datosEstetica.tipoServicio"
-            :options="tiposServicio"
-            label="Tipo de Servicio *"
-            outlined
-            option-label="label"
-            option-value="value"
-            multiple
-            use-chips
-            :readonly="modoLectura || datosEstetica.estado === 'completado'"
+            :options="['Baño', 'Corte', 'Uñas', 'Oídos', 'Drenado Glándulas']"
+            label="Servicios a Realizar *"
+            outlined dense multiple use-chips
+            class="br-md q-mb-md"
+            :readonly="(modoLectura && !modoEdicionManual) || datosEstetica.estado === 'completado'"
           />
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <q-select
-            v-model="datosEstetica.tipoCorte"
-            :options="tiposCorte"
-            label="Tipo de Corte"
-            outlined
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura || datosEstetica.estado === 'completado'"
-          />
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <q-input
-            v-model="datosEstetica.fechaProgramada"
-            label="Fecha Programada"
-            outlined
-            type="datetime-local"
-            :readonly="modoLectura || datosEstetica.estado !== 'programado'"
-          />
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <q-input
-            v-model="datosEstetica.duracionEstimada"
-            label="Duración Estimada (minutos)"
-            outlined
-            type="number"
-            min="30"
-            max="300"
-            step="15"
-            :readonly="modoLectura || datosEstetica.estado === 'completado'"
-          />
-        </div>
-        
-        <div class="col-12">
           <q-input
             v-model="datosEstetica.instruccionesEspeciales"
-            label="Instrucciones Especiales"
-            outlined
-            type="textarea"
-            rows="2"
-            :readonly="modoLectura || datosEstetica.estado === 'completado'"
-            placeholder="Preferencias del cliente, cuidados especiales, estilo deseado..."
-          />
-        </div>
-      </div>
-
-      <!-- Estado del pelaje -->
-      <div class="row q-col-gutter-md q-mt-md">
-        <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">
-            <q-icon name="visibility" color="orange" class="q-mr-sm"/>
-            Estado Inicial del Pelaje
-          </div>
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <q-select
-            v-model="datosEstetica.estadoPelaje.tipo"
-            :options="tiposPelaje"
-            label="Tipo de Pelaje"
-            outlined
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura"
-          />
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <q-select
-            v-model="datosEstetica.estadoPelaje.longitud"
-            :options="longitudesPelaje"
-            label="Longitud del Pelaje"
-            outlined
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura"
-          />
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <q-select
-            v-model="datosEstetica.estadoPelaje.condicion"
-            :options="condicionesPelaje"
-            label="Condición del Pelaje"
-            outlined
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura"
-          />
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <q-select
-            v-model="datosEstetica.estadoPelaje.problemasEspeciales"
-            :options="problemasEspeciales"
-            label="Problemas Especiales"
-            outlined
-            option-label="label"
-            option-value="value"
-            multiple
-            use-chips
-            :readonly="modoLectura"
-          />
-        </div>
-        
-        <div class="col-12">
-          <q-input
-            v-model="datosEstetica.estadoPelaje.observaciones"
-            label="Observaciones del Estado Inicial"
-            outlined
-            type="textarea"
-            rows="2"
-            :readonly="modoLectura"
-            placeholder="Descripción detallada del estado del pelaje, areas problemáticas..."
-          />
-        </div>
-      </div>
-
-      <!-- Productos utilizados -->
-      <div class="row q-col-gutter-md q-mt-md" v-if="datosEstetica.estado !== 'programado'">
-        <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">
-            <q-icon name="local_pharmacy" color="green" class="q-mr-sm"/>
-            Productos y Tratamientos Utilizados
-          </div>
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <q-select
-            v-model="datosEstetica.productosUtilizados.shampoo"
-            :options="tiposShampoo"
-            label="Shampoo Utilizado"
-            outlined
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura || datosEstetica.estado === 'completado'"
-          />
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <q-select
-            v-model="datosEstetica.productosUtilizados.acondicionador"
-            :options="tiposAcondicionador"
-            label="Acondicionador"
-            outlined
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura || datosEstetica.estado === 'completado'"
-          />
-        </div>
-        
-        <div class="col-12">
-          <q-select
-            v-model="datosEstetica.productosUtilizados.tratamientosEspeciales"
-            :options="tratamientosEspeciales"
-            label="Tratamientos Especiales"
-            outlined
-            option-label="label"
-            option-value="value"
-            multiple
-            use-chips
-            :readonly="modoLectura || datosEstetica.estado === 'completado'"
-          />
-        </div>
-        
-        <div class="col-12">
-          <q-input
-            v-model="datosEstetica.productosUtilizados.observaciones"
-            label="Observaciones de Productos"
-            outlined
-            type="textarea"
-            rows="2"
-            :readonly="modoLectura || datosEstetica.estado === 'completado'"
-            placeholder="Reacciones a productos, efectividad, recomendaciones..."
-          />
-        </div>
-      </div>
-
-      <!-- Proceso del servicio -->
-      <div class="row q-col-gutter-md q-mt-md" v-if="datosEstetica.estado !== 'programado'">
-        <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">
-            <q-icon name="timeline" color="blue" class="q-mr-sm"/>
-            Proceso del Servicio
-          </div>
-        </div>
-        
-        <div class="col-12 col-md-4">
-          <q-input
-            v-model="datosEstetica.proceso.horaInicio"
-            label="Hora de Inicio"
-            outlined
-            type="time"
-            :readonly="modoLectura || datosEstetica.estado === 'completado'"
+            label="Instrucciones del Cliente"
+            outlined dense type="textarea" rows="2"
+            class="br-md"
+            :readonly="(modoLectura && !modoEdicionManual) || datosEstetica.estado === 'completado'"
           />
         </div>
         
         <div class="col-12 col-md-4">
-          <q-input
-            v-model="datosEstetica.proceso.horaFinalizacion"
-            label="Hora de Finalización"
-            outlined
-            type="time"
-            :readonly="modoLectura || (datosEstetica.estado !== 'completado' && !mostrarModalCompletar)"
-          />
+           <q-input v-model="datosEstetica.fechaProgramada" label="Programado" outlined dense type="datetime-local" class="br-md q-mb-md" :readonly="(modoLectura && !modoEdicionManual) || datosEstetica.estado !== 'programado'" />
+           <q-select v-model="datosEstetica.tipoCorte" :options="['Raza', 'Cachorro', 'Verano', 'Higiénico']" label="Tipo de Corte" outlined dense class="br-md" :readonly="(modoLectura && !modoEdicionManual) || datosEstetica.estado === 'completado'" />
         </div>
-        
-        <div class="col-12 col-md-4">
-          <q-input
-            :model-value="duracionReal"
-            label="Duración Real"
-            outlined
-            readonly
-            suffix="min"
-          />
-        </div>
-        
-        <div class="col-12">
-          <div class="text-caption q-mb-sm">Servicios Realizados:</div>
-          <div class="row q-col-gutter-sm">
-            <div 
-              v-for="servicio in datosEstetica.proceso.serviciosRealizados" 
-              :key="servicio.tipo"
-              class="col-12 col-md-6"
-            >
-              <q-card flat bordered class="q-pa-sm">
-                <div class="row items-center">
-                  <q-checkbox 
-                    v-model="servicio.completado"
-                    :label="getServicioLabel(servicio.tipo)"
-                    :readonly="modoLectura || datosEstetica.estado === 'completado'"
-                  />
-                </div>
-                <q-input
-                  v-if="servicio.completado"
-                  v-model="servicio.observaciones"
-                  label="Observaciones"
-                  outlined
-                  dense
-                  type="textarea"
-                  rows="1"
-                  class="q-mt-sm"
-                  :readonly="modoLectura || datosEstetica.estado === 'completado'"
-                />
-              </q-card>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Comportamiento del paciente -->
-      <div class="row q-col-gutter-md q-mt-md" v-if="datosEstetica.estado !== 'programado'">
         <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">
-            <q-icon name="psychology" color="purple" class="q-mr-sm"/>
-            Comportamiento del Paciente
-          </div>
+           <q-separator class="q-my-md opacity-20" />
+           <div class="text-subtitle2 text-grey-8 q-mb-md">Revisión Inicial Pelaje / Piel</div>
+           <div class="row q-col-gutter-md">
+              <div class="col-6 col-md-3">
+                 <q-select v-model="datosEstetica.estadoPelaje.condicion" :options="['Excelente', 'Bueno', 'Con Nudos', 'Muy Sucio']" label="Condición" outlined dense class="br-md" :readonly="modoLectura && !modoEdicionManual" />
+              </div>
+              <div class="col-6 col-md-3">
+                 <q-select v-model="datosEstetica.estadoPelaje.tipo" :options="['Largo', 'Corto', 'Duro', 'Rizado']" label="Tipo Pelo" outlined dense class="br-md" :readonly="modoLectura && !modoEdicionManual" />
+              </div>
+              <div class="col-12 col-md-6">
+                 <q-input v-model="datosEstetica.estadoPelaje.observaciones" label="Hallazgos (Pulgas, Heridas, etc.)" outlined dense class="br-md" :readonly="modoLectura && !modoEdicionManual" />
+              </div>
+           </div>
         </div>
-        
-        <div class="col-12 col-md-4">
-          <q-select
-            v-model="datosEstetica.comportamiento.cooperacion"
-            :options="nivelesCooperacion"
-            label="Nivel de Cooperación"
-            outlined
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura || datosEstetica.estado === 'completado'"
-          />
-        </div>
-        
-        <div class="col-12 col-md-4">
-          <q-select
-            v-model="datosEstetica.comportamiento.estres"
-            :options="nivelesEstres"
-            label="Nivel de Estrés"
-            outlined
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura || datosEstetica.estado === 'completado'"
-          />
-        </div>
-        
-        <div class="col-12 col-md-4">
-          <q-select
-            v-model="datosEstetica.comportamiento.reaccionAgua"
-            :options="reaccionesAgua"
-            label="Reacción al Agua"
-            outlined
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura || datosEstetica.estado === 'completado'"
-          />
-        </div>
-        
-        <div class="col-12">
-          <q-input
-            v-model="datosEstetica.comportamiento.observaciones"
-            label="Observaciones del Comportamiento"
-            outlined
-            type="textarea"
-            rows="2"
-            :readonly="modoLectura || datosEstetica.estado === 'completado'"
-            placeholder="Comportamiento específico, necesidad de sujeción, miedos..."
-          />
-        </div>
-      </div>
 
-      <!-- Resultado final -->
-      <div class="row q-col-gutter-md q-mt-md" v-if="datosEstetica.estado === 'completado'">
-        <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">
-            <q-icon name="check_circle" color="positive" class="q-mr-sm"/>
-            Resultado Final
-          </div>
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <q-input
-            v-model="datosEstetica.resultado.fechaComplecion"
-            label="Fecha de Finalización"
-            outlined
-            type="date"
-            readonly
-          />
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <q-select
-            v-model="datosEstetica.resultado.satisfaccionCliente"
-            :options="nivelesSatisfaccion"
-            label="Satisfacción del Cliente"
-            outlined
-            option-label="label"
-            option-value="value"
-            readonly
-          />
-        </div>
-        
-        <div class="col-12">
-          <q-input
-            v-model="datosEstetica.resultado.descripcionFinal"
-            label="Descripción del Resultado"
-            outlined
-            type="textarea"
-            rows="3"
-            readonly
-          />
-        </div>
-        
-        <div class="col-12">
-          <q-input
-            v-model="datosEstetica.resultado.recomendacionesCuidado"
-            label="Recomendaciones de Cuidado"
-            outlined
-            type="textarea"
-            rows="2"
-            readonly
-          />
-        </div>
-        
-        <div class="col-12">
-          <q-input
-            v-model="datosEstetica.resultado.proximaCita"
-            label="Próxima Cita Sugerida"
-            outlined
-            type="date"
-            readonly
-          />
-        </div>
-      </div>
-
-      <!-- Observaciones generales -->
-      <div class="row q-col-gutter-md q-mt-md">
-        <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">Observaciones</div>
-        </div>
-        
-        <div class="col-12">
-          <q-input
-            v-model="datosEstetica.observacionesGenerales"
-            label="Observaciones Generales"
-            outlined
-            type="textarea"
-            rows="2"
-            :readonly="modoLectura || datosEstetica.estado === 'completado'"
-          />
+        <div v-if="datosEstetica.estado !== 'programado'" class="col-12">
+           <q-separator class="q-my-md opacity-20" />
+           <div class="text-subtitle2 text-grey-8 q-mb-md">Insumos y Comportamiento</div>
+           <div class="row q-col-gutter-md">
+              <div class="col-12 col-md-6">
+                 <q-input v-model="datosEstetica.productosUtilizados.shampoo" label="Shampoo / Jabón utilizado" outlined dense class="br-md q-mb-sm" :readonly="modoLectura && !modoEdicionManual" />
+                 <q-select v-model="datosEstetica.productosUtilizados.tratamientosEspeciales" :options="['Antipulgas', 'Hidratante', 'Blanqueador']" label="Tratamientos" outlined dense multiple use-chips class="br-md" :readonly="modoLectura && !modoEdicionManual" />
+              </div>
+              <div class="col-12 col-md-6">
+                 <q-select v-model="datosEstetica.comportamiento.cooperacion" :options="['Muy Cooperativo', 'Tranquilo', 'Nervioso', 'Agresivo']" label="Cómo se portó" outlined dense class="br-md q-mb-sm" :readonly="modoLectura && !modoEdicionManual" />
+                 <q-input v-model="datosEstetica.comportamiento.observaciones" label="Notas de manejo" outlined dense class="br-md" :readonly="modoLectura && !modoEdicionManual" />
+              </div>
+           </div>
         </div>
       </div>
     </q-card-section>
     
-    <!-- Estado y acciones -->
-    <q-card-section class="bg-grey-1">
-      <div class="row items-center justify-between">
-        <div class="col-auto">
-          <q-chip 
-            :color="getEstadoColor()"
-            text-color="white"
-            :icon="getEstadoIcon()"
-            :label="getEstadoLabel()"
-          />
-          <q-chip 
-            v-if="datosEstetica.estado === 'en_proceso' && datosEstetica.proceso.horaInicio"
-            color="blue"
-            text-color="white"
-            icon="schedule"
-            :label="`${duracionTranscurrida} min transcurridos`"
-            class="q-ml-sm"
-          />
-        </div>
+    <q-card-section v-if="!modoLectura || modoEdicionManual" class="bg-grey-1 q-pa-md border-top">
+      <div class="row items-center justify-end q-gutter-sm">
+        <q-btn v-if="modoEdicionManual" flat color="grey-7" label="Descartar" @click="cancelarEdicion" no-caps />
         
-        <div class="col-auto" v-if="!modoLectura">
-          <q-btn
-            v-if="datosEstetica.estado === 'programado'"
-            color="positive"
-            icon="play_arrow"
-            label="Iniciar Servicio"
-            @click="iniciarServicio"
-            :disable="!formularioValido"
-          />
-          <q-btn
-            v-else-if="datosEstetica.estado === 'en_proceso'"
-            color="positive"
-            icon="check_circle"
-            label="Completar"
-            @click="completarServicio"
-          />
-        </div>
+        <q-btn 
+          v-if="datosEstetica.estado === 'programado'"
+          color="positive" 
+          icon="play_arrow" 
+          label="Iniciar Servicio" 
+          @click="iniciarServicio" 
+          :disable="!formularioValido || procesando"
+          class="br-lg q-px-lg shadow-1"
+          no-caps
+        />
+
+        <q-btn 
+          v-if="datosEstetica.estado === 'en_proceso'"
+          color="positive" 
+          icon="check_circle" 
+          label="Completar Servicio" 
+          @click="completarServicio" 
+          :disable="procesando"
+          class="br-lg q-px-lg shadow-1"
+          no-caps
+        />
+
+        <q-btn 
+          v-if="modoEdicionManual"
+          color="pink-8" 
+          icon="save" 
+          label="Guardar Cambios" 
+          @click="guardarLocal" 
+          :disable="!formularioValido"
+          class="br-lg q-px-lg shadow-1"
+          no-caps
+        />
       </div>
     </q-card-section>
-
-    <!-- Modal para completar servicio -->
-    <q-dialog v-model="mostrarModalCompletar" persistent>
-      <q-card style="min-width: 700px; max-width: 90vw">
-        <q-card-section>
-          <div class="text-h6">Completar Servicio de Estética</div>
-        </q-card-section>
-
-        <q-card-section class="q-pt-none">
-          <div class="row q-col-gutter-md">
-            <div class="col-12 col-md-6">
-              <q-input
-                v-model="datosComplecion.horaFinalizacion"
-                label="Hora de Finalización"
-                outlined
-                type="time"
-              />
-            </div>
-            
-            <div class="col-12 col-md-6">
-              <q-select
-                v-model="datosComplecion.satisfaccionCliente"
-                :options="nivelesSatisfaccion"
-                label="Satisfacción del Cliente"
-                outlined
-                option-label="label"
-                option-value="value"
-              />
-            </div>
-            
-            <div class="col-12">
-              <q-input
-                v-model="datosComplecion.descripcionFinal"
-                label="Descripción del Resultado Final"
-                outlined
-                type="textarea"
-                rows="3"
-                placeholder="Describe el resultado obtenido, cambios realizados..."
-              />
-            </div>
-            
-            <div class="col-12">
-              <q-input
-                v-model="datosComplecion.recomendacionesCuidado"
-                label="Recomendaciones de Cuidado"
-                outlined
-                type="textarea"
-                rows="2"
-                placeholder="Cuidados posteriores, productos recomendados..."
-              />
-            </div>
-            
-            <div class="col-12">
-              <q-input
-                v-model="datosComplecion.proximaCita"
-                label="Próxima Cita Sugerida"
-                outlined
-                type="date"
-              />
-            </div>
-          </div>
-        </q-card-section>
-
-        <q-card-actions align="right">
-          <q-btn flat label="Cancelar" @click="cancelarComplecion"/>
-          <q-btn color="primary" label="Completar Servicio" @click="confirmarComplecion"/>
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
   </q-card>
+
+  <!-- Modales Dinámicos -->
+  <q-dialog v-model="mostrarModalCompletar" persistent>
+    <q-card style="min-width: 400px" class="br-xl">
+       <q-card-section class="bg-positive text-white"><div class="text-h6">Servicio Finalizado</div></q-card-section>
+       <q-card-section class="q-pa-lg">
+          <q-input v-model="datosComplecion.descripcionFinal" label="Resumen del trabajo" outlined type="textarea" rows="3" class="br-md q-mb-md" />
+          <q-input v-model="datosComplecion.recomendacionesCuidado" label="Recomendaciones para el dueño" outlined type="textarea" rows="2" class="br-md q-mb-md" />
+          <div class="row q-col-gutter-sm">
+             <div class="col-6"><q-input v-model="datosComplecion.proximaCita" label="Próxima cita" outlined dense type="date" class="br-md" /></div>
+             <div class="col-6"><q-select v-model="datosComplecion.satisfaccionCliente" :options="['Excelente', 'Buena', 'Regular']" label="Satisfacción" outlined dense class="br-md" /></div>
+          </div>
+       </q-card-section>
+       <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="Cancelar" v-close-popup no-caps />
+          <q-btn color="positive" label="Finalizar" @click="confirmarComplecion" class="br-lg px-lg" no-caps />
+       </q-card-actions>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useQuasar } from 'quasar'
 
-// Props
 const props = defineProps({
-  atencionId: {
-    type: String,
-    required: true
-  },
-  servicioId: {
-    type: String,
-    required: true
-  },
-  modoLectura: {
-    type: Boolean,
-    default: false
-  }
+  atencionId: { type: String, required: true },
+  servicioId: { type: String, required: true },
+  modoLectura: { type: Boolean, default: false },
+  datosIniciales: { type: Object, default: () => ({}) },
+  plantillasServicio: { type: Array, default: () => [] }
 })
 
-// Emits
-const emit = defineEmits(['servicio-actualizado', 'servicio-completado', 'servicio-eliminado'])
+const emit = defineEmits(['servicio-actualizado', 'servicio-completado', 'servicio-eliminado', 'imprimir-servicio', 'firmar-servicio'])
+const $q = useQuasar()
 
-// Estados del formulario
-const datosEstetica = ref({
-  estado: 'programado', // programado, en_proceso, completado
-  tipoServicio: [],
-  tipoCorte: '',
-  fechaProgramada: '',
-  duracionEstimada: 90,
-  instruccionesEspeciales: '',
-  estadoPelaje: {
-    tipo: 'mixto',
-    longitud: 'medio',
-    condicion: 'regular',
-    problemasEspeciales: [],
-    observaciones: ''
-  },
-  productosUtilizados: {
-    shampoo: '',
-    acondicionador: '',
-    tratamientosEspeciales: [],
-    observaciones: ''
-  },
-  proceso: {
-    horaInicio: '',
-    horaFinalizacion: '',
-    serviciosRealizados: []
-  },
-  comportamiento: {
-    cooperacion: 'buena',
-    estres: 'bajo',
-    reaccionAgua: 'normal',
-    observaciones: ''
-  },
-  resultado: {
-    fechaComplecion: '',
-    satisfaccionCliente: 'excelente',
-    descripcionFinal: '',
-    recomendacionesCuidado: '',
-    proximaCita: ''
-  },
-  observacionesGenerales: ''
-})
-
-// Estados para modales
+const procesando = ref(false)
+const modoEdicionManual = ref(false)
 const mostrarModalCompletar = ref(false)
-const datosComplecion = ref({
-  horaFinalizacion: '',
-  satisfaccionCliente: 'excelente',
-  descripcionFinal: '',
-  recomendacionesCuidado: '',
-  proximaCita: ''
+
+const datosEstetica = ref({
+  estado: 'programado', tipoServicio: [], tipoCorte: 'Raza', fechaProgramada: '', duracionEstimada: 60, instruccionesEspeciales: '', estadoPelaje: { tipo: 'Corto', condicion: 'Bueno', observaciones: '' }, productosUtilizados: { shampoo: 'Neutro', tratamientosEspeciales: [] }, comportamiento: { cooperation: 'Tranquilo', observaciones: '' }
 })
 
-// Opciones para selects
-const tiposServicio = [
-  { label: 'Baño Completo', value: 'bano_completo' },
-  { label: 'Corte de Pelo', value: 'corte_pelo' },
-  { label: 'Corte de Uñas', value: 'corte_unas' },
-  { label: 'Limpieza de Oídos', value: 'limpieza_oidos' },
-  { label: 'Cepillado Profundo', value: 'cepillado_profundo' },
-  { label: 'Desenredado', value: 'desenredado' },
-  { label: 'Limpieza Dental', value: 'limpieza_dental' },
-  { label: 'Perfumado', value: 'perfumado' },
-  { label: 'Secado y Cepillado', value: 'secado_cepillado' },
-  { label: 'Tratamiento Anti-Pulgas', value: 'anti_pulgas' },
-  { label: 'Masaje Relajante', value: 'masaje' }
-]
+const datosComplecion = ref({ descripcionFinal: '', recomendacionesCuidado: '', proximaCita: '', satisfaccionCliente: 'Excelente' })
 
-const tiposCorte = [
-  { label: 'Corte de Mantenimiento', value: 'mantenimiento' },
-  { label: 'Corte Higiénico', value: 'higienico' },
-  { label: 'Corte de Verano', value: 'verano' },
-  { label: 'Corte Breed Standard', value: 'breed_standard' },
-  { label: 'Corte Creativo', value: 'creativo' },
-  { label: 'Recorte de Contorno', value: 'contorno' },
-  { label: 'Solo Tijera', value: 'solo_tijera' },
-  { label: 'Solo Máquina', value: 'solo_maquina' },
-  { label: 'Mixto (Tijera y Máquina)', value: 'mixto' }
-]
+const formularioValido = computed(() => datosEstetica.value.tipoServicio.length > 0 && datosEstetica.value.fechaProgramada)
 
-const tiposPelaje = [
-  { label: 'Liso', value: 'liso' },
-  { label: 'Ondulado', value: 'ondulado' },
-  { label: 'Rizado', value: 'rizado' },
-  { label: 'Duro/Áspero', value: 'duro' },
-  { label: 'Doble Capa', value: 'doble_capa' },
-  { label: 'Mixto', value: 'mixto' }
-]
-
-const longitudesPelaje = [
-  { label: 'Muy Corto', value: 'muy_corto' },
-  { label: 'Corto', value: 'corto' },
-  { label: 'Medio', value: 'medio' },
-  { label: 'Largo', value: 'largo' },
-  { label: 'Muy Largo', value: 'muy_largo' }
-]
-
-const condicionesPelaje = [
-  { label: 'Excelente', value: 'excelente' },
-  { label: 'Buena', value: 'buena' },
-  { label: 'Regular', value: 'regular' },
-  { label: 'Mala', value: 'mala' },
-  { label: 'Muy Mala', value: 'muy_mala' }
-]
-
-const problemasEspeciales = [
-  { label: 'Nudos Severos', value: 'nudos_severos' },
-  { label: 'Pelo Apelmazado', value: 'apelmazado' },
-  { label: 'Parásitos Externos', value: 'parasitos' },
-  { label: 'Dermatitis', value: 'dermatitis' },
-  { label: 'Exceso de Grasa', value: 'grasa' },
-  { label: 'Caspa', value: 'caspa' },
-  { label: 'Mal Olor', value: 'mal_olor' },
-  { label: 'Pérdida de Pelo', value: 'perdida_pelo' }
-]
-
-const tiposShampoo = [
-  { label: 'Shampoo Neutro', value: 'neutro' },
-  { label: 'Shampoo Medicinal', value: 'medicinal' },
-  { label: 'Shampoo Anti-Pulgas', value: 'anti_pulgas' },
-  { label: 'Shampoo Para Piel Sensible', value: 'piel_sensible' },
-  { label: 'Shampoo Desenredante', value: 'desenredante' },
-  { label: 'Shampoo Blanqueador', value: 'blanqueador' },
-  { label: 'Shampoo Nutritivo', value: 'nutritivo' },
-  { label: 'Shampoo en Seco', value: 'seco' }
-]
-
-const tiposAcondicionador = [
-  { label: 'Sin Acondicionador', value: 'ninguno' },
-  { label: 'Acondicionador Suave', value: 'suave' },
-  { label: 'Acondicionador Nutritivo', value: 'nutritivo' },
-  { label: 'Acondicionador Desenredante', value: 'desenredante' },
-  { label: 'Acondicionador Reparador', value: 'reparador' },
-  { label: 'Acondicionador Para Brillo', value: 'brillo' }
-]
-
-const tratamientosEspeciales = [
-  { label: 'Tratamiento Hidratante', value: 'hidratante' },
-  { label: 'Mascarilla Nutritiva', value: 'mascarilla_nutritiva' },
-  { label: 'Aceites Esenciales', value: 'aceites_esenciales' },
-  { label: 'Tratamiento Anti-Caspa', value: 'anti_caspa' },
-  { label: 'Bálsamo Reparador', value: 'balsamo_reparador' },
-  { label: 'Spray Desenredante', value: 'spray_desenredante' },
-  { label: 'Perfume Canino', value: 'perfume' }
-]
-
-const nivelesCooperacion = [
-  { label: 'Excelente', value: 'excelente' },
-  { label: 'Buena', value: 'buena' },
-  { label: 'Regular', value: 'regular' },
-  { label: 'Difícil', value: 'dificil' },
-  { label: 'Muy Difícil', value: 'muy_dificil' }
-]
-
-const nivelesEstres = [
-  { label: 'Sin Estrés', value: 'sin_estres' },
-  { label: 'Bajo', value: 'bajo' },
-  { label: 'Moderado', value: 'moderado' },
-  { label: 'Alto', value: 'alto' },
-  { label: 'Muy Alto', value: 'muy_alto' }
-]
-
-const reaccionesAgua = [
-  { label: 'Le gusta el agua', value: 'le_gusta' },
-  { label: 'Normal', value: 'normal' },
-  { label: 'Nervioso', value: 'nervioso' },
-  { label: 'Miedo al agua', value: 'miedo' },
-  { label: 'Pánico extremo', value: 'panico' }
-]
-
-const nivelesSatisfaccion = [
-  { label: 'Excelente', value: 'excelente' },
-  { label: 'Muy Buena', value: 'muy_buena' },
-  { label: 'Buena', value: 'buena' },
-  { label: 'Regular', value: 'regular' },
-  { label: 'Insatisfecho', value: 'insatisfecho' }
-]
-
-// Computed properties
-const formularioValido = computed(() => {
-  return datosEstetica.value.tipoServicio.length > 0 && 
-         datosEstetica.value.fechaProgramada &&
-         datosEstetica.value.duracionEstimada > 0
-})
-
-const duracionReal = computed(() => {
-  if (!datosEstetica.value.proceso.horaInicio || !datosEstetica.value.proceso.horaFinalizacion) {
-    return '0'
-  }
-  
-  const inicio = new Date(`2000-01-01T${datosEstetica.value.proceso.horaInicio}:00`)
-  const fin = new Date(`2000-01-01T${datosEstetica.value.proceso.horaFinalizacion}:00`)
-  const diferencia = (fin - inicio) / (1000 * 60) // en minutos
-  
-  return Math.max(0, diferencia).toString()
-})
-
-const duracionTranscurrida = computed(() => {
-  if (!datosEstetica.value.proceso.horaInicio) return '0'
-  
-  const inicio = new Date(`2000-01-01T${datosEstetica.value.proceso.horaInicio}:00`)
-  const ahora = new Date()
-  const horaActual = new Date(`2000-01-01T${ahora.getHours().toString().padStart(2, '0')}:${ahora.getMinutes().toString().padStart(2, '0')}:00`)
-  const diferencia = (horaActual - inicio) / (1000 * 60)
-  
-  return Math.max(0, Math.round(diferencia)).toString()
-})
-
-// Métodos para el estado
-const getEstadoColor = () => {
-  switch(datosEstetica.value.estado) {
-    case 'programado': return 'orange'
-    case 'en_proceso': return 'blue'
-    case 'completado': return 'green'
-    default: return 'grey'
-  }
-}
-
-const getEstadoIcon = () => {
-  switch(datosEstetica.value.estado) {
-    case 'programado': return 'schedule'
-    case 'en_proceso': return 'pets'
-    case 'completado': return 'check_circle'
-    default: return 'help'
-  }
-}
-
-const getEstadoLabel = () => {
-  switch(datosEstetica.value.estado) {
-    case 'programado': return 'Programado'
-    case 'en_proceso': return 'En Proceso'
-    case 'completado': return 'Completado'
-    default: return 'Estado Desconocido'
-  }
-}
-
-// Métodos auxiliares
-const getServicioLabel = (servicioValue) => {
-  const servicio = tiposServicio.find(s => s.value === servicioValue)
-  return servicio ? servicio.label : servicioValue
-}
-
-// Inicializar servicios realizados cuando se seleccionan tipos de servicio
-const inicializarServiciosRealizados = () => {
-  datosEstetica.value.proceso.serviciosRealizados = datosEstetica.value.tipoServicio.map(tipo => ({
-    tipo: tipo,
-    completado: false,
-    observaciones: ''
-  }))
-}
-
-// Métodos de acción
 const iniciarServicio = () => {
-  if (formularioValido.value) {
-    datosEstetica.value.estado = 'en_proceso'
-    datosEstetica.value.proceso.horaInicio = new Date().toTimeString().slice(0, 5)
-    
-    // Inicializar servicios realizados
-    inicializarServiciosRealizados()
-    
-    guardarDatos()
-  }
+  datosEstetica.value.estado = 'en_proceso'
+  guardarLocal()
 }
 
-const completarServicio = () => {
-  // Configurar datos por defecto para la finalización
-  datosComplecion.value.horaFinalizacion = new Date().toTimeString().slice(0, 5)
-  
-  // Calcular fecha de próxima cita (sugerencia: 6-8 semanas)
-  const proximaCita = new Date()
-  proximaCita.setDate(proximaCita.getDate() + 45) // 6-7 semanas aproximadamente
-  datosComplecion.value.proximaCita = proximaCita.toISOString().split('T')[0]
-  
-  mostrarModalCompletar.value = true
-}
+const completarServicio = () => { mostrarModalCompletar.value = true }
 
 const confirmarComplecion = () => {
-  datosEstetica.value.estado = 'completado'
-  datosEstetica.value.proceso.horaFinalizacion = datosComplecion.value.horaFinalizacion
-  datosEstetica.value.resultado.fechaComplecion = new Date().toISOString().split('T')[0]
-  datosEstetica.value.resultado.satisfaccionCliente = datosComplecion.value.satisfaccionCliente
-  datosEstetica.value.resultado.descripcionFinal = datosComplecion.value.descripcionFinal
-  datosEstetica.value.resultado.recomendacionesCuidado = datosComplecion.value.recomendacionesCuidado
-  datosEstetica.value.resultado.proximaCita = datosComplecion.value.proximaCita
-  
-  mostrarModalCompletar.value = false
-  
-  emit('servicio-completado', props.servicioId, {
-    ...datosEstetica.value,
-    completadaPor: 'Estilista Actual' // Obtener del contexto
-  })
-}
-
-const cancelarComplecion = () => {
+  datosEstetica.value.estado = 'completada'
+  emit('servicio-completado', props.servicioId, { ...datosEstetica.value, ...datosComplecion.value })
   mostrarModalCompletar.value = false
 }
 
-const guardarDatos = () => {
-  emit('servicio-actualizado', props.servicioId, datosEstetica.value)
+const cancelarEdicion = () => {
+  if (props.datosIniciales) { datosEstetica.value = JSON.parse(JSON.stringify(props.datosIniciales)) }
+  modoEdicionManual.value = false
+}
+
+const guardarLocal = () => { emit('servicio-actualizado', props.servicioId, { ...datosEstetica.value }) }
+
+const imprimirReporte = (tipo, idPlantilla = null) => {
+  emit('imprimir-servicio', props.servicioId, { ...datosEstetica.value }, tipo, idPlantilla)
+}
+
+const firmarDocumento = (tipo, idPlantilla = null) => {
+  emit('firmar-servicio', props.servicioId, { ...datosEstetica.value }, tipo, idPlantilla)
 }
 
 const eliminarServicio = () => {
-  emit('servicio-eliminado', props.servicioId)
+  $q.dialog({ title: 'Eliminar', message: '¿Eliminar servicio?', cancel: true }).onOk(() => {
+    emit('servicio-eliminado', props.servicioId)
+  })
 }
 
-// Watchers
-watch(() => datosEstetica.value.tipoServicio, () => {
-  if (datosEstetica.value.estado === 'en_proceso') {
-    inicializarServiciosRealizados()
+onMounted(() => {
+  if (props.datosIniciales && Object.keys(props.datosIniciales).length > 0) {
+    datosEstetica.value = { ...datosEstetica.value, ...JSON.parse(JSON.stringify(props.datosIniciales)) }
   }
-}, { deep: true })
-
-watch(datosEstetica, guardarDatos, { deep: true })
+})
 </script>
 
 <style scoped>
-.servicio-card {
-  margin-bottom: 16px;
-}
+.service-icon-wrap { width: 44px; height: 44px; }
+.br-xl { border-radius: 20px; }
+.br-lg { border-radius: 12px; }
+.br-md { border-radius: 8px; }
+.border-top { border-top: 1px solid rgba(0,0,0,0.05); }
 </style>

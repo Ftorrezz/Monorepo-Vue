@@ -1,81 +1,102 @@
 <template>
-  <q-card class="servicio-card">
-    <q-card-section class="bg-red-1">
-      <div class="row items-center">
-        <q-icon name="emergency" color="red" size="md" class="q-mr-md"/>
+  <q-card class="servicio-card overflow-hidden br-xl shadow-2">
+    <q-card-section class="bg-red-1 q-pa-md">
+      <div class="row items-center no-wrap">
+        <div class="service-icon-wrap bg-red-2 q-mr-md flex flex-center br-lg">
+          <q-icon name="emergency" color="red-8" size="24px" />
+        </div>
         <div class="col">
-          <div class="text-h6">Urgencia Veterinaria</div>
-          <div class="text-caption text-grey-7">
+          <div class="text-subtitle1 text-weight-bolder text-red-10">Urgencia Veterinaria</div>
+          <div class="text-caption text-red-7 opacity-80">
             {{ datosUrgencia.estado === 'atendiendo' ? 'En atención de urgencia' : 
                datosUrgencia.estado === 'completada' ? 'Urgencia resuelta' : 'Urgencia pendiente' }}
           </div>
         </div>
-        <q-btn-dropdown 
-          flat round 
-          icon="more_vert"
-          :disable="modoLectura"
-        >
-          <q-list>
-            <q-item 
-              clickable 
-              @click="iniciarAtencion" 
-              v-if="datosUrgencia.estado === 'pendiente'"
-              :disable="!formularioValido"
-            >
-              <q-item-section avatar>
-                <q-icon name="play_arrow" color="positive"/>
-              </q-item-section>
-              <q-item-section>Iniciar Atención</q-item-section>
-            </q-item>
-            
-            <q-item 
-              clickable 
-              @click="finalizarAtencion" 
-              v-if="datosUrgencia.estado === 'atendiendo'"
-            >
-              <q-item-section avatar>
-                <q-icon name="check_circle" color="primary"/>
-              </q-item-section>
-              <q-item-section>Finalizar Atención</q-item-section>
-            </q-item>
-            
-            <q-item clickable @click="agregarProcedimiento" v-if="datosUrgencia.estado === 'atendiendo'">
-              <q-item-section avatar>
-                <q-icon name="add_circle" color="blue"/>
-              </q-item-section>
-              <q-item-section>Agregar Procedimiento</q-item-section>
-            </q-item>
-            
-            <q-item clickable @click="eliminarServicio">
-              <q-item-section avatar>
-                <q-icon name="delete" color="negative"/>
-              </q-item-section>
-              <q-item-section>Eliminar</q-item-section>
-            </q-item>
-          </q-list>
-        </q-btn-dropdown>
+        
+        <div class="row items-center q-gutter-xs">
+          <q-btn 
+            v-if="modoLectura && !modoEdicionManual"
+            flat dense round 
+            color="red-7" 
+            icon="edit" 
+            size="sm" 
+            @click="modoEdicionManual = true"
+          >
+            <q-tooltip>Habilitar Edición</q-tooltip>
+          </q-btn>
+          
+          <q-btn 
+            v-if="modoEdicionManual"
+            flat dense round 
+            color="grey-7" 
+            icon="close" 
+            size="sm" 
+            @click="cancelarEdicion"
+          >
+            <q-tooltip>Cancelar Edición</q-tooltip>
+          </q-btn>
+
+          <q-btn-dropdown flat round icon="more_vert" color="red-7" dropdown-icon="none">
+            <q-list dense style="min-width: 200px" class="br-md">
+              <q-item clickable @click="imprimirReporte('especial')">
+                <q-item-section avatar><q-icon name="print" color="red" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Imprimir Reporte</q-item-section>
+              </q-item>
+
+              <q-item clickable @click="firmarDocumento('especial')">
+                <q-item-section avatar><q-icon name="history_edu" color="orange-8" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Visualizar y Firmar</q-item-section>
+              </q-item>
+
+              <q-separator v-if="plantillasServicio && plantillasServicio.length > 0" />
+              
+              <q-item v-if="plantillasServicio && plantillasServicio.length > 0" clickable>
+                <q-item-section avatar><q-icon name="description" color="secondary" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Imprimir Plantilla</q-item-section>
+                <q-item-section side><q-icon name="chevron_right" /></q-item-section>
+                
+                <q-menu anchor="top end" self="top start">
+                  <q-list style="min-width: 200px">
+                    <q-item v-for="p in plantillasServicio" :key="p.id_plantilla" clickable v-close-popup @click="imprimirReporte('plantilla', p.id_plantilla)">
+                      <q-item-section avatar><q-icon name="description" color="secondary" size="xs" /></q-item-section>
+                      <q-item-section>{{ p.nombre_plantilla }}</q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-item>
+
+              <q-separator />
+              <q-item v-if="datosUrgencia.estado === 'pendiente'" clickable @click="iniciarAtencion" class="text-positive" :disable="!formularioValido">
+                <q-item-section avatar><q-icon name="play_arrow" color="positive" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-bold">Iniciar Atención</q-item-section>
+              </q-item>
+
+              <q-item v-if="datosUrgencia.estado === 'atendiendo'" clickable @click="agregarProcedimiento" class="text-primary">
+                <q-item-section avatar><q-icon name="add" color="primary" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-bold">Agregar Procedimiento</q-item-section>
+              </q-item>
+
+              <q-item clickable @click="eliminarServicio" class="text-negative">
+                <q-item-section avatar><q-icon name="delete" color="negative" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Eliminar Servicio</q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+        </div>
       </div>
     </q-card-section>
-    
-    <q-card-section>
-      <!-- Información de la urgencia -->
-      <div class="row q-col-gutter-md">
-        <div class="col-12">
-          <div class="text-subtitle2 q-mb-md">
-            <q-icon name="warning" color="red" class="q-mr-sm"/>
-            Información de la Urgencia
-          </div>
-        </div>
-        
+
+    <q-card-section class="q-pa-lg">
+      <div class="row q-col-gutter-lg">
         <div class="col-12 col-md-8">
           <q-input
             v-model="datosUrgencia.descripcionUrgencia"
             label="Descripción de la Urgencia *"
-            outlined
+            outlined dense
             type="textarea"
             rows="3"
-            :readonly="modoLectura || datosUrgencia.estado === 'completada'"
-            placeholder="Describa los síntomas, comportamiento o situación que requiere atención urgente..."
+            class="br-md"
+            :readonly="(modoLectura && !modoEdicionManual) || datosUrgencia.estado === 'completada'"
           />
         </div>
         
@@ -83,743 +104,200 @@
           <q-select
             v-model="datosUrgencia.nivelUrgencia"
             :options="nivelesUrgencia"
-            label="Nivel de Urgencia *"
-            outlined
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura || datosUrgencia.estado === 'completada'"
+            label="Triage / Nivel *"
+            outlined dense
+            class="br-md q-mb-md"
+            :readonly="(modoLectura && !modoEdicionManual) || datosUrgencia.estado === 'completada'"
           >
             <template v-slot:option="scope">
               <q-item v-bind="scope.itemProps">
-                <q-item-section avatar>
-                  <q-icon :name="scope.opt.icon" :color="scope.opt.color"/>
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>{{ scope.opt.label }}</q-item-label>
-                  <q-item-label caption>{{ scope.opt.descripcion }}</q-item-label>
-                </q-item-section>
+                <q-item-section avatar><q-icon :name="scope.opt.icon" :color="scope.opt.color"/></q-item-section>
+                <q-item-section><q-item-label>{{ scope.opt.label }}</q-item-label></q-item-section>
               </q-item>
             </template>
           </q-select>
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <q-input
-            v-model="datosUrgencia.fechaInicio"
-            label="Fecha y Hora de Llegada"
-            outlined
-            type="datetime-local"
-            :readonly="modoLectura || datosUrgencia.estado !== 'pendiente'"
-          />
-        </div>
-        
-        <div class="col-12 col-md-6">
           <q-select
             v-model="datosUrgencia.tipoUrgencia"
             :options="tiposUrgencia"
-            label="Tipo de Urgencia"
-            outlined
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura || datosUrgencia.estado === 'completada'"
+            label="Tipo"
+            outlined dense
+            class="br-md"
+            :readonly="(modoLectura && !modoEdicionManual) || datosUrgencia.estado === 'completada'"
           />
         </div>
-      </div>
 
-      <!-- Signos vitales y estado inicial -->
-      <div class="row q-col-gutter-md q-mt-md">
         <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">
-            <q-icon name="monitor_heart" color="primary" class="q-mr-sm"/>
-            Signos Vitales y Estado Inicial
-          </div>
+           <q-separator class="q-my-md opacity-20" />
+           <div class="text-subtitle2 text-grey-8 q-mb-md">Triaje Inicial / Signos</div>
+           <div class="row q-col-gutter-md">
+              <div class="col-6 col-md-3">
+                <q-input v-model="datosUrgencia.signosVitales.temperatura" label="T° (°C)" outlined dense class="br-md" :readonly="modoLectura && !modoEdicionManual" />
+              </div>
+              <div class="col-6 col-md-3">
+                <q-input v-model="datosUrgencia.signosVitales.pulso" label="Pulso (lpm)" outlined dense class="br-md" :readonly="modoLectura && !modoEdicionManual" />
+              </div>
+              <div class="col-6 col-md-3">
+                <q-input v-model="datosUrgencia.signosVitales.respiracion" label="Resp (rpm)" outlined dense class="br-md" :readonly="modoLectura && !modoEdicionManual" />
+              </div>
+              <div class="col-6 col-md-3">
+                <q-select v-model="datosUrgencia.signosVitales.estadoConciencia" :options="['Alerta', 'Deprimido', 'Estupor', 'Coma']" label="Conciencia" outlined dense class="br-md" :readonly="modoLectura && !modoEdicionManual" />
+              </div>
+           </div>
         </div>
-        
-        <div class="col-6 col-md-3">
-          <q-input
-            v-model="datosUrgencia.signosVitales.temperatura"
-            label="Temperatura (°C)"
-            outlined
-            type="number"
-            step="0.1"
-            :readonly="modoLectura"
-          />
-        </div>
-        
-        <div class="col-6 col-md-3">
-          <q-input
-            v-model="datosUrgencia.signosVitales.pulso"
-            label="Pulso (lpm)"
-            outlined
-            type="number"
-            :readonly="modoLectura"
-          />
-        </div>
-        
-        <div class="col-6 col-md-3">
-          <q-input
-            v-model="datosUrgencia.signosVitales.respiracion"
-            label="Respiración (rpm)"
-            outlined
-            type="number"
-            :readonly="modoLectura"
-          />
-        </div>
-        
-        <div class="col-6 col-md-3">
-          <q-select
-            v-model="datosUrgencia.signosVitales.estadoConciencia"
-            :options="estadosConciencia"
-            label="Estado de Conciencia"
-            outlined
-            option-label="label"
-            option-value="value"
-            :readonly="modoLectura"
-          />
-        </div>
-        
-        <div class="col-12">
-          <q-input
-            v-model="datosUrgencia.examenFisico"
-            label="Examen Físico Inicial"
-            outlined
-            type="textarea"
-            rows="2"
-            :readonly="modoLectura"
-            placeholder="Observaciones del examen físico inicial..."
-          />
-        </div>
-      </div>
 
-      <!-- Información de atención (solo si está en curso o completada) -->
-      <div v-if="datosUrgencia.estado !== 'pendiente'" class="row q-col-gutter-md q-mt-md">
-        <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">
-            <q-icon name="medical_services" color="green" class="q-mr-sm"/>
-            Atención Médica
-          </div>
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <q-input
-            v-model="datosUrgencia.fechaInicioAtencion"
-            label="Inicio de Atención"
-            outlined
-            type="datetime-local"
-            readonly
-          />
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <q-input
-            :model-value="tiempoAtencion"
-            label="Tiempo de Atención"
-            outlined
-            readonly
-            suffix="minutos"
-          />
-        </div>
-        
-        <div class="col-12">
-          <q-input
-            v-model="datosUrgencia.diagnosticoInicial"
-            label="Diagnóstico Inicial"
-            outlined
-            type="textarea"
-            rows="2"
-            :readonly="modoLectura"
-            placeholder="Diagnóstico preliminar basado en los síntomas y examen..."
-          />
-        </div>
-      </div>
-
-      <!-- Procedimientos realizados -->
-      <div v-if="datosUrgencia.procedimientos.length > 0 || datosUrgencia.estado === 'atendiendo'" 
-           class="row q-col-gutter-md q-mt-md">
-        <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">
-            <q-icon name="healing" class="q-mr-sm"/>
-            Procedimientos y Tratamientos
-          </div>
-        </div>
-        
-        <div class="col-12">
-          <q-timeline color="primary" layout="comfortable">
+        <div v-if="datosUrgencia.procedimientos.length > 0" class="col-12">
+          <q-separator class="q-my-md opacity-20" />
+          <div class="text-subtitle2 text-grey-8 q-mb-md">Línea de Tiempo de Atención</div>
+          <q-timeline color="red" layout="comfortable" dense>
             <q-timeline-entry
-              v-for="(procedimiento, index) in datosUrgencia.procedimientos"
+              v-for="(proc, index) in datosUrgencia.procedimientos"
               :key="index"
-              :color="getProcedimientoColor(procedimiento.tipo)"
-              :icon="getProcedimientoIcon(procedimiento.tipo)"
-              :title="procedimiento.nombre"
-              :subtitle="formatDateTime(procedimiento.fecha)"
+              :color="getProcedimientoColor(proc.tipo)"
+              icon="healing"
+              :subtitle="formatDateTime(proc.fecha)"
             >
-              <div class="text-body2">{{ procedimiento.descripcion }}</div>
-              <div v-if="procedimiento.medicamentos" class="text-caption text-blue-6 q-mt-xs">
-                <q-icon name="medication" size="xs" class="q-mr-xs"/>
-                {{ procedimiento.medicamentos }}
+              <div class="row items-center justify-between">
+                 <div class="text-weight-bold text-grey-9">{{ proc.nombre }}</div>
+                 <q-btn v-if="!modoLectura || modoEdicionManual" flat dense round color="grey-6" icon="edit" size="xs" @click="editarProcedimiento(index)" />
               </div>
-              <div v-if="procedimiento.observaciones" class="text-caption text-grey-6 q-mt-xs">
-                {{ procedimiento.observaciones }}
-              </div>
-              <q-btn
-                v-if="!modoLectura && procedimiento.editable && datosUrgencia.estado === 'atendiendo'"
-                flat
-                dense
-                icon="edit"
-                size="sm"
-                @click="editarProcedimiento(index)"
-                class="q-mt-sm"
-              />
+              <div class="text-body2 text-grey-7 q-mt-xs">{{ proc.descripcion }}</div>
+              <div v-if="proc.medicamentos" class="text-caption text-blue-7 q-mt-xs">Med: {{ proc.medicamentos }}</div>
             </q-timeline-entry>
           </q-timeline>
         </div>
       </div>
-
-      <!-- Información de finalización (solo si está completada) -->
-      <div v-if="datosUrgencia.estado === 'completada'" class="row q-col-gutter-md q-mt-md">
-        <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">
-            <q-icon name="check_circle" color="positive" class="q-mr-sm"/>
-            Resolución de la Urgencia
-          </div>
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <q-input
-            v-model="datosUrgencia.fechaFinalizacion"
-            label="Fecha de Finalización"
-            outlined
-            type="datetime-local"
-            readonly
-          />
-        </div>
-        
-        <div class="col-12 col-md-6">
-          <q-select
-            v-model="datosUrgencia.resultadoAtencion"
-            :options="resultadosAtencion"
-            label="Resultado de la Atención"
-            outlined
-            option-label="label"
-            option-value="value"
-            readonly
-          />
-        </div>
-        
-        <div class="col-12">
-          <q-input
-            v-model="datosUrgencia.diagnosticoFinal"
-            label="Diagnóstico Final"
-            outlined
-            type="textarea"
-            rows="2"
-            readonly
-          />
-        </div>
-        
-        <div class="col-12">
-          <q-input
-            v-model="datosUrgencia.tratamientoRecomendado"
-            label="Tratamiento y Recomendaciones"
-            outlined
-            type="textarea"
-            rows="3"
-            readonly
-          />
-        </div>
-      </div>
-
-      <!-- Observaciones generales -->
-      <div class="row q-col-gutter-md q-mt-md">
-        <div class="col-12">
-          <q-separator class="q-my-md"/>
-          <div class="text-subtitle2 q-mb-md">Observaciones</div>
-        </div>
-        
-        <div class="col-12">
-          <q-input
-            v-model="datosUrgencia.observacionesGenerales"
-            label="Observaciones Generales"
-            outlined
-            type="textarea"
-            rows="2"
-            :readonly="modoLectura"
-          />
-        </div>
-      </div>
     </q-card-section>
     
-    <!-- Estado y acciones -->
-    <q-card-section class="bg-grey-1">
-      <div class="row items-center justify-between">
-        <div class="col-auto">
-          <q-chip 
-            :color="getEstadoColor()"
-            text-color="white"
-            :icon="getEstadoIcon()"
-            :label="getEstadoLabel()"
-          />
-          <q-chip 
-            v-if="datosUrgencia.nivelUrgencia"
-            :color="getNivelUrgenciaColor()"
-            text-color="white"
-            :icon="getNivelUrgenciaIcon()"
-            :label="getNivelUrgenciaLabel()"
-            class="q-ml-sm"
-          />
-        </div>
+    <q-card-section v-if="!modoLectura || modoEdicionManual" class="bg-grey-1 q-pa-md border-top">
+      <div class="row items-center justify-end q-gutter-sm">
+        <q-btn v-if="modoEdicionManual" flat color="grey-7" label="Descartar" @click="cancelarEdicion" no-caps />
         
-        <div class="col-auto" v-if="!modoLectura">
-          <q-btn
-            v-if="datosUrgencia.estado === 'pendiente'"
-            color="positive"
-            icon="play_arrow"
-            label="Iniciar Atención"
-            @click="iniciarAtencion"
-            :disable="!formularioValido"
-          />
-          <q-btn
-            v-else-if="datosUrgencia.estado === 'atendiendo'"
-            color="primary"
-            icon="check_circle"
-            label="Finalizar Atención"
-            @click="finalizarAtencion"
-          />
-        </div>
+        <q-btn 
+          v-if="datosUrgencia.estado === 'pendiente'"
+          color="positive" 
+          icon="play_arrow" 
+          label="Iniciar Atención" 
+          @click="iniciarAtencion" 
+          :disable="!formularioValido || procesando"
+          class="br-lg q-px-lg shadow-1"
+          no-caps
+        />
+
+        <q-btn 
+          v-if="datosUrgencia.estado === 'atendiendo'"
+          color="primary" 
+          icon="check_circle" 
+          label="Finalizar Atención" 
+          @click="finalizarAtencion" 
+          :disable="procesando"
+          class="br-lg q-px-lg shadow-1"
+          no-caps
+        />
+
+        <q-btn 
+          v-if="modoEdicionManual"
+          color="red-8" 
+          icon="save" 
+          label="Guardar Cambios" 
+          @click="guardarLocal" 
+          :disable="!formularioValido"
+          class="br-lg q-px-lg shadow-1"
+          no-caps
+        />
       </div>
     </q-card-section>
-
-    <!-- Modal para agregar procedimiento -->
-    <q-dialog v-model="mostrarModalProcedimiento" persistent>
-      <q-card style="min-width: 600px">
-        <q-card-section>
-          <div class="text-h6">
-            {{ procedimientoEditando !== null ? 'Editar Procedimiento' : 'Agregar Procedimiento' }}
-          </div>
-        </q-card-section>
-
-        <q-card-section>
-          <div class="row q-col-gutter-md">
-            <div class="col-12 col-md-6">
-              <q-select
-                v-model="procedimientoTemporal.tipo"
-                :options="tiposProcedimiento"
-                label="Tipo de Procedimiento"
-                outlined
-                option-label="label"
-                option-value="value"
-              />
-            </div>
-            
-            <div class="col-12 col-md-6">
-              <q-input
-                v-model="procedimientoTemporal.fecha"
-                label="Fecha y Hora"
-                outlined
-                type="datetime-local"
-              />
-            </div>
-            
-            <div class="col-12">
-              <q-input
-                v-model="procedimientoTemporal.nombre"
-                label="Nombre del Procedimiento"
-                outlined
-                placeholder="Ej: Aplicación de suero, Radiografía, etc."
-              />
-            </div>
-            
-            <div class="col-12">
-              <q-input
-                v-model="procedimientoTemporal.descripcion"
-                label="Descripción"
-                outlined
-                type="textarea"
-                rows="3"
-                placeholder="Detalles del procedimiento realizado..."
-              />
-            </div>
-            
-            <div class="col-12">
-              <q-input
-                v-model="procedimientoTemporal.medicamentos"
-                label="Medicamentos Administrados"
-                outlined
-                placeholder="Nombre, dosis y vía de administración..."
-              />
-            </div>
-            
-            <div class="col-12">
-              <q-input
-                v-model="procedimientoTemporal.observaciones"
-                label="Observaciones"
-                outlined
-                type="textarea"
-                rows="2"
-                placeholder="Reacciones, efectos observados..."
-              />
-            </div>
-          </div>
-        </q-card-section>
-
-        <q-card-actions align="right">
-          <q-btn flat label="Cancelar" @click="cancelarProcedimiento"/>
-          <q-btn color="primary" label="Guardar" @click="guardarProcedimiento"/>
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
-    <!-- Modal para finalizar atención -->
-    <q-dialog v-model="mostrarModalFinalizacion" persistent>
-      <q-card style="min-width: 600px">
-        <q-card-section>
-          <div class="text-h6">Finalizar Atención de Urgencia</div>
-        </q-card-section>
-
-        <q-card-section>
-          <div class="row q-col-gutter-md">
-            <div class="col-12">
-              <q-select
-                v-model="finalizacionTemporal.resultado"
-                :options="resultadosAtencion"
-                label="Resultado de la Atención"
-                outlined
-                option-label="label"
-                option-value="value"
-              />
-            </div>
-            
-            <div class="col-12">
-              <q-input
-                v-model="finalizacionTemporal.diagnosticoFinal"
-                label="Diagnóstico Final"
-                outlined
-                type="textarea"
-                rows="3"
-                placeholder="Diagnóstico definitivo tras la atención..."
-              />
-            </div>
-            
-            <div class="col-12">
-              <q-input
-                v-model="finalizacionTemporal.tratamiento"
-                label="Tratamiento y Recomendaciones"
-                outlined
-                type="textarea"
-                rows="4"
-                placeholder="Medicamentos, cuidados, próximas citas, recomendaciones para el propietario..."
-              />
-            </div>
-          </div>
-        </q-card-section>
-
-        <q-card-actions align="right">
-          <q-btn flat label="Cancelar" @click="cancelarFinalizacion"/>
-          <q-btn color="primary" label="Finalizar Atención" @click="confirmarFinalizacion"/>
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
   </q-card>
+
+  <!-- Modales Dinámicos -->
+  <q-dialog v-model="mostrarModalProcedimiento" persistent>
+    <q-card style="min-width: 500px" class="br-xl">
+       <q-card-section class="bg-red text-white"><div class="text-h6">{{ procedimientoEditando !== null ? 'Editar' : 'Nuevo' }} Procedimiento</div></q-card-section>
+       <q-card-section class="q-pa-lg row q-col-gutter-md">
+          <div class="col-12"><q-input v-model="procedimientoTemporal.nombre" label="Nombre *" outlined dense class="br-md" /></div>
+          <div class="col-12"><q-input v-model="procedimientoTemporal.descripcion" label="Descripción" outlined dense type="textarea" rows="2" class="br-md" /></div>
+          <div class="col-12"><q-input v-model="procedimientoTemporal.medicamentos" label="Medicamentos" outlined dense class="br-md" /></div>
+          <div class="col-12"><q-input v-model="procedimientoTemporal.fecha" label="Fecha/Hora" outlined dense type="datetime-local" class="br-md" /></div>
+       </q-card-section>
+       <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="Cancelar" v-close-popup no-caps />
+          <q-btn color="red" label="Guardar" @click="guardarProcedimiento" class="br-lg px-lg" no-caps />
+       </q-card-actions>
+    </q-card>
+  </q-dialog>
+
+  <q-dialog v-model="mostrarModalFinalizacion" persistent>
+    <q-card style="min-width: 400px" class="br-xl">
+       <q-card-section class="bg-positive text-white"><div class="text-h6">Finalizar Urgencia</div></q-card-section>
+       <q-card-section class="q-pa-lg">
+          <q-select v-model="finalizacionTemporal.resultado" :options="['Estabilizado', 'Hospitalización', 'Defunción']" label="Resultado" outlined dense class="br-md q-mb-md" />
+          <q-input v-model="finalizacionTemporal.diagnosticoFinal" label="Diagnóstico Final" outlined type="textarea" rows="2" class="br-md q-mb-md" />
+          <q-input v-model="finalizacionTemporal.tratamiento" label="Tratamiento / Alta" outlined type="textarea" rows="3" class="br-md" />
+       </q-card-section>
+       <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="Cancelar" v-close-popup no-caps />
+          <q-btn color="positive" label="Cerrar Urgencia" @click="confirmarFinalizacion" class="br-lg px-lg" no-caps />
+       </q-card-actions>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useQuasar } from 'quasar'
 
-// Props
 const props = defineProps({
-  atencionId: {
-    type: String,
-    required: true
-  },
-  servicioId: {
-    type: String,
-    required: true
-  },
-  modoLectura: {
-    type: Boolean,
-    default: false
-  }
+  atencionId: { type: String, required: true },
+  servicioId: { type: String, required: true },
+  modoLectura: { type: Boolean, default: false },
+  datosIniciales: { type: Object, default: () => ({}) },
+  plantillasServicio: { type: Array, default: () => [] }
 })
 
-// Emits
-const emit = defineEmits(['servicio-actualizado', 'servicio-completado', 'servicio-eliminado'])
+const emit = defineEmits(['servicio-actualizado', 'servicio-completado', 'servicio-eliminado', 'imprimir-servicio', 'firmar-servicio'])
+const $q = useQuasar()
 
-// Estados del formulario
-const datosUrgencia = ref({
-  estado: 'pendiente', // pendiente, atendiendo, completada
-  descripcionUrgencia: '',
-  nivelUrgencia: '',
-  tipoUrgencia: '',
-  fechaInicio: '',
-  fechaInicioAtencion: '',
-  fechaFinalizacion: '',
-  signosVitales: {
-    temperatura: '',
-    pulso: '',
-    respiracion: '',
-    estadoConciencia: 'alerta'
-  },
-  examenFisico: '',
-  diagnosticoInicial: '',
-  diagnosticoFinal: '',
-  procedimientos: [],
-  resultadoAtencion: '',
-  tratamientoRecomendado: '',
-  observacionesGenerales: ''
-})
-
-// Estados para modales
+const procesando = ref(false)
+const modoEdicionManual = ref(false)
 const mostrarModalProcedimiento = ref(false)
 const mostrarModalFinalizacion = ref(false)
 const procedimientoEditando = ref(null)
 
-const procedimientoTemporal = ref({
-  tipo: '',
-  nombre: '',
-  descripcion: '',
-  medicamentos: '',
-  observaciones: '',
-  fecha: new Date().toISOString().slice(0, 16),
-  editable: true
+const datosUrgencia = ref({
+  estado: 'pendiente', descripcionUrgencia: '', nivelUrgencia: 'media', tipoUrgencia: 'Traumatismo', fechaInicio: '', signosVitales: { temperatura: '', pulso: '', respiracion: '', estadoConciencia: 'Alerta' }, procedimientos: []
 })
 
-const finalizacionTemporal = ref({
-  resultado: 'estabilizado',
-  diagnosticoFinal: '',
-  tratamiento: ''
-})
+const procedimientoTemporal = ref({ nombre: '', descripcion: '', medicamentos: '', fecha: '' })
+const finalizacionTemporal = ref({ resultado: 'Estabilizado', diagnosticoFinal: '', tratamiento: '' })
 
-// Opciones para selects
 const nivelesUrgencia = [
-  { 
-    label: 'Crítica', 
-    value: 'critica', 
-    color: 'red', 
-    icon: 'priority_high',
-    descripcion: 'Riesgo inminente de vida'
-  },
-  { 
-    label: 'Alta', 
-    value: 'alta', 
-    color: 'orange', 
-    icon: 'warning',
-    descripcion: 'Requiere atención inmediata'
-  },
-  { 
-    label: 'Media', 
-    value: 'media', 
-    color: 'amber', 
-    icon: 'info',
-    descripcion: 'Atención en las próximas horas'
-  },
-  { 
-    label: 'Baja', 
-    value: 'baja', 
-    color: 'green', 
-    icon: 'check_circle',
-    descripcion: 'No es urgente, evaluación rutinaria'
-  }
+  { label: 'Crítica', value: 'critica', color: 'red', icon: 'priority_high' },
+  { label: 'Alta', value: 'alta', color: 'orange', icon: 'warning' },
+  { label: 'Media', value: 'media', color: 'amber', icon: 'info' },
+  { label: 'Baja', value: 'baja', color: 'green', icon: 'check_circle' }
 ]
 
-const tiposUrgencia = [
-  { label: 'Traumatismo', value: 'traumatismo' },
-  { label: 'Intoxicación', value: 'intoxicacion' },
-  { label: 'Dificultad Respiratoria', value: 'respiratoria' },
-  { label: 'Problemas Digestivos', value: 'digestivos' },
-  { label: 'Problemas Neurológicos', value: 'neurologicos' },
-  { label: 'Shock/Colapso', value: 'shock' },
-  { label: 'Hemorragia', value: 'hemorragia' },
-  { label: 'Convulsiones', value: 'convulsiones' },
-  { label: 'Parto Complicado', value: 'parto' },
-  { label: 'Otras', value: 'otras' }
-]
+const tiposUrgencia = ['Traumatismo', 'Intoxicación', 'Respiratoria', 'Digestiva', 'Neuro', 'Shock']
 
-const estadosConciencia = [
-  { label: 'Alerta', value: 'alerta' },
-  { label: 'Deprimido', value: 'deprimido' },
-  { label: 'Letárgico', value: 'letargico' },
-  { label: 'Estuporoso', value: 'estuporoso' },
-  { label: 'Comatoso', value: 'comatoso' }
-]
+const formularioValido = computed(() => datosUrgencia.value.descripcionUrgencia && datosUrgencia.value.nivelUrgencia)
 
-const tiposProcedimiento = [
-  { label: 'Administración de Medicamento', value: 'medicamento' },
-  { label: 'Fluidoterapia', value: 'fluidoterapia' },
-  { label: 'Oxigenoterapia', value: 'oxigenoterapia' },
-  { label: 'Radiografía', value: 'radiografia' },
-  { label: 'Ultrasonido', value: 'ultrasonido' },
-  { label: 'Análisis de Sangre', value: 'analisis_sangre' },
-  { label: 'Cirugía de Urgencia', value: 'cirugia' },
-  { label: 'Sutura', value: 'sutura' },
-  { label: 'Lavado Gástrico', value: 'lavado_gastrico' },
-  { label: 'Estabilización', value: 'estabilizacion' },
-  { label: 'Monitoreo', value: 'monitoreo' },
-  { label: 'Otros', value: 'otros' }
-]
-
-const resultadosAtencion = [
-  { label: 'Estabilizado - Alta', value: 'estabilizado' },
-  { label: 'Requiere Hospitalización', value: 'hospitalizacion' },
-  { label: 'Derivado a Especialista', value: 'derivado' },
-  { label: 'Tratamiento Ambulatorio', value: 'ambulatorio' },
-  { label: 'No Respondió al Tratamiento', value: 'no_respuesta' },
-  { label: 'Defunción', value: 'defuncion' }
-]
-
-// Computed properties
-const formularioValido = computed(() => {
-  return datosUrgencia.value.descripcionUrgencia && 
-         datosUrgencia.value.nivelUrgencia
-})
-
-const tiempoAtencion = computed(() => {
-  if (!datosUrgencia.value.fechaInicioAtencion) return '0'
-  
-  const inicio = new Date(datosUrgencia.value.fechaInicioAtencion)
-  const fin = datosUrgencia.value.fechaFinalizacion ? 
-              new Date(datosUrgencia.value.fechaFinalizacion) : 
-              new Date()
-  
-  const diffTime = Math.abs(fin - inicio)
-  const diffMinutes = Math.floor(diffTime / (1000 * 60))
-  
-  return diffMinutes.toString()
-})
-
-// Métodos para el estado
-const getEstadoColor = () => {
-  switch(datosUrgencia.value.estado) {
-    case 'pendiente': return 'orange'
-    case 'atendiendo': return 'red'
-    case 'completada': return 'green'
-    default: return 'grey'
-  }
-}
-
-const getEstadoIcon = () => {
-  switch(datosUrgencia.value.estado) {
-    case 'pendiente': return 'schedule'
-    case 'atendiendo': return 'emergency'
-    case 'completada': return 'check_circle'
-    default: return 'help'
-  }
-}
-
-const getEstadoLabel = () => {
-  switch(datosUrgencia.value.estado) {
-    case 'pendiente': return 'Pendiente'
-    case 'atendiendo': return 'En Atención'
-    case 'completada': return 'Completada'
-    default: return 'Estado Desconocido'
-  }
-}
-
-const getNivelUrgenciaColor = () => {
-  const nivel = nivelesUrgencia.find(n => n.value === datosUrgencia.value.nivelUrgencia)
-  return nivel ? nivel.color : 'grey'
-}
-
-const getNivelUrgenciaIcon = () => {
-  const nivel = nivelesUrgencia.find(n => n.value === datosUrgencia.value.nivelUrgencia)
-  return nivel ? nivel.icon : 'help'
-}
-
-const getNivelUrgenciaLabel = () => {
-  const nivel = nivelesUrgencia.find(n => n.value === datosUrgencia.value.nivelUrgencia)
-  return nivel ? `Urgencia ${nivel.label}` : 'Nivel Desconocido'
-}
-
-// Métodos para procedimientos
-const getProcedimientoColor = (tipo) => {
-  const colores = {
-    medicamento: 'blue',
-    fluidoterapia: 'cyan',
-    oxigenoterapia: 'light-blue',
-    radiografia: 'purple',
-    ultrasonido: 'deep-purple',
-    analisis_sangre: 'red',
-    cirugia: 'pink',
-    sutura: 'green',
-    lavado_gastrico: 'orange',
-    estabilizacion: 'amber',
-    monitoreo: 'brown',
-    otros: 'grey'
-  }
-  return colores[tipo] || 'grey'
-}
-
-const getProcedimientoIcon = (tipo) => {
-  const iconos = {
-    medicamento: 'medication',
-    fluidoterapia: 'water_drop',
-    oxigenoterapia: 'air',
-    radiografia: 'camera',
-    ultrasonido: 'graphic_eq',
-    analisis_sangre: 'bloodtype',
-    cirugia: 'content_cut',
-    sutura: 'healing',
-    lavado_gastrico: 'clean_hands',
-    estabilizacion: 'favorite',
-    monitoreo: 'monitor_heart',
-    otros: 'medical_services'
-  }
-  return iconos[tipo] || 'medical_services'
-}
-
-const formatDateTime = (fechaISO) => {
-  if (!fechaISO) return ''
-  const fecha = new Date(fechaISO)
-  return fecha.toLocaleString('es-MX', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
-
-// Métodos de acción
 const iniciarAtencion = () => {
-  if (formularioValido.value) {
-    datosUrgencia.value.estado = 'atendiendo'
-    datosUrgencia.value.fechaInicioAtencion = new Date().toISOString()
-    
-    // Agregar procedimiento inicial
-    datosUrgencia.value.procedimientos.push({
-      tipo: 'estabilizacion',
-      nombre: 'Inicio de Atención de Urgencia',
-      descripcion: 'Evaluación inicial y estabilización del paciente',
-      medicamentos: '',
-      observaciones: datosUrgencia.value.descripcionUrgencia,
-      fecha: datosUrgencia.value.fechaInicioAtencion,
-      editable: false
-    })
-    
-    guardarDatos()
-  }
+  datosUrgencia.value.estado = 'atendiendo'
+  datosUrgencia.value.fechaInicio = new Date().toISOString()
+  datosUrgencia.value.procedimientos.push({
+    nombre: 'Inicio de Triage', descripcion: 'Evaluación primaria realizada', fecha: new Date().toISOString()
+  })
+  guardarLocal()
 }
 
 const agregarProcedimiento = () => {
-  procedimientoTemporal.value = {
-    tipo: '',
-    nombre: '',
-    descripcion: '',
-    medicamentos: '',
-    observaciones: '',
-    fecha: new Date().toISOString().slice(0, 16),
-    editable: true
-  }
+  procedimientoTemporal.value = { nombre: '', descripcion: '', medicamentos: '', fecha: new Date().toISOString().slice(0, 16) }
   procedimientoEditando.value = null
   mostrarModalProcedimiento.value = true
 }
 
-const editarProcedimiento = (index) => {
-  procedimientoEditando.value = index
-  procedimientoTemporal.value = { ...datosUrgencia.value.procedimientos[index] }
+const editarProcedimiento = (idx) => {
+  procedimientoEditando.value = idx
+  procedimientoTemporal.value = JSON.parse(JSON.stringify(datosUrgencia.value.procedimientos[idx]))
   mostrarModalProcedimiento.value = true
 }
 
@@ -827,74 +305,55 @@ const guardarProcedimiento = () => {
   if (procedimientoEditando.value !== null) {
     datosUrgencia.value.procedimientos[procedimientoEditando.value] = { ...procedimientoTemporal.value }
   } else {
-    datosUrgencia.value.procedimientos.push({ ...procedimientoTemporal.value })
+    datosUrgencia.value.procedimientos.unshift({ ...procedimientoTemporal.value })
   }
-  
-  // Ordenar procedimientos por fecha (más reciente primero)
-  datosUrgencia.value.procedimientos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
-  
   mostrarModalProcedimiento.value = false
-  guardarDatos()
+  guardarLocal()
 }
 
-const cancelarProcedimiento = () => {
-  mostrarModalProcedimiento.value = false
-  procedimientoEditando.value = null
-}
-
-const finalizarAtencion = () => {
-  finalizacionTemporal.value = {
-    resultado: 'estabilizado',
-    diagnosticoFinal: '',
-    tratamiento: ''
-  }
-  mostrarModalFinalizacion.value = true
-}
+const finalizarAtencion = () => { mostrarModalFinalizacion.value = true }
 
 const confirmarFinalizacion = () => {
   datosUrgencia.value.estado = 'completada'
-  datosUrgencia.value.fechaFinalizacion = new Date().toISOString()
-  datosUrgencia.value.resultadoAtencion = finalizacionTemporal.value.resultado
-  datosUrgencia.value.diagnosticoFinal = finalizacionTemporal.value.diagnosticoFinal
-  datosUrgencia.value.tratamientoRecomendado = finalizacionTemporal.value.tratamiento
-  
-  // Agregar procedimiento de finalización
-  datosUrgencia.value.procedimientos.unshift({
-    tipo: 'otros',
-    nombre: 'Finalización de Atención',
-    descripcion: finalizacionTemporal.value.diagnosticoFinal,
-    medicamentos: '',
-    observaciones: finalizacionTemporal.value.tratamiento,
-    fecha: datosUrgencia.value.fechaFinalizacion,
-    editable: false
-  })
-  
-  mostrarModalFinalizacion.value = false
-  
-  emit('servicio-completado', props.servicioId, {
-    ...datosUrgencia.value,
-    completadaPor: 'Dr. Usuario Actual' // Obtener del contexto
-  })
-}
-
-const cancelarFinalizacion = () => {
+  emit('servicio-completado', props.servicioId, { ...datosUrgencia.value, ...finalizacionTemporal.value })
   mostrarModalFinalizacion.value = false
 }
 
-const guardarDatos = () => {
-  emit('servicio-actualizado', props.servicioId, datosUrgencia.value)
+const formatDateTime = (iso) => iso ? new Date(iso).toLocaleString() : ''
+const getProcedimientoColor = (tipo) => 'red-7'
+
+const cancelarEdicion = () => {
+  if (props.datosIniciales) { datosUrgencia.value = JSON.parse(JSON.stringify(props.datosIniciales)) }
+  modoEdicionManual.value = false
+}
+
+const guardarLocal = () => { emit('servicio-actualizado', props.servicioId, { ...datosUrgencia.value }) }
+
+const imprimirReporte = (tipo, idPlantilla = null) => {
+  emit('imprimir-servicio', props.servicioId, { ...datosUrgencia.value }, tipo, idPlantilla)
+}
+
+const firmarDocumento = (tipo, idPlantilla = null) => {
+  emit('firmar-servicio', props.servicioId, { ...datosUrgencia.value }, tipo, idPlantilla)
 }
 
 const eliminarServicio = () => {
-  emit('servicio-eliminado', props.servicioId)
+  $q.dialog({ title: 'Eliminar', message: '¿Eliminar urgencia?', cancel: true }).onOk(() => {
+    emit('servicio-eliminado', props.servicioId)
+  })
 }
 
-// Watchers
-watch(datosUrgencia, guardarDatos, { deep: true })
+onMounted(() => {
+  if (props.datosIniciales && Object.keys(props.datosIniciales).length > 0) {
+    datosUrgencia.value = { ...datosUrgencia.value, ...JSON.parse(JSON.stringify(props.datosIniciales)) }
+  }
+})
 </script>
 
 <style scoped>
-.servicio-card {
-  margin-bottom: 16px;
-}
+.service-icon-wrap { width: 44px; height: 44px; }
+.br-xl { border-radius: 20px; }
+.br-lg { border-radius: 12px; }
+.br-md { border-radius: 8px; }
+.border-top { border-top: 1px solid rgba(0,0,0,0.05); }
 </style>

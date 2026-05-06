@@ -1,1320 +1,394 @@
 <template>
-  <q-card class="servicio-card">
-    <!-- Header compacto -->
-    <q-card-section class="bg-gradient-primary text-white q-py-sm">
+  <q-card class="servicio-card overflow-hidden br-xl shadow-2">
+    <q-card-section class="bg-teal-1 q-pa-md">
       <div class="row items-center no-wrap">
-        <q-icon name="medication" size="sm" class="q-mr-sm"/>
-        <div class="col-grow">
-          <div class="text-subtitle1 text-weight-medium">Administración de Medicamentos</div>
-          <div class="text-caption opacity-80">
-            {{ datosMedicamentos.prescripciones.length }} prescripciones • 
-            {{ estadisticas.pendientes }} pendientes
+        <div class="service-icon-wrap bg-teal-2 q-mr-md flex flex-center br-lg">
+          <q-icon name="medication" color="teal-8" size="24px" />
+        </div>
+        <div class="col">
+          <div class="text-subtitle1 text-weight-bolder text-teal-10">Administración de Medicamentos</div>
+          <div class="text-caption text-teal-7 opacity-80">
+            {{ datosMedicamentos.prescripciones.length }} prescripciones • {{ estadisticas.pendientes }} pendientes
           </div>
         </div>
-        <div class="col-auto">
-          <div class="row q-gutter-xs">
-            <q-chip 
-              dense 
-              square
-              :color="estadisticas.vencidas > 0 ? 'red-4' : 'transparent'"
-              :text-color="estadisticas.vencidas > 0 ? 'white' : 'white'"
-              :label="estadisticas.vencidas"
-              icon="warning"
-              size="sm"
-              class="q-px-xs"
-            />
-            <q-chip 
-              dense 
-              square
-              color="transparent"
-              text-color="white"
-              :label="estadisticas.completadas"
-              icon="check_circle"
-              size="sm"
-              class="q-px-xs"
-            />
-          </div>
+        
+        <div class="row items-center q-gutter-xs">
+          <q-btn 
+            v-if="modoLectura && !modoEdicionManual"
+            flat dense round 
+            color="teal-7" 
+            icon="edit" 
+            size="sm" 
+            @click="modoEdicionManual = true"
+          >
+            <q-tooltip>Habilitar Edición</q-tooltip>
+          </q-btn>
+          
+          <q-btn 
+            v-if="modoEdicionManual"
+            flat dense round 
+            color="grey-7" 
+            icon="close" 
+            size="sm" 
+            @click="cancelarEdicion"
+          >
+            <q-tooltip>Cancelar Edición</q-tooltip>
+          </q-btn>
+
+          <q-btn-dropdown flat round icon="more_vert" color="teal-7" dropdown-icon="none">
+            <q-list dense style="min-width: 200px" class="br-md">
+              <q-item clickable @click="imprimirReporte('especial')">
+                <q-item-section avatar><q-icon name="print" color="teal" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Imprimir Reporte</q-item-section>
+              </q-item>
+
+              <q-item clickable @click="firmarDocumento('especial')">
+                <q-item-section avatar><q-icon name="history_edu" color="orange-8" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Visualizar y Firmar</q-item-section>
+              </q-item>
+
+              <q-separator />
+              <q-item clickable @click="agregarPrescripcion" v-if="!modoLectura || modoEdicionManual">
+                <q-item-section avatar><q-icon name="add_circle" color="positive" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Nueva Prescripción</q-item-section>
+              </q-item>
+
+              <q-item clickable @click="verHistorial">
+                <q-item-section avatar><q-icon name="history" color="blue" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Ver Historial</q-item-section>
+              </q-item>
+
+              <q-separator />
+              <q-item clickable @click="eliminarServicio" class="text-negative">
+                <q-item-section avatar><q-icon name="delete" color="negative" size="20px" /></q-item-section>
+                <q-item-section class="text-weight-medium">Eliminar Servicio</q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
         </div>
-        <q-btn-dropdown 
-          flat 
-          dense
-          round 
-          icon="more_vert"
-          :disable="modoLectura"
-          dropdown-icon="none"
+      </div>
+    </q-card-section>
+
+    <q-card-section class="q-pa-lg">
+      <div v-if="datosMedicamentos.prescripciones.length === 0" class="text-center q-pa-xl">
+        <q-icon name="medication" size="64px" color="grey-3" />
+        <div class="text-body1 text-grey-6 q-mt-md">No hay prescripciones activas</div>
+        <q-btn v-if="!modoLectura || modoEdicionManual" color="teal-8" label="Agregar Primera Prescripción" @click="agregarPrescripcion" class="q-mt-lg br-lg" no-caps />
+      </div>
+
+      <div v-else class="row q-col-gutter-md">
+        <div 
+          v-for="(prescripcion, index) in datosMedicamentos.prescripciones" 
+          :key="prescripcion.id"
+          class="col-12 col-md-6"
         >
-          <q-list dense>
-            <q-item clickable @click="agregarPrescripcion">
-              <q-item-section avatar mini>
-                <q-icon name="add_circle" color="positive"/>
-              </q-item-section>
-              <q-item-section>Nueva Prescripción</q-item-section>
-            </q-item>
-            <q-item clickable @click="administrarMedicamento">
-              <q-item-section avatar mini>
-                <q-icon name="schedule" color="primary"/>
-              </q-item-section>
-              <q-item-section>Administrar Medicamento</q-item-section>
-            </q-item>
-            <q-item clickable @click="verHistorial">
-              <q-item-section avatar mini>
-                <q-icon name="history" color="blue"/>
-              </q-item-section>
-              <q-item-section>Ver Historial</q-item-section>
-            </q-item>
-            <q-separator />
-            <q-item clickable @click="eliminarServicio">
-              <q-item-section avatar mini>
-                <q-icon name="delete" color="negative"/>
-              </q-item-section>
-              <q-item-section>Eliminar</q-item-section>
-            </q-item>
-          </q-list>
-        </q-btn-dropdown>
+          <q-card flat bordered class="br-lg overflow-hidden">
+             <q-item class="bg-teal-0 q-py-sm">
+                <q-item-section avatar>
+                   <q-avatar color="white" text-color="teal-8" icon="vaccines" size="40px" class="shadow-1" />
+                </q-item-section>
+                <q-item-section>
+                   <q-item-label class="text-weight-bold">{{ prescripcion.medicamento }}</q-item-label>
+                   <q-item-label caption>{{ prescripcion.dosificacion }} • {{ prescripcion.frecuencia }}</q-item-label>
+                </q-item-section>
+                <q-item-section side>
+                   <q-chip dense :color="getEstadoColor(prescripcion.estado)" text-color="white" size="xs">{{ prescripcion.estado }}</q-chip>
+                </q-item-section>
+             </q-item>
+             
+             <q-card-section class="q-pa-md">
+                <div class="row q-gutter-xs q-mb-sm">
+                   <q-badge outline color="blue-7" :label="prescripcion.viaAdministracion" />
+                   <q-badge outline color="purple-7" :label="prescripcion.duracionTratamiento" />
+                </div>
+                <div v-if="prescripcion.indicaciones" class="text-caption text-grey-7 italic">
+                   "{{ prescripcion.indicaciones }}"
+                </div>
+
+                <div v-if="prescripcion.administraciones?.length > 0" class="q-mt-md pt-border">
+                   <div class="text-overline text-grey-5">Última dosis</div>
+                   <div class="row items-center justify-between">
+                      <div class="text-caption text-weight-medium">{{ formatDateTime(prescripcion.administraciones[prescripcion.administraciones.length-1].fechaAdministracion) }}</div>
+                      <q-icon name="check_circle" color="positive" size="xs" />
+                   </div>
+                </div>
+             </q-card-section>
+
+             <q-card-actions v-if="!modoLectura || modoEdicionManual" align="right" class="border-top-dashed q-px-md">
+                <q-btn flat dense color="grey-7" icon="edit" @click="editarPrescripcion(index)" size="sm" />
+                <q-btn flat dense color="positive" label="Administrar Ahora" @click="administrarAhora(prescripcion.id)" size="sm" no-caps />
+             </q-card-actions>
+          </q-card>
+        </div>
+      </div>
+
+      <div class="col-12 q-mt-lg">
+        <q-separator class="q-my-md opacity-20"/>
+        <q-input
+          v-model="datosMedicamentos.observaciones"
+          label="Observaciones del Plan"
+          outlined
+          type="textarea"
+          rows="2"
+          class="br-md"
+          :readonly="modoLectura && !modoEdicionManual"
+        />
       </div>
     </q-card-section>
     
-    <q-card-section class="q-pa-md">
-      <!-- Estado vacío -->
-      <div v-if="datosMedicamentos.prescripciones.length === 0" class="text-center q-py-lg">
-        <q-icon name="medication" size="64px" color="grey-4" class="q-mb-md"/>
-        <div class="text-h6 text-grey-6 q-mb-sm">No hay prescripciones activas</div>
-        <div class="text-body2 text-grey-5 q-mb-md">Agrega la primera prescripción para comenzar</div>
+    <q-card-section v-if="!modoLectura || modoEdicionManual" class="bg-grey-1 q-pa-md border-top">
+      <div class="row items-center justify-end q-gutter-sm">
+        <q-btn v-if="modoEdicionManual" flat color="grey-7" label="Descartar" @click="cancelarEdicion" no-caps />
         <q-btn 
-          v-if="!modoLectura"
-          color="primary" 
-          icon="add" 
-          label="Agregar Prescripción" 
-          @click="agregarPrescripcion"
-          unelevated
+          color="teal-8" 
+          icon="check" 
+          :label="modoEdicionManual ? 'Guardar Cambios' : 'Completar Plan'" 
+          @click="completarServicio" 
+          :disable="procesando"
+          class="br-lg q-px-lg shadow-1"
+          no-caps
         />
       </div>
-      
-      <!-- Grid de prescripciones -->
-      <div v-else class="prescripciones-grid">
-        <!-- Filtros compactos -->
-        <div class="row items-center q-mb-md">
-          <div class="col-auto">
-            <q-select
-              v-model="filtroEstado"
-              :options="estadosFiltro"
-              label="Estado"
-              outlined
-              dense
-              style="min-width: 120px"
-              clearable
-              class="q-mr-sm"
-            />
-          </div>
-          <q-space />
-          <div class="col-auto">
-            <div class="row q-gutter-xs">
-              <q-chip 
-                dense
-                :color="filtroEstado === 'activa' ? 'blue' : 'blue-2'" 
-                :text-color="filtroEstado === 'activa' ? 'white' : 'blue-8'"
-                clickable
-                @click="filtroEstado = filtroEstado === 'activa' ? '' : 'activa'"
-                :label="`${estadisticas.activas} Activas`"
-                size="sm"
-              />
-              <q-chip 
-                dense
-                :color="filtroEstado === 'suspendida' ? 'orange' : 'orange-2'" 
-                :text-color="filtroEstado === 'suspendida' ? 'white' : 'orange-8'"
-                clickable
-                @click="filtroEstado = filtroEstado === 'suspendida' ? '' : 'suspendida'"
-                :label="`${estadisticas.suspendidas} Suspendidas`"
-                size="sm"
-              />
-            </div>
-          </div>
-        </div>
-
-        <!-- Lista de prescripciones en grid -->
-        <div class="row q-col-gutter-md">
-          <div 
-            class="col-12 col-md-6 col-lg-4"
-            v-for="(prescripcion, index) in prescripcionesFiltradas" 
-            :key="prescripcion.id"
-          >
-            <q-card 
-              flat 
-              bordered 
-              class="prescripcion-card full-height"
-              :class="{ 'border-warning': tieneAdministracionesVencidas(prescripcion) }"
-            >
-              <!-- Header de la prescripción -->
-              <q-card-section class="q-pa-sm bg-grey-1">
-                <div class="row items-center no-wrap">
-                  <div class="col-grow">
-                    <div class="text-subtitle2 text-weight-medium text-primary ellipsis">
-                      {{ prescripcion.medicamento }}
-                    </div>
-                    <div class="text-caption text-grey-7 ellipsis">
-                      {{ prescripcion.dosificacion }} • {{ getFrecuenciaLabel(prescripcion.frecuencia) }}
-                    </div>
-                  </div>
-                  <div class="col-auto">
-                    <q-chip 
-                      dense
-                      square
-                      :color="getEstadoPrescripcionColor(prescripcion.estado)"
-                      text-color="white"
-                      :label="getEstadoLabel(prescripcion.estado)"
-                      size="sm"
-                    />
-                  </div>
-                </div>
-              </q-card-section>
-
-              <!-- Contenido principal -->
-              <q-card-section class="q-pa-sm">
-                <!-- Información básica -->
-                <div class="row q-gutter-xs q-mb-sm">
-                  <q-chip 
-                    dense 
-                    outline 
-                    color="blue" 
-                    size="sm"
-                    :label="getViaLabel(prescripcion.viaAdministracion)"
-                    icon="route"
-                  />
-                  <q-chip 
-                    dense 
-                    outline 
-                    color="purple" 
-                    size="sm"
-                    :label="prescripcion.duracionTratamiento"
-                    icon="schedule"
-                  />
-                </div>
-
-                <!-- Próximas administraciones -->
-                <div v-if="getProximasAdministraciones(prescripcion).length > 0" class="q-mb-sm">
-                  <div class="text-caption text-weight-medium text-blue q-mb-xs">
-                    <q-icon name="schedule" size="xs" class="q-mr-xs"/>
-                    Próximas dosis
-                  </div>
-                  <div class="row q-gutter-xs">
-                    <div 
-                      v-for="(proxima, idx) in getProximasAdministraciones(prescripcion).slice(0, 2)" 
-                      :key="idx"
-                      class="col-12"
-                    >
-                      <div 
-                        class="row items-center no-wrap q-pa-xs rounded-borders"
-                        :class="isAdministracionVencida(proxima.fecha) ? 'bg-red-1' : 'bg-blue-1'"
-                      >
-                        <q-icon 
-                          :name="isAdministracionVencida(proxima.fecha) ? 'warning' : 'schedule'"
-                          :color="isAdministracionVencida(proxima.fecha) ? 'negative' : 'primary'"
-                          size="xs"
-                          class="q-mr-xs"
-                        />
-                        <div class="col-grow text-caption">
-                          {{ formatTimeCompact(proxima.fecha) }}
-                        </div>
-                        <q-btn 
-                          v-if="!modoLectura"
-                          flat 
-                          dense
-                          round 
-                          icon="medication" 
-                          size="xs" 
-                          color="positive"
-                          @click="administrarEspecifica(prescripcion.id, proxima.fecha)"
-                          :loading="administrando === `${prescripcion.id}-${proxima.fecha}`"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Última administración -->
-                <div v-if="getUltimasAdministraciones(prescripcion).length > 0" class="q-mb-sm">
-                  <div class="text-caption text-weight-medium text-green q-mb-xs">
-                    <q-icon name="check_circle" size="xs" class="q-mr-xs"/>
-                    Última dosis
-                  </div>
-                  <div class="bg-green-1 q-pa-xs rounded-borders">
-                    <div class="text-caption">
-                      {{ formatTimeCompact(getUltimasAdministraciones(prescripcion)[0].fechaAdministracion) }}
-                      <q-chip 
-                        dense 
-                        square
-                        size="sm" 
-                        :color="getUltimasAdministraciones(prescripcion)[0].dosisCompleta ? 'positive' : 'warning'"
-                        text-color="white"
-                        :label="getUltimasAdministraciones(prescripcion)[0].dosisCompleta ? 'Completa' : 'Parcial'"
-                        class="q-ml-xs"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </q-card-section>
-
-              <!-- Acciones -->
-              <q-card-actions class="q-pa-sm" v-if="!modoLectura">
-                <q-btn 
-                  flat 
-                  dense
-                  color="positive" 
-                  icon="medication" 
-                  label="Administrar"
-                  @click="administrarAhora(prescripcion.id)"
-                  size="sm"
-                />
-                <q-space />
-                <q-btn-dropdown 
-                  flat 
-                  dense
-                  round 
-                  icon="more_vert" 
-                  size="sm"
-                >
-                  <q-list dense>
-                    <q-item clickable @click="editarPrescripcion(index)">
-                      <q-item-section avatar mini>
-                        <q-icon name="edit" color="primary"/>
-                      </q-item-section>
-                      <q-item-section>Editar</q-item-section>
-                    </q-item>
-                    <q-item clickable @click="suspenderPrescripcion(prescripcion.id)">
-                      <q-item-section avatar mini>
-                        <q-icon name="pause" color="warning"/>
-                      </q-item-section>
-                      <q-item-section>Suspender</q-item-section>
-                    </q-item>
-                    <q-item clickable @click="completarPrescripcion(prescripcion.id)">
-                      <q-item-section avatar mini>
-                        <q-icon name="check_circle" color="positive"/>
-                      </q-item-section>
-                      <q-item-section>Completar</q-item-section>
-                    </q-item>
-                  </q-list>
-                </q-btn-dropdown>
-              </q-card-actions>
-            </q-card>
-          </div>
-        </div>
-
-        <!-- Observaciones compactas -->
-        <div class="q-mt-md" v-if="datosMedicamentos.observaciones || !modoLectura">
-          <q-expansion-item
-            icon="notes"
-            label="Observaciones"
-            header-class="text-grey-7"
-            dense
-          >
-            <q-input
-              v-model="datosMedicamentos.observaciones"
-              label="Observaciones del Plan de Medicación"
-              outlined
-              dense
-              type="textarea"
-              rows="2"
-              :readonly="modoLectura"
-            />
-          </q-expansion-item>
-        </div>
-      </div>
     </q-card-section>
-
-    <!-- Modal para nueva/editar prescripción -->
-    <q-dialog v-model="mostrarModalPrescripcion" persistent>
-      <q-card style="min-width: 600px; max-width: 800px">
-        <q-card-section class="bg-primary text-white">
-          <div class="text-h6">
-            {{ prescripcionEditando !== null ? 'Editar Prescripción' : 'Nueva Prescripción' }}
-          </div>
-        </q-card-section>
-
-        <q-card-section>
-          <div class="row q-col-gutter-md">
-            <div class="col-12 col-md-12">
-              <q-select
-                v-model="prescripcionTemporal.producto"
-                :options="productosMedicamento"
-                label="Buscar Medicamento en Inventario"
-                outlined
-                dense
-                use-input
-                @filter="buscarMedicamentos"
-                @update:model-value="alSeleccionarProducto"
-              >
-                <template v-slot:no-option>
-                  <q-item><q-item-section class="text-grey">No se encontraron resultados</q-item-section></q-item>
-                </template>
-              </q-select>
-            </div>
-
-            <div class="col-12 col-md-6">
-              <q-input
-                v-model="prescripcionTemporal.medicamento"
-                label="Nombre del Medicamento *"
-                outlined
-                dense
-              />
-            </div>
-            
-            <div class="col-12 col-md-6">
-              <q-input
-                v-model="prescripcionTemporal.dosificacion"
-                label="Dosificación *"
-                outlined
-                dense
-                placeholder="ej: 10mg, 1 tableta, 5ml"
-              />
-            </div>
-            
-            <div class="col-12 col-md-6">
-              <q-select
-                v-model="prescripcionTemporal.frecuencia"
-                :options="frecuenciasDisponibles"
-                label="Frecuencia *"
-                outlined
-                dense
-                option-label="label"
-                option-value="value"
-              />
-            </div>
-            
-            <div class="col-12 col-md-6">
-              <q-select
-                v-model="prescripcionTemporal.viaAdministracion"
-                :options="viasAdministracion"
-                label="Vía de Administración *"
-                outlined
-                dense
-                option-label="label"
-                option-value="value"
-              />
-            </div>
-            
-            <div class="col-12 col-md-6">
-              <q-input
-                v-model="prescripcionTemporal.fechaInicio"
-                label="Fecha de Inicio *"
-                outlined
-                dense
-                type="datetime-local"
-              />
-            </div>
-            
-            <div class="col-12 col-md-6">
-              <q-input
-                v-model="prescripcionTemporal.duracionTratamiento"
-                label="Duración del Tratamiento *"
-                outlined
-                dense
-                placeholder="ej: 7 días, 2 semanas, indefinido"
-              />
-            </div>
-            
-            <div class="col-12">
-              <q-input
-                v-model="prescripcionTemporal.indicaciones"
-                label="Indicaciones Especiales"
-                outlined
-                dense
-                type="textarea"
-                rows="3"
-                placeholder="Con alimento, en ayunas, observaciones especiales..."
-              />
-            </div>
-          </div>
-        </q-card-section>
-
-        <q-card-actions align="right" class="q-pa-md">
-          <q-btn flat label="Cancelar" @click="cancelarPrescripcion"/>
-          <q-btn color="primary" label="Guardar" @click="guardarPrescripcion" unelevated/>
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
-    <!-- Modal para administrar medicamento -->
-    <q-dialog v-model="mostrarModalAdministracion" persistent>
-      <q-card style="min-width: 500px">
-        <q-card-section class="bg-positive text-white">
-          <div class="text-h6">Administrar Medicamento</div>
-          <div class="text-subtitle2 opacity-80">
-            {{ administracionTemporal.medicamento }} - {{ administracionTemporal.dosificacion }}
-          </div>
-        </q-card-section>
-
-        <q-card-section>
-          <div class="row q-col-gutter-md">
-            <div class="col-12">
-              <q-select
-                v-model="administracionTemporal.lote"
-                :options="lotesDisponibles"
-                label="Seleccionar Lote de Inventario"
-                outlined
-                dense
-                option-label="numeroLote"
-                :hint="administracionTemporal.lote ? `Stock disponible: ${administracionTemporal.lote.cantidadDisponible}` : ''"
-              >
-                <template v-slot:option="scope">
-                  <q-item v-bind="scope.itemProps">
-                    <q-item-section>
-                      <q-item-label>{{ scope.opt.numeroLote }}</q-item-label>
-                      <q-item-label caption>Vence: {{ scope.opt.fechaVencimiento }} | Stock: {{ scope.opt.cantidadDisponible }}</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                </template>
-              </q-select>
-            </div>
-
-            <div class="col-12">
-              <q-input
-                v-model="administracionTemporal.fechaAdministracion"
-                label="Fecha y Hora de Administración"
-                outlined
-                dense
-                type="datetime-local"
-              />
-            </div>
-            
-            <div class="col-12">
-              <q-toggle
-                v-model="administracionTemporal.dosisCompleta"
-                label="¿Se administró la dosis completa?"
-                color="positive"
-              />
-            </div>
-            
-            <div class="col-12" v-if="!administracionTemporal.dosisCompleta">
-              <q-input
-                v-model="administracionTemporal.dosisAdministrada"
-                label="Dosis Administrada"
-                outlined
-                dense
-                placeholder="Especificar cantidad administrada"
-              />
-            </div>
-            
-            <div class="col-12">
-              <q-input
-                v-model="administracionTemporal.observaciones"
-                label="Observaciones"
-                outlined
-                dense
-                type="textarea"
-                rows="3"
-                placeholder="Reacciones, dificultades, notas..."
-              />
-            </div>
-          </div>
-        </q-card-section>
-
-        <q-card-actions align="right" class="q-pa-md">
-          <q-btn flat label="Cancelar" @click="cancelarAdministracion"/>
-          <q-btn 
-            color="positive" 
-            label="Confirmar Administración" 
-            @click="confirmarAdministracion"
-            :loading="administrando !== null"
-            unelevated
-          />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
-    <!-- Modal para historial -->
-    <q-dialog v-model="mostrarModalHistorial" maximized>
-      <q-card>
-        <q-card-section class="bg-primary text-white">
-          <div class="text-h6">Historial de Administraciones</div>
-          <q-btn 
-            flat 
-            round 
-            icon="close" 
-            v-close-popup 
-            class="absolute-top-right q-ma-sm"
-          />
-        </q-card-section>
-
-        <q-card-section>
-          <q-table
-            :rows="historialCompleto"
-            :columns="columnasHistorial"
-            row-key="id"
-            :pagination="paginacionHistorial"
-            :filter="filtroHistorial"
-            binary-state-sort
-            dense
-          >
-            <template v-slot:top>
-              <q-input
-                v-model="filtroHistorial"
-                debounce="300"
-                placeholder="Buscar en historial..."
-                class="col-12 col-md-4"
-                outlined
-                dense
-              >
-                <template v-slot:append>
-                  <q-icon name="search" />
-                </template>
-              </q-input>
-            </template>
-
-            <template v-slot:body-cell-estado="props">
-              <q-td :props="props">
-                <q-chip 
-                  :color="props.value === 'Administrado' ? 'positive' : 'warning'"
-                  text-color="white"
-                  :label="props.value"
-                  size="sm"
-                  dense
-                />
-              </q-td>
-            </template>
-          </q-table>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
   </q-card>
+
+  <!-- Modales Dinámicos -->
+  <q-dialog v-model="mostrarModalPrescripcion" persistent>
+    <q-card style="min-width: 500px" class="br-xl">
+       <q-card-section class="bg-teal text-white"><div class="text-h6">{{ prescripcionEditando !== null ? 'Editar' : 'Nueva' }} Prescripción</div></q-card-section>
+       <q-card-section class="q-pa-lg row q-col-gutter-md">
+          <div class="col-12">
+            <q-select v-model="prescripcionTemporal.producto" :options="productosMedicamento" label="Buscar en Inventario" outlined dense class="br-md" use-input @filter="buscarMedicamentos" @update:model-value="alSeleccionarProducto" />
+          </div>
+          <div class="col-12"><q-input v-model="prescripcionTemporal.medicamento" label="Medicamento *" outlined dense class="br-md" /></div>
+          <div class="col-6"><q-input v-model="prescripcionTemporal.dosificacion" label="Dosificación *" outlined dense class="br-md" /></div>
+          <div class="col-6"><q-select v-model="prescripcionTemporal.frecuencia" :options="frecuenciasLabel" label="Frecuencia *" outlined dense class="br-md" /></div>
+          <div class="col-6"><q-select v-model="prescripcionTemporal.viaAdministracion" :options="viasLabel" label="Vía *" outlined dense class="br-md" /></div>
+          <div class="col-6"><q-input v-model="prescripcionTemporal.duracionTratamiento" label="Duración *" outlined dense class="br-md" /></div>
+          <div class="col-12"><q-input v-model="prescripcionTemporal.indicaciones" label="Indicaciones" outlined dense type="textarea" rows="2" class="br-md" /></div>
+       </q-card-section>
+       <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="Cancelar" v-close-popup no-caps />
+          <q-btn color="teal" label="Guardar" @click="guardarPrescripcion" class="br-lg px-lg" no-caps />
+       </q-card-actions>
+    </q-card>
+  </q-dialog>
+
+  <q-dialog v-model="mostrarModalAdministracion" persistent>
+    <q-card style="min-width: 400px" class="br-xl">
+       <q-card-section class="bg-positive text-white"><div class="text-h6">Administrar Medicamento</div></q-card-section>
+       <q-card-section class="q-pa-lg row q-col-gutter-md">
+          <div class="col-12 text-subtitle1 text-weight-bold text-teal-9">{{ administracionTemporal.medicamento }}</div>
+          <div class="col-12">
+            <q-select v-model="administracionTemporal.lote" :options="lotesDisponibles" label="Seleccionar Lote" outlined dense class="br-md" option-label="numeroLote" />
+          </div>
+          <div class="col-12"><q-input v-model="administracionTemporal.fechaAdministracion" label="Fecha/Hora" outlined dense type="datetime-local" class="br-md" /></div>
+          <div class="col-12"><q-input v-model="administracionTemporal.observaciones" label="Notas de administración" outlined dense type="textarea" rows="2" class="br-md" /></div>
+       </q-card-section>
+       <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="Cancelar" v-close-popup no-caps />
+          <q-btn color="positive" label="Confirmar" @click="confirmarAdministracion" class="br-lg px-lg" no-caps />
+       </q-card-actions>
+    </q-card>
+  </q-dialog>
+
+  <q-dialog v-model="mostrarModalHistorial" maximized>
+    <q-card>
+      <q-card-section class="bg-teal text-white row items-center">
+        <div class="text-h6">Historial Completo</div>
+        <q-space />
+        <q-btn flat round icon="close" v-close-popup />
+      </q-card-section>
+      <q-card-section class="q-pa-md">
+        <q-table :rows="historialCompleto" :columns="columnasHistorial" row-key="id" flat bordered class="br-lg" />
+      </q-card-section>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import inventarioService from 'src/services/inventario.service'
 import { useQuasar } from 'quasar'
+import inventarioService from 'src/services/inventario.service'
 
+const props = defineProps({
+  atencionId: { type: String, required: true },
+  servicioId: { type: String, required: true },
+  modoLectura: { type: Boolean, default: false },
+  datosIniciales: { type: Object, default: () => ({}) },
+  plantillasServicio: { type: Array, default: () => [] },
+  relacionadoCon: { type: Object, default: () => null }
+})
+
+const emit = defineEmits(['servicio-actualizado', 'servicio-completado', 'servicio-eliminado', 'imprimir-servicio', 'firmar-servicio', 'evento-creado'])
 const $q = useQuasar()
 
-// Props
-const props = defineProps({
-  atencionId: {
-    type: String,
-    required: true
-  },
-  servicioId: {
-    type: String,
-    required: true
-  },
-  modoLectura: {
-    type: Boolean,
-    default: false
-  },
-  relacionadoCon: {
-    type: Object,
-    default: () => null
-  }
-})
-
-// Emits
-const emit = defineEmits(['servicio-actualizado', 'servicio-completado', 'servicio-eliminado', 'evento-creado'])
-
-// Estados principales
-const datosMedicamentos = ref({
-  prescripciones: [],
-  observaciones: '',
-  estadisticas: {
-    totalPrescripciones: 0,
-    administracionesHoy: 0,
-    administracionesPendientes: 0
-  }
-})
-
-// Estados de modales
+const procesando = ref(false)
+const modoEdicionManual = ref(false)
 const mostrarModalPrescripcion = ref(false)
 const mostrarModalAdministracion = ref(false)
 const mostrarModalHistorial = ref(false)
 const prescripcionEditando = ref(null)
-const administrando = ref(null)
 
-// Estados temporales
+const datosMedicamentos = ref({
+  prescripciones: [],
+  observaciones: ''
+})
+
 const prescripcionTemporal = ref({
-  id: '',
-  producto: null,
-  productoId: null,
-  medicamento: '',
-  dosificacion: '',
-  frecuencia: '',
-  viaAdministracion: '',
-  fechaInicio: new Date().toISOString().slice(0, 16),
-  duracionTratamiento: '',
-  indicaciones: '',
-  estado: 'activa',
-  prescritoPor: 'Dr. Usuario Actual',
-  administraciones: []
+  medicamento: '', dosificacion: '', frecuencia: '', viaAdministracion: '', duracionTratamiento: '', indicaciones: '', estado: 'activa', administraciones: []
+})
+
+const administracionTemporal = ref({
+  prescripcionId: '', medicamento: '', fechaAdministracion: new Date().toISOString().slice(0, 16), observaciones: '', lote: null
 })
 
 const productosMedicamento = ref([])
 const lotesDisponibles = ref([])
 
-const administracionTemporal = ref({
-  prescripcionId: '',
-  medicamento: '',
-  dosificacion: '',
-  lote: null,
-  fechaAdministracion: new Date().toISOString().slice(0, 16),
-  dosisCompleta: true,
-  dosisAdministrada: '',
-  administradoPor: 'Usuario Actual',
-  observaciones: ''
-})
+const frecuenciasLabel = ['Cada 4h', 'Cada 6h', 'Cada 8h', 'Cada 12h', 'Diaria', 'BID', 'TID', 'PRN']
+const viasLabel = ['Oral', 'IM', 'IV', 'SC', 'Tópica', 'Ocular']
 
-// Estados de filtros
-const filtroEstado = ref('')
-const filtroHistorial = ref('')
+const estadisticas = computed(() => ({
+  pendientes: datosMedicamentos.value.prescripciones.length // Simplificado
+}))
 
-// Opciones para selects
-const frecuenciasDisponibles = [
-  { label: 'Cada 4 horas', value: 'cada_4h' },
-  { label: 'Cada 6 horas', value: 'cada_6h' },
-  { label: 'Cada 8 horas', value: 'cada_8h' },
-  { label: 'Cada 12 horas', value: 'cada_12h' },
-  { label: 'Una vez al día', value: 'diaria' },
-  { label: 'Dos veces al día', value: 'bid' },
-  { label: 'Tres veces al día', value: 'tid' },
-  { label: 'Según necesidad', value: 'prn' }
-]
-
-const viasAdministracion = [
-  { label: 'Oral', value: 'oral' },
-  { label: 'Intramuscular', value: 'im' },
-  { label: 'Intravenosa', value: 'iv' },
-  { label: 'Subcutánea', value: 'sc' },
-  { label: 'Tópica', value: 'topica' },
-  { label: 'Ocular', value: 'ocular' },
-  { label: 'Ótica', value: 'otica' },
-  { label: 'Rectal', value: 'rectal' }
-]
-
-const estadosFiltro = [
-  'activa',
-  'suspendida',
-  'completada'
-]
-
-// Métodos de búsqueda e inventario
 const buscarMedicamentos = async (val, update) => {
-  if (val.length < 2) {
-    update(() => { productosMedicamento.value = [] })
-    return
-  }
+  if (val.length < 2) return
   try {
     const res = await inventarioService.productos.search(val)
-    update(() => {
-      productosMedicamento.value = res.data.map(p => ({
-        label: p.nombre,
-        value: p.id,
-        ...p
-      }))
-    })
-  } catch (error) {
-    console.error(error)
-  }
+    update(() => { productosMedicamento.value = res.data.map(p => ({ label: p.nombre, value: p.id, ...p })) })
+  } catch (error) { console.error(error) }
 }
 
-const alSeleccionarProducto = (producto) => {
-  if (!producto) return
-  prescripcionTemporal.value.medicamento = producto.nombre
-  prescripcionTemporal.value.productoId = producto.id
+const alSeleccionarProducto = (p) => {
+  if (!p) return
+  prescripcionTemporal.value.medicamento = p.nombre
+  prescripcionTemporal.value.productoId = p.id
 }
 
-const buscarLotes = async (productoId) => {
-  if (!productoId) return
-  try {
-    const res = await inventarioService.lotes.getByProducto(productoId)
-    lotesDisponibles.value = res.data.filter(l => l.cantidadDisponible > 0)
-  } catch (error) {
-    console.error(error)
-  }
-}
-
-// Computed properties
-const prescripcionesFiltradas = computed(() => {
-  let prescripciones = datosMedicamentos.value.prescripciones
-  
-  if (filtroEstado.value) {
-    prescripciones = prescripciones.filter(p => p.estado === filtroEstado.value)
-  }
-  
-  return prescripciones
-})
-
-const estadisticas = computed(() => {
-  const prescripciones = datosMedicamentos.value.prescripciones
-  
-  return {
-    activas: prescripciones.filter(p => p.estado === 'activa').length,
-    suspendidas: prescripciones.filter(p => p.estado === 'suspendida').length,
-    completadas: prescripciones.filter(p => p.estado === 'completada').length,
-    pendientes: prescripciones.reduce((acc, p) => {
-      return acc + getProximasAdministraciones(p).length
-    }, 0),
-    vencidas: prescripciones.reduce((acc, p) => {
-      return acc + getProximasAdministraciones(p).filter(a => 
-        isAdministracionVencida(a.fecha)
-      ).length
-    }, 0)
-  }
-})
-
-const historialCompleto = computed(() => {
-  const historial = []
-  
-  datosMedicamentos.value.prescripciones.forEach(prescripcion => {
-    prescripcion.administraciones.forEach(admin => {
-      historial.push({
-        id: `${prescripcion.id}-${admin.fechaAdministracion}`,
-        medicamento: prescripcion.medicamento,
-        dosificacion: prescripcion.dosificacion,
-        fechaAdministracion: admin.fechaAdministracion,
-        administradoPor: admin.administradoPor,
-        estado: admin.dosisCompleta ? 'Administrado' : 'Parcial',
-        observaciones: admin.observaciones || '-'
-      })
-    })
-  })
-  
-  return historial.sort((a, b) => 
-    new Date(b.fechaAdministracion) - new Date(a.fechaAdministracion)
-  )
-})
-
-const columnasHistorial = [
-  {
-    name: 'medicamento',
-    label: 'Medicamento',
-    field: 'medicamento',
-    align: 'left',
-    sortable: true
-  },
-  {
-    name: 'dosificacion',
-    label: 'Dosificación',
-    field: 'dosificacion',
-    align: 'left'
-  },
-  {
-    name: 'fechaAdministracion',
-    label: 'Fecha/Hora',
-    field: 'fechaAdministracion',
-    align: 'left',
-    sortable: true,
-    format: val => formatDateTime(val)
-  },
-  {
-    name: 'administradoPor',
-    label: 'Administrado Por',
-    field: 'administradoPor',
-    align: 'left'
-  },
-  {
-    name: 'estado',
-    label: 'Estado',
-    field: 'estado',
-    align: 'center'
-  },
-  {
-    name: 'observaciones',
-    label: 'Observaciones',
-    field: 'observaciones',
-    align: 'left'
-  }
-]
-
-const paginacionHistorial = ref({
-  rowsPerPage: 10
-})
-
-// Métodos de utilidad mejorados
-const formatDate = (fechaISO) => {
-  if (!fechaISO) return ''
-  return new Date(fechaISO).toLocaleDateString('es-MX')
-}
-
-const formatDateTime = (fechaISO) => {
-  if (!fechaISO) return ''
-  return new Date(fechaISO).toLocaleString('es-MX', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
-
-const formatTimeCompact = (fechaISO) => {
-  if (!fechaISO) return ''
-  const fecha = new Date(fechaISO)
-  const ahora = new Date()
-  const diffDias = Math.floor((fecha - ahora) / (1000 * 60 * 60 * 24))
-  
-  if (diffDias === 0) {
-    return 'Hoy ' + fecha.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
-  } else if (diffDias === 1) {
-    return 'Mañana ' + fecha.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
-  } else if (diffDias === -1) {
-    return 'Ayer ' + fecha.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
-  } else {
-    return fecha.toLocaleDateString('es-MX', { month: 'short', day: 'numeric' }) + ' ' + 
-           fecha.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
-  }
-}
-
-const getEstadoPrescripcionColor = (estado) => {
-  const colores = {
-    'activa': 'positive',
-    'suspendida': 'warning',
-    'completada': 'blue'
-  }
-  return colores[estado] || 'grey'
-}
-
-const getEstadoLabel = (estado) => {
-  const labels = {
-    'activa': 'Activa',
-    'suspendida': 'Suspendida',
-    'completada': 'Completada'
-  }
-  return labels[estado] || estado
-}
-
-const getFrecuenciaLabel = (frecuencia) => {
-  const frecuencia2 = frecuenciasDisponibles.find(f => f.value === frecuencia)
-  return frecuencia2?.label || frecuencia
-}
-
-const getViaLabel = (via) => {
-  const viaObj = viasAdministracion.find(v => v.value === via)
-  return viaObj?.label || via
-}
-
-const isAdministracionVencida = (fecha) => {
-  return new Date(fecha) < new Date()
-}
-
-const tieneAdministracionesVencidas = (prescripcion) => {
-  return getProximasAdministraciones(prescripcion).some(a => isAdministracionVencida(a.fecha))
-}
-
-const getProximasAdministraciones = (prescripcion) => {
-  // Lógica para calcular próximas administraciones basada en frecuencia
-  // Esta es una implementación simplificada
-  const proximasAdministraciones = []
-  const ahora = new Date()
-  const frecuenciaHoras = {
-    'cada_4h': 4,
-    'cada_6h': 6,
-    'cada_8h': 8,
-    'cada_12h': 12,
-    'diaria': 24,
-    'bid': 12,
-    'tid': 8,
-    'prn': 0
-  }
-  
-  if (prescripcion.estado !== 'activa' || prescripcion.frecuencia === 'prn') {
-    return proximasAdministraciones
-  }
-  
-  const intervalo = frecuenciaHoras[prescripcion.frecuencia] || 24
-  const ultimaAdmin = prescripcion.administraciones.length > 0 
-    ? new Date(prescripcion.administraciones[prescripcion.administraciones.length - 1].fechaAdministracion)
-    : new Date(prescripcion.fechaInicio)
-  
-  // Generar próximas 3 administraciones
-  for (let i = 1; i <= 3; i++) {
-    const proximaFecha = new Date(ultimaAdmin)
-    proximaFecha.setHours(proximaFecha.getHours() + (intervalo * i))
-    
-    proximasAdministraciones.push({
-      fecha: proximaFecha.toISOString()
-    })
-  }
-  
-  return proximasAdministraciones
-}
-
-const getUltimasAdministraciones = (prescripcion) => {
-  return prescripcion.administraciones
-    .sort((a, b) => new Date(b.fechaAdministracion) - new Date(a.fechaAdministracion))
-    .slice(0, 3)
-}
-
-// Métodos de acción
 const agregarPrescripcion = () => {
-  prescripcionTemporal.value = {
-    id: '',
-    medicamento: '',
-    dosificacion: '',
-    frecuencia: '',
-    viaAdministracion: '',
-    fechaInicio: new Date().toISOString().slice(0, 16),
-    duracionTratamiento: '',
-    indicaciones: '',
-    estado: 'activa',
-    prescritoPor: 'Dr. Usuario Actual',
-    administraciones: []
-  }
+  prescripcionTemporal.value = { medicamento: '', dosificacion: '', frecuencia: 'BID', viaAdministracion: 'Oral', duracionTratamiento: '7 días', indicaciones: '', estado: 'activa', administraciones: [] }
   prescripcionEditando.value = null
   mostrarModalPrescripcion.value = true
 }
 
-const editarPrescripcion = (index) => {
-  prescripcionEditando.value = index
-  prescripcionTemporal.value = { ...datosMedicamentos.value.prescripciones[index] }
+const editarPrescripcion = (idx) => {
+  prescripcionEditando.value = idx
+  prescripcionTemporal.value = JSON.parse(JSON.stringify(datosMedicamentos.value.prescripciones[idx]))
   mostrarModalPrescripcion.value = true
 }
 
 const guardarPrescripcion = () => {
-  if (!prescripcionTemporal.value.medicamento || !prescripcionTemporal.value.dosificacion) {
-    return
-  }
-  
   if (prescripcionEditando.value !== null) {
-    // Editar prescripción existente
-    datosMedicamentos.value.prescripciones[prescripcionEditando.value] = { 
-      ...prescripcionTemporal.value 
-    }
+    datosMedicamentos.value.prescripciones[prescripcionEditando.value] = { ...prescripcionTemporal.value }
   } else {
-    // Nueva prescripción
-    prescripcionTemporal.value.id = `pres_${Date.now()}`
+    prescripcionTemporal.value.id = 'pres_' + Date.now()
     datosMedicamentos.value.prescripciones.push({ ...prescripcionTemporal.value })
   }
-  
   mostrarModalPrescripcion.value = false
-  guardarDatos()
+  guardarLocal()
+}
+
+const administrarAhora = async (pid) => {
+  const p = datosMedicamentos.value.prescripciones.find(item => item.id === pid)
+  if (!p) return
   
-  // Si está relacionado con hospitalización, crear evento
-  if (props.relacionadoCon?.tipo === 'hospitalizacion') {
-    emit('evento-creado', {
-      tipo: 'medicamento',
-      titulo: `Prescripción: ${prescripcionTemporal.value.medicamento}`,
-      descripcion: `${prescripcionTemporal.value.dosificacion} - ${prescripcionTemporal.value.frecuencia}`,
-      fecha: new Date().toISOString(),
-      observaciones: prescripcionTemporal.value.indicaciones
-    })
-  }
-}
-
-const cancelarPrescripcion = () => {
-  mostrarModalPrescripcion.value = false
-  prescripcionEditando.value = null
-}
-
-const administrarMedicamento = () => {
-  const prescripcionesActivas = datosMedicamentos.value.prescripciones.filter(p => p.estado === 'activa')
-  if (prescripcionesActivas.length === 0) {
-    return
-  }
-  
-  // Tomar la primera prescripción activa o permitir seleccionar
-  administrarEspecifica(prescripcionesActivas[0].id)
-}
-
-const administrarAhora = (prescripcionId) => {
-  administrarEspecifica(prescripcionId)
-}
-
-const administrarEspecifica = async (prescripcionId, fechaProgramada = null) => {
-  const prescripcion = datosMedicamentos.value.prescripciones.find(p => p.id === prescripcionId)
-  if (!prescripcion) return
-  
-  // Buscar lotes si la prescripción está vinculada a un producto de inventario
-  if (prescripcion.productoId) {
-    await buscarLotes(prescripcion.productoId)
-  } else {
-    lotesDisponibles.value = []
+  if (p.productoId) {
+    try {
+      const res = await inventarioService.lotes.getByProducto(p.productoId)
+      lotesDisponibles.value = res.data.filter(l => l.cantidadDisponible > 0)
+    } catch (e) { console.error(e) }
   }
 
   administracionTemporal.value = {
-    prescripcionId: prescripcionId,
-    medicamento: prescripcion.medicamento,
-    dosificacion: prescripcion.dosificacion,
-    lote: null,
-    fechaAdministracion: fechaProgramada || new Date().toISOString().slice(0, 16),
-    dosisCompleta: true,
-    dosisAdministrada: '',
-    administradoPor: 'Usuario Actual', // Obtener del contexto
-    observaciones: ''
+    prescripcionId: pid,
+    medicamento: p.medicamento,
+    fechaAdministracion: new Date().toISOString().slice(0, 16),
+    observaciones: '',
+    lote: null
   }
-  
-  administrando.value = fechaProgramada ? `${prescripcionId}-${fechaProgramada}` : prescripcionId
   mostrarModalAdministracion.value = true
 }
 
-const confirmarAdministracion = async () => {
-  const prescripcion = datosMedicamentos.value.prescripciones.find(
-    p => p.id === administracionTemporal.value.prescripcionId
-  )
-  
-  if (!prescripcion) return
-  
-  // Agregar administración al historial
-  const nuevaAdmin = {
-    fechaAdministracion: administracionTemporal.value.fechaAdministracion,
-    dosisCompleta: administracionTemporal.value.dosisCompleta,
-    dosisAdministrada: administracionTemporal.value.dosisAdministrada,
-    administradoPor: administracionTemporal.value.administradoPor,
-    observaciones: administracionTemporal.value.observaciones,
-    loteId: administracionTemporal.value.lote?.id
-  }
-
-  // Descontar del inventario si hay un lote seleccionado
-  if (administracionTemporal.value.lote) {
-    try {
-      await inventarioService.lotes.ajustarCantidad(administracionTemporal.value.lote.id, {
-        tipo: 'salida',
-        cantidad: 1, // Por ahora 1 unidad, idealmente calcular según dosis
-        motivo: `Administración de medicamento en atención #${props.atencionId}`
-      })
-      $q.notify({
-        color: 'teal',
-        message: 'Stock descontado del inventario',
-        icon: 'inventory_2'
-      })
-    } catch (error) {
-      console.error('Error al descontar stock:', error)
-      $q.notify({
-        color: 'negative',
-        message: 'No se pudo actualizar el inventario',
-        icon: 'warning'
-      })
-    }
-  }
-
-  prescripcion.administraciones.push(nuevaAdmin)
-  
-  mostrarModalAdministracion.value = false
-  administrando.value = null
-  guardarDatos()
-  
-  // Si está relacionado con hospitalización, crear evento
-  if (props.relacionadoCon?.tipo === 'hospitalizacion') {
-    emit('evento-creado', {
-      tipo: 'medicamento',
-      titulo: `Administrado: ${administracionTemporal.value.medicamento}`,
-      descripcion: `${administracionTemporal.value.dosificacion} - ${administracionTemporal.value.dosisCompleta ? 'Dosis completa' : 'Dosis parcial'}`,
-      fecha: administracionTemporal.value.fechaAdministracion,
-      observaciones: administracionTemporal.value.observaciones
-    })
-  }
-}
-
-const cancelarAdministracion = () => {
-  mostrarModalAdministracion.value = false
-  administrando.value = null
-}
-
-const suspenderPrescripcion = (prescripcionId) => {
-  const prescripcion = datosMedicamentos.value.prescripciones.find(p => p.id === prescripcionId)
-  if (prescripcion) {
-    prescripcion.estado = 'suspendida'
-    guardarDatos()
+const confirmarAdministracion = () => {
+  const p = datosMedicamentos.value.prescripciones.find(item => item.id === administracionTemporal.value.prescripcionId)
+  if (p) {
+    p.administraciones.push({ ...administracionTemporal.value })
     
-    // Crear evento si está relacionado con hospitalización
     if (props.relacionadoCon?.tipo === 'hospitalizacion') {
       emit('evento-creado', {
-        tipo: 'cambio_estado',
-        titulo: `Prescripción suspendida: ${prescripcion.medicamento}`,
-        descripcion: 'La prescripción ha sido suspendida',
-        fecha: new Date().toISOString(),
-        observaciones: ''
+        tipo: 'medicamento',
+        titulo: 'Administrado: ' + p.medicamento,
+        descripcion: 'Dosis administrada exitosamente',
+        fecha: new Date().toISOString()
       })
     }
   }
+  mostrarModalAdministracion.value = false
+  guardarLocal()
 }
 
-const completarPrescripcion = (prescripcionId) => {
-  const prescripcion = datosMedicamentos.value.prescripciones.find(p => p.id === prescripcionId)
-  if (prescripcion) {
-    prescripcion.estado = 'completada'
-    guardarDatos()
-    
-    // Crear evento si está relacionado con hospitalización
-    if (props.relacionadoCon?.tipo === 'hospitalizacion') {
-      emit('evento-creado', {
-        tipo: 'mejoria',
-        titulo: `Tratamiento completado: ${prescripcion.medicamento}`,
-        descripcion: 'El tratamiento ha sido completado exitosamente',
-        fecha: new Date().toISOString(),
-        observaciones: ''
-      })
-    }
-  }
+const historialCompleto = computed(() => {
+  const list = []
+  datosMedicamentos.value.prescripciones.forEach(p => {
+    p.administraciones.forEach(a => list.push({ ...a, medicamento: p.medicamento, id: Math.random() }))
+  })
+  return list
+})
+
+const columnasHistorial = [
+  { name: 'medicamento', label: 'Medicamento', field: 'medicamento', align: 'left' },
+  { name: 'fecha', label: 'Fecha', field: 'fechaAdministracion', align: 'left', format: v => formatDateTime(v) },
+  { name: 'obs', label: 'Notas', field: 'observaciones', align: 'left' }
+]
+
+const getEstadoColor = (e) => (e === 'activa' ? 'positive' : e === 'suspendida' ? 'warning' : 'blue')
+
+const formatDateTime = (iso) => iso ? new Date(iso).toLocaleString() : ''
+
+const verHistorial = () => { mostrarModalHistorial.value = true }
+
+const cancelarEdicion = () => {
+  if (props.datosIniciales) { datosMedicamentos.value = JSON.parse(JSON.stringify(props.datosIniciales)) }
+  modoEdicionManual.value = false
 }
 
-const verHistorial = () => {
-  mostrarModalHistorial.value = true
+const guardarLocal = () => { emit('servicio-actualizado', props.servicioId, { ...datosMedicamentos.value }) }
+
+const completarServicio = () => {
+  emit('servicio-completado', props.servicioId, { ...datosMedicamentos.value })
+  modoEdicionManual.value = false
 }
 
-const guardarDatos = () => {
-  emit('servicio-actualizado', props.servicioId, datosMedicamentos.value)
+const imprimirReporte = (tipo, idPlantilla = null) => {
+  emit('imprimir-servicio', props.servicioId, { ...datosMedicamentos.value }, tipo, idPlantilla)
+}
+
+const firmarDocumento = (tipo, idPlantilla = null) => {
+  emit('firmar-servicio', props.servicioId, { ...datosMedicamentos.value }, tipo, idPlantilla)
 }
 
 const eliminarServicio = () => {
-  emit('servicio-eliminado', props.servicioId)
+  $q.dialog({ title: 'Eliminar', message: '¿Eliminar plan de medicamentos?', cancel: true }).onOk(() => {
+    emit('servicio-eliminado', props.servicioId)
+  })
 }
 
-// Métodos de inicialización
-const inicializarDatos = () => {
-  // Cargar datos desde props o API
-  // Ejemplo de datos iniciales para demostración
-  datosMedicamentos.value = {
-    prescripciones: [
-      {
-        id: 'pres_001',
-        medicamento: 'Amoxicilina 250mg',
-        dosificacion: '1 cápsula',
-        frecuencia: 'bid',
-        viaAdministracion: 'oral',
-        fechaInicio: new Date().toISOString(),
-        duracionTratamiento: '7 días',
-        indicaciones: 'Administrar con alimento',
-        estado: 'activa',
-        prescritoPor: 'Dr. Veterinario',
-        administraciones: [
-          {
-            fechaAdministracion: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-            dosisCompleta: true,
-            dosisAdministrada: '',
-            administradoPor: 'Enfermera María',
-            observaciones: 'Administrado sin problemas'
-          }
-        ]
-      },
-      {
-        id: 'pres_002',
-        medicamento: 'Meloxicam',
-        dosificacion: '0.5ml',
-        frecuencia: 'diaria',
-        viaAdministracion: 'oral',
-        fechaInicio: new Date().toISOString(),
-        duracionTratamiento: '5 días',
-        indicaciones: 'Para dolor post-operatorio',
-        estado: 'activa',
-        prescritoPor: 'Dr. Veterinario',
-        administraciones: []
-      },
-      {
-        id: 'pres_003',
-        medicamento: 'Omeprazol',
-        dosificacion: '20mg',
-        frecuencia: 'diaria',
-        viaAdministracion: 'oral',
-        fechaInicio: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        duracionTratamiento: '10 días',
-        indicaciones: 'En ayunas',
-        estado: 'completada',
-        prescritoPor: 'Dr. Veterinario',
-        administraciones: [
-          {
-            fechaAdministracion: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-            dosisCompleta: true,
-            dosisAdministrada: '',
-            administradoPor: 'Enfermera Ana',
-            observaciones: 'Completado según indicaciones'
-          }
-        ]
-      }
-    ],
-    observaciones: 'Paciente responde bien al tratamiento. Monitorear efectos adversos.',
-    estadisticas: {
-      totalPrescripciones: 3,
-      administracionesHoy: 1,
-      administracionesPendientes: 4
-    }
+onMounted(() => {
+  if (props.datosIniciales && Object.keys(props.datosIniciales).length > 0) {
+    datosMedicamentos.value = { ...datosMedicamentos.value, ...JSON.parse(JSON.stringify(props.datosIniciales)) }
   }
-}
-
-// Watchers
-watch(datosMedicamentos, guardarDatos, { deep: true })
-
-// Inicialización
-inicializarDatos()
+})
 </script>
 
 <style scoped>
-.servicio-card {
-  margin-bottom: 16px;
-}
-
-.bg-gradient-primary {
-  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
-}
-
-.prescripciones-grid {
-  min-height: 200px;
-}
-
-.prescripcion-card {
-  transition: all 0.3s ease;
-  border: 1px solid #e0e0e0;
-}
-
-.prescripcion-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  transform: translateY(-2px);
-}
-
-.border-warning {
-  border-left: 4px solid #ff9800 !important;
-}
-
-.full-height {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.full-height .q-card-section:last-child {
-  flex: 1;
-}
-
-.opacity-80 {
-  opacity: 0.8;
-}
-
-.rounded-borders {
-  border-radius: 8px;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .prescripciones-grid .row.q-col-gutter-md > div {
-    padding: 8px;
-  }
-  
-  .prescripcion-card {
-    margin-bottom: 12px;
-  }
-}
-
-/* Mejoras en la densidad visual */
-.text-caption {
-  line-height: 1.2;
-}
-
-.q-chip--dense {
-  font-size: 0.75rem;
-}
-
-/* Animaciones suaves */
-.q-card-section {
-  transition: background-color 0.3s ease;
-}
-
-.q-expansion-item {
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-/* Mejora visual de los modales */
-.q-dialog .q-card {
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.q-dialog .q-card-section.bg-primary,
-.q-dialog .q-card-section.bg-positive {
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
+.service-icon-wrap { width: 44px; height: 44px; }
+.br-xl { border-radius: 20px; }
+.br-lg { border-radius: 12px; }
+.br-md { border-radius: 8px; }
+.border-top { border-top: 1px solid rgba(0,0,0,0.05); }
+.bg-teal-0 { background: rgba(224, 242, 241, 0.4); }
+.pt-border { border-top: 1px solid rgba(0,0,0,0.05); padding-top: 8px; }
+.border-top-dashed { border-top: 1px dashed rgba(0,0,0,0.1); }
 </style>

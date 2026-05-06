@@ -94,6 +94,74 @@ export interface AtencionServicioReceta {
     observaciones?: string
 }
 
+export interface AtencionServicioRayosX {
+    id?: number
+    id_atencion_servicio: number
+    region_anatomica?: string
+    proyecciones?: string
+    hallazgos?: string
+    interpretacion?: string
+    tecnica_kv?: number
+    tecnica_ma?: number
+}
+
+export interface AtencionServicioUltrasonido {
+    id?: number
+    id_atencion_servicio: number
+    tipo_estudio?: string
+    descripcion_detallada?: string
+    conclusiones?: string
+    recomendaciones?: string
+}
+
+export interface AtencionServicioHospitalizacion {
+    id?: number
+    id_atencion_servicio: number
+    fecha_ingreso?: string
+    fecha_egreso?: string
+    motivo_hospitalizacion?: string
+    jaula_asignada?: string
+    estado_paciente?: string
+}
+
+export interface AtencionServicioMedicamentos {
+    id?: number
+    id_atencion_servicio: number
+    prescripciones_json?: string
+}
+
+export interface AtencionServicioFisioterapia {
+    id?: number
+    id_atencion_servicio: number
+    tipo_rehabilitacion?: string
+    total_sesiones_plan?: number
+    sesion_actual?: number
+    evaluacion_inicial?: string
+}
+
+export interface AtencionServicioUrgencia {
+    id?: number
+    id_atencion_servicio: number
+    triage_color?: string
+    motivo_urgencia?: string
+    estabilizacion_procedimientos?: string
+    diagnostico_presuntivo?: string
+    pronostico?: string
+    resultado_final?: string
+}
+
+export interface AtencionServicioEstetica {
+    id?: number
+    id_atencion_servicio: number
+    servicios_realizados?: string
+    tipo_corte?: string
+    estado_pelaje_inicial?: string
+    productos_utilizados?: string
+    comportamiento_paciente?: string
+    satisfaccion_cliente?: string
+    proxima_cita_sugerida?: string
+}
+
 export interface NotificacionServicio {
     id?: number
     id_atencion_servicio: number
@@ -333,5 +401,33 @@ export const atencionServicioService = {
      */
     async crearNotificacion(datos: NotificacionServicio): Promise<void> {
         await peticionService.crear('notificacionservicio', datos)
+    },
+
+    async guardarRayosX(datos: AtencionServicioRayosX): Promise<void> {
+        await peticionService.crear('atencionserviciorayosx', datos)
+    },
+
+    async guardarUltrasonido(datos: AtencionServicioUltrasonido): Promise<void> {
+        await peticionService.crear('atencionservicioultrasonido', datos)
+    },
+
+    async guardarHospitalizacion(datos: AtencionServicioHospitalizacion): Promise<void> {
+        await peticionService.crear('atencionserviciohospitalizacion', datos)
+    },
+
+    async guardarMedicamentos(datos: AtencionServicioMedicamentos): Promise<void> {
+        await peticionService.crear('atencionserviciomedicamentos', datos)
+    },
+
+    async guardarFisioterapia(datos: AtencionServicioFisioterapia): Promise<void> {
+        await peticionService.crear('atencionserviciofisioterapia', datos)
+    },
+
+    async guardarUrgencia(datos: AtencionServicioUrgencia): Promise<void> {
+        await peticionService.crear('atencionserviciourgencia', datos)
+    },
+
+    async guardarEstetica(datos: AtencionServicioEstetica): Promise<void> {
+        await peticionService.crear('atencionservicioestetica', datos)
     }
 }
