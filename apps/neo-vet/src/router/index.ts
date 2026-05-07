@@ -8,6 +8,7 @@ import {
 
 import routes from './routes';
 import { useAuthStore } from "src/stores/Auth"
+import { Loading, QSpinnerDots } from 'quasar';
 
 /*
  * If not building with SSR mode, you can
@@ -37,13 +38,25 @@ export default route(function (/* { store, ssrContext } */) {
     const store = useAuthStore();
     const rutaProtegida: boolean = to.matched.some(record => record.meta.requireAuth)
 
+    // Mostrar loading al iniciar la navegación
+    Loading.show({
+      spinner: QSpinnerDots,
+      spinnerColor: 'primary',
+      backgroundColor: 'white',
+      message: 'Cargando módulo...',
+      messageColor: 'primary',
+      customClass: 'modern-loading'
+    });
+
     if (rutaProtegida && store.token === null ){
-
       next( { name: 'login' } )
-
     }else next()
-
   })
+
+  Router.afterEach(() => {
+    // Ocultar loading al finalizar la navegación
+    Loading.hide();
+  });
   
   /*Router.beforeEach((to, from, next) =>{
     //const store = useAuthStore();
