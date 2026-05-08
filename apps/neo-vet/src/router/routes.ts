@@ -284,10 +284,17 @@ const routes: RouteRecordRaw[] = [
     meta: { requireAuth: false },
 
   },
+  /* {
+     path: '/reportes',
+     component: () => import('layouts/Layout.vue'),
+     children: [{ path: '', name: 'reportes', component: () => import('pages/ReportesPage.vue') }],
+     meta: { requireAuth: false },
+ 
+   },*/
   {
     path: '/reportes',
     component: () => import('layouts/Layout.vue'),
-    children: [{ path: '', name: 'reportes', component: () => import('pages/ReportesPage.vue') }],
+    children: [{ path: '', name: 'reportes', component: () => import('pages/reporte/reportes.vue') }],
     meta: { requireAuth: false },
 
   },

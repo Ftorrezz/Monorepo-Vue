@@ -3,58 +3,44 @@
     <div class="row q-col-gutter-lg">
       
       <!-- Menú Lateral -->
-      <div class="col-12 col-md-4">
-        <q-card flat class="sidebar-card shadow-1 bg-white full-height overflow-hidden border-grey-3">
-          <!-- Header Azul estilo Referencia -->
-          <div class="bg-indigo-10 text-white q-pa-lg row items-center">
-            <q-icon name="print" size="sm" class="q-mr-sm" />
-            <div class="text-h6 text-weight-bold">Módulo de Reportería</div>
+      <div class="col-12 col-md-3">
+        <q-card flat class="sidebar-card shadow-1">
+          <div class="q-pa-md border-bottom bg-grey-1">
+            <div class="text-subtitle1 text-weight-bolder text-primary">Reportes</div>
+            <div class="text-caption text-grey-6">Catálogo de informes</div>
           </div>
           
-          <div class="q-pa-lg text-grey-7 text-body2">
-            Seleccione el informe que desea generar para visualizar los datos correspondientes.
-          </div>
-
-          <q-scroll-area style="height: calc(100vh - 280px)">
-            <q-list class="q-px-md">
-              <template v-for="(group, category) in reportesAgrupados" :key="category">
-                <!-- Encabezado de Categoría -->
-                <div class="text-overline text-grey-6 q-pt-md q-pb-xs q-px-sm text-weight-bold">{{ category }}</div>
-                
-                <template v-for="(reporte, index) in group" :key="reporte.IDENTIFICADOR">
-                  <q-item
-                    clickable
-                    v-ripple
-                    :active="selectedReport?.IDENTIFICADOR === reporte.IDENTIFICADOR"
-                    active-class="active-report-item-ref"
-                    class="report-item-ref q-mb-sm"
-                    @click="seleccionarReporte(reporte)"
-                  >
-                    <q-item-section avatar>
-                      <div class="circular-icon" :class="getColorClass(reporte.IDENTIFICADOR)">
-                        <q-icon :name="reporte.ICONO || 'description'" size="20px" color="white" />
-                      </div>
-                    </q-item-section>
-                    
-                    <q-item-section>
-                      <q-item-label class="text-weight-bolder text-grey-9 text-body1">{{ reporte.TITULO }}</q-item-label>
-                      <q-item-label caption class="text-grey-6">{{ reporte.DESCRIPCION }}</q-item-label>
-                    </q-item-section>
-
-                    <q-item-section side>
-                      <q-icon name="chevron_right" color="grey-4" size="sm" />
-                    </q-item-section>
-                  </q-item>
-                  <q-separator v-if="index < group.length - 1" class="q-my-xs opacity-30" />
-                </template>
-              </template>
-            </q-list>
-          </q-scroll-area>
+          <q-list padding class="q-py-md">
+            <template v-for="(group, category) in reportesAgrupados" :key="category">
+              <q-item-label header class="text-overline text-grey-8 q-mt-sm">{{ category }}</q-item-label>
+              
+              <q-item
+                v-for="reporte in group"
+                :key="reporte.IDENTIFICADOR"
+                clickable
+                v-ripple
+                :active="selectedReport?.IDENTIFICADOR === reporte.IDENTIFICADOR"
+                active-class="active-report-item"
+                class="report-item"
+                @click="seleccionarReporte(reporte)"
+              >
+                <q-item-section avatar>
+                  <q-icon :name="reporte.ICONO || 'description'" :color="selectedReport?.IDENTIFICADOR === reporte.IDENTIFICADOR ? 'primary' : 'grey-5'" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-weight-medium">{{ reporte.TITULO }}</q-item-label>
+                </q-item-section>
+                <q-item-section side v-if="selectedReport?.IDENTIFICADOR === reporte.IDENTIFICADOR">
+                  <q-icon name="chevron_right" color="primary" />
+                </q-item-section>
+              </q-item>
+            </template>
+          </q-list>
         </q-card>
       </div>
 
       <!-- Panel de Control y Visor -->
-      <div class="col-12 col-md-8 column q-gutter-y-md">
+      <div class="col-12 col-md-9 column q-gutter-y-md">
         
         <!-- Estado Vacío -->
         <q-card v-if="!selectedReport" flat class="col flex flex-center bg-transparent border-dashed">
@@ -178,18 +164,11 @@ const iframeReporte = ref(null);
 const isLoading = ref(false);
 const loadingExcel = ref(false);
 
-function getColorClass(id) {
-  // Usamos el ID para que el color sea consistente
-  const colors = ['bg-blue', 'bg-orange', 'bg-red', 'bg-green', 'bg-purple', 'bg-teal', 'bg-indigo'];
-  const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return colors[hash % colors.length];
-}
-
 const reportesAgrupados = computed(() => {
   let list = catalogoReportes.value;
   if (search.value) {
     const s = search.value.toLowerCase();
-    list = list.filter(r => r.TITULO.toLowerCase().includes(s) || r.DESCRIPCION.toLowerCase().includes(s));
+    list = list.filter(r => r.TITULO.toLowerCase().includes(s));
   }
   
   return list.reduce((acc, reporte) => {
@@ -302,44 +281,26 @@ onMounted(() => {
 .sidebar-card {
   border-radius: 12px;
   background: white;
-  border: 1px solid #e0e0e0;
 }
 
-.report-item-ref {
+.report-item {
   border-radius: 8px;
-  padding: 12px 8px;
-  transition: all 0.2s ease;
+  margin: 2px 12px;
+  transition: background 0.3s;
 }
 
-.report-item-ref:hover {
-  background: #f8f9fa;
+.report-item:hover {
+  background: #f0f4f8;
 }
 
-.active-report-item-ref {
-  background: #f1f3f4 !important;
-  border-left: 4px solid #1976d2;
+.active-report-item {
+  background: #e3f2fd !important;
+  color: #1976d2 !important;
+  font-weight: 600;
 }
 
-.circular-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.bg-indigo-10 {
-  background-color: #2c52a0;
-}
-
-.opacity-30 {
-  opacity: 0.3;
-}
-
-.border-grey-3 {
-  border: 1px solid #e0e0e0;
+.border-bottom {
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .border-dashed {
