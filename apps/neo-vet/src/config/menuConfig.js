@@ -78,49 +78,16 @@ export const menuConfig = [
   },*/
   {
     labelKey: "mainMenu.reports.title",
-    icon: "analytics",
+    icon: "print",
     defaultopened: false,
-    items: [
-      /*
+    to: "/reportes",
+    /*items: [
       {
-        labelKey: "mainMenu.reports.basic.title",
-        icon: "bar_chart",
-        subItems: [
-          { labelKey: "mainMenu.reports.basic.dailySales", icon: "today", to: "/reportes/ventas-diarias" },
-          { labelKey: "mainMenu.reports.basic.activeClients", icon: "people", to: "/reportes/clientes-activos" },
-          { labelKey: "mainMenu.reports.basic.popularServices", icon: "trending_up", to: "/reportes/servicios-populares" },
-        ],
-      },
-      {
-        labelKey: "mainMenu.reports.advanced.title",
-        icon: "insights",
-        subItems: [
-          {
-            labelKey: "mainMenu.reports.advanced.financial.title",
-            icon: "attach_money",
-            subItems: [
-              { labelKey: "mainMenu.reports.advanced.financial.monthlyIncome", icon: "monetization_on", to: "/reportes/ingresos-mensuales" },
-              { labelKey: "mainMenu.reports.advanced.financial.operatingExpenses", icon: "money_off", to: "/reportes/gastos-operativos" },
-              { labelKey: "mainMenu.reports.advanced.financial.serviceProfitability", icon: "assessment", to: "/reportes/rentabilidad" },
-            ]
-          },
-          {
-            labelKey: "mainMenu.reports.advanced.clientMetrics.title",
-            icon: "person_search",
-            subItems: [
-              { labelKey: "mainMenu.reports.advanced.clientMetrics.retention", icon: "favorite", to: "/reportes/retencion" },
-              { labelKey: "mainMenu.reports.advanced.clientMetrics.satisfaction", icon: "sentiment_very_satisfied", to: "/reportes/satisfaccion" },
-              { labelKey: "mainMenu.reports.advanced.clientMetrics.visitFrequency", icon: "schedule", to: "/reportes/frecuencia" },
-            ]
-          },
-        ],
-      },*/
-      {
-        labelKey: "mainMenu.reports.exportData",
-        icon: "file_download",
+        labelKey: "mainMenu.reports.reportsAdmin",
+        icon: "settings",
         to: "/reportes",
       },
-    ],
+    ],*/
   },
   {
     labelKey: "mainMenu.settings.title",

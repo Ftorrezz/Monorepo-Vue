@@ -61,7 +61,7 @@ export default {
       boarding: 'Pensión',
       sales: 'Ventas'
 
-    },  
+    },
     laboratory: {
       title: 'Laboratorio',
       gestionOrdenes: 'Gestión de Órdenes',
@@ -99,7 +99,8 @@ export default {
           visitFrequency: 'Frecuencia de Visitas'
         }
       },
-      exportData: 'Exportar Datos'
+      exportData: 'Exportar Datos',
+      reportsAdmin: 'Administrador Reportes',
     },
     settings: {
       title: 'Configuración',

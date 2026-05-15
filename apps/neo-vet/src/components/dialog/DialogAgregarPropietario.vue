@@ -324,7 +324,6 @@
                         <ListaColonia
                           v-model="propietario.id_colonia"
                           :id-municipio="propietario.id_municipio"
-                          :rules="[(val) => !!val || 'La colonia es requerida']"
                           dense
                         />
                       </div>

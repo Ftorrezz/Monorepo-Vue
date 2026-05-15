@@ -52,7 +52,7 @@ export default {
       boarding: 'Boarding',
       sales: 'Sales'
 
-    },  
+    },
     laboratory: {
       title: 'Laboratory',
       gestionOrdenes: 'Order Management',
@@ -89,7 +89,8 @@ export default {
           visitFrequency: 'Visit Frequency'
         }
       },
-      exportData: 'Export Data'
+      exportData: 'Export Data',
+      reportsAdmin: 'Report Administrator',
     },
     settings: {
       title: 'Settings',

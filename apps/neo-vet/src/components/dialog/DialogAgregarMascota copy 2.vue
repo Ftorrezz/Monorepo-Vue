@@ -523,16 +523,11 @@ const normalizarDatos = (data: any): Mascota => {
 // Datos de la mascota
 const mascota = ref<Mascota>(normalizarDatos(props.mascotaData));
 
-// Watcher para actualizar los datos cuando cambie la prop.
-// Si hay un ID, la carga completa la maneja cargarMascotaCompleta en onMounted
-// para garantizar que los catálogos estén listos antes de asignar valores.
+// Watcher para actualizar los datos cuando cambie la prop
 watch(
   () => props.mascotaData,
   (newData) => {
-    // Solo actualizar si es un registro nuevo (sin ID) o si se limpia la prop
-    if (!newData || !newData.id) {
-      mascota.value = normalizarDatos(newData);
-    }
+    mascota.value = normalizarDatos(newData);
   },
   { deep: true }
 );
@@ -762,14 +757,10 @@ const cargarCatalogos = async () => {
   }
 };
 
-onMounted(async () => {
-  // Primero cargar los catálogos y ESPERAR a que terminen
-  // para que los q-select tengan las opciones disponibles
-  // antes de que se asignen los valores de la mascota a editar.
-  await cargarCatalogos();
-
+onMounted(() => {
+  cargarCatalogos();
   if (props.mascotaData && props.mascotaData.id) {
-    await cargarMascotaCompleta(props.mascotaData.id);
+    cargarMascotaCompleta(props.mascotaData.id);
   }
 });
 
