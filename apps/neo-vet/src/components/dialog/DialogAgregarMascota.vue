@@ -198,8 +198,10 @@
                       <div class="col-lg-2 col-md-3 col-sm-12 col-xs-12">
                         <q-select
                           v-model="mascota.id_tamanio"
-                          :options="OPCIONES_TAMANO_MASCOTA"
+                          :options="catalogosTamanio"
                           label="Tamaño"
+                          option-label="label"
+                          option-value="value"
                           emit-value
                           map-options
                           dense
@@ -378,23 +380,29 @@ import { useLoading } from "../../../../../libs/shared/src/composables/useLoadin
 import { useDialogStore } from "src/stores/DialogoUbicacion";
 import useCatalogos from "src/composables/useCatalogos";
 import { Modulo, Tabla } from "src/common/enums/configuracion.enum";
+import { useMascotaSeleccionadaStore } from "src/stores/mascotaSeleccionadaStore";
 
+const storeMascota = useMascotaSeleccionadaStore();
 const store = useDialogStore()
+
+console.log("DialogAgregarMascota.vue: Componente inicializado");
 
 const { obtenerCatalogo } = useCatalogos();
 
 // Catálogos
-const catalogosSexo = ref([]);
-const catalogosEspecie = ref([]);
-const catalogosRaza = ref([]);
-const catalogosColor = ref([]);
-const catalogosDieta = ref([]);
-const catalogosHabitat = ref([]);
-const catalogosCaracter = ref([]);
+const catalogosSexo = ref<any[]>([]);
+const catalogosEspecie = ref<any[]>([]);
+const catalogosRaza = ref<any[]>([]);
+const catalogosColor = ref<any[]>([]);
+const catalogosDieta = ref<any[]>([]);
+const catalogosHabitat = ref<any[]>([]);
+const catalogosCaracter = ref<any[]>([]);
+const catalogosTamanio = ref<any[]>([]);
 
 // Definir la interfaz Mascota para tipar correctamente la variable
 interface Mascota {
   id: number | null;
+  id_mascota: number | null;  // ID de la tabla MASCOTA (usado al editar)
   id_propietario: number | null;
   nombre: string;
   historiaclinica: string;
@@ -442,10 +450,21 @@ const alertas = new NdAlertasControl();
 const cargarMascotaCompleta = async (id: number) => {
   try {
     const rawData = await peticionService.obtenerGet('paciente/' + id);
-    const fullData = Array.isArray(rawData) ? rawData[0] : rawData;
+    const res = Array.isArray(rawData) ? rawData[0] : rawData;
+    let fullData = res?.elemento ? (Array.isArray(res.elemento) ? res.elemento[0] : res.elemento) : res;
     
     if (fullData) {
+      console.log("DATOS CARGADOS DE LA MASCOTA (Backend):", fullData);
       mascota.value = normalizarDatos(fullData);
+      console.log("DATOS NORMALIZADOS DE LA MASCOTA (Frontend):", mascota.value);
+      
+      // Actualizar el store de mascota seleccionada para su uso en Atención
+      storeMascota.setMascota({
+        ...mascota.value,
+        paciente_id: id, // El ID que recibimos es el id del paciente
+        propietarioId: props.propietario?.id
+      });
+
       if (mascota.value.fechanacimiento) {
         calcularEdadMascota();
       }
@@ -466,16 +485,17 @@ const close = () => {
 const tabMascota = ref("general");
 
 // Cámara
-const video = ref(null);
-const canvas = ref(null);
+const video = ref<HTMLVideoElement | null>(null);
+const canvas = ref<HTMLCanvasElement | null>(null);
 const camaraActiva = ref(false);
-const imagenCapturada = ref(null);
-const stream = ref(null);
+const imagenCapturada = ref<string | null>(null);
+const stream = ref<MediaStream | null>(null);
 
 const formMascotaRef = ref<QForm | null>(null);
 
 const defaultMascota: Mascota = {
   id: null,
+  id_mascota: null,
   id_propietario: props.propietario?.id || null,
   nombre: "",
   historiaclinica: "",
@@ -502,22 +522,47 @@ const defaultMascota: Mascota = {
 const normalizarDatos = (data: any): Mascota => {
   if (!data) return { ...defaultMascota, id_propietario: props.propietario?.id };
   
-  const normalized = { ...defaultMascota, ...data };
-  
-  // Ensure id_propietario is correct
-  normalized.id_propietario = data.id_propietario || props.propietario?.id;
+  // Normalizar nombres de propiedades a minúsculas
+  const d: any = {};
+  Object.keys(data).forEach(key => { d[key.toLowerCase()] = data[key]; });
 
-  // Map nested objects if they exist
-  if (data.especie && data.especie.id) normalized.id_especie = data.especie.id;
-  if (data.raza && data.raza.id) normalized.id_raza = data.raza.id;
-  if (data.sexo && data.sexo.id) normalized.id_sexo = data.sexo.id;
-  if (data.color && data.color.id) normalized.id_color = data.color.id;
-  if (data.dieta && data.dieta.id) normalized.id_dieta = data.dieta.id;
-  if (data.habitat && data.habitat.id) normalized.id_habitat = data.habitat.id;
-  if (data.caracter && data.caracter.id) normalized.id_caracter = data.caracter.id;
-  if (data.tamanio && data.tamanio.id) normalized.id_tamanio = data.tamanio.id;
+  // Desempaquetar campos con prefijo "mascota_" (JOIN aplanado del backend)
+  const m: any = {};
+  Object.keys(d).forEach(key => {
+    if (key.startsWith('mascota_')) {
+      m[key.substring('mascota_'.length)] = d[key];
+    }
+  });
 
-  return normalized;
+  // Combinar: los campos sin prefijo tienen prioridad sobre los desempaquetados
+  const src = { ...m, ...d };
+
+  // Construir SOLO los campos del tipo Mascota (evita contaminar el objeto con campos extra)
+  return {
+    id:              src.id              ?? defaultMascota.id,
+    id_mascota:      src.id_mascota      || m.id           || null,
+    id_propietario:  src.id_propietario  || m.id_propietario || props.propietario?.id,
+    nombre:          src.nombre          ?? defaultMascota.nombre,
+    historiaclinica: src.historiaclinica ?? defaultMascota.historiaclinica,
+    edad:            src.edad            ?? defaultMascota.edad,
+    id_especie:      src.id_especie      || (data.especie?.id)  || defaultMascota.id_especie,
+    id_raza:         src.id_raza         || (data.raza?.id)     || defaultMascota.id_raza,
+    id_sexo:         src.id_sexo         || (data.sexo?.id)     || defaultMascota.id_sexo,
+    fechanacimiento: src.fechanacimiento ?? defaultMascota.fechanacimiento,
+    chip:            src.chip            ?? defaultMascota.chip,
+    fechachip:       src.fechachip       ?? defaultMascota.fechachip,
+    id_color:        src.id_color        || (data.color?.id)    || defaultMascota.id_color,
+    id_tamanio:      src.id_tamanio      || (data.tamanio?.id)  || defaultMascota.id_tamanio,
+    id_dieta:        src.id_dieta        || (data.dieta?.id)    || defaultMascota.id_dieta,
+    id_habitat:      src.id_habitat      || (data.habitat?.id)  || defaultMascota.id_habitat,
+    id_caracter:     src.id_caracter     || (data.caracter?.id) || defaultMascota.id_caracter,
+    observaciones:   src.observaciones   ?? defaultMascota.observaciones,
+    pedigri:         src.pedigri         ?? defaultMascota.pedigri,
+    esterilizado:    src.esterilizado     ?? defaultMascota.esterilizado,
+    activo:          src.activo          ?? defaultMascota.activo,
+    id_sitio:        src.id_sitio        ?? defaultMascota.id_sitio,
+    id_sucursal:     src.id_sucursal     ?? defaultMascota.id_sucursal,
+  };
 };
 
 // Datos de la mascota
@@ -588,7 +633,50 @@ const guardarMascota = async () => {
 
 
     if (datosMascotaPayload.id) {
-      resultadoOperacion = await peticionService.actualizar('paciente', datosMascotaPayload);
+      // ----- ACTUALIZACIÓN -----
+      // El endpoint PUT /paciente/:id solo acepta los campos del PacienteDto,
+      // por lo que enviamos los datos de mascota directamente a PUT /mascota/:id_mascota.
+      const idPaciente = datosMascotaPayload.id;
+      const idMascota = mascota.value.id_mascota || (props.mascotaData as any)?.id_mascota || (props.mascotaData as any)?.mascota_id;
+
+      // Payload para la tabla PACIENTE (solo sus campos propios)
+      const pacientePayload: any = {
+        id: idPaciente,
+        id_mascota: idMascota,
+        id_sitio: datosMascotaPayload.id_sitio,
+        id_sucursal: datosMascotaPayload.id_sucursal,
+        activo: datosMascotaPayload.activo,
+      };
+
+      // Payload para la tabla MASCOTA (datos de la mascota)
+      const mascotaPayload: any = {
+        id: idMascota,
+        id_propietario: datosMascotaPayload.id_propietario,
+        nombre: datosMascotaPayload.nombre,
+        chip: datosMascotaPayload.chip,
+        fechachip: datosMascotaPayload.fechachip,
+        fechanacimiento: datosMascotaPayload.fechanacimiento,
+        edad: datosMascotaPayload.edad,
+        pedigri: datosMascotaPayload.pedigri,
+        observaciones: datosMascotaPayload.observaciones,
+        id_especie: datosMascotaPayload.id_especie,
+        id_raza: datosMascotaPayload.id_raza,
+        id_color: datosMascotaPayload.id_color,
+        id_sexo: datosMascotaPayload.id_sexo,
+        id_habitat: datosMascotaPayload.id_habitat,
+        id_caracter: datosMascotaPayload.id_caracter,
+        id_dieta: datosMascotaPayload.id_dieta,
+        activo: datosMascotaPayload.activo,
+        esterilizado: datosMascotaPayload.esterilizado,
+        id_tamanio: datosMascotaPayload.id_tamanio,
+      };
+
+      // Ejecutar las dos actualizaciones en paralelo
+      const [pacienteRes] = await Promise.all([
+        peticionService.actualizar('paciente', pacientePayload),
+        idMascota ? peticionService.actualizar('mascota', mascotaPayload) : Promise.resolve(null),
+      ]);
+      resultadoOperacion = pacienteRes;
     } else {
       resultadoOperacion = await peticionService.crear('paciente', datosMascotaPayload);
     }
@@ -602,6 +690,15 @@ const guardarMascota = async () => {
       ...(resultadoOperacion?.elemento || {}),
       id: resultadoOperacion?.id || resultadoOperacion?.elemento?.id || datosMascotaPayload.id
     };
+
+    console.log("MASCOTA GUARDADA EXITOSAMENTE:", mascotaGuardada);
+    
+    // Actualizar el store con los datos guardados (que pueden incluir IDs generados)
+    storeMascota.setMascota({
+      ...mascotaGuardada,
+      paciente_id: mascotaGuardada.id, // En este contexto el ID es del paciente
+      propietarioId: props.propietario?.id
+    });
 
     emit('mascota-guardada', mascotaGuardada);
     closeDialog();
@@ -710,7 +807,9 @@ watch(
 const activarCamara = async () => {
   try {
     stream.value = await navigator.mediaDevices.getUserMedia({ video: true });
-    video.value.srcObject = stream.value;
+    if (video.value) {
+      video.value.srcObject = stream.value;
+    }
     camaraActiva.value = true;
   } catch (error) {
     console.error("Error al acceder a la cámara:", error);
@@ -718,15 +817,19 @@ const activarCamara = async () => {
 };
 
 const capturarFoto = () => {
-  const context = canvas.value.getContext("2d");
-  context.drawImage(video.value, 0, 0, canvas.value.width, canvas.value.height);
-  imagenCapturada.value = canvas.value.toDataURL("image/png");
+  if (canvas.value && video.value) {
+    const context = canvas.value.getContext("2d");
+    if (context) {
+      context.drawImage(video.value, 0, 0, canvas.value.width, canvas.value.height);
+      imagenCapturada.value = canvas.value.toDataURL("image/png");
+    }
+  }
   detenerCamara();
 };
 
 const detenerCamara = () => {
   if (stream.value) {
-    stream.value.getTracks().forEach((track) => track.stop());
+    stream.value.getTracks().forEach((track: MediaStreamTrack) => track.stop());
     stream.value = null;
   }
   camaraActiva.value = false;
@@ -740,14 +843,15 @@ const reiniciarCamara = () => {
 // Cargar catálogos
 const cargarCatalogos = async () => {
   try {
-    const [sexo, especie, raza, color, dieta, habitat, caracter] = await Promise.all([
+    const [sexo, especie, raza, color, dieta, habitat, caracter, tamanio] = await Promise.all([
       obtenerCatalogo(Modulo.MASCOTA, Tabla.SEXO),
       obtenerCatalogo(Modulo.MASCOTA, Tabla.ESPECIE),
       obtenerCatalogo(Modulo.MASCOTA, Tabla.RAZA),
       obtenerCatalogo(Modulo.MASCOTA, Tabla.COLOR),
       obtenerCatalogo(Modulo.MASCOTA, Tabla.DIETA),
       obtenerCatalogo(Modulo.MASCOTA, Tabla.HABITAT),
-      obtenerCatalogo(Modulo.MASCOTA, Tabla.COMPORTAMIENTO)
+      obtenerCatalogo(Modulo.MASCOTA, Tabla.COMPORTAMIENTO),
+      obtenerCatalogo(Modulo.MASCOTA, Tabla.TAMANIO)
     ]);
 
     catalogosSexo.value = sexo;
@@ -757,19 +861,37 @@ const cargarCatalogos = async () => {
     catalogosDieta.value = dieta;
     catalogosHabitat.value = habitat;
     catalogosCaracter.value = caracter;
+    catalogosTamanio.value = tamanio;
   } catch (error) {
     console.error('Error al cargar catálogos de mascota:', error);
   }
 };
 
 onMounted(async () => {
-  // Primero cargar los catálogos y ESPERAR a que terminen
-  // para que los q-select tengan las opciones disponibles
-  // antes de que se asignen los valores de la mascota a editar.
-  await cargarCatalogos();
+  console.log("DialogAgregarMascota.vue: onMounted ejecutado con mascotaData:", props.mascotaData);
+  
+  showLoading();
+  try {
+    // Primero cargar los catálogos y ESPERAR a que terminen
+    // para que los q-select tengan las opciones disponibles
+    // antes de que se asignen los valores de la mascota a editar.
+    await cargarCatalogos();
+    console.log("DialogAgregarMascota.vue: Catálogos cargados");
 
-  if (props.mascotaData && props.mascotaData.id) {
-    await cargarMascotaCompleta(props.mascotaData.id);
+    // Al editar un paciente, debemos usar el paciente_id si está disponible
+    // porque el endpoint es 'paciente/:id'
+    const idACargar = props.mascotaData?.paciente_id || props.mascotaData?.id;
+
+    if (idACargar) {
+      console.log("DialogAgregarMascota.vue: Iniciando carga de mascota completa (vía Paciente) ID:", idACargar);
+      await cargarMascotaCompleta(idACargar);
+    } else {
+      console.log("DialogAgregarMascota.vue: No hay ID para cargar (posible registro nuevo)");
+    }
+  } catch (error) {
+    console.error("Error en onMounted de DialogAgregarMascota:", error);
+  } finally {
+    hideLoading();
   }
 });
 

@@ -349,12 +349,23 @@ const props = defineProps({
 // Watcher para actualizar el store cuando cambien los datos
 watch(() => props.rows, (nuevosDatos, datosAnteriores) => {
   if (nuevosDatos) {
+    // Manejar nueva estructura del backend [{ elemento: [...] }] para la comparación
+    let datosNuevosProcesados = nuevosDatos;
+    if (nuevosDatos.length === 1 && nuevosDatos[0].elemento && Array.isArray(nuevosDatos[0].elemento)) {
+      datosNuevosProcesados = nuevosDatos[0].elemento;
+    }
+
+    let datosAnterioresProcesados = datosAnteriores;
+    if (datosAnteriores && datosAnteriores.length === 1 && datosAnteriores[0].elemento && Array.isArray(datosAnteriores[0].elemento)) {
+      datosAnterioresProcesados = datosAnteriores[0].elemento;
+    }
+
     // Verificar si es una nueva búsqueda (datos completamente diferentes)
-    const esNuevaBusqueda = !datosAnteriores || 
-      nuevosDatos.length !== datosAnteriores.length ||
-      !nuevosDatos.some((item, index) => 
-        datosAnteriores[index] && 
-        item.id === datosAnteriores[index].id
+    const esNuevaBusqueda = !datosAnterioresProcesados || 
+      datosNuevosProcesados.length !== datosAnterioresProcesados.length ||
+      !datosNuevosProcesados.some((item, index) => 
+        datosAnterioresProcesados[index] && 
+        item.id === datosAnterioresProcesados[index].id
       );
     
     if (esNuevaBusqueda) {
@@ -367,7 +378,7 @@ watch(() => props.rows, (nuevosDatos, datosAnteriores) => {
       propietarioStore.setDatosOriginales(nuevosDatos);
     } else {
       // Si hay un propietario seleccionado, solo actualizar los datos sin cambiar la selección
-      propietarioStore.datosOriginales = nuevosDatos;
+      propietarioStore.setDatosOriginales(nuevosDatos);
     }
   }
 }, { immediate: true });

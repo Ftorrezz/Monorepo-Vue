@@ -140,23 +140,48 @@
 
             <!-- Columna 2: Mascota y Propietario (Datos Concatenados) -->
             <div class="col q-px-lg">
-              <div class="info-stack">
-                <div class="row items-baseline no-wrap">
-                  <span class="text-h5 text-weight-bolder truncate q-mr-md patient-name-glow">{{ paciente?.nombre }}</span>
+              <div class="info-stack" v-if="paciente && paciente.id">
+                <div class="row items-center no-wrap">
+                  <span class="text-h5 text-weight-bolder truncate q-mr-md patient-name-glow">{{ getMascotaDisplay?.nombre }}</span>
                   <div class="flex items-center gap-xs">
                     <q-badge outline color="white" class="br-md text-caption text-weight-medium opacity-90">
-                      {{ paciente?.especie }} / {{ paciente?.raza || 'Mestizo' }}
+                      {{ getMascotaDisplay?.especieLabel }} / {{ getMascotaDisplay?.razaLabel }}
                     </q-badge>
-                    <q-badge v-if="paciente?.edad" outline color="white" class="br-md text-caption opacity-90">{{ paciente.edad }}</q-badge>
-                    <q-badge v-if="paciente?.sexo" outline color="white" class="br-md text-caption uppercase opacity-90">{{ paciente.sexo }}</q-badge>
+                    <q-badge v-if="getMascotaDisplay?.sexoLabel" outline color="white" class="br-md text-caption uppercase opacity-90">
+                      <q-icon :name="getMascotaDisplay?.id_sexo === 14 ? 'female' : 'male'" size="14px" class="q-mr-xs" />
+                      {{ getMascotaDisplay.sexoLabel }}
+                    </q-badge>
+                    <q-badge v-if="getMascotaDisplay?.edadDisplay && getMascotaDisplay?.edadDisplay !== 'N/A'" outline color="white" class="br-md text-caption opacity-90">
+                      <q-icon name="cake" size="14px" class="q-mr-xs" />
+                      {{ getMascotaDisplay.edadDisplay }}
+                    </q-badge>
+                    <q-badge v-if="getMascotaDisplay?.colorLabel" outline color="white" class="br-md text-caption opacity-90">
+                      <q-icon name="palette" size="14px" class="q-mr-xs" />
+                      {{ getMascotaDisplay.colorLabel }}
+                    </q-badge>
+                    
+                    <q-btn flat round dense icon="info" size="xs" color="white" class="q-ml-sm opacity-70">
+                      <q-tooltip class="bg-white text-primary shadow-2 border-primary" style="font-size: 11px">
+                        <div class="q-pa-xs">
+                          <div class="text-weight-bold q-mb-xs">Detalles adicionales:</div>
+                          <div v-if="getMascotaDisplay?.chip"><b>Chip:</b> {{ getMascotaDisplay.chip }}</div>
+                          <div v-if="getMascotaDisplay?.fechachip"><b>Fecha Chip:</b> {{ formatDate(getMascotaDisplay.fechachip) }}</div>
+                          <div><b>Esterilizado:</b> {{ getMascotaDisplay?.esterilizado === 'S' ? 'Sí' : 'No' }}</div>
+                          <div><b>Pedigrí:</b> {{ getMascotaDisplay?.pedigri === 'S' ? 'Sí' : 'No' }}</div>
+                          <div v-if="getMascotaDisplay?.observaciones" class="q-mt-xs">
+                             <b>Obs:</b> {{ getMascotaDisplay.observaciones }}
+                          </div>
+                        </div>
+                      </q-tooltip>
+                    </q-btn>
                   </div>
                 </div>
                 <div class="owner-info flex items-center q-mt-xs opacity-90">
                   <q-icon name="person" size="16px" class="q-mr-xs" />
                   <span class="text-caption text-weight-bold uppercase">
-                    {{ paciente?.propietario?.nombre }} {{ paciente?.propietario?.primerapellido }}
-                   <span v-if="paciente?.propietario?.cedula" class="q-ml-xs text-weight-light"> (DNI: {{ paciente.propietario.cedula }})</span>
-                   <span v-if="paciente?.propietario?.poblador_contacto_telefono1" class="q-ml-md"> <q-icon name="phone" size="12px" /> {{ paciente.propietario.poblador_contacto_telefono1 }}</span>
+                    {{ paciente?.propietario?.nombre }} {{ paciente?.propietario?.primerapellido }} {{ paciente?.propietario?.segundoapellido }}
+                   <span v-if="paciente?.propietario?.email" class="q-ml-md"> <q-icon name="email" size="12px" /> {{ paciente.propietario.email }}</span>
+                   <span v-if="paciente?.propietario?.telefono1" class="q-ml-md"> <q-icon name="phone" size="12px" /> {{ paciente.propietario.telefono1 }}</span>
                   </span>
                   <q-separator vertical color="white" dark class="q-mx-md opacity-40" inset />
                   <q-icon name="event" size="16px" class="q-mr-xs" />
@@ -584,6 +609,8 @@ import NdPeticionControl from 'src/controles/rest.control'
 import { DtoParametros } from 'src/controles/dto.parametros'
 import { useDialogStore } from 'src/stores/DialogoUbicacion'
 import { useSignatureFlow } from 'src/composables/useSignatureFlow'
+import useCatalogos from 'src/composables/useCatalogos'
+import { Modulo, Tabla } from 'src/common/enums/configuracion.enum'
 
 // Importación dinámica de componentes de servicios con lazy loading
 const ServicioVacunacion = defineAsyncComponent(() => import('../components/servicios/ServicioVacunacion.vue'))
@@ -702,6 +729,53 @@ export default {
     // Datos del paciente (ahora vienen del store)
     const paciente = computed(() => mascotaSeleccionadaStore.mascota || {
       id: '', nombre: '', especie: '', raza: '', edad: '', peso: '', propietario: '', telefono: ''
+    })
+
+    const { obtenerCatalogo } = useCatalogos()
+    const catalogosMascota = reactive({
+      sexo: [],
+      especie: [],
+      raza: [],
+      color: []
+    })
+
+    const cargarCatalogosMascota = async () => {
+      try {
+        const [sexo, especie, raza, color] = await Promise.all([
+          obtenerCatalogo(Modulo.MASCOTA, Tabla.SEXO),
+          obtenerCatalogo(Modulo.MASCOTA, Tabla.ESPECIE),
+          obtenerCatalogo(Modulo.MASCOTA, Tabla.RAZA),
+          obtenerCatalogo(Modulo.MASCOTA, Tabla.COLOR)
+        ])
+        catalogosMascota.sexo = sexo
+        catalogosMascota.especie = especie
+        catalogosMascota.raza = raza
+        catalogosMascota.color = color
+      } catch (error) {
+        console.error('Error al cargar catálogos de mascota en header:', error)
+      }
+    }
+
+    const getLabel = (id, tipo) => {
+      if (!id) return null
+      const catalogo = catalogosMascota[tipo]
+      if (!catalogo) return null
+      const item = catalogo.find(i => i.value === id)
+      return item ? item.label : null
+    }
+
+    const getMascotaDisplay = computed(() => {
+      const m = paciente.value
+      if (!m || !m.id) return null
+      
+      return {
+        ...m,
+        especieLabel: getLabel(m.id_especie, 'especie') || m.especie || 'N/A',
+        razaLabel: getLabel(m.id_raza, 'raza') || m.raza || 'Mestizo',
+        sexoLabel: getLabel(m.id_sexo, 'sexo') || m.sexo || '',
+        colorLabel: getLabel(m.id_color, 'color') || m.color || '',
+        edadDisplay: m.edad ? (m.edad === 1 ? '1 año' : `${m.edad} años`) : (m.fechanacimiento ? 'Calculando...' : 'N/A')
+      }
     })
 
     // Variables de Buscador (Faltantes restauradas)
@@ -1701,8 +1775,9 @@ export default {
       cargandoConfiguracion.value = true
       try {
         // Cargar catálogos básicos y esquemas en paralelo para mayor velocidad
-        const [serviciosDinamicos, _] = await Promise.all([
+        const [serviciosDinamicos, _, __] = await Promise.all([
           servicioDinamicoService.getServicios(),
+          cargarCatalogosMascota(),
           Promise.all([
             cargarMotivosParaAtencion(),
             cargarProfesionalesParaAtencion()
@@ -1756,6 +1831,7 @@ export default {
 
     return {
       paciente,
+      getMascotaDisplay,
       atenciones,
       atencionActual,
       serviciosAplicados,

@@ -86,13 +86,17 @@ export const usePropietarioStore = defineStore('propietarioStore', {
       todosLosDatos.forEach(item => {
         if (item.mascotas && Array.isArray(item.mascotas)) {
           item.mascotas.forEach((mascota: any) => {
-            const key = `${mascota.id}-${item.id}`;
+            const petId = mascota.ID || mascota.id;
+            const petName = mascota.NOMBRE || mascota.nombre || '';
+            const key = `${petId}-${item.id}`;
             if (!mascotasMap.has(key)) {
+              // Mantener todos los datos de la mascota pero asegurar campos base en minúsculas para compatibilidad
               mascotasMap.set(key, {
-                id: mascota.id,
-                paciente_id: mascota.paciente_id || null,
-                nombre: mascota.nombre || '',
-                historiaclinica: mascota.historiaclinica || '',
+                ...mascota,
+                id: petId,
+                paciente_id: mascota.paciente_id || mascota.PACIENTE_ID || null,
+                nombre: petName,
+                historiaclinica: mascota.HISTORIACLINICA || mascota.historiaclinica || '',
                 propietarioId: item.id
               });
             }
@@ -116,8 +120,14 @@ export const usePropietarioStore = defineStore('propietarioStore', {
       // Guardar el ID del propietario seleccionado actualmente
       const propietarioSeleccionadoActual = this.propietarioSeleccionadoId;
 
+      // Manejar nueva estructura del backend [{ elemento: [...] }]
+      let datosProcesados = datos;
+      if (datos.length === 1 && datos[0].elemento && Array.isArray(datos[0].elemento)) {
+        datosProcesados = datos[0].elemento;
+      }
+
       // Actualizar datos originales
-      this.datosOriginales = datos;
+      this.datosOriginales = datosProcesados;
 
       // Si hay un último propietario agregado, intentar seleccionarlo
       if (this.ultimoPropietarioAgregado) {
