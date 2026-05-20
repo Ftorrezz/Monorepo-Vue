@@ -85,8 +85,54 @@
             </q-tr>
             <q-tr v-show="props.expand" :props="props">
               <q-td colspan="100%">
-                <div class="text-left">
-                  Detalles adicionales del propietario: {{ props.row.nombre }}.
+                <div class="q-pa-md bg-grey-1 rounded-borders border-accent-left shadow-1">
+                  <div class="row q-col-gutter-md">
+                    <!-- Información Personal -->
+                    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                      <div class="text-weight-bold text-primary q-mb-xs">
+                        <q-icon name="person" class="q-mr-xs" /> Información Personal
+                      </div>
+                      <div class="detail-item"><b>Género:</b> {{ getLabel('genero', props.row.id_genero) || props.row.genero?.descripcion || 'No registrado' }}</div>
+                      <div class="detail-item"><b>F. Nacimiento:</b> {{ props.row.fechanacimiento || 'No registrado' }}</div>
+                    </div>
+
+                    <!-- Contacto -->
+                    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                      <div class="text-weight-bold text-primary q-mb-xs">
+                        <q-icon name="contacts" class="q-mr-xs" /> Contacto
+                      </div>
+                      <div class="detail-item"><b>Móvil:</b> {{ props.row.telefono1 || 'No registrado' }}</div>
+                      <div class="detail-item"><b>Adicional:</b> {{ props.row.telefono2 || props.row.contacto?.telefono2 || 'No registrado' }}</div>
+                      <div class="detail-item"><b>Email:</b> {{ props.row.email || 'No registrado' }}</div>
+                    </div>
+
+                    <!-- Domicilio -->
+                    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                      <div class="text-weight-bold text-primary q-mb-xs">
+                        <q-icon name="location_on" class="q-mr-xs" /> Domicilio
+                      </div>
+                      <div class="detail-item">
+                        {{ props.row.calle || props.row.domicilio?.calle || 'S/C' }} 
+                        #{{ props.row.exterior || props.row.domicilio?.exterior || 'S/N' }}
+                        <span v-if="props.row.interior">Int. {{ props.row.interior }}</span>
+                      </div>
+                      <div class="detail-item">
+                        <b>Colonia:</b> {{ props.row.colonia?.descripcion || props.row.id_colonia_desc || 'No registrado' }}
+                      </div>
+                      <div class="detail-item">
+                        <b>Ubicación:</b> {{ props.row.municipio?.descripcion || 'S/M' }}, {{ props.row.estado?.descripcion || 'S/E' }}, {{ props.row.pais?.descripcion || 'S/P' }}
+                      </div>
+                      <div class="detail-item"><b>C.P.:</b> {{ props.row.codigopostal || 'No registrado' }}</div>
+                    </div>
+
+                    <!-- Observaciones -->
+                    <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                      <div class="text-weight-bold text-primary q-mb-xs">
+                        <q-icon name="notes" class="q-mr-xs" /> Observaciones
+                      </div>
+                      <div class="detail-item text-italic">{{ props.row.observaciones || 'Sin observaciones' }}</div>
+                    </div>
+                  </div>
                 </div>
               </q-td>
             </q-tr>
@@ -242,8 +288,61 @@
             </q-tr>
             <q-tr v-show="props.expand" :props="props">
               <q-td colspan="100%">
-                <div class="text-left">
-                  Detalles adicionales de la mascota: <span translate="no">{{ props.row.nombre || 'Sin nombre' }}</span>.
+                <div class="q-pa-md bg-blue-grey-1 rounded-borders border-secondary-left shadow-1">
+                  <div class="row q-col-gutter-md">
+                    <div class="col-12 col-md-6">
+                      <!-- Datos Vitales -->
+                      <div class="q-mb-md">
+                        <div class="text-weight-bold text-secondary q-mb-xs">
+                          <q-icon name="pets" class="q-mr-xs" /> Datos Vitales
+                        </div>
+                        <div class="detail-item"><b>Especie:</b> {{ getLabel('especie', props.row.mascota_id_especie || props.row.id_especie) || props.row.especie?.descripcion || 'No registrado' }}</div>
+                        <div class="detail-item"><b>Raza:</b> {{ getLabel('raza', props.row.mascota_id_raza || props.row.id_raza) || props.row.raza?.descripcion || 'No registrado' }}</div>
+                        <div class="detail-item"><b>Sexo:</b> {{ getLabel('sexo', props.row.mascota_id_sexo || props.row.id_sexo) || props.row.sexo?.descripcion || 'No registrado' }}</div>
+                        <div class="detail-item"><b>Edad:</b> {{ props.row.mascota_edad || props.row.edad }} años / {{ props.row.mascota_fechanacimiento || props.row.fechanacimiento || 'S/F' }}</div>
+                      </div>
+
+                      <!-- Datos Clínicos -->
+                      <div>
+                        <div class="text-weight-bold text-secondary q-mb-xs">
+                          <q-icon name="medication" class="q-mr-xs" /> Clínicos
+                        </div>
+                        <div class="detail-item"><b>Hist. Clínica:</b> {{ props.row.historiaclinica || 'S/H' }}</div>
+                        <div class="detail-item"><b>Chip:</b> {{ props.row.mascota_chip || props.row.chip || 'No' }}</div>
+                        <div v-if="props.row.mascota_fechachip || props.row.fechachip" class="detail-item"><b>Fecha Chip:</b> {{ props.row.mascota_fechachip || props.row.fechachip }}</div>
+                      </div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                      <!-- Físico/Estilo de Vida -->
+                      <div class="q-mb-md">
+                        <div class="text-weight-bold text-secondary q-mb-xs">
+                          <q-icon name="info" class="q-mr-xs" /> Estilo de Vida & Atributos
+                        </div>
+                        <div class="row q-col-gutter-sm">
+                          <div class="col-6">
+                            <div class="detail-item"><b>Color:</b> {{ getLabel('color', props.row.mascota_id_color || props.row.id_color) || props.row.color?.descripcion || 'S/D' }}</div>
+                            <div class="detail-item"><b>Tamaño:</b> {{ getLabel('tamanio', props.row.mascota_id_tamanio || props.row.id_tamanio) || props.row.tamanio?.descripcion || 'S/D' }}</div>
+                            <div class="detail-item"><b>Carácter:</b> {{ getLabel('caracter', props.row.mascota_id_caracter || props.row.id_caracter) || props.row.caracter?.descripcion || 'S/D' }}</div>
+                          </div>
+                          <div class="col-6">
+                            <div class="detail-item"><b>Dieta:</b> {{ getLabel('dieta', props.row.mascota_id_dieta || props.row.id_dieta) || props.row.dieta?.descripcion || 'S/D' }}</div>
+                            <div class="detail-item"><b>Habitat:</b> {{ getLabel('habitat', props.row.mascota_id_habitat || props.row.id_habitat) || props.row.habitat?.descripcion || 'S/D' }}</div>
+                            <div class="detail-item"><b>Esterilizado:</b> {{ (props.row.mascota_esterilizado || props.row.esterilizado) === 'S' ? 'Sí' : 'No' }}</div>
+                            <div class="detail-item"><b>Pedigrí:</b> {{ (props.row.mascota_pedigri || props.row.pedigri) === 'S' ? 'Sí' : 'No' }}</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Observaciones -->
+                      <div>
+                        <div class="text-weight-bold text-secondary q-mb-xs">
+                          <q-icon name="notes" class="q-mr-xs" /> Notas
+                        </div>
+                        <div class="detail-item text-italic">{{ props.row.mascota_observaciones || props.row.observaciones || 'Sin observaciones' }}</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </q-td>
             </q-tr>
@@ -289,7 +388,7 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, watch } from "vue";
+import { ref, computed, nextTick, watch, onMounted } from "vue";
 import { useQuasar } from "quasar";
 import { useRouter } from "vue-router";
 import DialogAgregarMascotaPropietario from "../dialog/DialogAgregarMascotaPropietario.vue";
@@ -303,6 +402,8 @@ import { usePropietarioStore } from 'src/stores/propietarioStore';
 import NdPeticionControl from "src/controles/rest.control";
 import { DtoParametros } from "src/controles/dto.parametros";
 import { useMascotaSeleccionadaStore } from 'src/stores/mascotaSeleccionadaStore';
+import useCatalogos from "src/composables/useCatalogos";
+import { Modulo, Tabla } from "src/common/enums/configuracion.enum";
 
 const $q = useQuasar();
 const mostrarDialogoPropietario = ref(false);
@@ -318,6 +419,48 @@ const mascotaSeleccionadaStore = useMascotaSeleccionadaStore();
 
 const propietarioAEditar = ref(null);
 const mascotaAEditar = ref(null);
+
+// Catálogos para resolución de etiquetas
+const { obtenerCatalogo } = useCatalogos();
+const catalogos = ref({
+  especie: [],
+  raza: [],
+  sexo: [],
+  color: [],
+  tamanio: [],
+  dieta: [],
+  habitat: [],
+  caracter: [],
+  genero: []
+});
+
+const cargarCatalogos = async () => {
+  const [especie, raza, sexo, color, tamanio, dieta, habitat, caracter, genero] = await Promise.all([
+    obtenerCatalogo(Modulo.MASCOTA, Tabla.ESPECIE),
+    obtenerCatalogo(Modulo.MASCOTA, Tabla.RAZA),
+    obtenerCatalogo(Modulo.MASCOTA, Tabla.SEXO),
+    obtenerCatalogo(Modulo.MASCOTA, Tabla.COLOR),
+    obtenerCatalogo(Modulo.MASCOTA, Tabla.TAMANIO),
+    obtenerCatalogo(Modulo.MASCOTA, Tabla.DIETA),
+    obtenerCatalogo(Modulo.MASCOTA, Tabla.HABITAT),
+    obtenerCatalogo(Modulo.MASCOTA, Tabla.COMPORTAMIENTO),
+    obtenerCatalogo(Modulo.PROPIETARIO, Tabla.GENERO)
+  ]);
+
+  catalogos.value = { especie, raza, sexo, color, tamanio, dieta, habitat, caracter, genero };
+};
+
+const getLabel = (tipo, id) => {
+  if (!id) return null;
+  const catalogo = catalogos.value[tipo];
+  if (!catalogo) return null;
+  const item = catalogo.find(c => c.value === id);
+  return item ? item.label : null;
+};
+
+onMounted(() => {
+  cargarCatalogos();
+});
 
 const emit = defineEmits(['update:rows', 'refresh-data', 'limpiar-filtro', 'llenar-filtro-y-buscar', 'mascota-seleccionada']);
 
@@ -828,5 +971,29 @@ const mascotasRows = computed(() => {
 .body--dark .propietario-seleccionado {
   color: #fff;
   background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Estilos para detalles expandidos */
+.detail-item {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin-bottom: 4px;
+  color: #444;
+}
+
+.body--dark .detail-item {
+  color: #ccc;
+}
+
+.border-accent-left {
+  border-left: 4px solid var(--q-primary);
+}
+
+.border-secondary-left {
+  border-left: 4px solid var(--q-secondary);
+}
+
+.text-italic {
+  font-style: italic;
 }
 </style>

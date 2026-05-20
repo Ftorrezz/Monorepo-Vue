@@ -9,7 +9,31 @@ export interface Propietario {
   nombre: string;
   email: string;
   telefono1: string;
+  telefono2?: string;
+  id_genero?: number;
+  fechanacimiento?: string;
+  observaciones?: string;
+  calle?: string;
+  exterior?: string;
+  interior?: string;
+  codigopostal?: string;
+  id_pais?: number;
+  id_estado?: number;
+  id_municipio?: number;
+  id_colonia?: number;
   activo: string;
+  // Campos anidados que vienen del backend
+  contacto?: {
+    email?: string;
+    telefono1?: string;
+    telefono2?: string;
+  };
+  domicilio?: any;
+  genero?: any;
+  pais?: any;
+  estado?: any;
+  municipio?: any;
+  colonia?: any;
 }
 
 export const usePropietarioStore = defineStore('propietarioStore', {
@@ -32,12 +56,13 @@ export const usePropietarioStore = defineStore('propietarioStore', {
       state.datosOriginales.forEach(item => {
         if (item.propietario && !propietariosUnicos.has(item.id)) {
           propietariosUnicos.set(item.id, {
+            ...item.propietario,
             id: item.id,
             primerapellido: item.propietario.primerapellido || '',
             segundoapellido: item.propietario.segundoapellido || '',
             nombre: item.propietario.nombre || '',
-            email: item.propietario.contacto?.email || '',
-            telefono1: item.propietario.contacto?.telefono1 || '',
+            email: item.propietario.contacto?.email || item.propietario.email || '',
+            telefono1: item.propietario.contacto?.telefono1 || item.propietario.telefono1 || '',
             activo: item.activo
           });
         }
@@ -47,12 +72,13 @@ export const usePropietarioStore = defineStore('propietarioStore', {
       state.propietariosAgregadosTemporalmente.forEach(item => {
         if (item.propietario && !propietariosUnicos.has(item.id)) {
           propietariosUnicos.set(item.id, {
+            ...item.propietario,
             id: item.id,
             primerapellido: item.propietario.primerapellido || '',
             segundoapellido: item.propietario.segundoapellido || '',
             nombre: item.propietario.nombre || '',
-            email: item.propietario.contacto?.email || '',
-            telefono1: item.propietario.contacto?.telefono1 || '',
+            email: item.propietario.contacto?.email || item.propietario.email || '',
+            telefono1: item.propietario.contacto?.telefono1 || item.propietario.telefono1 || '',
             activo: item.activo
           });
         }
@@ -190,12 +216,13 @@ export const usePropietarioStore = defineStore('propietarioStore', {
               // Usar setTimeout para asegurar que la selección se mantenga
               setTimeout(() => {
                 this.seleccionarPropietario({
+                  ...propietarioEncontrado.propietario,
                   id: propietarioEncontrado.id,
                   primerapellido: propietarioEncontrado.propietario.primerapellido || '',
                   segundoapellido: propietarioEncontrado.propietario.segundoapellido || '',
                   nombre: propietarioEncontrado.propietario.nombre || '',
-                  email: propietarioEncontrado.propietario.contacto?.email || '',
-                  telefono1: propietarioEncontrado.propietario.contacto?.telefono1 || '',
+                  email: propietarioEncontrado.propietario.contacto?.email || propietarioEncontrado.propietario.email || '',
+                  telefono1: propietarioEncontrado.propietario.contacto?.telefono1 || propietarioEncontrado.propietario.telefono1 || '',
                   activo: propietarioEncontrado.activo
                 });
               }, 50);

@@ -80,7 +80,16 @@ class NdPeticionControl {
       case "put": {
         _urlEndPoint = _urlEndPoint + '/' + modelo.id;
 
-        return Api.put(_urlEndPoint, payload, { headers, withCredentials: false }).then((response: AxiosResponse) => {
+        // Si el modelo tiene ID, lo quitamos del payload del body 
+        // para evitar errores de validación en backends estrictos (NestJS ValidationPipe)
+        let payloadParaCuerpo = modelo;
+        if (modelo && typeof modelo === 'object' && 'id' in modelo) {
+          const { id, ...resto } = modelo;
+          payloadParaCuerpo = resto;
+        }
+        const payloadJson = JSON.stringify(payloadParaCuerpo);
+
+        return Api.put(_urlEndPoint, payloadJson, { headers, withCredentials: false }).then((response: AxiosResponse) => {
           return this.procesarRespuesta(response, _urlEndPoint);
         }).catch((error: any) => {
           return this.procesarRespuestaError(error, _urlEndPoint);

@@ -543,7 +543,7 @@ const normalizarDatos = (data: any): Mascota => {
     id_mascota:      src.id_mascota      || m.id           || null,
     id_propietario:  src.id_propietario  || m.id_propietario || props.propietario?.id,
     nombre:          src.nombre          ?? defaultMascota.nombre,
-    historiaclinica: src.historiaclinica ?? defaultMascota.historiaclinica,
+    historiaclinica: src.historiaclinica ? String(src.historiaclinica) : defaultMascota.historiaclinica,
     edad:            src.edad            ?? defaultMascota.edad,
     id_especie:      src.id_especie      || (data.especie?.id)  || defaultMascota.id_especie,
     id_raza:         src.id_raza         || (data.raza?.id)     || defaultMascota.id_raza,
@@ -631,24 +631,34 @@ const guardarMascota = async () => {
     datosMascotaPayload.id_habitat = obtenerIDValue(datosMascotaPayload.id_habitat);
     datosMascotaPayload.id_caracter = obtenerIDValue(datosMascotaPayload.id_caracter);
 
+    // Forzar historiaclinica a string justo antes de enviar
+    if (datosMascotaPayload.historiaclinica !== undefined && datosMascotaPayload.historiaclinica !== null) {
+      datosMascotaPayload.historiaclinica = String(datosMascotaPayload.historiaclinica);
+    }
+
+    // Limpiar campos que NO deben enviarse al backend (read-only o generados)
+    const camposABorrar = ['fechaalta', 'fechamodificacion', 'usuarioalta', 'usuariomodificacion', 'id_especie_desc', 'id_raza_desc', 'id_sexo_desc', 'propietario_nombre', 'paciente_id'];
+    camposABorrar.forEach(campo => {
+      delete (datosMascotaPayload as any)[campo];
+    });
+
 
     if (datosMascotaPayload.id) {
       // ----- ACTUALIZACIÓN -----
-      // El endpoint PUT /paciente/:id solo acepta los campos del PacienteDto,
-      // por lo que enviamos los datos de mascota directamente a PUT /mascota/:id_mascota.
       const idPaciente = datosMascotaPayload.id;
       const idMascota = mascota.value.id_mascota || (props.mascotaData as any)?.id_mascota || (props.mascotaData as any)?.mascota_id;
 
-      // Payload para la tabla PACIENTE (solo sus campos propios)
+      // Payload para la tabla PACIENTE (SOLO campos permitidos)
       const pacientePayload: any = {
         id: idPaciente,
         id_mascota: idMascota,
         id_sitio: datosMascotaPayload.id_sitio,
         id_sucursal: datosMascotaPayload.id_sucursal,
         activo: datosMascotaPayload.activo,
+        historiaclinica: String(datosMascotaPayload.historiaclinica || '')
       };
 
-      // Payload para la tabla MASCOTA (datos de la mascota)
+      // Payload para la tabla MASCOTA (SOLO campos permitidos)
       const mascotaPayload: any = {
         id: idMascota,
         id_propietario: datosMascotaPayload.id_propietario,
@@ -678,7 +688,33 @@ const guardarMascota = async () => {
       ]);
       resultadoOperacion = pacienteRes;
     } else {
-      resultadoOperacion = await peticionService.crear('paciente', datosMascotaPayload);
+      // ----- CREACIÓN -----
+      // Usamos un whitelist estricto para evitar enviar campos como fechaalta
+      const payloadCreacion = {
+        id_propietario:  datosMascotaPayload.id_propietario,
+        nombre:          datosMascotaPayload.nombre,
+        historiaclinica: String(datosMascotaPayload.historiaclinica || ''),
+        chip:            datosMascotaPayload.chip,
+        fechachip:       datosMascotaPayload.fechachip,
+        fechanacimiento: datosMascotaPayload.fechanacimiento,
+        edad:            datosMascotaPayload.edad,
+        pedigri:         datosMascotaPayload.pedigri,
+        observaciones:   datosMascotaPayload.observaciones,
+        id_especie:      datosMascotaPayload.id_especie,
+        id_raza:         datosMascotaPayload.id_raza,
+        id_color:        datosMascotaPayload.id_color,
+        id_sexo:         datosMascotaPayload.id_sexo,
+        id_habitat:      datosMascotaPayload.id_habitat,
+        id_caracter:     datosMascotaPayload.id_caracter,
+        id_dieta:        datosMascotaPayload.id_dieta,
+        activo:          datosMascotaPayload.activo,
+        esterilizado:    datosMascotaPayload.esterilizado,
+        id_tamanio:      datosMascotaPayload.id_tamanio,
+        id_sitio:        datosMascotaPayload.id_sitio,
+        id_sucursal:     datosMascotaPayload.id_sucursal,
+      };
+      
+      resultadoOperacion = await peticionService.crear('paciente', payloadCreacion);
     }
 
 
