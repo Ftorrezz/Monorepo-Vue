@@ -9,17 +9,6 @@
               Búsqueda de Propietario
             </div>
             <div class="row items-center q-gutter-sm">
-              <q-toggle
-                v-model="busquedaAutomatica"
-                color="white"
-                icon="auto_mode"
-                dense
-                class="text-white"
-              >
-                <q-tooltip>
-                  {{ busquedaAutomatica ? 'Búsqueda automática activada' : 'Búsqueda manual' }}
-                </q-tooltip>
-              </q-toggle>
               <q-btn flat round dense icon="refresh" @click="limpiarFiltros" color="white">
                 <q-tooltip>Limpiar Filtros</q-tooltip>
               </q-btn>
@@ -186,12 +175,14 @@ import CardBusquedaPropietarioMascota from "../../components/card/CardBusquedaPr
 import NdPeticionControl from "src/controles/rest.control";
 import { DtoParametros } from "src/controles/dto.parametros";
 import { useLoading } from "../../../../../libs/shared/src/composables/useLoading";
+import { usePreferenciasStore } from "../../stores/preferencias";
 
 const $q = useQuasar();
 const listaPropietarios = ref([]);
 const { showLoading, hideLoading } = useLoading();
+const preferenciasStore = usePreferenciasStore();
 
-const busquedaAutomatica = ref(true);
+const busquedaAutomatica = computed(() => preferenciasStore.busquedaRapidaPropietarioMascota);
 let timeoutBusqueda: any = null;
 
 const formData = ref({

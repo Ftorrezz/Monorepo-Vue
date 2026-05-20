@@ -202,6 +202,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../../../neo-vet/src/pages/configuration/general/ConfiguracionParametros.vue'),
         meta: { requireAuth: true },
       },
+      {
+        path: "/config/general/configuracionpreferencias",
+        name: "configuracionpreferencias",
+        component: () => import('../../../neo-vet/src/pages/configuration/general/ConfiguracionPreferencias.vue'),
+        meta: { requireAuth: true },
+      },
     ],
     //meta: { requireAuth: true },
 

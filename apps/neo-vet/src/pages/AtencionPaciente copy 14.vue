@@ -91,18 +91,11 @@
               <q-tooltip v-if="sidebarCollapsed" anchor="center right" self="center left">{{ servicio.nombre }}</q-tooltip>
             </q-item>
 
-            <q-item 
-              clickable 
-              v-ripple 
-              :disable="!atencionActualData?.id"
-              class="nav-btn-add br-md q-mt-md" 
-              @click="showAddServiceDialog = true" 
-              key="add-service-btn"
-            >
+            <q-item clickable v-ripple class="nav-btn-add br-md q-mt-md" @click="showAddServiceDialog = true" key="add-service-btn">
               <q-item-section avatar>
-                <q-icon name="add_circle" :color="!atencionActualData?.id ? 'grey-5' : 'primary'" />
+                <q-icon name="add_circle" color="primary" />
               </q-item-section>
-              <q-item-section v-if="!sidebarCollapsed" :class="!atencionActualData?.id ? 'text-grey-5 text-weight-bold' : 'text-primary text-weight-bold'">Agregar Servicio</q-item-section>
+              <q-item-section v-if="!sidebarCollapsed" class="text-primary text-weight-bold">Agregar Servicio</q-item-section>
             </q-item>
 
             <!-- Boton Guardar (Movido para visibilidad) -->
@@ -194,18 +187,6 @@
                   <q-icon name="event" size="16px" class="q-mr-xs" />
                   <span class="text-caption">{{ formatDate(atencionActualData?.fecha) }} {{ atencionActualData?.hora }}</span>
                 </div>
-                <!-- Fila de motivo y observaciones de la atención activa -->
-                <div class="attention-info flex items-center q-mt-xs opacity-95 text-white" v-if="atenciones && atenciones.length > 0">
-                  <q-icon name="assignment" size="16px" class="q-mr-xs text-warning" />
-                  <span class="text-caption text-weight-bold">
-                    Motivo: <span class="text-weight-normal text-warning">{{ atencionActualData?.motivo || 'No especificado' }}</span>
-                  </span>
-                  <q-separator vertical color="white" dark class="q-mx-md opacity-40" inset />
-                  <q-icon name="chat_bubble_outline" size="16px" class="q-mr-xs" />
-                  <span class="text-caption text-weight-bold truncate" style="max-width: 500px; display: inline-block; vertical-align: bottom;">
-                    Observaciones: <span class="text-weight-normal opacity-90">{{ atencionActualData?.observacion || 'Ninguna' }}</span>
-                  </span>
-                </div>
               </div>
             </div>
 
@@ -213,10 +194,10 @@
             <div class="col-auto row items-center no-wrap">
               <div class="professional-pill q-px-md q-py-sm br-xl flex items-center q-mr-lg">
                  <q-avatar size="32px" class="bg-white text-primary text-weight-bold shadow-1">
-                   {{ atencionActualData?.veterinario?.[0] || 'P' }}
+                   {{ atencionActualData?.veterinario?.[0] || 'V' }}
                  </q-avatar>
                  <div class="q-ml-sm hide-mobile">
-                    <div class="text-caption text-weight-bold leading-none">Profesional</div>
+                    <div class="text-caption text-weight-bold leading-none">Médico Veterinario</div>
                     <div class="text-subtitle2 text-weight-bolder text-white truncate max-width-250">{{ atencionActualData?.veterinario }}</div>
                  </div>
               </div>
@@ -240,7 +221,7 @@
              <div class="text-center animate-fade-in" v-if="!paciente">
                 <q-icon name="manage_search" size="80px" color="grey-3" />
                 <div class="text-h6 text-grey-5 q-mt-md">Selecciona un paciente para continuar</div>
-                <q-btn unelevated color="primary" label="Buscar Paciente / Propietario" class="q-mt-lg br-xl q-px-xl" size="lg" icon="search" @click="showSearchDialog = true" />
+                <q-btn unelevated color="primary" label="Buscador" class="q-mt-lg br-lg" icon="search" @click="showSearchDialog = true" />
              </div>
              <div class="text-center animate-fade-in" v-else>
                 <q-icon name="post_add" size="80px" color="blue-1" />
@@ -483,10 +464,10 @@
     <q-dialog v-model="showNuevaAtencionDialog" persistent>
       <q-card style="width: 450px" class="br-xl overflow-hidden">
         <q-card-section class="bg-primary text-white q-pa-lg">
-          <div class="text-h6 text-weight-bolder">Nueva Atención</div>
+          <div class="text-h6 text-weight-bolder">Nueva Atención Medica</div>
         </q-card-section>
         <q-card-section class="q-pa-lg q-gutter-md">
-          <q-select v-model="formNuevaAtencion.veterinario_id" :options="profesionalesOpciones" label="Profesional *" outlined dense emit-value map-options class="br-md" />
+          <q-select v-model="formNuevaAtencion.veterinario_id" :options="profesionalesOpciones" label="Veterinario *" outlined dense emit-value map-options class="br-md" />
           <q-select v-model="formNuevaAtencion.motivo_id" :options="motivosOpciones" label="Motivo *" outlined dense emit-value map-options class="br-md" />
           <q-input v-model="formNuevaAtencion.observaciones" label="Observaciones" type="textarea" outlined dense class="br-md" />
         </q-card-section>
@@ -943,8 +924,7 @@ export default {
       return atenciones.value[atencionActual.value] || {
         id: null, numero: '', fecha: '', hora: '',
         fechaFinalizacion: '', horaFinalizacion: '',
-        veterinario: '', estado: 'En curso', servicios: [],
-        motivo: '', observacion: ''
+        veterinario: '', estado: 'En curso', servicios: []
       }
     })
 
@@ -983,13 +963,6 @@ export default {
              'Sin nombre'
     }
 
-    const obtenerNombreMotivo = (id) => {
-      if (!id) return null
-      const mot = motivosDisponibles.value.find(m => String(m.id) === String(id))
-      if (!mot) return null
-      return mot.descripcion || mot.nombre || 'Sin descripción'
-    }
-
     // Métodos
     const formatDate = (dateString) => {
       const date = new Date(dateString)
@@ -1014,7 +987,7 @@ export default {
         message: `
           <div>
             <strong>Fecha:</strong> ${atencion.fecha} ${atencion.hora}<br>
-            <strong>Profesional:</strong> ${atencion.veterinario}<br>
+            <strong>Veterinario:</strong> ${atencion.veterinario}<br>
             <strong>Estado:</strong> ${atencion.estado}<br>
             <strong>Servicios:</strong> ${atencion.servicios.length}
           </div>
@@ -1089,6 +1062,7 @@ export default {
           activo: 'S',
           id_sucursal: store.sucursalSeleccionada.id,
           fechaalta: new Date().toISOString(),
+
         }
 
         const respuesta = await atencionService.crearAtencion(datosNuevaAtencion)
@@ -1646,9 +1620,6 @@ export default {
           return {
             id: a.id,
             id_profesional: a.id_profesional,
-            id_motivo: a.id_motivo,
-            motivo: a.motivo?.descripcion || a.motivo?.nombre || obtenerNombreMotivo(a.id_motivo) || 'Sin asignar',
-            observacion: a.observacion || 'Sin observaciones',
             numero: a.numero || a.identificador || `A-${a.id}`,
             fecha: a.fecha || a.fechaalta?.split('T')[0] || '',
             hora: a.hora || a.fechaalta?.split('T')[1]?.substring(0, 5) || '',
@@ -1903,7 +1874,6 @@ export default {
       limpiarFiltrosBusqueda,
       onMascotaSeleccionada,
       cargandoConfiguracion,
-      obtenerNombreMotivo,
       // Firma
       showFirmaDialog,
       datosFirma,
@@ -2101,17 +2071,6 @@ export default {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(8px);
-}
-
-.btn-search-glow {
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.35);
-  border: 1.5px solid rgba(255, 255, 255, 0.6);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.btn-search-glow:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 0 18px rgba(255, 255, 255, 0.6);
 }
 
 .leading-none { line-height: 1; }

@@ -227,8 +227,6 @@ export const menuConfig = [
           { labelKey: "mainMenu.settings.institutional.branch", icon: "note_add", to: "/sucursal" },
         ],
       },
-      { labelKey: "mainMenu.settings.general.configuracionpreferencias", icon: "settings", to: "/config/general/configuracionpreferencias" },
-
 
     ],
   },
