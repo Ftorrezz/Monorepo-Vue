@@ -117,18 +117,18 @@
                 @click="abrirDialogoMascota"
                 :disabled="!propietarioStore.tienePropietarioSeleccionado"
               >
-                <q-badge 
+                <q-badge
                   v-if="propietarioStore.tienePropietarioSeleccionado"
-                  color="white" 
-                  text-color="purple" 
+                  color="white"
+                  text-color="purple"
                   floating
                 >
                   +
                 </q-badge>
-                <q-badge 
+                <q-badge
                   v-else
-                  color="warning" 
-                  text-color="white" 
+                  color="warning"
+                  text-color="white"
                   floating
                 >
                   !
@@ -158,7 +158,7 @@
               </span>
             </div>
           </template>
-          
+
           <template v-slot:body="props">
             <q-tr :props="props">
               <q-td v-for="col in props.cols" :key="col.name" :props="props">
@@ -234,7 +234,7 @@
 
                   </div>
                 </template>
-                
+
                 <template v-else>
                   {{ col.value }}
                 </template>
@@ -350,18 +350,18 @@ const props = defineProps({
 watch(() => props.rows, (nuevosDatos, datosAnteriores) => {
   if (nuevosDatos) {
     // Verificar si es una nueva búsqueda (datos completamente diferentes)
-    const esNuevaBusqueda = !datosAnteriores || 
+    const esNuevaBusqueda = !datosAnteriores ||
       nuevosDatos.length !== datosAnteriores.length ||
-      !nuevosDatos.some((item, index) => 
-        datosAnteriores[index] && 
+      !nuevosDatos.some((item, index) =>
+        datosAnteriores[index] &&
         item.id === datosAnteriores[index].id
       );
-    
+
     if (esNuevaBusqueda) {
       // Es una nueva búsqueda, limpiar propietarios temporales
       propietarioStore.limpiarPropietariosTemporales();
     }
-    
+
     // Solo actualizar si no hay un propietario seleccionado o si es una nueva búsqueda
     if (!propietarioStore.propietarioSeleccionadoId || esNuevaBusqueda) {
       propietarioStore.setDatosOriginales(nuevosDatos);
@@ -490,7 +490,7 @@ const eliminarPropietario = async (props) => {
     if (resultado !== false) {
       // Usar el store para eliminar
       propietarioStore.eliminarPropietario(props.row.id);
-      
+
       // Emitir evento para actualizar los datos
       emit('refresh-data');
     }
@@ -535,11 +535,11 @@ const seleccionarMascota = async (props) => {
       ...props.row,
       propietario: propietarioSeleccionado.value
     });
-    
+
     // Emitir evento para que el componente padre pueda reaccionar (ej. cerrar diálogo)
-    emit('mascota-seleccionada', { 
-        mascota: props.row, 
-        propietario: propietarioSeleccionado.value 
+    emit('mascota-seleccionada', {
+        mascota: props.row,
+        propietario: propietarioSeleccionado.value
     });
 
     router.push({ name: "atencionpaciente" });
@@ -573,15 +573,15 @@ const onAgendaSuccess = () => {
 // Función mejorada para manejar propietario agregado
 const propietarioAgregado = async (propietarioGuardado) => {
   mostrarDialogoPropietario.value = false;
-  
+
   console.log('Propietario guardado recibido:', propietarioGuardado);
-  
+
   // Usar la nueva funcionalidad del store que buscará datos completos si es necesario
   await propietarioStore.manejarPropietarioAgregado(propietarioGuardado);
-  
+
   // Llenar el filtro con los datos del propietario recién agregado y buscar
   emit('llenar-filtro-y-buscar', propietarioGuardado);
-  
+
   // Mostrar diálogo de confirmación para agregar mascota
  /* $q.dialog({
     title: 'Propietario agregado exitosamente',
@@ -610,37 +610,23 @@ const cerrarDialogoPropietario = () => {
   propietarioAEditar.value = null;
 };
 
-const mascotaAgregada = (mascotaGuardada) => {
+const mascotaAgregada = async (mascotaGuardada) => {
   mostrarDialogoMascota.value = false;
-  
-  // En lugar de hacer refresh-data, agregar la mascota directamente a la lista
-  if (propietarioStore.propietarioSeleccionadoId && mascotaGuardada) {
-    // Agregar la mascota al propietario seleccionado en los datos originales
-    const propietarioEncontrado = propietarioStore.datosOriginales.find(
-      item => item.id === propietarioStore.propietarioSeleccionadoId
-    );
-    
-    if (propietarioEncontrado) {
-      // Asegurar que el array de mascotas existe
-      if (!propietarioEncontrado.mascotas) {
-        propietarioEncontrado.mascotas = [];
-      }
-      
-      // Crear una copia de la mascota con el nombre en mayúsculas
-      const mascotaConNombreMayusculas = {
-        ...mascotaGuardada,
-        nombre: mascotaGuardada.nombre ? mascotaGuardada.nombre.toUpperCase() : ''
-      };
-      
-      // Agregar la nueva mascota
-      propietarioEncontrado.mascotas.push(mascotaConNombreMayusculas);
-      
-      // Forzar la actualización del store creando una nueva referencia del array
-      propietarioStore.datosOriginales = [...propietarioStore.datosOriginales];
-      
-      console.log('Mascota agregada exitosamente:', mascotaConNombreMayusculas);
-      console.log('Mascotas del propietario:', propietarioEncontrado.mascotas);
-    }
+
+  if (!propietarioStore.propietarioSeleccionadoId) {
+    console.warn('No hay propietario seleccionado');
+    return;
+  }
+
+  console.log('Mascota guardada recibida:', mascotaGuardada);
+
+  // Hacer refresh de los datos para sincronizar con el backend
+  // Esto asegura que no haya duplicados o inconsistencias
+  try {
+    emit('refresh-data');
+    console.log('Refresh-data emitido');
+  } catch (error) {
+    console.error('Error al hacer refresh:', error);
   }
 };
 

@@ -419,7 +419,7 @@ const buscarPropietarios = async () => {
       const peticion = new NdPeticionControl()
       const queryParams = new URLSearchParams()
       queryParams.append('busqueda', busquedaPropietario.value)
-      
+
       const response = await peticion.invocarMetodo(`propietarios/buscar?${queryParams.toString()}`, 'get')
       propietariosBuscados.value = Array.isArray(response) ? response : (response?.data || [])
     } catch (error) {
@@ -434,20 +434,36 @@ const buscarPropietarios = async () => {
 const seleccionarPropietario = async (row) => {
   console.log('Propietario seleccionado (row):', row)
   propietarioSeleccionado.value = row.propietario
-  
+
   // Buscar mascotas en la raíz o dentro del objeto propietario
-  const mascotas = row.mascotas || row.propietario?.mascotas || []
-  console.log('Mascotas encontradas:', mascotas)
-  
-  if (mascotas.length > 0) {
-    mascotasPropietario.value = mascotas
+  let mascotas = row.mascotas || row.propietario?.mascotas || []
+  console.log('Mascotas encontradas (sin deduplicar):', mascotas)
+
+  // Deduplicar mascotas por nombre (en caso de que el backend devuelva duplicados)
+  const mascotasDeduplicadas = []
+  const nombresVistos = new Set()
+
+  for (const mascota of mascotas) {
+    const nombreLower = mascota.nombre?.toLowerCase() || ''
+    if (!nombresVistos.has(nombreLower)) {
+      mascotasDeduplicadas.push(mascota)
+      nombresVistos.add(nombreLower)
+    } else {
+      console.warn(`Mascota duplicada detectada y eliminada: ${mascota.nombre}`)
+    }
+  }
+
+  console.log('Mascotas después de deduplicar:', mascotasDeduplicadas)
+
+  if (mascotasDeduplicadas.length > 0) {
+    mascotasPropietario.value = mascotasDeduplicadas
   } else if (row.propietario?.id) {
     mascotasPropietario.value = []
     //await cargarMascotasPropietario(row.propietario.id)
   } else {
     mascotasPropietario.value = []
   }
-  
+
   pasoActual.value = 'seleccionar_mascota'
 }
 
@@ -480,7 +496,7 @@ const cargarProfesionales = async () => {
     const peticion = new NdPeticionControl()
     const response = await peticion.invocarMetodo('profesional', 'get')
     let profesionales = Array.isArray(response) ? response : (response?.data || [])
-    
+
     // Filtrar solo activos y agregar nombre completo
     profesionales = profesionales
       .filter(p => p.activo !== false)
@@ -488,7 +504,7 @@ const cargarProfesionales = async () => {
         ...p,
         nombre_completo: `${p.nombre || ''} ${p.apellido || ''}`.trim() || 'Sin nombre'
       }))
-    
+
     profesionalesDisponibles.value = profesionales
   } catch (error) {
     console.error('Error al cargar profesionales:', error)
@@ -500,7 +516,7 @@ const cargarProfesionales = async () => {
 const seleccionarMascota = (mascota) => {
   mascotaSeleccionada.value = mascota
   pasoActual.value = 'confirmar_cita'
-  
+
   // Cargar motivos y profesionales solo cuando llega al paso de confirmación
   cargarMotivos()
   cargarProfesionales()
@@ -534,9 +550,37 @@ const cerrarDialogoMascota = () => {
 const manejarMascotaGuardada = (mascota) => {
   mostrarDialogoMascota.value = false
   mascotaSeleccionada.value = mascota
-  pasoActual.value = 'confirmar_cita'
-  $q.notify({ type: 'positive', message: 'Mascota registrada exitosamente' })
-}
+
+  // Debug: Ver estructura de mascota
+  console.log('Mascota guardada recibida:', mascota)
+  console.log('Array mascotasPropietario:', mascotasPropietario.value)
+
+  // Actualizar la mascota en el array existente en lugar de recargar todo
+  // Esto evita duplicados cuando se edita una mascota existente
+  // Buscar por nombre (más confiable que ID) o por ID como fallback
+  const indexExistente = mascotasPropietario.value.findIndex(m => {
+    const coincideNombre = m.nombre?.toLowerCase() === mascota.nombre?.toLowerCase()
+    const coincideId = m.id === mascota.id
+    const coincideIdMascota = m.id_mascota === mascota.id_mascota
+    return coincideNombre || coincideId || coincideIdMascota
+  })
+
+  console.log('Índice encontrado:', indexExistente)
+
+  if (indexExistente >= 0) {
+    // Actualizar mascota existente
+    console.log('Actualizando mascota en índice:', indexExistente)
+    mascotasPropietario.value[indexExistente] = {
+      ...mascotasPropietario.value[indexExistente],
+      ...mascota
+    }
+  } else {
+    // Agregar nueva mascota si no existe
+    console.log('Agregando mascota nueva')
+    mascotasPropietario.value.push(mascota)
+  }
+
+  console.log('Array después de actualización:', mascotasPropietario.value)
 
 // Legacy methods (keep for now, can be removed once fully tested)
 const irANuevoPropietario = () => {
@@ -564,7 +608,7 @@ const confirmarCita = async () => {
     $q.notify({ type: 'warning', message: 'Debes seleccionar un motivo para la consulta' })
     return
   }
-  
+
   guardandoCita.value = true
   try {
     const peticion = new NdPeticionControl()
@@ -580,10 +624,10 @@ const confirmarCita = async () => {
       observaciones: observaciones.value,
       id_sucursal: store.sucursalSeleccionada.id,
     }
-    
+
     const response = await peticion.invocarMetodo('agenda/citas', 'post', datos)
-    
-    
+
+
     emit('cita-creada', response?.data || response)
     cerrar()
   } catch (error) {

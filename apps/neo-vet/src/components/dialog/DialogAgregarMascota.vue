@@ -173,10 +173,12 @@
                             />
                           </div>
 
-                           <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                           <div v-if="mascota.id" class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                             <q-input
                               v-model="mascota.historiaclinica"
                               label="Historia Clínica"
+                              disable
+                              readonly
                               dense
                             />
                           </div>
@@ -405,7 +407,7 @@ interface Mascota {
   id_mascota: number | null;  // ID de la tabla MASCOTA (usado al editar)
   id_propietario: number | null;
   nombre: string;
-  historiaclinica: string;
+  historiaclinica: string | number;
   edad: number | null;
   id_especie: number | null;
   id_raza: number | null;
@@ -631,9 +633,9 @@ const guardarMascota = async () => {
     datosMascotaPayload.id_habitat = obtenerIDValue(datosMascotaPayload.id_habitat);
     datosMascotaPayload.id_caracter = obtenerIDValue(datosMascotaPayload.id_caracter);
 
-    // Forzar historiaclinica a string justo antes de enviar
-    if (datosMascotaPayload.historiaclinica !== undefined && datosMascotaPayload.historiaclinica !== null) {
-      datosMascotaPayload.historiaclinica = String(datosMascotaPayload.historiaclinica);
+    // Forzar historiaclinica a number justo antes de enviar
+    if (datosMascotaPayload.historiaclinica !== undefined && datosMascotaPayload.historiaclinica !== null && datosMascotaPayload.historiaclinica !== '') {
+      datosMascotaPayload.historiaclinica = Number(datosMascotaPayload.historiaclinica);
     }
 
     // Limpiar campos que NO deben enviarse al backend (read-only o generados)
@@ -655,7 +657,7 @@ const guardarMascota = async () => {
         id_sitio: datosMascotaPayload.id_sitio,
         id_sucursal: datosMascotaPayload.id_sucursal,
         activo: datosMascotaPayload.activo,
-        historiaclinica: String(datosMascotaPayload.historiaclinica || '')
+        historiaclinica: datosMascotaPayload.historiaclinica !== undefined && datosMascotaPayload.historiaclinica !== null && datosMascotaPayload.historiaclinica !== '' ? Number(datosMascotaPayload.historiaclinica) : null
       };
 
       // Payload para la tabla MASCOTA (SOLO campos permitidos)
@@ -693,7 +695,6 @@ const guardarMascota = async () => {
       const payloadCreacion = {
         id_propietario:  datosMascotaPayload.id_propietario,
         nombre:          datosMascotaPayload.nombre,
-        historiaclinica: String(datosMascotaPayload.historiaclinica || ''),
         chip:            datosMascotaPayload.chip,
         fechachip:       datosMascotaPayload.fechachip,
         fechanacimiento: datosMascotaPayload.fechanacimiento,
