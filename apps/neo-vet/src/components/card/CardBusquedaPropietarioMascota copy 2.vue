@@ -773,36 +773,15 @@ const mascotaAgregada = async (mascotaGuardada) => {
   }
 
   console.log('Mascota guardada recibida:', mascotaGuardada);
-  console.log('Mascota a editar (antes):', mascotaAEditar.value);
 
-  // Determinar si fue una edición (si abrimos el diálogo con una mascota para editar)
-  const esEdicion = mascotaAEditar.value && (mascotaAEditar.value.id || mascotaAEditar.value.id_mascota);
-  console.log('¿Es edición?', esEdicion, '- ID en mascotaAEditar:', mascotaAEditar.value?.id || mascotaAEditar.value?.id_mascota);
-
-  if (esEdicion) {
-    // Actualizar solo la mascota editada en el store para evitar refrescar todo
-    console.log('Actualizando mascota en store sin refresh...');
-    propietarioStore.actualizarMascotaEnDatos(
-      propietarioStore.propietarioSeleccionadoId,
-      mascotaGuardada
-    );
-
-    $q.notify({ type: 'positive', message: 'Mascota actualizada exitosamente', position: 'top' });
-
-    console.log('Mascotas filtradas actuales:', propietarioStore.mascotasFiltradas);
-  } else {
-    // Si no fue edición, es creación: refrescar datos para obtener registro completo
-    console.log('Nueva mascota creada — emitiendo refresh-data para sincronizar');
-    try {
-      emit('refresh-data');
-      console.log('Refresh-data emitido para nueva mascota');
-    } catch (error) {
-      console.error('Error al hacer refresh:', error);
-    }
+  // Hacer refresh de los datos para sincronizar con el backend
+  // Esto asegura que no haya duplicados o inconsistencias
+  try {
+    emit('refresh-data');
+    console.log('Refresh-data emitido');
+  } catch (error) {
+    console.error('Error al hacer refresh:', error);
   }
-
-  // Limpiar estado de edición
-  mascotaAEditar.value = null;
 };
 
 const cerrarDialogoMascota = () => {
@@ -978,5 +957,29 @@ const mascotasRows = computed(() => {
 .body--dark .propietario-seleccionado {
   color: #fff;
   background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Estilos para detalles expandidos */
+.detail-item {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin-bottom: 4px;
+  color: #444;
+}
+
+.body--dark .detail-item {
+  color: #ccc;
+}
+
+.border-accent-left {
+  border-left: 4px solid var(--q-primary);
+}
+
+.border-secondary-left {
+  border-left: 4px solid var(--q-secondary);
+}
+
+.text-italic {
+  font-style: italic;
 }
 </style>

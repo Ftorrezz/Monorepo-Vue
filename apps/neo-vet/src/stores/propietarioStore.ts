@@ -414,6 +414,86 @@ export const usePropietarioStore = defineStore('propietarioStore', {
     limpiarPropietariosTemporales() {
       this.propietariosAgregadosTemporalmente = [];
       this.propietariosRecienAgregados.clear();
+    },
+
+    // Nueva función: Actualizar una mascota específica en los datos originales
+    actualizarMascotaEnDatos(propietarioId: number, mascotaActualizada: any) {
+      console.log('Buscando mascota para actualizar:', mascotaActualizada);
+      
+      // Buscar el propietario en los datos originales
+      const propietarioData = this.datosOriginales.find(item => item.id === propietarioId);
+      
+      if (propietarioData && propietarioData.mascotas && Array.isArray(propietarioData.mascotas)) {
+        // Construir una lista de todos los posibles IDs de la mascota a actualizar
+        const idsABuscar = new Set([
+          mascotaActualizada.id,
+          mascotaActualizada.id_mascota,
+          mascotaActualizada.paciente_id,
+          mascotaActualizada.ID,
+          mascotaActualizada.PACIENTE_ID,
+          mascotaActualizada.MASCOTA_ID
+        ].filter(id => id !== undefined && id !== null));
+
+        console.log('IDs a buscar:', Array.from(idsABuscar));
+
+        let indexMascota = -1;
+        
+        // Buscar la mascota en el array
+        for (let i = 0; i < propietarioData.mascotas.length; i++) {
+          const m = propietarioData.mascotas[i];
+          const mascotaId = m.id || m.ID;
+          const mascotaPacienteId = m.paciente_id || m.PACIENTE_ID;
+          const mascotaMascotaId = m.id_mascota || m.MASCOTA_ID;
+          
+          // Verificar si alguno de los IDs coincide
+          if (idsABuscar.has(mascotaId) || idsABuscar.has(mascotaPacienteId) || idsABuscar.has(mascotaMascotaId)) {
+            indexMascota = i;
+            console.log('Mascota encontrada en índice:', i, 'con ID:', mascotaId, 'paciente_id:', mascotaPacienteId);
+            break;
+          }
+        }
+        
+        if (indexMascota >= 0) {
+          // Actualizar la mascota manteniendo la estructura existente y los campos originales
+          const mascotaOriginal = propietarioData.mascotas[indexMascota];
+          
+          // Crear una nueva mascota con los datos actualizados
+          const mascotaActualizada_nueva = {
+            ...mascotaOriginal,
+            // Actualizar campos específicos
+            nombre: mascotaActualizada.nombre ?? mascotaOriginal.nombre,
+            chip: mascotaActualizada.chip ?? mascotaOriginal.chip,
+            fechachip: mascotaActualizada.fechachip ?? mascotaOriginal.fechachip,
+            fechanacimiento: mascotaActualizada.fechanacimiento ?? mascotaOriginal.fechanacimiento,
+            edad: mascotaActualizada.edad ?? mascotaOriginal.edad,
+            pedigri: mascotaActualizada.pedigri ?? mascotaOriginal.pedigri,
+            observaciones: mascotaActualizada.observaciones ?? mascotaOriginal.observaciones,
+            id_especie: mascotaActualizada.id_especie ?? mascotaOriginal.id_especie,
+            id_raza: mascotaActualizada.id_raza ?? mascotaOriginal.id_raza,
+            id_color: mascotaActualizada.id_color ?? mascotaOriginal.id_color,
+            id_sexo: mascotaActualizada.id_sexo ?? mascotaOriginal.id_sexo,
+            id_habitat: mascotaActualizada.id_habitat ?? mascotaOriginal.id_habitat,
+            id_caracter: mascotaActualizada.id_caracter ?? mascotaOriginal.id_caracter,
+            id_dieta: mascotaActualizada.id_dieta ?? mascotaOriginal.id_dieta,
+            id_tamanio: mascotaActualizada.id_tamanio ?? mascotaOriginal.id_tamanio,
+            esterilizado: mascotaActualizada.esterilizado ?? mascotaOriginal.esterilizado,
+            historiaclinica: mascotaActualizada.historiaclinica ?? mascotaOriginal.historiaclinica,
+            activo: mascotaActualizada.activo ?? mascotaOriginal.activo,
+          };
+          
+          // Crear un nuevo array y reemplazar el elemento para que Vue detecte el cambio
+          propietarioData.mascotas = [
+            ...propietarioData.mascotas.slice(0, indexMascota),
+            mascotaActualizada_nueva,
+            ...propietarioData.mascotas.slice(indexMascota + 1)
+          ];
+          
+          console.log('Mascota actualizada exitosamente en el store:', mascotaActualizada_nueva);
+          return;
+        }
+      }
+      
+      console.warn('No se encontró la mascota para actualizar. Propietario ID:', propietarioId, 'Mascota datos:', mascotaActualizada);
     }
   },
 

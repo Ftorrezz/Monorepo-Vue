@@ -722,18 +722,26 @@ const guardarMascota = async () => {
 
 
 
+    // Obtener el ID de mascota si es edición
+    const idMascotaFinal = mascota.value.id_mascota || 
+                           (props.mascotaData as any)?.id_mascota || 
+                           (props.mascotaData as any)?.mascota_id ||
+                           (resultadoOperacion?.elemento as any)?.id_mascota;
+
     const mascotaGuardada = {
       ...datosMascotaPayload,
       ...(resultadoOperacion?.elemento || {}),
-      id: resultadoOperacion?.id || resultadoOperacion?.elemento?.id || datosMascotaPayload.id
+      id: resultadoOperacion?.id || resultadoOperacion?.elemento?.id || datosMascotaPayload.id,
+      id_mascota: idMascotaFinal, // Asegurar que el ID de mascota esté presente
+      paciente_id: resultadoOperacion?.id || resultadoOperacion?.elemento?.id || datosMascotaPayload.id
     };
 
-    console.log("MASCOTA GUARDADA EXITOSAMENTE:", mascotaGuardada);
+    console.log("MASCOTA GUARDADA EXITOSAMENTE:", mascotaGuardada, "ID MASCOTA:", idMascotaFinal);
     
     // Actualizar el store con los datos guardados (que pueden incluir IDs generados)
     storeMascota.setMascota({
       ...mascotaGuardada,
-      paciente_id: mascotaGuardada.id, // En este contexto el ID es del paciente
+      paciente_id: mascotaGuardada.id || mascotaGuardada.paciente_id,
       propietarioId: props.propietario?.id
     });
 
