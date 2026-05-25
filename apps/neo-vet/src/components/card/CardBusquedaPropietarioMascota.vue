@@ -47,7 +47,7 @@
                     color="accent"
                     round
                     dense
-                    @click.stop="props.expand = !props.expand"
+                    @click.stop="toggleExpandRow(props)"
                     :icon="props.expand ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
                   />
                 </template>
@@ -214,7 +214,7 @@
                     color="accent"
                     round
                     dense
-                    @click="props.expand = !props.expand"
+                    @click="toggleExpandRow(props)"
                     :icon="props.expand ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
                   />
                 </template>
@@ -388,7 +388,7 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, watch, onMounted } from "vue";
+import { ref, computed, nextTick, watch } from "vue";
 import { useQuasar } from "quasar";
 import { useRouter } from "vue-router";
 import DialogAgregarMascotaPropietario from "../dialog/DialogAgregarMascotaPropietario.vue";
@@ -433,6 +433,9 @@ const catalogos = ref({
   caracter: [],
   genero: []
 });
+const catalogosCargando = ref(false);
+const catalogosCargados = ref(false);
+const catalogosPromise = ref(null);
 
 const cargarCatalogos = async () => {
   const [especie, raza, sexo, color, tamanio, dieta, habitat, caracter, genero] = await Promise.all([
@@ -450,6 +453,23 @@ const cargarCatalogos = async () => {
   catalogos.value = { especie, raza, sexo, color, tamanio, dieta, habitat, caracter, genero };
 };
 
+const asegurarCatalogos = async () => {
+  if (catalogosCargados.value) {
+    return;
+  }
+
+  if (!catalogosPromise.value) {
+    catalogosCargando.value = true;
+    catalogosPromise.value = cargarCatalogos()
+      .finally(() => {
+        catalogosCargando.value = false;
+        catalogosCargados.value = true;
+      });
+  }
+
+  await catalogosPromise.value;
+};
+
 const getLabel = (tipo, id) => {
   if (!id) return null;
   const catalogo = catalogos.value[tipo];
@@ -458,9 +478,10 @@ const getLabel = (tipo, id) => {
   return item ? item.label : null;
 };
 
-onMounted(() => {
-  cargarCatalogos();
-});
+const toggleExpandRow = async (rowProps) => {
+  await asegurarCatalogos();
+  rowProps.expand = !rowProps.expand;
+};
 
 const emit = defineEmits(['update:rows', 'refresh-data', 'limpiar-filtro', 'llenar-filtro-y-buscar', 'mascota-seleccionada']);
 
@@ -978,5 +999,20 @@ const mascotasRows = computed(() => {
 .body--dark .propietario-seleccionado {
   color: #fff;
   background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Asegurar que las observaciones y otros textos largos hagan wrap y no desborden */
+.detail-item {
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+  max-width: 100%;
+}
+
+/* Aplicar a todos los elementos dentro de detail-item para forzar el ajuste */
+.detail-item * {
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
 }
 </style>

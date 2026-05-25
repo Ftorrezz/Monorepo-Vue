@@ -316,7 +316,6 @@
                     :atencion-id="String(atencionActualData.id)"
                     :servicio-id="servicioSeleccionado.id"
                     :datos-iniciales="servicioSeleccionado.datos"
-                    :paciente="paciente"
                     :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
@@ -629,7 +628,7 @@
 </template>
 
 <script>
-import { ref, computed, onBeforeUnmount, watch, reactive, onMounted, defineAsyncComponent, nextTick } from 'vue'
+import { ref, computed, onBeforeUnmount, watch, reactive, onMounted, defineAsyncComponent } from 'vue'
 import { useQuasar } from 'quasar'
 import { useMascotaSeleccionadaStore } from 'src/stores/mascotaSeleccionadaStore';
 import { usePlantillas } from 'src/composables/usePlantillas'
@@ -761,6 +760,10 @@ export default {
     const motivosDisponibles = ref([])
 
     // Datos del paciente (ahora vienen del store)
+    const paciente = computed(() => mascotaSeleccionadaStore.mascota || {
+      id: '', nombre: '', especie: '', raza: '', edad: '', peso: '', propietario: '', telefono: ''
+    })
+
     const { obtenerCatalogo } = useCatalogos()
     const catalogosMascota = reactive({
       sexo: [],
@@ -794,38 +797,19 @@ export default {
       return item ? item.label : null
     }
 
-    const paciente = computed(() => {
-      const m = mascotaSeleccionadaStore.mascota || {
-        id: '', nombre: '', especie: '', raza: '', edad: '', peso: '', propietario: '', telefono: ''
-      }
-
-      const propietario = m.propietario || {}
-      const propietarioNombre = [
-        propietario.nombre,
-        propietario.primerapellido,
-        propietario.segundoapellido
-      ].filter(Boolean).join(' ').trim()
-
-      const especieLabel = getLabel(m.id_especie, 'especie') || m.especie || ''
-      const razaLabel = getLabel(m.id_raza, 'raza') || m.raza || ''
-      const sexoLabel = getLabel(m.id_sexo, 'sexo') || m.sexo || ''
-      const colorLabel = getLabel(m.id_color, 'color') || m.color || ''
-
+    const getMascotaDisplay = computed(() => {
+      const m = paciente.value
+      if (!m || !m.id) return null
+      
       return {
         ...m,
-        especie: especieLabel,
-        raza: razaLabel,
-        peso_kg: m.peso_kg ?? m.peso ?? null,
-        nombre_propietario: m.nombre_propietario || propietarioNombre,
-        especieLabel,
-        razaLabel,
-        sexoLabel,
-        colorLabel,
+        especieLabel: getLabel(m.id_especie, 'especie') || m.especie || 'N/A',
+        razaLabel: getLabel(m.id_raza, 'raza') || m.raza || 'Mestizo',
+        sexoLabel: getLabel(m.id_sexo, 'sexo') || m.sexo || '',
+        colorLabel: getLabel(m.id_color, 'color') || m.color || '',
         edadDisplay: m.edad ? (m.edad === 1 ? '1 año' : `${m.edad} años`) : (m.fechanacimiento ? 'Calculando...' : 'N/A')
       }
     })
-
-    const getMascotaDisplay = computed(() => paciente.value || null)
 
     // Variables de Buscador (Faltantes restauradas)
     const showSearchDialog = ref(false)
@@ -1133,9 +1117,6 @@ export default {
             const idPaciente = paciente.value.paciente_id
             if (idPaciente) {
               await cargarAtencionesDesdeBackend(idPaciente)
-              await nextTick()
-              servicioActivoTab.value = 'resumen'
-              showAddServiceDialog.value = true
             }
         }
       } catch (error) {

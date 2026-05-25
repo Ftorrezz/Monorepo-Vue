@@ -142,7 +142,7 @@
                 <div class="folio-badge q-px-md q-py-xs br-pill text-weight-bolder">
                    <q-icon name="pin" class="q-mr-xs" /> {{ atencionActualData?.numero || 'A-00' }}
                 </div>
-                
+                <div class="module-title text-caption opacity-80 q-ml-md q-mt-xs">Atención</div>
               </div>
               <div class="row items-center">
                  <div class="status-indicator" :class="{ 'is-finalized': atencionActualData?.estado === 'Finalizada' }"></div>
@@ -172,7 +172,7 @@
                       {{ getMascotaDisplay.colorLabel }}
                     </q-badge>
                     
-                    <q-btn flat round icon="info" size="sm" color="white" class="q-ml-sm info-btn opacity-90">
+                    <q-btn flat round dense icon="info" size="xs" color="white" class="q-ml-sm opacity-70">
                       <q-tooltip class="bg-white text-primary shadow-2 border-primary" style="font-size: 11px">
                         <div class="q-pa-xs">
                           <div class="text-weight-bold q-mb-xs">Detalles adicionales:</div>
@@ -228,16 +228,7 @@
 
               <div class="action-buttons flex items-center">
                 <q-btn-group unelevated class="br-lg shadow-1">
-                  <q-btn
-                    color="white"
-                    text-color="blue-10"
-                    icon="add"
-                    label="Nueva Atención"
-                    @click="nuevaAtencion"
-                    class="text-weight-bold"
-                    :disable="(atenciones.length > 0 && !atenciones[atencionActual]?.id) || guardandoAtencion"
-                    :title="(atenciones.length > 0 && !atenciones[atencionActual]?.id) ? 'Guarda la atención actual antes de crear una nueva' : (guardandoAtencion ? 'Guardando atención...' : 'Crear nueva atención')"
-                  />
+                  <q-btn color="white" text-color="blue-10" icon="add" label="Nueva Atención" @click="nuevaAtencion" class="text-weight-bold" />
                   <q-btn color="blue-9" icon="search" @click="showSearchDialog = true" />
                 </q-btn-group>
                 <q-btn flat round icon="more_vert" color="white" class="q-ml-sm" />
@@ -316,7 +307,6 @@
                     :atencion-id="String(atencionActualData.id)"
                     :servicio-id="servicioSeleccionado.id"
                     :datos-iniciales="servicioSeleccionado.datos"
-                    :paciente="paciente"
                     :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
@@ -629,7 +619,7 @@
 </template>
 
 <script>
-import { ref, computed, onBeforeUnmount, watch, reactive, onMounted, defineAsyncComponent, nextTick } from 'vue'
+import { ref, computed, onBeforeUnmount, watch, reactive, onMounted, defineAsyncComponent } from 'vue'
 import { useQuasar } from 'quasar'
 import { useMascotaSeleccionadaStore } from 'src/stores/mascotaSeleccionadaStore';
 import { usePlantillas } from 'src/composables/usePlantillas'
@@ -761,6 +751,10 @@ export default {
     const motivosDisponibles = ref([])
 
     // Datos del paciente (ahora vienen del store)
+    const paciente = computed(() => mascotaSeleccionadaStore.mascota || {
+      id: '', nombre: '', especie: '', raza: '', edad: '', peso: '', propietario: '', telefono: ''
+    })
+
     const { obtenerCatalogo } = useCatalogos()
     const catalogosMascota = reactive({
       sexo: [],
@@ -794,38 +788,19 @@ export default {
       return item ? item.label : null
     }
 
-    const paciente = computed(() => {
-      const m = mascotaSeleccionadaStore.mascota || {
-        id: '', nombre: '', especie: '', raza: '', edad: '', peso: '', propietario: '', telefono: ''
-      }
-
-      const propietario = m.propietario || {}
-      const propietarioNombre = [
-        propietario.nombre,
-        propietario.primerapellido,
-        propietario.segundoapellido
-      ].filter(Boolean).join(' ').trim()
-
-      const especieLabel = getLabel(m.id_especie, 'especie') || m.especie || ''
-      const razaLabel = getLabel(m.id_raza, 'raza') || m.raza || ''
-      const sexoLabel = getLabel(m.id_sexo, 'sexo') || m.sexo || ''
-      const colorLabel = getLabel(m.id_color, 'color') || m.color || ''
-
+    const getMascotaDisplay = computed(() => {
+      const m = paciente.value
+      if (!m || !m.id) return null
+      
       return {
         ...m,
-        especie: especieLabel,
-        raza: razaLabel,
-        peso_kg: m.peso_kg ?? m.peso ?? null,
-        nombre_propietario: m.nombre_propietario || propietarioNombre,
-        especieLabel,
-        razaLabel,
-        sexoLabel,
-        colorLabel,
+        especieLabel: getLabel(m.id_especie, 'especie') || m.especie || 'N/A',
+        razaLabel: getLabel(m.id_raza, 'raza') || m.raza || 'Mestizo',
+        sexoLabel: getLabel(m.id_sexo, 'sexo') || m.sexo || '',
+        colorLabel: getLabel(m.id_color, 'color') || m.color || '',
         edadDisplay: m.edad ? (m.edad === 1 ? '1 año' : `${m.edad} años`) : (m.fechanacimiento ? 'Calculando...' : 'N/A')
       }
     })
-
-    const getMascotaDisplay = computed(() => paciente.value || null)
 
     // Variables de Buscador (Faltantes restauradas)
     const showSearchDialog = ref(false)
@@ -1133,9 +1108,6 @@ export default {
             const idPaciente = paciente.value.paciente_id
             if (idPaciente) {
               await cargarAtencionesDesdeBackend(idPaciente)
-              await nextTick()
-              servicioActivoTab.value = 'resumen'
-              showAddServiceDialog.value = true
             }
         }
       } catch (error) {
@@ -2200,23 +2172,6 @@ export default {
   backdrop-filter: blur(8px);
 }
 
-/* Estilo para el botón de información en el header (más visible) */
-.info-btn {
-  min-width: 36px !important;
-  min-height: 36px !important;
-  padding: 6px !important;
-}
-.info-btn .q-icon {
-  font-size: 18px !important;
-}
-
-@media (max-width: 900px) {
-  .info-btn {
-    min-width: 40px !important;
-    min-height: 40px !important;
-  }
-}
-
 .btn-search-glow {
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.35);
   border: 1.5px solid rgba(255, 255, 255, 0.6);
@@ -2239,86 +2194,6 @@ export default {
   padding: 0;
   display: flex;
   flex-direction: column;
-}
-
-/* Responsive header adjustments */
-.workspace-header--premium .row.items-center {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.workspace-header--premium .col-auto,
-.workspace-header--premium .col {
-  min-width: 0;
-}
-
-/* Reduce spacing on small screens */
-@media (max-width: 900px) {
-  .workspace-header--premium {
-    padding: 12px !important;
-    min-height: 72px;
-  }
-
-  .workspace-header--premium .folio-badge {
-    font-size: 12px;
-    padding: 6px 10px;
-  }
-
-  .patient-name-glow {
-    font-size: 1rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 220px;
-  }
-
-  .workspace-header--premium .info-stack {
-    width: 100%;
-    margin-top: 8px;
-  }
-
-  .workspace-header--premium .owner-info {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  .workspace-header--premium .attention-info {
-    width: 100%;
-    margin-top: 8px;
-  }
-}
-
-@media (max-width: 600px) {
-  .workspace-header--premium {
-    padding: 8px !important;
-    min-height: 64px;
-  }
-
-  .sidebar-header .header-left {
-    left: 6px;
-  }
-
-  .folio-badge {
-    font-size: 11px;
-    padding: 4px 8px;
-  }
-
-  .patient-name-glow {
-    font-size: 0.98rem;
-    max-width: 140px;
-  }
-
-  .workspace-header--premium .professional-pill {
-    display: none; /* hide extra info on very small screens */
-  }
-
-  .workspace-header--premium .action-buttons {
-    margin-top: 6px;
-    width: 100%;
-    justify-content: flex-start;
-  }
 }
 
 /* Content Rendering */

@@ -107,7 +107,7 @@
         <div class="col-12 col-md-6">
           <q-select
             v-model="atencionConsulta.id_motivo"
-            :options="motivos"
+            :options="motivosOptions"
             label="Motivo de Consulta (Categoría) *"
             outlined
             emit-value
@@ -178,6 +178,8 @@
           <q-input
             v-model="atencionConsulta.diagnostico_complemento"
             label="Complemento del Diagnóstico (Texto Libre)"
+            type="textarea"
+            rows="5"
             outlined
             :readonly="modoLectura && !modoEdicionManual"
             placeholder="Detalles adicionales, observaciones específicas..."
@@ -279,8 +281,18 @@ const atencionConsulta = ref({
   proxima_cita: ''
 })
 
+const motivosOptions = ref([])
 const diagnosticosOptions = ref([])
 const todosLosDiagnosticos = ref([])
+
+const cargarMotivos = async () => {
+  try {
+    const res = await obtenerCatalogo(Modulo.ATENCION, Tabla.MOTIVOCONSULTA)
+    motivosOptions.value = res
+  } catch (error) {
+    console.error('Error al cargar catálogo de motivos de consulta:', error)
+  }
+}
 
 const cargarDiagnosticos = async () => {
     try {
@@ -356,7 +368,11 @@ const eliminarServicio = () => {
 watch(atencionConsulta, guardarCambios, { deep: true })
 
 onMounted(async () => {
-  await cargarDiagnosticos()
+  await Promise.all([
+    cargarMotivos(),
+    cargarDiagnosticos()
+  ])
+
   if (props.datosIniciales && Object.keys(props.datosIniciales).length > 0) {
     // Asegurar que los IDs sean números si vienen como strings (para q-select map-options)
     const datos = { ...props.datosIniciales }
