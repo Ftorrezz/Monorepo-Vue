@@ -102,9 +102,15 @@ export interface Producto {
 
 // Helper to extract data from PeticionService response
 const mapPeticionResponse = (response: any) => {
-    if (Array.isArray(response) && response[0]?.elemento) {
-        return { data: Array.isArray(response[0].elemento) ? response[0].elemento : [] };
+    // Caso: [{"elemento": [...], ...}]
+    if (Array.isArray(response) && response.length > 0 && response[0]?.elemento !== undefined) {
+        return { data: Array.isArray(response[0].elemento) ? response[0].elemento : (response[0].elemento ? [response[0].elemento] : []) };
     }
+    // Caso: {"elemento": [...], ...} (No envuelto en array)
+    if (response?.elemento !== undefined) {
+        return { data: Array.isArray(response.elemento) ? response.elemento : (response.elemento ? [response.elemento] : []) };
+    }
+    // Otros casos: array directo o objeto con .data
     return { data: Array.isArray(response) ? response : (response?.data || []) };
 };
 
@@ -115,13 +121,17 @@ const mapPeticionResponse = (response: any) => {
 export default {
     // ==================== PRODUCTOS ====================
     productos: {
-        async getAll() {
-            const response = await peticionService.obtenerGet('inventario/productos');
+        async getAll(idAlmacen?: number) {
+            const params: any = {};
+            if (idAlmacen) params.id_almacen = idAlmacen;
+            const response = await peticionService.obtenerGet('inventario/productos', params);
             return mapPeticionResponse(response);
         },
 
-        async getTodos() {
-            const response = await peticionService.obtenerGet('inventario/productos');
+        async getTodos(idAlmacen?: number) {
+            const params: any = {};
+            if (idAlmacen) params.id_almacen = idAlmacen;
+            const response = await peticionService.obtenerGet('inventario/productos', params);
             return mapPeticionResponse(response);
         },
 
@@ -308,6 +318,35 @@ export default {
 
         toggleStatus(id: number) {
             return peticionService.actualizar(`configuracionparametros/toggle/${id}`, {});
+        }
+    },
+
+    // ==================== ALMACENES (INV.ALMACEN) ====================
+    almacenes: {
+        async getAll() {
+            const response = await peticionService.obtenerGet('inventario/almacenes');
+            return mapPeticionResponse(response);
+        },
+
+        async getActive() {
+            const { data } = await this.getAll();
+            return { data: data.filter((a: any) => a.activo === 'S' || a.activo === true) };
+        },
+
+        getById(id: number) {
+            return peticionService.obtenerGet(`inventario/almacenes/${id}`);
+        },
+
+        create(almacen: any) {
+            return peticionService.crear('inventario/almacenes', almacen);
+        },
+
+        update(id: number, almacen: any) {
+            return peticionService.actualizar(`inventario/almacenes/${id}`, almacen);
+        },
+
+        delete(id: number) {
+            return peticionService.eliminar('inventario/almacenes', { id });
         }
     },
 
