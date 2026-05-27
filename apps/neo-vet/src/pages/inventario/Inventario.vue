@@ -1,5 +1,10 @@
 <template>
   <div class="inventario-container">
+    <div style="position:fixed;right:12px;top:80px;z-index:9999;pointer-events:none">
+      <q-chip color="grey-2" text-color="black" dense>
+        Modal: {{ mostrarModalProducto }} • Almacén: {{ productoTemporal.id_almacen || 'n/a' }}
+      </q-chip>
+    </div>
     <!-- Header principal -->
     <q-card flat class="bg-gradient-primary text-white q-mb-md">
       <q-card-section class="q-pa-md">
@@ -10,23 +15,25 @@
               <div class="text-h5 text-weight-medium">Inventario y Farmacia</div>
               <div class="row items-center q-gutter-x-sm q-mt-xs">
                 <div class="text-subtitle2 opacity-80">
-                  {{ estadisticasGenerales.totalProductos }} productos • 
-                  {{ estadisticasGenerales.stockBajo }} bajos • 
+                  {{ estadisticasGenerales.totalProductos }} productos •
+                  {{ estadisticasGenerales.stockBajo }} bajos •
                   {{ estadisticasGenerales.proximosVencer }} por vencer
                 </div>
                 <q-badge v-if="almacenSeleccionado" color="white" text-color="primary" class="q-ml-sm text-weight-bold">
                   <q-icon name="warehouse" size="xs" class="q-mr-xs" />
-                  {{ almacenSeleccionado.label }}
+                  {{ getAlmacenLabel(almacenSeleccionado) }}
                 </q-badge>
               </div>
             </div>
           </div>
-          
+
           <div class="col-12 col-md-auto">
             <div class="row items-center q-gutter-sm justify-end">
               <!-- Selector Global de Almacén -->
               <q-select
                 v-model="almacenSeleccionado"
+                emit-value
+                map-options
                 :options="almacenesOpciones"
                 label="Almacén de Trabajo"
                 dense
@@ -57,7 +64,7 @@
               </q-select>
 
               <div class="row q-gutter-xs">
-                <q-btn 
+                <q-btn
                   flat
                   round
                   icon="add_circle"
@@ -66,7 +73,7 @@
                 >
                   <q-tooltip>Agregar Producto</q-tooltip>
                 </q-btn>
-                <q-btn 
+                <q-btn
                   flat
                   round
                   icon="shopping_cart"
@@ -75,7 +82,7 @@
                 >
                   <q-tooltip>Nueva Venta</q-tooltip>
                 </q-btn>
-                <q-btn 
+                <q-btn
                   flat
                   round
                   icon="receipt_long"
@@ -234,7 +241,7 @@
               </template>
             </q-input>
           </div>
-          
+
           <div class="col-6 col-md-2">
             <q-select
               v-model="filtroCategoria"
@@ -249,7 +256,7 @@
               <template v-slot:prepend><q-icon name="category" color="primary" size="xs" /></template>
             </q-select>
           </div>
-          
+
           <div class="col-6 col-md-2">
             <q-select
               v-model="filtroTipo"
@@ -264,7 +271,7 @@
               <template v-slot:prepend><q-icon name="inventory" color="primary" size="xs" /></template>
             </q-select>
           </div>
-          
+
           <div class="col-12 col-md-4">
             <div class="row q-gutter-x-sm no-wrap items-center">
               <q-select
@@ -277,12 +284,12 @@
                 class="rounded-8 col-grow"
                 clearable
               />
-              <q-btn 
-                color="primary" 
-                icon="add" 
-                label="Producto" 
-                @click="mostrarModalProducto = true" 
-                unelevated 
+              <q-btn
+                color="primary"
+                icon="add"
+                label="Producto"
+                @click="mostrarModalProducto = true"
+                unelevated
                 class="rounded-8 q-px-md"
                 v-if="!modoLectura"
               />
@@ -294,13 +301,13 @@
 
     <!-- Grid de productos -->
     <div class="row q-col-gutter-md">
-      <div 
+      <div
         class="col-12 col-sm-6 col-md-4 col-lg-3"
         v-for="producto in productosFiltrados"
         :key="producto.id"
       >
-        <q-card 
-          flat 
+        <q-card
+          flat
           :class="getCardClass(producto)"
           class="producto-card"
         >
@@ -314,7 +321,7 @@
                   {{ getCategoriaLabel(producto.categoriaId) }} • {{ getTipoLabel(producto.tipoId) }}
                 </div>
               </div>
-              <q-chip 
+              <q-chip
                 dense
                 square
                 :color="getStockColor(producto)"
@@ -332,9 +339,9 @@
               <div class="text-caption text-grey-7">Stock Actual</div>
               <div class="stock-value">
                 {{ producto.stockUnidades }} {{ producto.unidadMedida }}
-                <q-icon 
-                  :name="producto.tipo === 'medicamento' ? 'medical_services' : 'inventory'" 
-                  size="xs" 
+                <q-icon
+                  :name="producto.tipo === 'medicamento' ? 'medical_services' : 'inventory'"
+                  size="xs"
                   :color="getStockColor(producto)"
                 />
               </div>
@@ -360,20 +367,20 @@
 
             <!-- Chips de información adicional -->
             <div class="row q-gutter-x-xs" v-if="producto.lote || producto.fechaVencimiento">
-              <q-chip 
+              <q-chip
                 v-if="producto.lote"
-                dense 
-                outline 
-                color="grey" 
+                dense
+                outline
+                color="grey"
                 size="sm"
                 icon="qr_code"
               >
                 {{ producto.lote }}
               </q-chip>
-              <q-chip 
+              <q-chip
                 v-if="producto.fechaVencimiento"
-                dense 
-                outline 
+                dense
+                outline
                 :color="isProximoVencer(producto.fechaVencimiento) ? 'deep-orange' : 'grey'"
                 size="sm"
                 icon="event"
@@ -385,10 +392,10 @@
 
           <!-- Acciones -->
           <q-card-actions align="right" class="q-pa-sm" v-if="!modoLectura">
-            <q-btn 
-              flat 
+            <q-btn
+              flat
               dense
-              color="positive" 
+              color="positive"
               icon="add_shopping_cart"
               @click="iniciarVentaProducto(producto)"
               size="sm"
@@ -440,11 +447,11 @@
       <div class="text-body2 text-grey-5 q-mb-md">
         {{ filtroTexto || filtroCategoria || filtroTipo || filtroEstado ? 'Intenta cambiar los filtros de búsqueda' : 'Comienza agregando el primer producto' }}
       </div>
-      <q-btn 
+      <q-btn
         v-if="!modoLectura && !filtroTexto && !filtroCategoria && !filtroTipo && !filtroEstado"
-        color="primary" 
-        icon="add" 
-        label="Agregar Producto" 
+        color="primary"
+        icon="add"
+        label="Agregar Producto"
         @click="agregarProducto"
         unelevated
       />
@@ -491,7 +498,7 @@
                 <q-card flat bordered class="rounded-12">
                   <q-card-section class="q-gutter-y-md">
                     <div class="text-subtitle1 text-weight-bold text-primary">Información Principal</div>
-                    
+
                     <q-input
                       v-model="productoTemporal.nombre"
                       label="Nombre del Producto *"
@@ -565,7 +572,7 @@
                 <q-card flat bordered class="rounded-12">
                   <q-card-section class="q-gutter-y-md">
                     <div class="text-subtitle1 text-weight-bold text-primary">Gestión de Existencias</div>
-                    
+
                     <div class="row q-col-gutter-sm">
                       <div class="col-12 col-sm-6">
                         <q-input
@@ -665,7 +672,7 @@
                 <q-card flat bordered class="rounded-12">
                   <q-card-section class="q-gutter-y-md text-center">
                     <div class="text-subtitle1 text-weight-bold text-primary text-left">Estructura de Costeo</div>
-                    
+
                     <q-input
                       v-model.number="productoTemporal.costoUnitario"
                       label="Costo de Adquisición *"
@@ -743,7 +750,7 @@
                     </div>
 
                     <q-separator class="q-my-md" />
-                    
+
                     <div class="text-subtitle1 text-weight-bold text-primary">Estado del Registro</div>
                     <q-toggle v-model="productoTemporal.activo" label="Producto habilitado para venta y receta" color="positive" />
                   </q-card-section>
@@ -757,11 +764,11 @@
 
         <q-card-actions align="right" class="q-pa-md bg-white">
           <q-btn flat label="Cancelar" color="grey-7" @click="cancelarProducto" class="q-px-md" />
-          <q-btn 
-            color="primary" 
-            :label="productoEditando ? 'Actualizar Producto' : 'Registrar Producto'" 
-            @click="guardarProducto" 
-            unelevated 
+          <q-btn
+            color="primary"
+            :label="productoEditando ? 'Actualizar Producto' : 'Registrar Producto'"
+            @click="guardarProducto"
+            unelevated
             class="q-px-lg rounded-8"
             :loading="cargando"
           />
@@ -816,7 +823,7 @@
           <div class="text-caption">Registro de todas las entradas, salidas y ventas</div>
         </q-card-section>
       </q-card>
-      
+
       <q-table
         :rows="historialMovimientos"
         :columns="columnasHistorial"
@@ -828,7 +835,7 @@
       >
         <template v-slot:body-cell-tipo="props">
           <q-td :props="props">
-            <q-chip 
+            <q-chip
               :color="getTipoMovimientoColor(props.value)"
               text-color="white"
               :label="getTipoMovimientoLabel(props.value)"
@@ -934,14 +941,14 @@
         </q-card-section>
 
         <q-separator />
-        
+
         <q-card-actions align="right" class="q-pa-md">
           <q-btn flat label="Cancelar" color="grey-7" v-close-popup />
-          <q-btn 
-            color="primary" 
-            :label="proveedorEditando ? 'Actualizar' : 'Registrar'" 
-            @click="guardarProveedor" 
-            unelevated 
+          <q-btn
+            color="primary"
+            :label="proveedorEditando ? 'Actualizar' : 'Registrar'"
+            @click="guardarProveedor"
+            unelevated
             class="q-px-lg rounded-8"
             :loading="cargando"
           />
@@ -971,11 +978,11 @@
                 <q-card-section class="q-pa-md bg-white">
                   <div class="row q-col-gutter-sm items-center">
                     <div class="col-grow">
-                      <q-input 
-                        v-model="filtroTextoVenta" 
-                        placeholder="Buscar por nombre o código..." 
-                        outlined 
-                        dense 
+                      <q-input
+                        v-model="filtroTextoVenta"
+                        placeholder="Buscar por nombre o código..."
+                        outlined
+                        dense
                         bg-color="grey-1"
                         @keyup.enter="buscarEnCatalogo"
                       >
@@ -983,13 +990,13 @@
                       </q-input>
                     </div>
                     <div class="col-auto">
-                      <q-select 
-                        v-model="filtroCategoriaVenta" 
-                        :options="categoriasDisponibles" 
-                        label="Categoría" 
-                        outlined 
-                        dense 
-                        clearable 
+                      <q-select
+                        v-model="filtroCategoriaVenta"
+                        :options="categoriasDisponibles"
+                        label="Categoría"
+                        outlined
+                        dense
+                        clearable
                         style="min-width: 150px"
                       />
                     </div>
@@ -1000,14 +1007,14 @@
 
                 <q-card-section class="q-pa-md scroll" style="height: 60vh">
                   <div class="row q-col-gutter-md">
-                    <div 
-                      v-for="producto in productosFiltradosParaVenta" 
+                    <div
+                      v-for="producto in productosFiltradosParaVenta"
                       :key="producto.id"
                       class="col-12 col-sm-6 col-lg-4"
                     >
-                      <q-card 
-                        flat 
-                        bordered 
+                      <q-card
+                        flat
+                        bordered
                         class="producto-item-card cursor-pointer hover-shadow"
                         @click="seleccionarProductoParaVenta(producto)"
                       >
@@ -1028,13 +1035,13 @@
                           </div>
                           <div class="text-weight-bold text-primary q-px-sm">${{ producto.precioVenta?.toFixed(2) }}</div>
                         </q-card-section>
-                        <q-btn 
-                          flat 
-                          dense 
-                          round 
-                          icon="add" 
-                          color="primary" 
-                          class="absolute-top-right q-ma-xs bg-white shadow-1" 
+                        <q-btn
+                          flat
+                          dense
+                          round
+                          icon="add"
+                          color="primary"
+                          class="absolute-top-right q-ma-xs bg-white shadow-1"
                           size="sm"
                         />
                       </q-card>
@@ -1061,12 +1068,12 @@
                         <q-item-label class="text-weight-bold">{{ item.nombre }}</q-item-label>
                         <q-item-label caption>
                           <div class="row items-center q-gutter-x-sm">
-                            <q-input 
-                              v-model.number="item.cantidad" 
-                              type="number" 
-                              dense 
-                              outlined 
-                              style="width: 70px" 
+                            <q-input
+                              v-model.number="item.cantidad"
+                              type="number"
+                              dense
+                              outlined
+                              style="width: 70px"
                               size="xs"
                               @update:model-value="calcularTotalVenta"
                             />
@@ -1097,10 +1104,10 @@
                     <div class="text-h6">TOTAL:</div>
                     <div class="text-h4 text-weight-bolder text-primary">${{ ventaTemporal.total?.toFixed(2) }}</div>
                   </div>
-                  <q-btn 
-                    color="positive" 
-                    label="Procesar Transacción" 
-                    icon="check_circle" 
+                  <q-btn
+                    color="positive"
+                    label="Procesar Transacción"
+                    icon="check_circle"
                     class="full-width q-py-md rounded-8 text-weight-bold shadow-2"
                     :disable="ventaTemporal.productos.length === 0"
                     @click="procesarVenta"
@@ -1122,7 +1129,7 @@
         </q-card-section>
         <q-card-section class="q-pa-md q-gutter-y-md">
            <p class="text-body2 text-grey-8">Selecciona qué documento necesitas emitir en formato PDF para formalizar las existencias farmacéuticas.</p>
-           
+
            <q-list bordered separator class="rounded-borders">
              <q-item clickable @click="imprimirReporte('inventario_completo')" v-ripple>
                <q-item-section avatar><q-avatar color="primary" text-color="white" icon="inventory_2" /></q-item-section>
@@ -1161,7 +1168,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, reactive } from 'vue'
+import { ref, computed, watch, onMounted, reactive, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
 import inventarioService from 'src/services/inventario.service'
 import useCatalogos from 'src/composables/useCatalogos'
@@ -1226,6 +1233,8 @@ const filtroCategoria = ref('')
 const filtroTipo = ref('')
 const filtroEstado = ref('')
 const filtroProveedor = ref('')
+const filtroTextoVenta = ref('')
+const filtroCategoriaVenta = ref('')
 const filtroHistorial = ref('')
 const filtroTipoMovimiento = ref('')
 const filtroFechaDesde = ref('')
@@ -1234,7 +1243,7 @@ const filtroFechaHasta = ref('')
 // Almacenes
 const almacenSeleccionado = ref(null)
 const almacenes = ref([])
-const almacenesOpciones = computed(() => 
+const almacenesOpciones = computed(() =>
   almacenes.value.map(a => ({
     label: a.label, // obtenerCatalogo usa 'label'
     value: a.value,
@@ -1336,7 +1345,7 @@ const catalogos = ref({
 const categoriasDisponibles = computed(() => catalogos.value.categorias)
 const tiposDisponibles = computed(() => catalogos.value.tipos)
 const unidadesDisponibles = computed(() => catalogos.value.unidades)
-const proveedoresOpciones = computed(() => 
+const proveedoresOpciones = computed(() =>
   catalogos.value.proveedores.map(p => ({
     label: p.nombre,
     value: p.id,
@@ -1344,7 +1353,7 @@ const proveedoresOpciones = computed(() =>
   }))
 )
 
-const fabricantesOpciones = computed(() => 
+const fabricantesOpciones = computed(() =>
   catalogos.value.fabricantes.map(f => ({
     label: f.nombre,
     value: f.id
@@ -1395,50 +1404,50 @@ const columnasProveedores = [
 // Computed properties
 const productosFiltrados = computed(() => {
   let listado = productos.value.filter(p => p.activo)
-  
+
   if (filtroTexto.value) {
     const texto = filtroTexto.value.toLowerCase()
-    listado = listado.filter(p => 
+    listado = listado.filter(p =>
       p.nombre.toLowerCase().includes(texto) ||
       p.descripcion?.toLowerCase().includes(texto) ||
       p.codigo?.toLowerCase().includes(texto)
     )
   }
-  
+
   if (filtroCategoria.value) {
     listado = listado.filter(p => p.categoriaId === filtroCategoria.value.value)
   }
-  
+
   if (filtroTipo.value) {
     listado = listado.filter(p => p.tipoId === filtroTipo.value.value)
   }
-  
+
   if (filtroEstado.value) {
     listado = listado.filter(p => {
       const estadoProducto = getEstadoStock(p)
       return estadoProducto === filtroEstado.value.value
     })
   }
-  
+
   return listado
 })
 
 const productosFiltradosParaVenta = computed(() => {
   let listado = productos.value.filter(p => p.activo && p.stockUnidades > 0)
-  
+
   if (filtroTextoVenta.value) {
     const texto = filtroTextoVenta.value.toLowerCase()
-    listado = listado.filter(p => 
+    listado = listado.filter(p =>
       p.nombre.toLowerCase().includes(texto) ||
       p.codigo?.toLowerCase().includes(texto) ||
       p.codigoBarras?.toLowerCase().includes(texto)
     )
   }
-  
+
   if (filtroCategoriaVenta.value) {
     listado = listado.filter(p => p.categoriaId === filtroCategoriaVenta.value.value)
   }
-  
+
   return listado
 })
 
@@ -1450,7 +1459,7 @@ const productosProximosYAgotados = computed(() => {
 
 const estadisticasGenerales = computed(() => {
   const activos = productos.value.filter(p => p.activo)
-  
+
   return {
     totalProductos: activos.length,
     stockBajo: activos.filter(p => getEstadoStock(p) === 'stock_bajo').length,
@@ -1463,8 +1472,8 @@ const estadisticasGenerales = computed(() => {
 const proveedoresFiltrados = computed(() => {
   if (!filtroProveedor.value) return proveedores.value
   const texto = filtroProveedor.value.toLowerCase()
-  return proveedores.value.filter(p => 
-    p.nombre.toLowerCase().includes(texto) || 
+  return proveedores.value.filter(p =>
+    p.nombre.toLowerCase().includes(texto) ||
     p.contacto?.toLowerCase().includes(texto) ||
     p.rfc?.toLowerCase().includes(texto)
   )
@@ -1472,32 +1481,32 @@ const proveedoresFiltrados = computed(() => {
 
 const historialMovimientos = computed(() => {
   let movimientosFiltrados = [...movimientos.value]
-  
+
   if (filtroHistorial.value) {
     const texto = filtroHistorial.value.toLowerCase()
-    movimientosFiltrados = movimientosFiltrados.filter(m => 
+    movimientosFiltrados = movimientosFiltrados.filter(m =>
       m.producto.toLowerCase().includes(texto) ||
       m.motivo?.toLowerCase().includes(texto) ||
       m.usuario?.toLowerCase().includes(texto)
     )
   }
-  
+
   if (filtroTipoMovimiento.value) {
     movimientosFiltrados = movimientosFiltrados.filter(m => m.tipo === filtroTipoMovimiento.value.value)
   }
-  
+
   if (filtroFechaDesde.value) {
-    movimientosFiltrados = movimientosFiltrados.filter(m => 
+    movimientosFiltrados = movimientosFiltrados.filter(m =>
       new Date(m.fecha) >= new Date(filtroFechaDesde.value)
     )
   }
-  
+
   if (filtroFechaHasta.value) {
-    movimientosFiltrados = movimientosFiltrados.filter(m => 
+    movimientosFiltrados = movimientosFiltrados.filter(m =>
       new Date(m.fecha) <= new Date(filtroFechaHasta.value + 'T23:59:59')
     )
   }
-  
+
   return movimientosFiltrados.sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
 })
 
@@ -1622,6 +1631,14 @@ const getTipoLabel = (id) => {
   return t?.nombre || 'Sin Tipo'
 }
 
+const getAlmacenLabel = (alm) => {
+  if (!alm) return ''
+  // alm puede ser objeto {label,value} o valor primitivo
+  if (typeof alm === 'object') return alm.label || ''
+  const opt = almacenesOpciones.value.find(a => a.value === alm)
+  return opt?.label || ''
+}
+
 const getEstadoStock = (producto) => {
   if (producto.stockUnidades <= 0) return 'sin_stock'
   if (producto.stockUnidades <= producto.stockMinimo) return 'stock_bajo'
@@ -1696,28 +1713,41 @@ const getTipoMovimientoLabel = (tipo) => {
 }
 
 // Métodos para productos
-const agregarProducto = () => {
+const agregarProducto = async () => {
   productoEditando.value = null
   limpiarProductoTemporal()
+  console.log('[Inventario] agregarProducto called, almacenSeleccionado=', almacenSeleccionado.value)
+  $q.notify({ color: 'info', message: 'Abrir modal de producto (ver consola)', timeout: 1200 })
+  // Asegurar que el panel de productos esté activo para que el dialog exista en el DOM
+  tabSeleccionada.value = 'productos'
+  await nextTick()
   mostrarModalProducto.value = true
+  console.log('[Inventario] mostrarModalProducto set to', mostrarModalProducto.value)
+  // Debug: intentar abrir un dialogo programático global para comprobar overlay
+  try {
+    const dlg = $q.dialog({ title: 'Prueba de diálogo', message: 'Si ves esto, los diálogos globales funcionan' })
+    console.log('[Inventario] $q.dialog opened', !!dlg)
+  } catch (e) {
+    console.error('[Inventario] $q.dialog error', e)
+  }
 }
 
 const editarProducto = (producto) => {
   productoEditando.value = producto
   // Aseguramos que los campos de ID estén correctamente asignados
-  productoTemporal.value = { 
+  productoTemporal.value = {
     ...producto,
     categoriaId: producto.categoriaId || null,
     tipoId: producto.tipoId || null,
     unidadMedidaId: producto.unidadMedidaId || null,
-    id_almacen: producto.id_almacen || almacenSeleccionado.value?.value || null,
+    id_almacen: producto.id_almacen || almacenSeleccionado.value || null,
     id_proveedor: producto.id_proveedor || null,
     id_fabricante: producto.id_fabricante || null
   }
-  
+
   // Resetear tab al abrir
   tabProducto.value = 'general'
-  
+
   // Calcular propiedades derivadas para medicamentos fraccionados
   if (producto.manejoFraccionado) {
     productoTemporal.value.dosisTotal = Math.floor(
@@ -1732,27 +1762,27 @@ const guardarProducto = async () => {
     $q.notify({ color: 'warning', message: 'Por favor completa los campos requeridos (*)' })
     return
   }
-  
+
   cargando.value = true
   try {
     const payload = { ...productoTemporal.value }
-    
+
     if (productoEditando.value) {
       await inventarioService.productos.update(productoEditando.value.id, payload)
-      $q.notify({ 
-        color: 'positive', 
+      $q.notify({
+        color: 'positive',
         message: 'Producto actualizado con éxito',
         icon: 'check_circle'
       })
     } else {
       await inventarioService.productos.create(payload)
-      $q.notify({ 
-        color: 'positive', 
+      $q.notify({
+        color: 'positive',
         message: 'Producto registrado con éxito',
         icon: 'add_task'
       })
     }
-    
+
     await cargarDatos()
     mostrarModalProducto.value = false
     productoEditando.value = null
@@ -1767,8 +1797,8 @@ const guardarProducto = async () => {
 
 const validarProducto = () => {
   return !!(
-    productoTemporal.value.nombre && 
-    productoTemporal.value.categoriaId && 
+    productoTemporal.value.nombre &&
+    productoTemporal.value.categoriaId &&
     productoTemporal.value.tipoId
   )
 }
@@ -1806,7 +1836,7 @@ const limpiarProductoTemporal = () => {
 }
 
 const eliminarProducto = (productoId) => {
-  const producto = inventario.value.productos.find(p => p.id === productoId)
+  const producto = productos.value.find(p => p.id === productoId)
   if (producto) {
     producto.activo = false
     registrarMovimiento({
@@ -1826,12 +1856,12 @@ const eliminarProducto = (productoId) => {
 // Métodos para ventas
 const filtrarProductosVenta = (val, update) => {
   update(() => {
-    const productos = inventario.value.productos.filter(p => 
-      p.activo && 
-      p.stockUnidades > 0 && 
+    const productosListado = productos.value.filter(p =>
+      p.activo &&
+      p.stockUnidades > 0 &&
       p.nombre.toLowerCase().includes(val.toLowerCase())
     )
-    productosDisponiblesParaVenta.value = productos
+    productosDisponiblesParaVenta.value = productosListado
   })
 }
 
@@ -1850,11 +1880,11 @@ const iniciarVentaProducto = (producto) => {
     fecha: new Date().toISOString(),
     usuario: 'Usuario Actual'
   }
-  
+
   productoParaAgregar.value = producto
   cantidadParaAgregar.value = 1
   tipoVentaSeleccionado.value = 'completo'
-  
+
   mostrarModalVenta.value = true
 }
 
@@ -1878,7 +1908,7 @@ const seleccionarProductoParaVenta = (producto) => {
     })
     calcularTotalVenta()
   }
-  
+
   $q.notify({
     message: `${producto.nombre} agregado`,
     color: 'positive',
@@ -1899,65 +1929,65 @@ const getUnidadMedidaLabel = (id) => {
 
 const getTiposVentaDisponibles = () => {
   if (!productoParaAgregar.value) return []
-  
+
   const tipos = [{ label: 'Producto Completo', value: 'completo' }]
-  
+
   if (productoParaAgregar.value.manejoFraccionado) {
     tipos.push({ label: 'Por Dosis', value: 'dosis' })
   }
-  
+
   return tipos
 }
 
 const getLabelCantidad = () => {
   if (!productoParaAgregar.value) return 'Cantidad'
-  
+
   if (tipoVentaSeleccionado.value === 'dosis') {
     return 'Número de Dosis'
   }
-  
+
   return `Cantidad (${productoParaAgregar.value.unidadMedida})`
 }
 
 const getMaximoCantidad = () => {
   if (!productoParaAgregar.value) return 1
-  
+
   if (tipoVentaSeleccionado.value === 'dosis') {
     return calcularDosisDisponibles(productoParaAgregar.value)
   }
-  
+
   return productoParaAgregar.value.stockUnidades
 }
 
 const calcularPrecioLinea = () => {
   if (!productoParaAgregar.value || !cantidadParaAgregar.value) return '0.00'
-  
+
   let precioUnitario = productoParaAgregar.value.precioVenta
-  
+
   if (tipoVentaSeleccionado.value === 'dosis' && productoParaAgregar.value.manejoFraccionado) {
     precioUnitario = productoParaAgregar.value.precioVenta / productoParaAgregar.value.dosisTotal
   }
-  
+
   return (precioUnitario * cantidadParaAgregar.value).toFixed(2)
 }
 
 const puedeAgregarProducto = () => {
-  return productoParaAgregar.value && 
-         cantidadParaAgregar.value > 0 && 
+  return productoParaAgregar.value &&
+         cantidadParaAgregar.value > 0 &&
          cantidadParaAgregar.value <= getMaximoCantidad()
 }
 
 const agregarProductoAVenta = () => {
   if (!puedeAgregarProducto()) return
-  
+
   let precioUnitario = productoParaAgregar.value.precioVenta
   let unidadVenta = productoParaAgregar.value.unidadMedida
-  
+
   if (tipoVentaSeleccionado.value === 'dosis') {
     precioUnitario = productoParaAgregar.value.precioVenta / productoParaAgregar.value.dosisTotal
     unidadVenta = 'dosis'
   }
-  
+
   const productoVenta = {
     id: `venta_${Date.now()}`,
     productoId: productoParaAgregar.value.id,
@@ -1968,10 +1998,10 @@ const agregarProductoAVenta = () => {
     precioUnitario: precioUnitario,
     subtotal: precioUnitario * cantidadParaAgregar.value
   }
-  
+
   ventaTemporal.value.productos.push(productoVenta)
   calcularTotalVenta()
-  
+
   // Limpiar selección
   productoParaAgregar.value = null
   cantidadParaAgregar.value = 1
@@ -1991,14 +2021,14 @@ const calcularTotalVenta = () => {
 
 const procesarVenta = () => {
   if (ventaTemporal.value.productos.length === 0) return
-  
+
   // Procesar cada producto vendido
   ventaTemporal.value.productos.forEach(productoVenta => {
-    const producto = inventario.value.productos.find(p => p.id === productoVenta.productoId)
+    const producto = productos.value.find(p => p.id === productoVenta.productoId)
     if (!producto) return
-    
+
     let cantidadDescontar = 0
-    
+
     if (productoVenta.tipoVenta === 'dosis') {
       // Calcular cuántas unidades completas se necesitan para las dosis
       const dosisRequeridas = productoVenta.cantidad
@@ -2007,10 +2037,10 @@ const procesarVenta = () => {
     } else {
       cantidadDescontar = productoVenta.cantidad
     }
-    
+
     const stockAnterior = producto.stockUnidades
     producto.stockUnidades = Math.max(0, producto.stockUnidades - cantidadDescontar)
-    
+
     // Registrar movimiento de venta
     registrarMovimiento({
       tipo: 'venta',
@@ -2025,13 +2055,13 @@ const procesarVenta = () => {
       precioVenta: productoVenta.subtotal
     })
   })
-  
+
   // Generar ID de venta
   ventaTemporal.value.id = `venta_${Date.now()}`
-  
+
   // Emitir evento de venta procesada
   emit('venta-procesada', { ...ventaTemporal.value })
-  
+
   mostrarModalVenta.value = false
   limpiarVentaTemporal()
   guardarDatos()
@@ -2071,10 +2101,10 @@ const ajustarStock = (producto) => {
 
 const confirmarAjusteStock = () => {
   if (!ajusteStock.value.cantidad || !ajusteStock.value.motivo) return
-  
+
   const producto = productoParaAjustar.value
   const stockAnterior = producto.stockUnidades
-  
+
   switch (ajusteStock.value.tipo) {
     case 'entrada':
       producto.stockUnidades += ajusteStock.value.cantidad
@@ -2089,7 +2119,7 @@ const confirmarAjusteStock = () => {
       producto.stockUnidades = Math.max(0, producto.stockUnidades - ajusteStock.value.cantidad)
       break
   }
-  
+
   // Registrar movimiento
   registrarMovimiento({
     tipo: ajusteStock.value.tipo,
@@ -2100,7 +2130,7 @@ const confirmarAjusteStock = () => {
     stockAnterior: stockAnterior,
     stockNuevo: producto.stockUnidades
   })
-  
+
   mostrarModalAjusteStock.value = false
   productoParaAjustar.value = null
   guardarDatos()
@@ -2120,7 +2150,7 @@ const registrarMovimiento = (datosMovimiento) => {
     ...datosMovimiento,
     usuario: datosMovimiento.usuario || 'Usuario Actual'
   }
-  
+
   movimientos.value.push(movimiento)
   emit('movimiento-registrado', movimiento)
 }
@@ -2145,7 +2175,7 @@ const editarProveedor = (proveedor) => {
 
 const guardarProveedor = async () => {
   if (!proveedorTemporal.value.nombre) return
-  
+
   cargando.value = true
   try {
     if (proveedorEditando.value) {
@@ -2209,26 +2239,26 @@ const imprimirReporte = async (tipo) => {
       message: 'Construyendo documento PDF, por favor espera...',
       spinnerColor: 'primary'
     })
-    
+
     const response = await inventarioService.reportes.descargarPdf(tipo)
-    
+
     // Crear objeto Blob con la data del PDF
     const blob = new Blob([response.data], { type: 'application/pdf' })
     const url = window.URL.createObjectURL(blob)
-    
+
     // Abrir en otra pestaña
     window.open(url, '_blank')
-    
-    $q.notify({ 
-      type: 'positive', 
-      message: 'Reporte generado con éxito', 
+
+    $q.notify({
+      type: 'positive',
+      message: 'Reporte generado con éxito',
       icon: 'check_circle'
     })
   } catch (error) {
     console.error('Error generando reporte PDF:', error)
-    $q.notify({ 
-      type: 'negative', 
-      message: 'Hubo un error al generar el reporte en el backend', 
+    $q.notify({
+      type: 'negative',
+      message: 'Hubo un error al generar el reporte en el backend',
       icon: 'error'
     })
   } finally {
@@ -2236,20 +2266,15 @@ const imprimirReporte = async (tipo) => {
   }
 }
 
-const verHistorialMovimientos = () => {
-  filtroHistorial.value = ''
-  mostrarModalHistorial.value = true
-}
-
 // Métodos de persistencia
 const cargarDatos = async () => {
   cargando.value = true
   try {
     const [
-      resProd, 
+      resProd,
       resProv
     ] = await Promise.all([
-      inventarioService.productos.getAll(almacenSeleccionado.value?.value),
+      inventarioService.productos.getAll(almacenSeleccionado.value),
       inventarioService.proveedores.getAll()
     ])
 
@@ -2257,12 +2282,12 @@ const cargarDatos = async () => {
 
     // Si no hay almacén seleccionado, intentamos seleccionar el primero por defecto
     if (!almacenSeleccionado.value && almacenes.value.length > 0) {
-      almacenSeleccionado.value = almacenesOpciones.value[0]
+      almacenSeleccionado.value = almacenesOpciones.value[0].value
       // Recargar productos para el almacén seleccionado
-      const resProdFiltrado = await inventarioService.productos.getAll(almacenSeleccionado.value.value)
+      const resProdFiltrado = await inventarioService.productos.getAll(almacenSeleccionado.value)
       productos.value = resProdFiltrado.data
     }
-    
+
     // Asignar catálogos usando useCatalogos
     const [cats, typs, units, fabs, ubis] = await Promise.all([
       obtenerCatalogo(Modulo.INVENTARIO, Tabla.CATEGORIA_PRODUCTO),
@@ -2277,7 +2302,7 @@ const cargarDatos = async () => {
     catalogos.value.unidades = units || []
     catalogos.value.fabricantes = fabs || []
     catalogos.value.ubicaciones = ubis || []
-    
+
     proveedores.value = resProv.data || []
     categorias.value = catalogos.value.categorias
     tiposProducto.value = catalogos.value.tipos
@@ -2287,7 +2312,7 @@ const cargarDatos = async () => {
     // Si hay lotes por cargar para el producto seleccionado o general
     // resLotes = await inventarioService.lotes.getAll()
     // lotes.value = resLotes.data
-    
+
   } catch (error) {
     console.error('Error al cargar datos de inventario:', error)
     $q.notify({
@@ -2320,11 +2345,12 @@ watch(productos, (nuevosProductos) => {
 
 // Watcher para el modal de producto para asignar el almacén actual por defecto
 watch(mostrarModalProducto, (nuevoValor) => {
-  if (nuevoValor && !productoEditando.value) {
+    if (nuevoValor && !productoEditando.value) {
     if (almacenSeleccionado.value) {
-      productoTemporal.value.id_almacen = almacenSeleccionado.value.value
+      productoTemporal.value.id_almacen = almacenSeleccionado.value
     }
   }
+  console.log('[Inventario] watch mostrarModalProducto ->', nuevoValor)
 })
 
 // Exponer métodos públicos si es necesario
@@ -2351,11 +2377,11 @@ defineExpose({
   verificarDisponibilidad: (productoId, cantidad, tipoBusqueda = 'completo') => {
     const producto = productos.value.find(p => p.id === productoId)
     if (!producto) return false
-    
+
     if (tipoBusqueda === 'dosis' && producto.manejoFraccionado) {
       return calcularDosisDisponibles(producto) >= cantidad
     }
-    
+
     return producto.stockUnidades >= cantidad
   }
 })
