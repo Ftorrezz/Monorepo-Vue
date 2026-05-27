@@ -584,6 +584,7 @@ const manejarMascotaGuardada = (mascota) => {
   }
 
   console.log('Array después de actualización:', mascotasPropietario.value)
+}
 
 // Legacy methods (keep for now, can be removed once fully tested)
 const irANuevoPropietario = () => {

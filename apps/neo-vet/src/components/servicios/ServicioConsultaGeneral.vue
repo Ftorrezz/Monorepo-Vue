@@ -304,13 +304,24 @@ const cargarDiagnosticos = async () => {
     }
 }
 
-const filtrarDiagnosticos = (val, update) => {
-    update(() => {
-        const needle = val.toLowerCase()
-        diagnosticosOptions.value = todosLosDiagnosticos.value.filter(
-            v => v.label.toLowerCase().indexOf(needle) > -1
-        )
+const filtrarDiagnosticos = (val, update, abort) => {
+  const hayValor = typeof val === 'string' && val.trim().length > 0
+
+  update(() => {
+    const lista = Array.isArray(todosLosDiagnosticos.value) ? todosLosDiagnosticos.value : []
+
+    if (!hayValor) {
+      diagnosticosOptions.value = lista
+      return
+    }
+
+    const needle = val.toLowerCase().trim()
+    diagnosticosOptions.value = lista.filter((item) => {
+      const label = String(item?.label || '').toLowerCase()
+      const descripcion = String(item?.descripcion || '').toLowerCase()
+      return label.includes(needle) || descripcion.includes(needle)
     })
+  })
 }
 
 const formularioValido = computed(() => {

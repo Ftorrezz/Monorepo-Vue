@@ -12,10 +12,6 @@
               {{ estadisticasGenerales.stockBajo }} con stock bajo • 
               {{ estadisticasGenerales.proximosVencer }} próximos a vencer
             </div>
-            <q-badge v-if="almacenSeleccionado" color="white" text-color="primary" class="q-mt-sm text-weight-bold">
-              <q-icon name="warehouse" size="xs" class="q-mr-xs" />
-              {{ getAlmacenLabel(almacenSeleccionado) }}
-            </q-badge>
           </div>
           <div class="col-auto">
             <div class="row q-gutter-sm items-center">
@@ -1762,14 +1758,11 @@ const getAlmacenLabel = (alm) => {
 
 // Métodos para productos
 const agregarProducto = () => {
-  if (!almacenSeleccionado.value) {
-    $q.notify({ color: 'warning', message: 'Selecciona un almacén antes de dar de alta productos.' })
-    return
-  }
-
   productoEditando.value = null
   limpiarProductoTemporal()
-  productoTemporal.value.id_almacen = almacenSeleccionado.value
+  if (almacenSeleccionado.value) {
+    productoTemporal.value.id_almacen = almacenSeleccionado.value
+  }
   mostrarModalProducto.value = true
 }
 
@@ -1839,10 +1832,9 @@ const guardarProducto = async () => {
 
 const validarProducto = () => {
   return !!(
-    productoTemporal.value.nombre &&
-    productoTemporal.value.categoriaId &&
-    productoTemporal.value.tipoId &&
-    productoTemporal.value.id_almacen
+    productoTemporal.value.nombre && 
+    productoTemporal.value.categoriaId && 
+    productoTemporal.value.tipoId
   )
 }
 

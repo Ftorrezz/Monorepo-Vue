@@ -5,6 +5,7 @@ import axios, { AxiosResponse } from 'axios';
 import NdAlertasControl from "./alertas.control";
 import { Router } from "vue-router";
 import { useDialogStore } from "../stores/DialogoUbicacion";
+import { useAuthStore } from "../stores/Auth";
 
 /*Clase para persistencia de los resultados del rest*/
 interface Mensaje {
@@ -31,9 +32,12 @@ class NdPeticionControl {
     let _urlEndPoint = '/' + nombreMetodo;
     // this.infoRequestService.agregarMensaje(_urlEndPoint); // Ajusta esto según tus necesidades
 
-    const store = useDialogStore();
-    const idsitio = store.id_sitio;
-    const idsucursal = store.id_sucursal;
+    const dialogStore = useDialogStore();
+    const authStore = useAuthStore();
+
+    const sucursalSeleccionada = dialogStore.sucursalSeleccionada || authStore.sucursales?.[0] || null;
+    const idsitio = dialogStore.id_sitio || sucursalSeleccionada?.id_sitio || authStore.sucursales?.[0]?.id_sitio || 1;
+    const idsucursal = dialogStore.id_sucursal || sucursalSeleccionada?.id || authStore.sucursales?.[0]?.id || 1;
 
     let headers = {
       'Content-Type': 'application/json',
