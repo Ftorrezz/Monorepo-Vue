@@ -69,6 +69,14 @@ export interface Lote {
     activo: boolean;
 }
 
+export interface Almacen {
+    id: number;
+    nombre: string;
+    descripcion?: string;
+    identificador?: string;
+    activo: boolean;
+}
+
 export interface Producto {
     id: number;
     nombre: string;
@@ -86,9 +94,8 @@ export interface Producto {
     proveedor?: Proveedor;
     unidadMedidaId?: number;
     unidadMedida?: UnidadMedida;
-    stockMinimo: number;
-    stockActual?: number;  // Calculado desde lotes
     precioVenta: number;
+    costoUnitario: number;
     manejoFraccionado?: boolean;
     contenidoPorEnvase?: number;
     unidadEnvase?: string;
@@ -97,7 +104,26 @@ export interface Producto {
     fechaCreacion?: string;
     fechaModificacion?: string;
     activo: boolean;
-    lotes?: Lote[];  // Relación con lotes
+    // Stock calculado consolidado (suma de todas las existencias)
+    stockTotal?: number;
+    stockMinimoGlobal?: number;
+}
+
+export interface Existencia {
+    id: number;
+    productoId: number;
+    almacenId: number;
+    stockActual: number;
+    stockMinimo: number;
+    ubicacionId?: number;
+    ubicacion?: Ubicacion;
+    lote?: string;
+    fechaVencimiento?: string;
+    producto?: Producto;
+    almacen?: Almacen;
+    fechaCreacion?: string;
+    fechaModificacion?: string;
+    activo: boolean;
 }
 
 // Helper to extract data from PeticionService response
@@ -121,17 +147,13 @@ const mapPeticionResponse = (response: any) => {
 export default {
     // ==================== PRODUCTOS ====================
     productos: {
-        async getAll(idAlmacen?: number) {
-            const params: any = {};
-            if (idAlmacen) params.id_almacen = idAlmacen;
-            const response = await peticionService.obtenerGet('inventario/productos', params);
+        async getAll() {
+            const response = await peticionService.obtenerGet('inventario/productos');
             return mapPeticionResponse(response);
         },
 
-        async getTodos(idAlmacen?: number) {
-            const params: any = {};
-            if (idAlmacen) params.id_almacen = idAlmacen;
-            const response = await peticionService.obtenerGet('inventario/productos', params);
+        async getTodos() {
+            const response = await peticionService.obtenerGet('inventario/productos');
             return mapPeticionResponse(response);
         },
 
@@ -164,6 +186,68 @@ export default {
 
         async deducirInventario(payload: { id_presentacion: number, cantidad: number, origen: string, referencia_id: string }) {
             return peticionService.crear('inventario/deducir', payload);
+        }
+    },
+
+    // ==================== EXISTENCIAS (Stock por Almacén) ====================
+    existencias: {
+        async getAll(idAlmacen?: number, idProducto?: number) {
+            const params: any = {};
+            if (idAlmacen) params.filtro = { id_almacen: idAlmacen };
+            if (idProducto) params.filtro = { ...params.filtro, id_producto: idProducto };
+            const response = await peticionService.obtenerGet('inventario/existencias', params);
+            return mapPeticionResponse(response);
+        },
+
+        async getById(id: number) {
+            const response = await peticionService.obtenerGet(`inventario/existencias/${id}`);
+            return mapPeticionResponse(response);
+        },
+
+        async getByAlmacen(idAlmacen: number) {
+            const response = await peticionService.obtenerGet('inventario/existencias', {
+                filtro: { id_almacen: idAlmacen }
+            });
+            return mapPeticionResponse(response);
+        },
+
+        async getByProducto(idProducto: number) {
+            const response = await peticionService.obtenerGet('inventario/existencias', {
+                filtro: { id_producto: idProducto }
+            });
+            return mapPeticionResponse(response);
+        },
+
+        async create(existencia: Partial<Existencia>) {
+            return peticionService.crear('inventario/existencias', existencia);
+        },
+
+        async update(id: number, existencia: Partial<Existencia>) {
+            return peticionService.actualizar(`inventario/existencias/${id}`, existencia);
+        },
+
+        async delete(id: number) {
+            return peticionService.eliminar('inventario/existencias', { id });
+        },
+
+        async ajustarStock(id: number, cantidad: number, tipo: 'entrada' | 'salida' | 'ajuste', motivo?: string) {
+            return peticionService.actualizar(`inventario/existencias/${id}/ajustar-stock`, {
+                cantidad,
+                tipo,
+                motivo
+            });
+        },
+
+        async getStockConsolidado(idProducto: number) {
+            const response = await peticionService.obtenerGet(`inventario/existencias/stock-consolidado/${idProducto}`);
+            return mapPeticionResponse(response);
+        },
+
+        async getBajoStockPorAlmacen(idAlmacen: number) {
+            const response = await peticionService.obtenerGet('inventario/existencias/bajo-stock', {
+                filtro: { id_almacen: idAlmacen }
+            });
+            return mapPeticionResponse(response);
         }
     },
 

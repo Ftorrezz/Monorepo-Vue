@@ -96,7 +96,8 @@
         narrow-indicator
       >
         <q-tab name="dashboard" icon="dashboard" label="Dashboard" />
-        <q-tab name="productos" icon="inventory_2" label="Inventario" />
+        <q-tab name="productos" icon="inventory_2" label="Catálogo Productos" />
+        <q-tab name="existencias" icon="warehouse" label="Existencias por Almacén" />
         <q-tab name="proveedores" icon="local_shipping" label="Proveedores" />
         <q-tab name="movimientos" icon="history" label="Movimientos" />
       </q-tabs>
@@ -433,15 +434,122 @@
       <div class="text-body2 text-grey-5 q-mb-md">
         {{ filtroTexto || filtroCategoria || filtroTipo || filtroEstado ? 'Intenta cambiar los filtros de búsqueda' : 'Comienza agregando el primer producto' }}
       </div>
-      <q-btn 
+      <q-btn
         v-if="!modoLectura && !filtroTexto && !filtroCategoria && !filtroTipo && !filtroEstado"
-        color="primary" 
-        icon="add" 
-        label="Agregar Producto" 
+        color="primary"
+        icon="add"
+        label="Agregar Producto"
         @click="agregarProducto"
         unelevated
       />
     </div>
+      </q-tab-panel>
+
+      <!-- PANEL DE EXISTENCIAS POR ALMACÉN -->
+      <q-tab-panel name="existencias" class="q-pa-none">
+        <q-card flat class="q-mb-md rounded-12 bg-white shadow-1">
+          <q-card-section class="q-pa-md">
+            <div class="row items-center q-col-gutter-md">
+              <div class="col-12 col-md-4">
+                <q-select
+                  v-model="almacenSeleccionado"
+                  emit-value
+                  map-options
+                  :options="almacenesOpciones"
+                  label="Seleccionar Almacén"
+                  outlined
+                  dense
+                  bg-color="grey-1"
+                  class="rounded-8"
+                  @update:model-value="cargarExistenciasPorAlmacen"
+                >
+                  <template v-slot:prepend><q-icon name="warehouse" color="primary" /></template>
+                </q-select>
+              </div>
+              <div class="col-12 col-md-4">
+                <q-input
+                  v-model="filtroExistencias"
+                  label="Buscar productos..."
+                  outlined
+                  dense
+                  bg-color="grey-1"
+                  class="rounded-8"
+                  clearable
+                >
+                  <template v-slot:prepend><q-icon name="search" color="primary" /></template>
+                </q-input>
+              </div>
+              <div class="col-12 col-md-4">
+                <q-btn
+                  color="primary"
+                  icon="add"
+                  label="Agregar Existencia"
+                  @click="agregarExistencia"
+                  unelevated
+                  class="rounded-8 q-px-md"
+                  :disable="!almacenSeleccionado"
+                />
+              </div>
+            </div>
+          </q-card-section>
+        </q-card>
+
+        <!-- Tabla de existencias -->
+        <q-card flat bordered class="rounded-12">
+          <q-table
+            :rows="existenciasFiltradas"
+            :columns="columnasExistencias"
+            row-key="id"
+            flat
+            :loading="cargando"
+          >
+            <template v-slot:body-cell-producto="props">
+              <q-td :props="props">
+                <div class="text-weight-bold">{{ props.row.producto?.nombre || 'N/A' }}</div>
+                <div class="text-caption text-grey">{{ props.row.producto?.categoria?.nombre || '' }}</div>
+              </q-td>
+            </template>
+
+            <template v-slot:body-cell-stock="props">
+              <q-td :props="props">
+                <div class="text-weight-bold" :class="props.row.stockActual <= props.row.stockMinimo ? 'text-negative' : 'text-positive'">
+                  {{ props.row.stockActual }}
+                </div>
+                <div class="text-caption text-grey">Mín: {{ props.row.stockMinimo }}</div>
+              </q-td>
+            </template>
+
+            <template v-slot:body-cell-ubicacion="props">
+              <q-td :props="props">
+                {{ props.row.ubicacion?.nombre || 'Sin ubicación' }}
+              </q-td>
+            </template>
+
+            <template v-slot:body-cell-lote="props">
+              <q-td :props="props">
+                <q-chip v-if="props.row.lote" dense outline color="grey" size="sm">
+                  {{ props.row.lote }}
+                </q-chip>
+                <span v-else class="text-grey">-</span>
+              </q-td>
+            </template>
+
+            <template v-slot:body-cell-vencimiento="props">
+              <q-td :props="props">
+                <span v-if="props.row.fechaVencimiento">{{ formatDate(props.row.fechaVencimiento) }}</span>
+                <span v-else class="text-grey">-</span>
+              </q-td>
+            </template>
+
+            <template v-slot:body-cell-acciones="props">
+              <q-td :props="props" class="text-right q-gutter-xs">
+                <q-btn flat round dense color="primary" icon="edit" @click="editarExistencia(props.row)" />
+                <q-btn flat round dense color="negative" icon="delete" @click="eliminarExistencia(props.row.id)" />
+              </q-td>
+            </template>
+          </q-table>
+        </q-card>
+      </q-tab-panel>
 
     <!-- Modal para agregar/editar producto -->
     <q-dialog v-model="mostrarModalProducto" persistent maximized transition-show="slide-up" transition-hide="slide-down">
@@ -467,9 +575,8 @@
           bg-color="white"
         >
           <q-tab name="general" label="General" icon="info" />
-          <q-tab name="stock" label="Stock & Ubicación" icon="inventory_2" />
           <q-tab name="precios" label="Precios" icon="payments" />
-          <q-tab name="adicional" label="Adicional & Lotes" icon="more_horiz" />
+          <q-tab name="adicional" label="Adicional" icon="more_horiz" />
         </q-tabs>
 
         <q-separator />
@@ -543,60 +650,11 @@
                         <q-input v-model="productoTemporal.codigoBarras" label="Código de Barras" outlined dense icon="barcode" />
                       </div>
                     </div>
-                  </q-card-section>
-                </q-card>
-              </div>
-            </div>
-          </q-tab-panel>
 
-          <!-- PANEL STOCK -->
-          <q-tab-panel name="stock" class="q-pa-md">
-            <div class="row q-col-gutter-md">
-              <div class="col-12">
-                <q-card flat bordered class="rounded-12">
-                  <q-card-section class="q-gutter-y-md">
-                    <div class="text-subtitle1 text-weight-bold text-primary">Gestión de Existencias</div>
-                    
-                    <div class="row q-col-gutter-sm">
-                      <div class="col-12 col-sm-6">
-                        <q-input
-                          v-model.number="productoTemporal.stockUnidades"
-                          label="Stock Inicial *"
-                          outlined
-                          dense
-                          type="number"
-                          min="0"
-                          bg-color="blue-1"
-                        />
-                      </div>
-                      <div class="col-12 col-sm-6">
-                        <q-input
-                          v-model.number="productoTemporal.stockMinimo"
-                          label="Punto de Reorden (Mínimo) *"
-                          outlined
-                          dense
-                          type="number"
-                          min="0"
-                          bg-color="orange-1"
-                        />
-                      </div>
-                    </div>
+                    <q-separator q-my-sm />
 
+                    <!-- Unidad de Medida -->
                     <div class="row q-col-gutter-sm">
-                      <div class="col-12 col-sm-6">
-                        <q-select
-                          v-model="productoTemporal.id_almacen"
-                          :options="almacenesOpciones"
-                          label="Almacén de Destino *"
-                          outlined
-                          dense
-                          emit-value
-                          map-options
-                          :rules="[val => !!val || 'El almacén es requerido']"
-                        >
-                          <template v-slot:prepend><q-icon name="warehouse" color="primary" /></template>
-                        </q-select>
-                      </div>
                       <div class="col-12 col-sm-6">
                         <q-select
                           v-model="productoTemporal.unidadMedidaId"
@@ -606,23 +664,9 @@
                           dense
                           emit-value
                           map-options
-                        />
-                      </div>
-                    </div>
-
-                    <div class="row q-col-gutter-sm">
-                      <div class="col-12 col-sm-6">
-                        <q-select
-                          v-model="productoTemporal.ubicacionId"
-                          :options="catalogos.ubicaciones"
-                          option-label="label"
-                          option-value="value"
-                          label="Ubicación Física"
-                          outlined
-                          dense
-                          emit-value
-                          map-options
-                        />
+                        >
+                          <template v-slot:prepend><q-icon name="straighten" color="primary" /></template>
+                        </q-select>
                       </div>
                     </div>
 
@@ -708,16 +752,7 @@
               <div class="col-12">
                 <q-card flat bordered class="rounded-12">
                   <q-card-section class="q-gutter-y-md">
-                    <div class="text-subtitle1 text-weight-bold text-primary">Lote de Entrada Inicial</div>
-                    <div class="row q-col-gutter-sm">
-                      <div class="col-12 col-sm-6">
-                        <q-input v-model="productoTemporal.lote" label="Número de Lote" outlined dense />
-                      </div>
-                      <div class="col-12 col-sm-6">
-                        <q-input v-model="productoTemporal.fechaVencimiento" label="Fecha de Vencimiento" outlined dense type="date" stack-label />
-                      </div>
-                    </div>
-
+                    <div class="text-subtitle1 text-weight-bold text-primary">Proveedor y Fabricante</div>
                     <div class="row q-col-gutter-sm">
                       <div class="col-12 col-sm-6">
                         <q-select
@@ -748,7 +783,7 @@
                     </div>
 
                     <q-separator class="q-my-md" />
-                    
+
                     <div class="text-subtitle1 text-weight-bold text-primary">Estado del Registro</div>
                     <q-toggle v-model="productoTemporal.activo" label="Producto habilitado para venta y receta" color="positive" />
                   </q-card-section>
@@ -770,6 +805,109 @@
             class="q-px-lg rounded-8"
             :loading="cargando"
           />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <!-- Modal para agregar/editar existencia por almacén -->
+    <q-dialog v-model="mostrarModalExistencia" persistent>
+      <q-card style="width: 700px; max-width: 95vw;" class="rounded-12">
+        <q-card-section class="bg-primary text-white row items-center q-py-sm">
+          <div class="text-h6">
+            <q-icon :name="existenciaTemporal.id ? 'edit' : 'add_circle'" class="q-mr-sm" />
+            {{ existenciaTemporal.id ? 'Editar Existencia' : 'Nueva Existencia' }}
+          </div>
+          <q-space />
+          <q-btn flat round dense icon="close" @click="cancelarExistencia" />
+        </q-card-section>
+
+        <q-card-section class="q-gutter-y-md">
+          <div class="row q-col-gutter-sm">
+            <div class="col-12 col-md-6">
+              <q-select
+                v-model="existenciaTemporal.productoId"
+                :options="productosFiltrados.map(p => ({ label: p.nombre, value: p.id }))"
+                label="Producto *"
+                outlined
+                dense
+                emit-value
+                map-options
+              />
+            </div>
+            <div class="col-12 col-md-6">
+              <q-select
+                v-model="existenciaTemporal.almacenId"
+                :options="almacenesOpciones"
+                label="Almacén *"
+                outlined
+                dense
+                emit-value
+                map-options
+              />
+            </div>
+          </div>
+
+          <div class="row q-col-gutter-sm">
+            <div class="col-12 col-md-6">
+              <q-input
+                v-model.number="existenciaTemporal.stockActual"
+                label="Stock Actual *"
+                outlined
+                dense
+                type="number"
+                min="0"
+              />
+            </div>
+            <div class="col-12 col-md-6">
+              <q-input
+                v-model.number="existenciaTemporal.stockMinimo"
+                label="Stock Mínimo *"
+                outlined
+                dense
+                type="number"
+                min="0"
+              />
+            </div>
+          </div>
+
+          <div class="row q-col-gutter-sm">
+            <div class="col-12 col-md-6">
+              <q-select
+                v-model="existenciaTemporal.ubicacionId"
+                :options="catalogos.ubicaciones"
+                option-label="label"
+                option-value="value"
+                label="Ubicación"
+                outlined
+                dense
+                emit-value
+                map-options
+              />
+            </div>
+            <div class="col-12 col-md-6">
+              <q-input
+                v-model="existenciaTemporal.lote"
+                label="Lote"
+                outlined
+                dense
+              />
+            </div>
+          </div>
+
+          <q-input
+            v-model="existenciaTemporal.fechaVencimiento"
+            label="Fecha de Vencimiento"
+            outlined
+            dense
+            type="date"
+          />
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="Cancelar" color="grey-7" @click="cancelarExistencia" />
+          <q-btn color="primary" label="Guardar Existencia" @click="guardarExistencia" :loading="cargando" unelevated />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -868,7 +1006,6 @@
         </q-card-section>
       </q-card>
     </q-dialog>
-      </q-tab-panel>
 
     <!-- PANEL DE PROVEEDORES -->
     <q-tab-panel name="proveedores" class="q-pa-none">
@@ -1241,7 +1378,8 @@ const emit = defineEmits(['inventario-actualizado', 'venta-procesada', 'movimien
 const tabSeleccionada = ref('dashboard')
 
 // Estados principales poblados desde API
-const productos = ref([])
+const productos = ref([]) // Catálogo de productos (sin almacén)
+const existencias = ref([]) // Stock por almacén
 const proveedores = ref([])
 const lotes = ref([])
 const ubicaciones = ref([])
@@ -1267,10 +1405,12 @@ const mostrarModalVenta = ref(false)
 const mostrarModalAjusteStock = ref(false)
 const mostrarModalHistorial = ref(false)
 const mostrarModalImpresion = ref(false)
+const mostrarModalExistencia = ref(false)
 const productoEditando = ref(null)
 const proveedorEditando = ref(null)
 const loteEditando = ref(null)
 const productoParaAjustar = ref(null)
+const existenciaEditando = ref(null)
 
 // Estados de filtros
 const filtroTexto = ref('')
@@ -1282,6 +1422,7 @@ const filtroHistorial = ref('')
 const filtroTipoMovimiento = ref('')
 const filtroFechaDesde = ref('')
 const filtroFechaHasta = ref('')
+const filtroExistencias = ref('')
 
 // Filtros para el Selector de Productos en Grid
 const filtroTextoVenta = ref('')
@@ -1296,17 +1437,9 @@ const productoTemporal = ref({
   tipo: '',
   categoriaId: null,
   tipoId: null,
-  stockUnidades: 0,
-  stockMinimo: 0,
-  unidadMedida: '',
   unidadMedidaId: null,
-  ubicacion: '',
-  ubicacionId: null,
   costoUnitario: 0,
   precioVenta: 0,
-  lote: '',
-  fechaVencimiento: '',
-  proveedor: '',
   manejoFraccionado: false,
   contenidoPorEnvase: 0,
   unidadEnvase: '',
@@ -1314,7 +1447,22 @@ const productoTemporal = ref({
   unidadDosis: '',
   id_fabricante: null,
   id_proveedor: null,
+  codigo: '',
+  codigoBarras: '',
   fechaCreacion: '',
+  activo: true
+})
+
+// Estado temporal para existencias (stock por almacén)
+const existenciaTemporal = ref({
+  id: null,
+  productoId: null,
+  almacenId: null,
+  stockActual: 0,
+  stockMinimo: 0,
+  ubicacionId: null,
+  lote: '',
+  fechaVencimiento: '',
   activo: true
 })
 
@@ -1450,6 +1598,15 @@ const columnasProveedores = [
   { name: 'acciones', label: 'Acciones', field: 'acciones', align: 'right' }
 ]
 
+const columnasExistencias = [
+  { name: 'producto', label: 'Producto', field: 'producto', align: 'left' },
+  { name: 'stock', label: 'Stock', field: 'stockActual', align: 'center' },
+  { name: 'ubicacion', label: 'Ubicación', field: 'ubicacion', align: 'left' },
+  { name: 'lote', label: 'Lote', field: 'lote', align: 'center' },
+  { name: 'vencimiento', label: 'Vencimiento', field: 'fechaVencimiento', align: 'center' },
+  { name: 'acciones', label: 'Acciones', field: 'acciones', align: 'right' }
+]
+
 // Computed properties
 const productosFiltrados = computed(() => {
   let listado = productos.value.filter(p => p.activo)
@@ -1478,11 +1635,17 @@ const productosFiltrados = computed(() => {
     })
   }
   
-  return listado
+  // Enriquecer productos con stock consolidado
+  return listado.map(p => ({
+    ...p,
+    stockUnidades: getStockConsolidado(p.id),
+    stockMinimo: getStockMinimoGlobal(p.id),
+    unidadMedida: p.unidadMedida?.abreviacion || 'unidades'
+  }))
 })
 
 const productosFiltradosParaVenta = computed(() => {
-  let listado = productos.value.filter(p => p.activo && p.stockUnidades > 0)
+  let listado = productosFiltrados.value.filter(p => p.activo && p.stockUnidades > 0)
   
   if (filtroTextoVenta.value) {
     const texto = filtroTextoVenta.value.toLowerCase()
@@ -1507,7 +1670,7 @@ const productosProximosYAgotados = computed(() => {
 })
 
 const estadisticasGenerales = computed(() => {
-  const activos = productos.value.filter(p => p.activo)
+  const activos = productosFiltrados.value.filter(p => p.activo)
   
   return {
     totalProductos: activos.length,
@@ -1530,33 +1693,47 @@ const proveedoresFiltrados = computed(() => {
 
 const historialMovimientos = computed(() => {
   let movimientosFiltrados = [...movimientos.value]
-  
+
   if (filtroHistorial.value) {
     const texto = filtroHistorial.value.toLowerCase()
-    movimientosFiltrados = movimientosFiltrados.filter(m => 
+    movimientosFiltrados = movimientosFiltrados.filter(m =>
       m.producto.toLowerCase().includes(texto) ||
       m.motivo?.toLowerCase().includes(texto) ||
       m.usuario?.toLowerCase().includes(texto)
     )
   }
-  
+
   if (filtroTipoMovimiento.value) {
     movimientosFiltrados = movimientosFiltrados.filter(m => m.tipo === filtroTipoMovimiento.value.value)
   }
-  
+
   if (filtroFechaDesde.value) {
-    movimientosFiltrados = movimientosFiltrados.filter(m => 
+    movimientosFiltrados = movimientosFiltrados.filter(m =>
       new Date(m.fecha) >= new Date(filtroFechaDesde.value)
     )
   }
-  
+
   if (filtroFechaHasta.value) {
-    movimientosFiltrados = movimientosFiltrados.filter(m => 
+    movimientosFiltrados = movimientosFiltrados.filter(m =>
       new Date(m.fecha) <= new Date(filtroFechaHasta.value + 'T23:59:59')
     )
   }
-  
+
   return movimientosFiltrados.sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+})
+
+const existenciasFiltradas = computed(() => {
+  let listado = existencias.value.filter(e => e.activo && e.almacenId === almacenSeleccionado.value)
+
+  if (filtroExistencias.value) {
+    const texto = filtroExistencias.value.toLowerCase()
+    listado = listado.filter(e =>
+      e.producto?.nombre?.toLowerCase().includes(texto) ||
+      e.producto?.codigo?.toLowerCase().includes(texto)
+    )
+  }
+
+  return listado
 })
 
 // Columnas para las tablas
@@ -1760,36 +1937,145 @@ const getAlmacenLabel = (alm) => {
   return opt?.label || ''
 }
 
-// Métodos para productos
-const agregarProducto = () => {
-  if (!almacenSeleccionado.value) {
-    $q.notify({ color: 'warning', message: 'Selecciona un almacén antes de dar de alta productos.' })
+// Funciones auxiliares para el nuevo modelo de existencias
+const getStockConsolidado = (productoId) => {
+  const existenciasProducto = existencias.value.filter(e => e.productoId === productoId && e.activo)
+  return existenciasProducto.reduce((total, e) => total + (e.stockActual || 0), 0)
+}
+
+const getStockMinimoGlobal = (productoId) => {
+  const existenciasProducto = existencias.value.filter(e => e.productoId === productoId && e.activo)
+  if (existenciasProducto.length === 0) return 0
+  // Usar el stock mínimo más alto entre todas las existencias
+  return Math.max(...existenciasProducto.map(e => e.stockMinimo || 0))
+}
+
+const getExistenciasPorAlmacen = (productoId, almacenId) => {
+  return existencias.value.find(e => e.productoId === productoId && e.almacenId === almacenId && e.activo)
+}
+
+const getExistenciasPorProducto = (productoId) => {
+  return existencias.value.filter(e => e.productoId === productoId && e.activo)
+}
+
+const getExistenciaActivaPorProductoEnAlmacen = (productoId, almacenId = almacenSeleccionado.value) => {
+  if (!almacenId) return null
+  return existencias.value.find(
+    e => e.productoId === productoId && e.almacenId === almacenId && e.activo
+  ) || null
+}
+
+// Métodos para existencias
+const cargarExistenciasPorAlmacen = async () => {
+  if (!almacenSeleccionado.value) return
+  try {
+    const response = await inventarioService.existencias.getByAlmacen(almacenSeleccionado.value)
+    existencias.value = response.data || []
+  } catch (error) {
+    console.error('Error al cargar existencias:', error)
+  }
+}
+
+const agregarExistencia = () => {
+  existenciaTemporal.value = {
+    id: null,
+    productoId: null,
+    almacenId: almacenSeleccionado.value,
+    stockActual: 0,
+    stockMinimo: 0,
+    ubicacionId: null,
+    lote: '',
+    fechaVencimiento: '',
+    activo: true
+  }
+  mostrarModalExistencia.value = true
+}
+
+const editarExistencia = (existencia) => {
+  existenciaTemporal.value = { ...existencia }
+  mostrarModalExistencia.value = true
+}
+
+const cancelarExistencia = () => {
+  mostrarModalExistencia.value = false
+  existenciaTemporal.value = {
+    id: null,
+    productoId: null,
+    almacenId: almacenSeleccionado.value,
+    stockActual: 0,
+    stockMinimo: 0,
+    ubicacionId: null,
+    lote: '',
+    fechaVencimiento: '',
+    activo: true
+  }
+}
+
+const guardarExistencia = async () => {
+  if (!existenciaTemporal.value.productoId || !existenciaTemporal.value.almacenId) {
+    $q.notify({ color: 'warning', message: 'Selecciona un producto y almacén' })
     return
   }
 
+  cargando.value = true
+  try {
+    if (existenciaTemporal.value.id) {
+      await inventarioService.existencias.update(existenciaTemporal.value.id, existenciaTemporal.value)
+      $q.notify({ color: 'positive', message: 'Existencia actualizada' })
+    } else {
+      await inventarioService.existencias.create(existenciaTemporal.value)
+      $q.notify({ color: 'positive', message: 'Existencia creada' })
+    }
+    await cargarExistenciasPorAlmacen()
+    mostrarModalExistencia.value = false
+  } catch (error) {
+    console.error('Error al guardar existencia:', error)
+    $q.notify({ color: 'negative', message: 'Error al guardar existencia' })
+  } finally {
+    cargando.value = false
+  }
+}
+
+const eliminarExistencia = async (id) => {
+  $q.dialog({
+    title: 'Confirmar',
+    message: '¿Estás seguro de eliminar esta existencia?',
+    cancel: true,
+    persistent: true
+  }).onOk(async () => {
+    try {
+      await inventarioService.existencias.delete(id)
+      await cargarExistenciasPorAlmacen()
+      $q.notify({ color: 'positive', message: 'Existencia eliminada' })
+    } catch (error) {
+      console.error('Error al eliminar existencia:', error)
+      $q.notify({ color: 'negative', message: 'Error al eliminar existencia' })
+    }
+  })
+}
+
+// Métodos para productos
+const agregarProducto = () => {
   productoEditando.value = null
   limpiarProductoTemporal()
-  productoTemporal.value.id_almacen = almacenSeleccionado.value
   mostrarModalProducto.value = true
 }
 
 const editarProducto = (producto) => {
   productoEditando.value = producto
   // Aseguramos que los campos de ID estén correctamente asignados
-  productoTemporal.value = { 
+  productoTemporal.value = {
     ...producto,
     categoriaId: producto.categoriaId || null,
     tipoId: producto.tipoId || null,
     unidadMedidaId: producto.unidadMedidaId || null,
-    ubicacionId: producto.ubicacionId || null,
-    id_almacen: producto.id_almacen || almacenSeleccionado.value || null,
     id_proveedor: producto.id_proveedor || null,
     id_fabricante: producto.id_fabricante || null
   }
-  
+
   // Resetear tab al abrir
   tabProducto.value = 'general'
-  
+
   // Calcular propiedades derivadas para medicamentos fraccionados
   if (producto.manejoFraccionado) {
     productoTemporal.value.dosisTotal = Math.floor(
@@ -1842,7 +2128,7 @@ const validarProducto = () => {
     productoTemporal.value.nombre &&
     productoTemporal.value.categoriaId &&
     productoTemporal.value.tipoId &&
-    productoTemporal.value.id_almacen
+    productoTemporal.value.unidadMedidaId
   )
 }
 
@@ -1861,25 +2147,18 @@ const limpiarProductoTemporal = () => {
     tipo: '',
     categoriaId: null,
     tipoId: null,
-    stockUnidades: 0,
-    stockMinimo: 0,
-    unidadMedida: '',
     unidadMedidaId: null,
-    ubicacion: '',
-    ubicacionId: null,
-    id_almacen: almacenSeleccionado.value || null,
     costoUnitario: 0,
     precioVenta: 0,
-    lote: '',
-    fechaVencimiento: '',
-    proveedor: '',
-    id_proveedor: null,
-    id_fabricante: null,
     manejoFraccionado: false,
     contenidoPorEnvase: 0,
     unidadEnvase: '',
     dosisPorAplicacion: 0,
     unidadDosis: '',
+    id_fabricante: null,
+    id_proveedor: null,
+    codigo: '',
+    codigoBarras: '',
     fechaCreacion: '',
     activo: true
   }
@@ -1890,16 +2169,16 @@ const eliminarProducto = (productoId) => {
   const producto = productos.value.find(p => p.id === productoId)
   if (producto) {
     producto.activo = false
+    const stockConsolidado = getStockConsolidado(producto.id)
     registrarMovimiento({
       tipo: 'salida',
       productoId: producto.id,
       producto: producto.nombre,
-      cantidad: producto.stockUnidades,
+      cantidad: stockConsolidado,
       motivo: 'Producto eliminado del inventario',
-      stockAnterior: producto.stockUnidades,
+      stockAnterior: stockConsolidado,
       stockNuevo: 0
     })
-    producto.stockUnidades = 0
     guardarDatos()
   }
 }
@@ -1907,7 +2186,7 @@ const eliminarProducto = (productoId) => {
 // Métodos para ventas
 const filtrarProductosVenta = (val, update) => {
   update(() => {
-    const disponibles = productos.value.filter(p => 
+    const disponibles = productosFiltrados.value.filter(p =>
       p.activo && 
       p.stockUnidades > 0 && 
       p.nombre.toLowerCase().includes(val.toLowerCase())
@@ -2065,52 +2344,94 @@ const calcularTotalVenta = () => {
   )
 }
 
-const procesarVenta = () => {
+const procesarVenta = async () => {
   if (ventaTemporal.value.productos.length === 0) return
-  
-  // Procesar cada producto vendido
-  ventaTemporal.value.productos.forEach(productoVenta => {
-    const producto = productos.value.find(p => p.id === productoVenta.productoId)
-    if (!producto) return
-    
+
+  if (!almacenSeleccionado.value) {
+    $q.notify({ color: 'warning', message: 'Selecciona un almacén para procesar la venta' })
+    return
+  }
+
+  for (const productoVenta of ventaTemporal.value.productos) {
+    const producto = productosFiltrados.value.find(p => p.id === productoVenta.productoId)
+    if (!producto) continue
+
     let cantidadDescontar = 0
-    
     if (productoVenta.tipoVenta === 'dosis') {
-      // Calcular cuántas unidades completas se necesitan para las dosis
       const dosisRequeridas = productoVenta.cantidad
-      const unidadesNecesarias = Math.ceil(dosisRequeridas * producto.dosisPorAplicacion / producto.contenidoPorEnvase)
+      const unidadesNecesarias = Math.ceil(
+        (dosisRequeridas * (producto.dosisPorAplicacion || 0)) / (producto.contenidoPorEnvase || 1)
+      )
       cantidadDescontar = unidadesNecesarias
     } else {
       cantidadDescontar = productoVenta.cantidad
     }
-    
-    const stockAnterior = producto.stockUnidades
-    producto.stockUnidades = Math.max(0, producto.stockUnidades - cantidadDescontar)
-    
-    // Registrar movimiento de venta
-    registrarMovimiento({
-      tipo: 'venta',
-      productoId: producto.id,
-      producto: producto.nombre,
-      cantidad: cantidadDescontar,
-      motivo: `Venta a ${ventaTemporal.value.cliente || 'Cliente'} ${productoVenta.tipoVenta === 'dosis' ? `(${productoVenta.cantidad} dosis)` : ''}`,
-      stockAnterior: stockAnterior,
-      stockNuevo: producto.stockUnidades,
-      cliente: ventaTemporal.value.cliente,
-      paciente: ventaTemporal.value.paciente,
-      precioVenta: productoVenta.subtotal
-    })
-  })
-  
-  // Generar ID de venta
-  ventaTemporal.value.id = `venta_${Date.now()}`
-  
-  // Emitir evento de venta procesada
-  emit('venta-procesada', { ...ventaTemporal.value })
-  
-  mostrarModalVenta.value = false
-  limpiarVentaTemporal()
-  guardarDatos()
+
+    const existencia = getExistenciaActivaPorProductoEnAlmacen(producto.id)
+    if (!existencia) {
+      $q.notify({ color: 'negative', message: `Sin existencia en almacén para ${producto.nombre}` })
+      return
+    }
+
+    if ((existencia.stockActual || 0) < cantidadDescontar) {
+      $q.notify({ color: 'negative', message: `Stock insuficiente para ${producto.nombre}` })
+      return
+    }
+  }
+
+  cargando.value = true
+  try {
+    for (const productoVenta of ventaTemporal.value.productos) {
+      const producto = productosFiltrados.value.find(p => p.id === productoVenta.productoId)
+      if (!producto) continue
+
+      let cantidadDescontar = 0
+      if (productoVenta.tipoVenta === 'dosis') {
+        const dosisRequeridas = productoVenta.cantidad
+        const unidadesNecesarias = Math.ceil(
+          (dosisRequeridas * (producto.dosisPorAplicacion || 0)) / (producto.contenidoPorEnvase || 1)
+        )
+        cantidadDescontar = unidadesNecesarias
+      } else {
+        cantidadDescontar = productoVenta.cantidad
+      }
+
+      const existencia = getExistenciaActivaPorProductoEnAlmacen(producto.id)
+      if (!existencia) continue
+
+      await inventarioService.existencias.ajustarStock(
+        existencia.id,
+        cantidadDescontar,
+        'salida',
+        `Venta a ${ventaTemporal.value.cliente || 'Cliente'}`
+      )
+
+      registrarMovimiento({
+        tipo: 'venta',
+        productoId: producto.id,
+        producto: producto.nombre,
+        cantidad: cantidadDescontar,
+        motivo: `Venta a ${ventaTemporal.value.cliente || 'Cliente'} ${productoVenta.tipoVenta === 'dosis' ? `(${productoVenta.cantidad} dosis)` : ''}`,
+        stockAnterior: existencia.stockActual || 0,
+        stockNuevo: Math.max(0, (existencia.stockActual || 0) - cantidadDescontar),
+        cliente: ventaTemporal.value.cliente,
+        paciente: ventaTemporal.value.paciente,
+        precioVenta: productoVenta.subtotal
+      })
+    }
+
+    ventaTemporal.value.id = `venta_${Date.now()}`
+    emit('venta-procesada', { ...ventaTemporal.value })
+    await cargarExistenciasPorAlmacen()
+    mostrarModalVenta.value = false
+    limpiarVentaTemporal()
+    guardarDatos()
+  } catch (error) {
+    console.error('Error al procesar venta:', error)
+    $q.notify({ color: 'negative', message: 'No se pudo procesar la venta' })
+  } finally {
+    cargando.value = false
+  }
 }
 
 const cancelarVenta = () => {
@@ -2145,41 +2466,66 @@ const ajustarStock = (producto) => {
   mostrarModalAjusteStock.value = true
 }
 
-const confirmarAjusteStock = () => {
+const confirmarAjusteStock = async () => {
   if (!ajusteStock.value.cantidad || !ajusteStock.value.motivo) return
-  
-  const producto = productoParaAjustar.value
-  const stockAnterior = producto.stockUnidades
-  
-  switch (ajusteStock.value.tipo) {
-    case 'entrada':
-      producto.stockUnidades += ajusteStock.value.cantidad
-      break
-    case 'salida':
-      producto.stockUnidades = Math.max(0, producto.stockUnidades - ajusteStock.value.cantidad)
-      break
-    case 'ajuste_positivo':
-      producto.stockUnidades += ajusteStock.value.cantidad
-      break
-    case 'ajuste_negativo':
-      producto.stockUnidades = Math.max(0, producto.stockUnidades - ajusteStock.value.cantidad)
-      break
+
+  if (!almacenSeleccionado.value) {
+    $q.notify({ color: 'warning', message: 'Selecciona un almacén para ajustar stock' })
+    return
   }
-  
-  // Registrar movimiento
-  registrarMovimiento({
-    tipo: ajusteStock.value.tipo,
-    productoId: producto.id,
-    producto: producto.nombre,
-    cantidad: ajusteStock.value.cantidad,
-    motivo: ajusteStock.value.motivo,
-    stockAnterior: stockAnterior,
-    stockNuevo: producto.stockUnidades
-  })
-  
-  mostrarModalAjusteStock.value = false
-  productoParaAjustar.value = null
-  guardarDatos()
+
+  const producto = productoParaAjustar.value
+  const existencia = getExistenciaActivaPorProductoEnAlmacen(producto.id)
+  if (!existencia) {
+    $q.notify({ color: 'negative', message: 'El producto no tiene existencia en el almacén seleccionado' })
+    return
+  }
+
+  let tipoAjusteApi = 'ajuste'
+  if (ajusteStock.value.tipo === 'entrada' || ajusteStock.value.tipo === 'ajuste_positivo') {
+    tipoAjusteApi = 'entrada'
+  } else if (ajusteStock.value.tipo === 'salida' || ajusteStock.value.tipo === 'ajuste_negativo') {
+    tipoAjusteApi = 'salida'
+    if ((existencia.stockActual || 0) < ajusteStock.value.cantidad) {
+      $q.notify({ color: 'negative', message: 'La cantidad supera el stock disponible en el almacén' })
+      return
+    }
+  }
+
+  cargando.value = true
+  try {
+    const stockAnterior = existencia.stockActual || 0
+    const stockNuevo = tipoAjusteApi === 'salida'
+      ? Math.max(0, stockAnterior - ajusteStock.value.cantidad)
+      : stockAnterior + ajusteStock.value.cantidad
+
+    await inventarioService.existencias.ajustarStock(
+      existencia.id,
+      ajusteStock.value.cantidad,
+      tipoAjusteApi,
+      ajusteStock.value.motivo
+    )
+
+    registrarMovimiento({
+      tipo: ajusteStock.value.tipo,
+      productoId: producto.id,
+      producto: producto.nombre,
+      cantidad: ajusteStock.value.cantidad,
+      motivo: ajusteStock.value.motivo,
+      stockAnterior: stockAnterior,
+      stockNuevo: stockNuevo
+    })
+
+    await cargarExistenciasPorAlmacen()
+    mostrarModalAjusteStock.value = false
+    productoParaAjustar.value = null
+    guardarDatos()
+  } catch (error) {
+    console.error('Error al ajustar stock:', error)
+    $q.notify({ color: 'negative', message: 'No se pudo ajustar el stock' })
+  } finally {
+    cargando.value = false
+  }
 }
 
 const cancelarAjusteStock = () => {
@@ -2323,27 +2669,28 @@ const cargarDatos = async () => {
     catalogos.value.fabricantes = fabs || []
     catalogos.value.ubicaciones = ubis || []
 
-    almacenes.value = ubis || []
+    // Cargar almacenes desde el servicio
+    const resAlmacenes = await inventarioService.almacenes.getAll()
+    almacenes.value = resAlmacenes.data || []
+
     if (!almacenSeleccionado.value && almacenes.value.length > 0) {
       almacenSeleccionado.value = almacenesOpciones.value[0]?.value || null
     }
 
-    const [resProd, resProv] = await Promise.all([
-      inventarioService.productos.getAll(almacenSeleccionado.value),
-      inventarioService.proveedores.getAll()
+    const [resProd, resProv, resExistencias] = await Promise.all([
+      inventarioService.productos.getAll(),
+      inventarioService.proveedores.getAll(),
+      inventarioService.existencias.getAll(almacenSeleccionado.value)
     ])
 
     productos.value = resProd.data || []
     proveedores.value = resProv.data || []
+    existencias.value = resExistencias.data || []
     categorias.value = catalogos.value.categorias || []
     tiposProducto.value = catalogos.value.tipos || []
     unidadesMedida.value = catalogos.value.unidades || []
     ubicaciones.value = catalogos.value.ubicaciones || []
 
-    // Si hay lotes por cargar para el producto seleccionado o general
-    // resLotes = await inventarioService.lotes.getAll()
-    // lotes.value = resLotes.data
-    
   } catch (error) {
     console.error('Error al cargar datos de inventario:', error)
     $q.notify({
@@ -2371,7 +2718,7 @@ onMounted(() => {
 
 // Watcher de productos disponibles para venta
 watch(productos, (nuevosProductos) => {
-  productosDisponiblesParaVenta.value = nuevosProductos.filter(p => p.activo && p.stockUnidades > 0)
+  productosDisponiblesParaVenta.value = productosFiltrados.value.filter(p => p.activo && p.stockUnidades > 0)
 }, { deep: true })
 
 // Exponer métodos públicos si es necesario
