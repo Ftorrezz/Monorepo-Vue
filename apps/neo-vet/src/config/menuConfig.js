@@ -99,7 +99,7 @@ export const menuConfig = [
         icon: "calendar_month",
         subItems: [
           { labelKey: "mainMenu.settings.schedule.service", icon: "schedule", to: "/agendaservicio" },
-          { labelKey: "Generar Agenda", icon: "autorenew", to: "/generar-agenda" },
+          { labelKey: "mainMenu.settings.schedule.generateAgenda", icon: "autorenew", to: "/generar-agenda" },
           { labelKey: "mainMenu.settings.schedule.citaMotivo", icon: "schedule", to: "/config/citamotivo" },
           { labelKey: "mainMenu.settings.schedule.reminders", icon: "notification_important", to: "/config/recordatorios" },
         ],
@@ -110,7 +110,7 @@ export const menuConfig = [
         subItems: [
 
 
-          { labelKey: "Servicios Atención", icon: "auto_awesome", to: "/config/servicios-dinamicos" },
+          { labelKey: "mainMenu.settings.general.attentionServices", icon: "auto_awesome", to: "/config/servicios-dinamicos" },
 
           { labelKey: "mainMenu.settings.general.location", icon: "place", to: "/config/ubicacion" },
           /*{
@@ -188,7 +188,7 @@ export const menuConfig = [
           { labelKey: "mainMenu.settings.inventory.brand", icon: "note_add", to: "/inventario/marca" },
           { labelKey: "mainMenu.settings.inventory.product", icon: "note_add", to: "/inventario/producto" },
           { labelKey: "mainMenu.settings.inventory.productType", icon: "note_add", to: "/productotipo" },
-          { labelKey: "Proveedores", icon: "business", to: "/inventario/proveedor" },
+          { labelKey: "mainMenu.settings.inventory.suppliers", icon: "business", to: "/inventario/proveedor" },
 
         ],
       },
@@ -213,7 +213,7 @@ export const menuConfig = [
     ],
   },
   {
-    labelKey: "Administrador",
+    labelKey: "mainMenu.admin.title",
     icon: "person",
     items: [
       {

@@ -34,7 +34,7 @@
                 behavior="menu"
                 class="almacen-selector"
                 style="min-width: 220px; max-width: 100%"
-                @update:model-value="cargarDatos"
+                @update:model-value="cargarExistenciasPorAlmacen"
               >
                 <template v-slot:prepend>
                   <q-icon name="warehouse" color="primary" />
@@ -52,10 +52,11 @@
                 </template>
               </q-select>
               <q-btn 
+                type="button"
                 flat
                 round
                 icon="add_circle"
-                @click="agregarProducto"
+                @click.stop="abrirModalProducto"
                 :disable="modoLectura"
               >
                 <q-tooltip>Agregar Producto</q-tooltip>
@@ -272,10 +273,11 @@
                 clearable
               />
               <q-btn 
+                type="button"
                 color="primary" 
                 icon="add" 
                 label="Producto" 
-                @click="agregarProducto" 
+                @click.stop="abrirModalProducto" 
                 unelevated 
                 class="rounded-8 q-px-md"
                 v-if="!modoLectura"
@@ -435,11 +437,12 @@
         {{ filtroTexto || filtroCategoria || filtroTipo || filtroEstado ? 'Intenta cambiar los filtros de búsqueda' : 'Comienza agregando el primer producto' }}
       </div>
       <q-btn
+        type="button"
         v-if="!modoLectura && !filtroTexto && !filtroCategoria && !filtroTipo && !filtroEstado"
         color="primary"
         icon="add"
         label="Agregar Producto"
-        @click="agregarProducto"
+        @click.stop="abrirModalProducto"
         unelevated
       />
     </div>
@@ -551,9 +554,266 @@
         </q-card>
       </q-tab-panel>
 
+
+    <q-dialog v-model="mostrarModalExistencia" persistent>
+      <q-card style="width: 700px; max-width: 95vw;" class="rounded-12">
+        <q-card-section class="bg-primary text-white row items-center q-py-sm">
+          <div class="text-h6">
+            <q-icon :name="existenciaTemporal.id ? 'edit' : 'add_circle'" class="q-mr-sm" />
+            {{ existenciaTemporal.id ? 'Editar Existencia' : 'Nueva Existencia' }}
+          </div>
+          <q-space />
+          <q-btn flat round dense icon="close" @click="cancelarExistencia" />
+        </q-card-section>
+
+        <q-card-section class="q-gutter-y-md">
+          <div class="row q-col-gutter-sm">
+            <div class="col-12 col-md-6">
+              <q-select
+                v-model="existenciaTemporal.productoId"
+                :options="productosFiltrados.map(p => ({ label: p.nombre, value: p.id }))"
+                label="Producto *"
+                outlined
+                dense
+                emit-value
+                map-options
+              />
+            </div>
+            <div class="col-12 col-md-6">
+              <q-select
+                v-model="existenciaTemporal.almacenId"
+                :options="almacenesOpciones"
+                label="Almacén *"
+                outlined
+                dense
+                emit-value
+                map-options
+              />
+            </div>
+          </div>
+
+          <div class="row q-col-gutter-sm">
+            <div class="col-12 col-md-6">
+              <q-input
+                v-model.number="existenciaTemporal.stockActual"
+                label="Stock Actual *"
+                outlined
+                dense
+                type="number"
+                min="0"
+              />
+            </div>
+            <div class="col-12 col-md-6">
+              <q-input
+                v-model.number="existenciaTemporal.stockMinimo"
+                label="Stock Mínimo *"
+                outlined
+                dense
+                type="number"
+                min="0"
+              />
+            </div>
+          </div>
+
+          <div class="row q-col-gutter-sm">
+            <div class="col-12 col-md-6">
+              <q-input
+                v-model="existenciaTemporal.lote"
+                label="Lote"
+                outlined
+                dense
+              />
+            </div>
+          </div>
+
+          <q-input
+            v-model="existenciaTemporal.fechaVencimiento"
+            label="Fecha de Vencimiento"
+            outlined
+            dense
+            type="date"
+          />
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="Cancelar" color="grey-7" @click="cancelarExistencia" />
+          <q-btn color="primary" label="Guardar Existencia" @click="guardarExistencia" :loading="cargando" unelevated />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <!-- Modal para historial de movimientos -->
+    <q-dialog v-model="mostrarModalHistorial" maximized>
+      <q-card>
+        <q-card-section class="bg-primary text-white">
+          <div class="text-h6">Historial de Movimientos</div>
+          <q-btn 
+            flat 
+            round 
+            icon="close" 
+            @click="mostrarModalHistorial = false"
+            class="absolute-top-right q-ma-sm"
+          />
+        </q-card-section>
+
+        <q-card-section class="q-pa-md">
+          <q-table
+            :rows="historialMovimientos"
+            :columns="columnasHistorial"
+            row-key="id"
+            :pagination="paginacionHistorial"
+            :filter="filtroHistorial"
+            binary-state-sort
+            dense
+          >
+            <template v-slot:top>
+              <div class="row full-width items-center q-gutter-md">
+                <q-input
+                  v-model="filtroHistorial"
+                  debounce="300"
+                  placeholder="Buscar en historial..."
+                  class="col-12 col-md-4"
+                  outlined
+                  dense
+                >
+                  <template v-slot:append>
+                    <q-icon name="search" />
+                  </template>
+                </q-input>
+                
+                <q-select
+                  v-model="filtroTipoMovimiento"
+                  :options="tiposMovimiento"
+                  label="Tipo de Movimiento"
+                  outlined
+                  dense
+                  clearable
+                  class="col-12 col-md-3"
+                  option-label="label"
+                  option-value="value"
+                />
+                
+                <q-input
+                  v-model="filtroFechaDesde"
+                  label="Desde"
+                  outlined
+                  dense
+                  type="date"
+                  class="col-12 col-md-2"
+                />
+                
+                <q-input
+                  v-model="filtroFechaHasta"
+                  label="Hasta"
+                  outlined
+                  dense
+                  type="date"
+                  class="col-12 col-md-2"
+                />
+              </div>
+            </template>
+
+            <template v-slot:body-cell-tipo="props">
+              <q-td :props="props">
+                <q-chip 
+                  :color="getTipoMovimientoColor(props.value)"
+                  text-color="white"
+                  :label="getTipoMovimientoLabel(props.value)"
+                  size="sm"
+                  dense
+                />
+              </q-td>
+            </template>
+
+            <template v-slot:body-cell-cantidad="props">
+              <q-td :props="props">
+                <span :class="props.row.tipo === 'salida' || props.row.tipo === 'ajuste_negativo' ? 'text-negative' : 'text-positive'">
+                  {{ props.row.tipo === 'salida' || props.row.tipo === 'ajuste_negativo' ? '-' : '+' }}{{ props.value }}
+                </span>
+              </q-td>
+            </template>
+          </q-table>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
+    <!-- PANEL DE PROVEEDORES -->
+    <q-tab-panel name="proveedores" class="q-pa-none">
+      <q-card flat class="q-mb-md">
+        <q-card-section class="q-pa-md">
+          <div class="row items-center q-gutter-md">
+            <div class="col-12 col-md-4">
+              <q-input v-model="filtroProveedor" label="Buscar proveedor..." outlined dense clearable>
+                <template v-slot:prepend><q-icon name="search" /></template>
+              </q-input>
+            </div>
+            <q-space />
+            <q-btn color="primary" icon="add" label="Nuevo Proveedor" @click="mostrarModalProveedor = true" unelevated />
+          </div>
+        </q-card-section>
+      </q-card>
+
+      <q-table
+        :rows="proveedoresFiltrados"
+        :columns="columnasProveedores"
+        row-key="id"
+        flat
+        bordered
+        :loading="cargando"
+      >
+        <template v-slot:body-cell-activo="props">
+          <q-td :props="props">
+            <q-chip :color="props.value ? 'positive' : 'grey'" text-color="white" dense>
+              {{ props.value ? 'Activo' : 'Inactivo' }}
+            </q-chip>
+          </q-td>
+        </template>
+        <template v-slot:body-cell-acciones="props">
+          <q-td :props="props" class="text-right q-gutter-xs">
+            <q-btn flat round dense color="primary" icon="edit" @click="editarProveedor(props.row)" />
+            <q-btn flat round dense color="negative" icon="delete" @click="eliminarProveedor(props.row.id)" />
+          </q-td>
+        </template>
+      </q-table>
+    </q-tab-panel>
+
+    <q-tab-panel name="movimientos" class="q-pa-none">
+      <q-card flat class="q-mb-md">
+        <q-card-section>
+          <div class="text-h6">Historial de Movimientos</div>
+          <div class="text-caption">Registro de todas las entradas, salidas y ventas</div>
+        </q-card-section>
+      </q-card>
+      
+      <q-table
+        :rows="historialMovimientos"
+        :columns="columnasHistorial"
+        row-key="id"
+        flat
+        bordered
+        dense
+        :loading="cargando"
+      >
+        <template v-slot:body-cell-tipo="props">
+          <q-td :props="props">
+            <q-chip 
+              :color="getTipoMovimientoColor(props.value)"
+              text-color="white"
+              :label="getTipoMovimientoLabel(props.value)"
+              size="sm"
+              dense
+            />
+          </q-td>
+        </template>
+      </q-table>
+    </q-tab-panel>
+    </q-tab-panels>
+
     <!-- Modal para agregar/editar producto -->
-    <q-dialog v-model="mostrarModalProducto" persistent maximized transition-show="slide-up" transition-hide="slide-down">
-      <q-card class="bg-grey-1">
+    <q-dialog v-model="mostrarModalProducto" persistent transition-show="scale" transition-hide="scale">
+      <q-card class="bg-grey-1 shadow-20" style="min-width: 680px; max-width: 920px;">
         <q-card-section class="bg-primary text-white row items-center q-py-sm">
           <div class="text-h6">
             <q-icon :name="productoEditando ? 'edit' : 'add_circle'" class="q-mr-sm" />
@@ -808,276 +1068,6 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
-
-    <!-- Modal para agregar/editar existencia por almacén -->
-    <q-dialog v-model="mostrarModalExistencia" persistent>
-      <q-card style="width: 700px; max-width: 95vw;" class="rounded-12">
-        <q-card-section class="bg-primary text-white row items-center q-py-sm">
-          <div class="text-h6">
-            <q-icon :name="existenciaTemporal.id ? 'edit' : 'add_circle'" class="q-mr-sm" />
-            {{ existenciaTemporal.id ? 'Editar Existencia' : 'Nueva Existencia' }}
-          </div>
-          <q-space />
-          <q-btn flat round dense icon="close" @click="cancelarExistencia" />
-        </q-card-section>
-
-        <q-card-section class="q-gutter-y-md">
-          <div class="row q-col-gutter-sm">
-            <div class="col-12 col-md-6">
-              <q-select
-                v-model="existenciaTemporal.productoId"
-                :options="productosFiltrados.map(p => ({ label: p.nombre, value: p.id }))"
-                label="Producto *"
-                outlined
-                dense
-                emit-value
-                map-options
-              />
-            </div>
-            <div class="col-12 col-md-6">
-              <q-select
-                v-model="existenciaTemporal.almacenId"
-                :options="almacenesOpciones"
-                label="Almacén *"
-                outlined
-                dense
-                emit-value
-                map-options
-              />
-            </div>
-          </div>
-
-          <div class="row q-col-gutter-sm">
-            <div class="col-12 col-md-6">
-              <q-input
-                v-model.number="existenciaTemporal.stockActual"
-                label="Stock Actual *"
-                outlined
-                dense
-                type="number"
-                min="0"
-              />
-            </div>
-            <div class="col-12 col-md-6">
-              <q-input
-                v-model.number="existenciaTemporal.stockMinimo"
-                label="Stock Mínimo *"
-                outlined
-                dense
-                type="number"
-                min="0"
-              />
-            </div>
-          </div>
-
-          <div class="row q-col-gutter-sm">
-            <div class="col-12 col-md-6">
-              <q-select
-                v-model="existenciaTemporal.ubicacionId"
-                :options="catalogos.ubicaciones"
-                option-label="label"
-                option-value="value"
-                label="Ubicación"
-                outlined
-                dense
-                emit-value
-                map-options
-              />
-            </div>
-            <div class="col-12 col-md-6">
-              <q-input
-                v-model="existenciaTemporal.lote"
-                label="Lote"
-                outlined
-                dense
-              />
-            </div>
-          </div>
-
-          <q-input
-            v-model="existenciaTemporal.fechaVencimiento"
-            label="Fecha de Vencimiento"
-            outlined
-            dense
-            type="date"
-          />
-        </q-card-section>
-
-        <q-separator />
-
-        <q-card-actions align="right" class="q-pa-md">
-          <q-btn flat label="Cancelar" color="grey-7" @click="cancelarExistencia" />
-          <q-btn color="primary" label="Guardar Existencia" @click="guardarExistencia" :loading="cargando" unelevated />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
-    <!-- Modal para historial de movimientos -->
-    <q-dialog v-model="mostrarModalHistorial" maximized>
-      <q-card>
-        <q-card-section class="bg-primary text-white">
-          <div class="text-h6">Historial de Movimientos</div>
-          <q-btn 
-            flat 
-            round 
-            icon="close" 
-            @click="mostrarModalHistorial = false"
-            class="absolute-top-right q-ma-sm"
-          />
-        </q-card-section>
-
-        <q-card-section class="q-pa-md">
-          <q-table
-            :rows="historialMovimientos"
-            :columns="columnasHistorial"
-            row-key="id"
-            :pagination="paginacionHistorial"
-            :filter="filtroHistorial"
-            binary-state-sort
-            dense
-          >
-            <template v-slot:top>
-              <div class="row full-width items-center q-gutter-md">
-                <q-input
-                  v-model="filtroHistorial"
-                  debounce="300"
-                  placeholder="Buscar en historial..."
-                  class="col-12 col-md-4"
-                  outlined
-                  dense
-                >
-                  <template v-slot:append>
-                    <q-icon name="search" />
-                  </template>
-                </q-input>
-                
-                <q-select
-                  v-model="filtroTipoMovimiento"
-                  :options="tiposMovimiento"
-                  label="Tipo de Movimiento"
-                  outlined
-                  dense
-                  clearable
-                  class="col-12 col-md-3"
-                  option-label="label"
-                  option-value="value"
-                />
-                
-                <q-input
-                  v-model="filtroFechaDesde"
-                  label="Desde"
-                  outlined
-                  dense
-                  type="date"
-                  class="col-12 col-md-2"
-                />
-                
-                <q-input
-                  v-model="filtroFechaHasta"
-                  label="Hasta"
-                  outlined
-                  dense
-                  type="date"
-                  class="col-12 col-md-2"
-                />
-              </div>
-            </template>
-
-            <template v-slot:body-cell-tipo="props">
-              <q-td :props="props">
-                <q-chip 
-                  :color="getTipoMovimientoColor(props.value)"
-                  text-color="white"
-                  :label="getTipoMovimientoLabel(props.value)"
-                  size="sm"
-                  dense
-                />
-              </q-td>
-            </template>
-
-            <template v-slot:body-cell-cantidad="props">
-              <q-td :props="props">
-                <span :class="props.row.tipo === 'salida' || props.row.tipo === 'ajuste_negativo' ? 'text-negative' : 'text-positive'">
-                  {{ props.row.tipo === 'salida' || props.row.tipo === 'ajuste_negativo' ? '-' : '+' }}{{ props.value }}
-                </span>
-              </q-td>
-            </template>
-          </q-table>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
-
-    <!-- PANEL DE PROVEEDORES -->
-    <q-tab-panel name="proveedores" class="q-pa-none">
-      <q-card flat class="q-mb-md">
-        <q-card-section class="q-pa-md">
-          <div class="row items-center q-gutter-md">
-            <div class="col-12 col-md-4">
-              <q-input v-model="filtroProveedor" label="Buscar proveedor..." outlined dense clearable>
-                <template v-slot:prepend><q-icon name="search" /></template>
-              </q-input>
-            </div>
-            <q-space />
-            <q-btn color="primary" icon="add" label="Nuevo Proveedor" @click="mostrarModalProveedor = true" unelevated />
-          </div>
-        </q-card-section>
-      </q-card>
-
-      <q-table
-        :rows="proveedoresFiltrados"
-        :columns="columnasProveedores"
-        row-key="id"
-        flat
-        bordered
-        :loading="cargando"
-      >
-        <template v-slot:body-cell-activo="props">
-          <q-td :props="props">
-            <q-chip :color="props.value ? 'positive' : 'grey'" text-color="white" dense>
-              {{ props.value ? 'Activo' : 'Inactivo' }}
-            </q-chip>
-          </q-td>
-        </template>
-        <template v-slot:body-cell-acciones="props">
-          <q-td :props="props" class="text-right q-gutter-xs">
-            <q-btn flat round dense color="primary" icon="edit" @click="editarProveedor(props.row)" />
-            <q-btn flat round dense color="negative" icon="delete" @click="eliminarProveedor(props.row.id)" />
-          </q-td>
-        </template>
-      </q-table>
-    </q-tab-panel>
-
-    <q-tab-panel name="movimientos" class="q-pa-none">
-      <q-card flat class="q-mb-md">
-        <q-card-section>
-          <div class="text-h6">Historial de Movimientos</div>
-          <div class="text-caption">Registro de todas las entradas, salidas y ventas</div>
-        </q-card-section>
-      </q-card>
-      
-      <q-table
-        :rows="historialMovimientos"
-        :columns="columnasHistorial"
-        row-key="id"
-        flat
-        bordered
-        dense
-        :loading="cargando"
-      >
-        <template v-slot:body-cell-tipo="props">
-          <q-td :props="props">
-            <q-chip 
-              :color="getTipoMovimientoColor(props.value)"
-              text-color="white"
-              :label="getTipoMovimientoLabel(props.value)"
-              size="sm"
-              dense
-            />
-          </q-td>
-        </template>
-      </q-table>
-    </q-tab-panel>
-    </q-tab-panels>
 
     <!-- Modal para Proveedor Rediseñado -->
     <q-dialog v-model="mostrarModalProveedor" persistent>
@@ -1543,7 +1533,7 @@ const almacenesOpciones = computed(() =>
   }))
 )
 const proveedoresOpciones = computed(() => 
-  catalogos.value.proveedores.map(p => ({
+  proveedores.value.map(p => ({
     label: p.nombre,
     value: p.id,
     contacto: p.contacto
@@ -2055,10 +2045,18 @@ const eliminarExistencia = async (id) => {
 }
 
 // Métodos para productos
-const agregarProducto = () => {
+const abrirModalProducto = () => {
   productoEditando.value = null
   limpiarProductoTemporal()
+  tabSeleccionada.value = 'productos'
+  if (almacenSeleccionado.value) {
+    productoTemporal.value.id_almacen = almacenSeleccionado.value
+  }
   mostrarModalProducto.value = true
+}
+
+const agregarProducto = () => {
+  abrirModalProducto()
 }
 
 const editarProducto = (producto) => {
@@ -2667,29 +2665,42 @@ const cargarDatos = async () => {
     catalogos.value.tipos = typs || []
     catalogos.value.unidades = units || []
     catalogos.value.fabricantes = fabs || []
-    catalogos.value.ubicaciones = ubis || []
 
-    // Cargar almacenes desde el servicio
-    const resAlmacenes = await inventarioService.almacenes.getAll()
-    almacenes.value = resAlmacenes.data || []
+    const ubicacionesCatalogo = (ubis || []).map(u => ({
+      id: u.value,
+      value: u.value,
+      nombre: u.label,
+      label: u.label,
+      descripcion: u.identificador || u.label,
+      identificador: u.identificador
+    }))
+
+    catalogos.value.ubicaciones = ubicacionesCatalogo
+
+    // Cargar almacenes desde el catálogo de ubicaciones
+    almacenes.value = ubicacionesCatalogo
 
     if (!almacenSeleccionado.value && almacenes.value.length > 0) {
       almacenSeleccionado.value = almacenesOpciones.value[0]?.value || null
     }
 
-    const [resProd, resProv, resExistencias] = await Promise.all([
+    const [resProd, resProv] = await Promise.all([
       inventarioService.productos.getAll(),
-      inventarioService.proveedores.getAll(),
-      inventarioService.existencias.getAll(almacenSeleccionado.value)
+      inventarioService.proveedores.getAll()
     ])
 
     productos.value = resProd.data || []
     proveedores.value = resProv.data || []
-    existencias.value = resExistencias.data || []
     categorias.value = catalogos.value.categorias || []
     tiposProducto.value = catalogos.value.tipos || []
     unidadesMedida.value = catalogos.value.unidades || []
     ubicaciones.value = catalogos.value.ubicaciones || []
+
+    if (almacenSeleccionado.value) {
+      await cargarExistenciasPorAlmacen()
+    } else {
+      existencias.value = []
+    }
 
   } catch (error) {
     console.error('Error al cargar datos de inventario:', error)

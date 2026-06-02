@@ -3,7 +3,7 @@ import { ref, computed, watch } from 'vue';
 import configuracionPreferenciaService, { Preferencia } from '../services/configuracionPreferencia.service';
 import { useDialogStore } from './DialogoUbicacion';
 import { useUiStore } from './uiStore';
-import { colors } from 'quasar';
+import { setCssVar } from 'quasar';
 
 export const SCHEMA_PREFERENCIAS = [
   {
@@ -48,7 +48,7 @@ export const usePreferenciasStore = defineStore('preferencias', () => {
   const aplicarEfectosPreferencias = () => {
     // 1. Aplicar color del tema
     if (themeColor.value) {
-      colors.setBrand('primary', themeColor.value);
+      setCssVar('primary', themeColor.value);
     }
     // 2. Aplicar menú layout en uiStore
     if (menuLayout.value) {

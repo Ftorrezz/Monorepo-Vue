@@ -68,7 +68,8 @@ export default {
     },
 
     inventory: {
-      title: 'Inventario'
+      title: 'Inventario',
+      suppliers: 'Proveedores'
     },
     boarding: {
       title: 'Pensión'
@@ -102,11 +103,15 @@ export default {
       exportData: 'Exportar Datos',
       reportsAdmin: 'Administrador Reportes',
     },
+    admin: {
+      title: 'Administrador'
+    },
     settings: {
       title: 'Configuración',
       schedule: {
         title: 'Agenda',
         service: 'Servicio',
+        generateAgenda: 'Generar Agenda',
         configureHours: 'Horarios de Atención',
         holidays: 'Días Festivos',
         reminders: 'Recordatorios',
@@ -115,6 +120,7 @@ export default {
       general: {
         title: 'General',
         location: 'Ubicación',
+        attentionServices: 'Servicios Atención',
         services: {
           title: 'Servicios',
           types: 'Tipos de Servicio',
@@ -135,6 +141,15 @@ export default {
 
         },
         configuracionparametros: 'Panel de Configuración',
+        configuracionpreferencias: 'Panel de Preferencias',
+      },
+      inventory: {
+        title: 'Inventario',
+        category: 'Categoría',
+        brand: 'Marca',
+        product: 'Producto',
+        productType: 'Tipo de Producto',
+        suppliers: 'Proveedores'
       },
       pet: {
         title: 'Mascota',
@@ -181,7 +196,8 @@ export default {
           title: 'Información Cultural',
           religion: 'Religión',
           language: 'Idioma',
-          nationality: 'Nacionalidad'
+          nationality: 'Nacionalidad',
+          raza: 'Raza'
         }
       },
       institutional: {
