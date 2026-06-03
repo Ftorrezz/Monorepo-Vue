@@ -1420,11 +1420,8 @@ const filtroCategoriaVenta = ref(null)
 
 // Estados temporales para formularios
 const productoTemporal = ref({
-  id: '',
   nombre: '',
   descripcion: '',
-  categoria: '',
-  tipo: '',
   categoriaId: null,
   tipoId: null,
   unidadMedidaId: null,
@@ -1439,7 +1436,6 @@ const productoTemporal = ref({
   id_proveedor: null,
   codigo: '',
   codigoBarras: '',
-  fechaCreacion: '',
   activo: true
 })
 
@@ -1522,9 +1518,24 @@ const catalogos = ref({
 })
 
 // Opciones calculadas para selects
-const categoriasDisponibles = computed(() => catalogos.value.categorias)
-const tiposDisponibles = computed(() => catalogos.value.tipos)
-const unidadesDisponibles = computed(() => catalogos.value.unidades)
+const categoriasDisponibles = computed(() => 
+  (catalogos.value.categorias || []).map(c => ({
+    label: c.nombre || c.label,
+    value: c.id || c.value
+  }))
+)
+const tiposDisponibles = computed(() => 
+  (catalogos.value.tipos || []).map(t => ({
+    label: t.nombre || t.label,
+    value: t.id || t.value
+  }))
+)
+const unidadesDisponibles = computed(() => 
+  (catalogos.value.unidades || []).map(u => ({
+    label: u.nombre || u.label,
+    value: u.id || u.value
+  }))
+)
 const almacenesOpciones = computed(() =>
   (almacenes.value || []).map(a => ({
     label: a.label || a.nombre || a.descripcion || 'Sin nombre',
@@ -2049,9 +2060,6 @@ const abrirModalProducto = () => {
   productoEditando.value = null
   limpiarProductoTemporal()
   tabSeleccionada.value = 'productos'
-  if (almacenSeleccionado.value) {
-    productoTemporal.value.id_almacen = almacenSeleccionado.value
-  }
   mostrarModalProducto.value = true
 }
 
@@ -2061,12 +2069,12 @@ const agregarProducto = () => {
 
 const editarProducto = (producto) => {
   productoEditando.value = producto
-  // Aseguramos que los campos de ID estén correctamente asignados
+  // Aseguramos que los campos de ID estén correctamente asignados (convertir nombres de BD a nombres internos)
   productoTemporal.value = {
     ...producto,
-    categoriaId: producto.categoriaId || null,
-    tipoId: producto.tipoId || null,
-    unidadMedidaId: producto.unidadMedidaId || null,
+    categoriaId: producto.categoriaId || producto.id_categoria || null,
+    tipoId: producto.tipoId || producto.id_tipo || null,
+    unidadMedidaId: producto.unidadMedidaId || producto.id_unidad_medida || null,
     id_proveedor: producto.id_proveedor || null,
     id_fabricante: producto.id_fabricante || null
   }
@@ -2091,7 +2099,26 @@ const guardarProducto = async () => {
   
   cargando.value = true
   try {
-    const payload = { ...productoTemporal.value }
+    // Limpiar payload: solo enviar campos necesarios
+    const payload = {
+      nombre: productoTemporal.value.nombre,
+      descripcion: productoTemporal.value.descripcion,
+      id_categoria: productoTemporal.value.categoriaId,
+      id_tipo: productoTemporal.value.tipoId,
+      id_unidad_medida: productoTemporal.value.unidadMedidaId,
+      costoUnitario: productoTemporal.value.costoUnitario,
+      precioVenta: productoTemporal.value.precioVenta,
+      manejoFraccionado: productoTemporal.value.manejoFraccionado,
+      contenidoPorEnvase: productoTemporal.value.contenidoPorEnvase,
+      unidadEnvase: productoTemporal.value.unidadEnvase,
+      dosisPorAplicacion: productoTemporal.value.dosisPorAplicacion,
+      unidadDosis: productoTemporal.value.unidadDosis,
+      codigo: productoTemporal.value.codigo,
+      codigoBarras: productoTemporal.value.codigoBarras,
+      id_proveedor: productoTemporal.value.id_proveedor,
+      id_fabricante: productoTemporal.value.id_fabricante,
+      activo: productoTemporal.value.activo
+    }
     
     if (productoEditando.value) {
       await inventarioService.productos.update(productoEditando.value.id, payload)
@@ -2138,11 +2165,8 @@ const cancelarProducto = () => {
 
 const limpiarProductoTemporal = () => {
   productoTemporal.value = {
-    id: '',
     nombre: '',
     descripcion: '',
-    categoria: '',
-    tipo: '',
     categoriaId: null,
     tipoId: null,
     unidadMedidaId: null,
@@ -2157,7 +2181,6 @@ const limpiarProductoTemporal = () => {
     id_proveedor: null,
     codigo: '',
     codigoBarras: '',
-    fechaCreacion: '',
     activo: true
   }
   tabProducto.value = 'general'
@@ -2661,10 +2684,36 @@ const cargarDatos = async () => {
       obtenerCatalogo(Modulo.INVENTARIO, Tabla.UBICACION)
     ])
 
-    catalogos.value.categorias = cats || []
-    catalogos.value.tipos = typs || []
-    catalogos.value.unidades = units || []
-    catalogos.value.fabricantes = fabs || []
+    // Mapear catálogos para que tengan estructura correcta
+    catalogos.value.categorias = (cats || []).map(c => ({
+      id: c.id || c.value,
+      value: c.id || c.value,
+      nombre: c.nombre || c.label,
+      label: c.nombre || c.label,
+      ...c
+    }))
+    catalogos.value.tipos = (typs || []).map(t => ({
+      id: t.id || t.value,
+      value: t.id || t.value,
+      nombre: t.nombre || t.label,
+      label: t.nombre || t.label,
+      ...t
+    }))
+    catalogos.value.unidades = (units || []).map(u => ({
+      id: u.id || u.value,
+      value: u.id || u.value,
+      nombre: u.nombre || u.label,
+      label: u.nombre || u.label,
+      abreviacion: u.abreviacion || u.abbreviation,
+      ...u
+    }))
+    catalogos.value.fabricantes = (fabs || []).map(f => ({
+      id: f.id || f.value,
+      value: f.id || f.value,
+      nombre: f.nombre || f.label,
+      label: f.nombre || f.label,
+      ...f
+    }))
 
     const ubicacionesCatalogo = (ubis || []).map(u => ({
       id: u.value,
@@ -2689,7 +2738,13 @@ const cargarDatos = async () => {
       inventarioService.proveedores.getAll()
     ])
 
-    productos.value = resProd.data || []
+    // Mapear productos: convertir id_categoria -> categoriaId, id_tipo -> tipoId, etc.
+    productos.value = (resProd.data || []).map(p => ({
+      ...p,
+      categoriaId: p.id_categoria || p.categoriaId,
+      tipoId: p.id_tipo || p.tipoId,
+      unidadMedidaId: p.id_unidad_medida || p.unidadMedidaId
+    }))
     proveedores.value = resProv.data || []
     categorias.value = catalogos.value.categorias || []
     tiposProducto.value = catalogos.value.tipos || []
