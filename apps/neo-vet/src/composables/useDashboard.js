@@ -168,17 +168,24 @@ export function useDashboard() {
         const task = tasks.value.find(t => t.id === id)
         if (task) {
             task.completed = !task.completed
+            if (socket) {
+                socket.emit('toggle_task', { id, completed: task.completed })
+            }
         }
     }
 
     const addTask = (text, priority = 'medium') => {
-        tasks.value.unshift({
+        const newTask = {
             id: Date.now(),
             text,
             completed: false,
             priority,
             category: 'General'
-        })
+        }
+        tasks.value.unshift(newTask)
+        if (socket) {
+            socket.emit('add_task', newTask)
+        }
     }
 
     // Data para Gráficos
@@ -234,6 +241,8 @@ export function useDashboard() {
             console.log('Socket conectado:', socket.id)
             // Unirse a la sala 'dashboard'
             socket.emit('event_join', 'dashboard')
+            // Solicitar datos reales para inicializar el dashboard
+            socket.emit('request_dashboard_data')
         })
 
         socket.on('disconnect', () => {
@@ -244,8 +253,16 @@ export function useDashboard() {
             console.error('Error de conexión socket:', err)
         })
 
-        // Escuchar actualizaciones del dashboard
-        // Asumimos que el evento es 'dashboard_update' y el payload trae { key, value } o un objeto completo
+        // Escuchar datos iniciales
+        socket.on('dashboard_initial_data', (payload) => {
+            console.log('Datos iniciales recibidos:', payload)
+            if (payload.stats) stats.value = { ...stats.value, ...payload.stats }
+            if (payload.tasks) tasks.value = payload.tasks
+            if (payload.upcomingAppointments) upcomingAppointments.value = payload.upcomingAppointments
+            if (payload.alerts) alerts.value = payload.alerts
+        })
+
+        // Escuchar actualizaciones del dashboard (en vivo)
         socket.on('dashboard_update', (payload) => {
             console.log('Actualización recibida:', payload)
 
@@ -259,6 +276,21 @@ export function useDashboard() {
             // Si el backend envía un mensaje específico para alertas
             if (payload.type === 'alert') {
                 addAlert(payload.data)
+            }
+        })
+
+        // Escuchar actualizaciones de tareas
+        socket.on('task_added', (task) => {
+            // Evitar duplicados si fue el mismo cliente quien la agregó
+            if (!tasks.value.find(t => t.id === task.id)) {
+                tasks.value.unshift(task)
+            }
+        })
+
+        socket.on('task_toggled', (payload) => {
+            const task = tasks.value.find(t => t.id === payload.id)
+            if (task) {
+                task.completed = payload.completed
             }
         })
     }

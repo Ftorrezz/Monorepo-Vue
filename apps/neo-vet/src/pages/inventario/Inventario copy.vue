@@ -107,9 +107,9 @@
     <q-tab-panels v-model="tabSeleccionada" animated class="bg-transparent">
       <!-- PANEL DE DASHBOARD -->
       <q-tab-panel name="dashboard" class="q-pa-none">
-        <div class="row q-col-gutter-sm q-mb-xl dashboard-kpi-row">
+        <div class="row q-col-gutter-md q-mb-xl">
           <!-- KPI 1 -->
-          <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <div class="col-12 col-md-3">
             <q-card class="kpi-card glass-panel kpi-primary" v-ripple>
               <q-card-section>
                 <div class="row items-center justify-between">
@@ -123,7 +123,7 @@
             </q-card>
           </div>
           <!-- KPI 2 -->
-          <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <div class="col-12 col-md-3">
             <q-card class="kpi-card glass-panel kpi-secondary" v-ripple @click="tabSeleccionada = 'productos'" style="cursor:pointer">
               <q-card-section>
                 <div class="row items-center justify-between">
@@ -137,7 +137,7 @@
             </q-card>
           </div>
           <!-- KPI 3 -->
-          <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <div class="col-12 col-md-3">
             <q-card class="kpi-card glass-panel kpi-warning" v-ripple @click="tabSeleccionada = 'productos'; filtroEstado = estadosStock.find(e => e.value === 'stock_bajo')" style="cursor:pointer">
               <q-card-section>
                 <div class="row items-center justify-between">
@@ -151,21 +151,7 @@
             </q-card>
           </div>
           <!-- KPI 4 -->
-          <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-            <q-card class="kpi-card glass-panel kpi-danger" v-ripple @click="tabSeleccionada = 'productos'; filtroEstado = estadosStock.find(e => e.value === 'sin_stock')" style="cursor:pointer">
-              <q-card-section>
-                <div class="row items-center justify-between">
-                  <div class="kpi-icon-wrapper"><q-icon name="remove_shopping_cart" size="lg" /></div>
-                  <div class="text-right">
-                    <div class="text-caption text-uppercase q-mb-xs opacity-70">Sin Stock</div>
-                    <div class="text-h4 text-weight-bolder">{{ estadisticasGenerales.sinStock }}</div>
-                  </div>
-                </div>
-              </q-card-section>
-            </q-card>
-          </div>
-          <!-- KPI 5 -->
-          <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <div class="col-12 col-md-3">
             <q-card class="kpi-card glass-panel kpi-danger" v-ripple @click="tabSeleccionada = 'productos'; filtroEstado = estadosStock.find(e => e.value === 'proximo_vencer')" style="cursor:pointer">
               <q-card-section>
                 <div class="row items-center justify-between">
@@ -180,9 +166,9 @@
           </div>
         </div>
 
-        <!-- Seccion Inferior Dashboard: Alertas y panel de reportes -->
-        <div class="row items-start q-col-gutter-md">
-           <div class="col-12 col-lg-9">
+        <!-- Seccion Inferior Dashboard: Alertas y Mover rápidos -->
+        <div class="row q-col-gutter-md">
+           <div class="col-12 col-md-7">
              <q-card flat bordered class="rounded-16">
                 <q-card-section class="bg-grey-1 row items-center">
                    <q-icon name="notifications_active" color="deep-orange" size="sm" class="q-mr-sm"/>
@@ -209,47 +195,13 @@
                 </q-list>
              </q-card>
            </div>
-           <div class="col-12 col-lg-3">
-             <q-card flat bordered class="rounded-16 shadow-gradient reporte-panel">
-                <q-card-section class="row items-center justify-between q-px-md q-py-sm bg-gradient-print text-white">
-                   <div>
-                     <div class="text-h6 q-mb-xs text-weight-bold">Reportes</div>
-                     <div class="text-body2 opacity-80">PDF de inventario y alertas</div>
-                   </div>
-                   <q-icon name="print" size="lg" class="text-white" />
-                </q-card-section>
-                <q-separator />
-                <q-list dense class="report-options-list">
-                  <q-item clickable v-ripple @click="imprimirReporte('inventario_completo')">
-                    <q-item-section avatar>
-                      <q-icon name="inventory_2" color="primary" />
-                    </q-item-section>
-                    <q-item-section>
-                      <q-item-label>Inventario</q-item-label>
-                      <q-item-label caption>Existencias actuales</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                  <q-item clickable v-ripple @click="imprimirReporte('stock_bajo')">
-                    <q-item-section avatar>
-                      <q-icon name="warning" color="warning" />
-                    </q-item-section>
-                    <q-item-section>
-                      <q-item-label>Stock Bajo</q-item-label>
-                      <q-item-label caption>Existencias críticas</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                  <q-item clickable v-ripple @click="imprimirReporte('proximos_vencer')">
-                    <q-item-section avatar>
-                      <q-icon name="event_busy" color="deep-orange" />
-                    </q-item-section>
-                    <q-item-section>
-                      <q-item-label>Por Vencer</q-item-label>
-                      <q-item-label caption>Alertas de caducidad</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                </q-list>
-                <q-card-section class="q-pa-sm text-right">
-                  <q-btn dense flat color="white" text-color="white" label="Más reportes" @click="mostrarModalImpresion = true" />
+           <div class="col-12 col-md-5">
+             <q-card flat bordered class="rounded-16 shadow-gradient cursor-pointer" v-ripple @click="mostrarModalImpresion = true">
+                <q-card-section class="q-pa-lg text-center text-white bg-gradient-print">
+                   <q-icon name="print" size="xl" class="q-mb-md opacity-90"/>
+                   <div class="text-h5 q-mb-sm text-weight-bold">Módulo de Reportería</div>
+                   <div class="text-body2 opacity-80 q-mb-xl">Genera documentos PDF de existencias de farmacia, kárdex y alertas de caducidad.</div>
+                   <q-btn color="white" text-color="primary" class="full-width q-py-sm shadow-1" unelevated label="Abrir Generador de PDF" icon="picture_as_pdf" />
                 </q-card-section>
              </q-card>
            </div>
@@ -337,7 +289,7 @@
     </q-card>
 
     <!-- Grid de productos -->
-    <div class="row q-col-gutter-xs">
+    <div class="row q-col-gutter-md">
       <div 
         class="col-12 col-sm-6 col-md-4 col-lg-3"
         v-for="producto in productosFiltrados"
@@ -349,8 +301,8 @@
           class="producto-card"
         >
           <!-- Header con nombre y estado -->
-          <q-card-section class="q-pa-sm card-header">
-            <div class="row items-start justify-between no-wrap">
+          <q-card-section class="q-pa-sm">
+            <div class="row items-center justify-between no-wrap">
               <div class="col-grow">
                 <div class="producto-nombre text-truncate">{{ producto.nombre }}</div>
                 <div class="producto-categoria">
@@ -358,93 +310,51 @@
                   {{ getCategoriaLabel(producto.categoriaId) }} • {{ getTipoLabel(producto.tipoId) }}
                 </div>
               </div>
-              <div class="row items-center no-wrap q-gutter-xs">
-                <q-chip 
-                  dense
-                  square
-                  :color="getStockColor(producto)"
-                  text-color="white"
-                  :label="getStockLabel(producto)"
-                  size="sm"
-                />
-                <q-btn
-                  v-if="!modoLectura"
-                  dense
-                  round
-                  flat
-                  icon="add_shopping_cart"
-                  color="positive"
-                  @click="iniciarVentaProducto(producto)"
-                  :disable="producto.stockUnidades <= 0"
-                >
-                  <q-tooltip>Vender</q-tooltip>
-                </q-btn>
-                <q-btn-dropdown v-if="!modoLectura" flat dense round icon="more_vert" size="sm">
-                  <q-list dense>
-                    <q-item clickable @click="editarProducto(producto)">
-                      <q-item-section avatar mini>
-                        <q-icon name="edit" color="primary"/>
-                      </q-item-section>
-                      <q-item-section>Editar</q-item-section>
-                    </q-item>
-                    <q-item clickable @click="ajustarStock(producto)">
-                      <q-item-section avatar mini>
-                        <q-icon name="tune" color="blue"/>
-                      </q-item-section>
-                      <q-item-section>Ajustar Stock</q-item-section>
-                    </q-item>
-                    <q-item clickable @click="verMovimientos(producto)">
-                      <q-item-section avatar mini>
-                        <q-icon name="history" color="orange"/>
-                      </q-item-section>
-                      <q-item-section>Ver Historial</q-item-section>
-                    </q-item>
-                    <q-separator />
-                    <q-item clickable @click="eliminarProducto(producto.id)">
-                      <q-item-section avatar mini>
-                        <q-icon name="delete" color="negative"/>
-                      </q-item-section>
-                      <q-item-section>Eliminar</q-item-section>
-                    </q-item>
-                  </q-list>
-                </q-btn-dropdown>
-              </div>
+              <q-chip 
+                dense
+                square
+                :color="getStockColor(producto)"
+                text-color="white"
+                :label="getStockLabel(producto)"
+                size="sm"
+              />
             </div>
           </q-card-section>
 
           <!-- Contenido principal -->
           <q-card-section class="info-container">
-            <div class="row items-center justify-between no-wrap">
-              <div class="stock-info">
-                <div class="text-caption text-grey-7">Stock Actual</div>
-                <div class="stock-value">
-                  {{ producto.stockUnidades }} {{ producto.unidadMedida }}
-                  <q-icon 
-                    :name="producto.tipo === 'medicamento' ? 'medical_services' : 'inventory'" 
-                    size="xs" 
-                    :color="getStockColor(producto)"
-                  />
-                </div>
+            <!-- Stock -->
+            <div class="stock-info">
+              <div class="text-caption text-grey-7">Stock Actual</div>
+              <div class="stock-value">
+                {{ producto.stockUnidades }} {{ producto.unidadMedida }}
+                <q-icon 
+                  :name="producto.tipo === 'medicamento' ? 'medical_services' : 'inventory'" 
+                  size="xs" 
+                  :color="getStockColor(producto)"
+                />
               </div>
+            </div>
 
-              <div class="precios-container">
-                <div class="precio-item">
-                  <div class="precio-label">Costo</div>
-                  <div class="precio-valor">${{ producto.costoUnitario?.toFixed(2) }}</div>
-                </div>
-                <div class="precio-item">
-                  <div class="precio-label">Venta</div>
-                  <div class="precio-valor">${{ producto.precioVenta?.toFixed(2) }}</div>
-                </div>
-                <div v-if="producto.manejoFraccionado" class="precio-item precio-dosis">
-                  <div class="precio-label">Por Dosis</div>
-                  <div class="precio-valor">
-                    ${{ (producto.precioVenta / producto.dosisTotal)?.toFixed(2) }}
-                  </div>
+            <!-- Precios en línea -->
+            <div class="precios-container">
+              <div class="precio-item">
+                <div class="precio-label">Costo</div>
+                <div class="precio-valor">${{ producto.costoUnitario?.toFixed(2) }}</div>
+              </div>
+              <div class="precio-item">
+                <div class="precio-label">Venta</div>
+                <div class="precio-valor">${{ producto.precioVenta?.toFixed(2) }}</div>
+              </div>
+              <div v-if="producto.manejoFraccionado" class="precio-item precio-dosis">
+                <div class="precio-label">Por Dosis</div>
+                <div class="precio-valor">
+                  ${{ (producto.precioVenta / producto.dosisTotal)?.toFixed(2) }}
                 </div>
               </div>
             </div>
 
+            <!-- Chips de información adicional -->
             <div class="row q-gutter-x-xs" v-if="producto.lote || producto.fechaVencimiento">
               <q-chip 
                 v-if="producto.lote"
@@ -468,6 +378,51 @@
               </q-chip>
             </div>
           </q-card-section>
+
+          <!-- Acciones -->
+          <q-card-actions align="right" class="q-pa-sm" v-if="!modoLectura">
+            <q-btn 
+              flat 
+              dense
+              color="positive" 
+              icon="add_shopping_cart"
+              @click="iniciarVentaProducto(producto)"
+              size="sm"
+              :disable="producto.stockUnidades <= 0"
+            >
+              <q-tooltip>Vender Producto</q-tooltip>
+            </q-btn>
+            <q-space />
+            <q-btn-dropdown flat dense round icon="more_vert" size="sm">
+              <q-list dense>
+                <q-item clickable @click="editarProducto(producto)">
+                  <q-item-section avatar mini>
+                    <q-icon name="edit" color="primary"/>
+                  </q-item-section>
+                  <q-item-section>Editar</q-item-section>
+                </q-item>
+                <q-item clickable @click="ajustarStock(producto)">
+                  <q-item-section avatar mini>
+                    <q-icon name="tune" color="blue"/>
+                  </q-item-section>
+                  <q-item-section>Ajustar Stock</q-item-section>
+                </q-item>
+                <q-item clickable @click="verMovimientos(producto)">
+                  <q-item-section avatar mini>
+                    <q-icon name="history" color="orange"/>
+                  </q-item-section>
+                  <q-item-section>Ver Historial</q-item-section>
+                </q-item>
+                <q-separator />
+                <q-item clickable @click="eliminarProducto(producto.id)">
+                  <q-item-section avatar mini>
+                    <q-icon name="delete" color="negative"/>
+                  </q-item-section>
+                  <q-item-section>Eliminar</q-item-section>
+                </q-item>
+              </q-list>
+            </q-btn-dropdown>
+          </q-card-actions>
         </q-card>
       </div>
     </div>
@@ -1605,10 +1560,10 @@ const fabricantesOpciones = computed(() =>
 
 // Opciones estáticas (se mantienen por ser de lógica interna)
 const estadosStock = [
-  { label: 'Disponible', value: 'normal', color: 'positive' },
-  { label: 'Stock Bajo', value: 'stock_bajo', color: 'warning' },
-  { label: 'Sin Stock', value: 'sin_stock', color: 'negative' },
-  { label: 'Por Vencer', value: 'proximo_vencer', color: 'deep-orange' }
+  { label: 'Disponible', value: 'disponible', color: 'positive' },
+  { label: 'Stock Bajo', value: 'bajo_stock', color: 'warning' },
+  { label: 'Agotado', value: 'agotado', color: 'negative' },
+  { label: 'Vencido', value: 'vencido', color: 'grey-8' }
 ]
 
 const tiposAjuste = [
@@ -2923,87 +2878,73 @@ defineExpose({
 
 /* Estilos para las tarjetas de productos */
 .producto-card {
-  border-radius: 6px;
+  border-radius: 8px;
   transition: all 0.3s ease;
-  border: 1px solid transparent;
+  border: 2px solid transparent;
   background: white;
 }
 
 .producto-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 /* Header de la tarjeta */
 .producto-card .q-card-section:first-child {
-  padding: 6px 8px !important;
+  padding: 12px !important;
   border-bottom: 1px solid #f0f0f0;
 }
 
 /* Nombre del producto y categoría */
 .producto-nombre {
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 600;
-  line-height: 1.15;
+  line-height: 1.2;
   color: #2c3e50;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
 .producto-categoria {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   color: #64748b;
-  line-height: 1.1;
 }
 
 /* Contenedor de información */
 .info-container {
-  padding: 6px 8px !important;
+  padding: 12px !important;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-}
-
-.card-header {
-  padding-bottom: 8px !important;
+  gap: 8px;
 }
 
 /* Sección de stock */
 .stock-info {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  justify-content: space-between;
   background: #f8fafc;
-  padding: 4px 6px;
+  padding: 8px;
   border-radius: 6px;
-  min-width: 110px;
-}
-
-.stock-info .text-caption {
-  font-size: 0.62rem;
-  margin-bottom: 0;
 }
 
 .stock-value {
   font-weight: 600;
   color: #334155;
-  font-size: 0.78rem;
 }
 
-/* Sección de precios compacta */
+/* Sección de precios actualizada */
 .precios-container {
   display: flex;
-  gap: 4px;
-  justify-content: flex-end;
-  align-items: center;
-  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
 }
 
 .precio-item {
   flex: 1;
-  min-width: 72px;
-  padding: 4px 6px;
+  padding: 8px;
   border-radius: 6px;
   background: #f1f5f9;
+  min-width: 0; /* Para evitar desbordamiento */
 }
 
 .precio-dosis {
@@ -3012,48 +2953,17 @@ defineExpose({
 }
 
 .precio-label {
-  font-size: 0.62rem;
+  font-size: 0.7rem;
   color: #64748b;
-  margin-bottom: 0;
+  margin-bottom: 2px;
   white-space: nowrap;
 }
 
 .precio-valor {
-  font-size: 0.78rem;
-  font-weight: 700;
+  font-size: 0.9rem;
+  font-weight: 600;
   color: #334155;
   white-space: nowrap;
-}
-
-@media (max-width: 600px) {
-  .stock-info,
-  .precios-container {
-    width: 100%;
-  }
-  .stock-info {
-    min-width: 0;
-  }
-  .precios-container {
-    justify-content: flex-start;
-  }
-}
-
-/* Reduce altura de chips y acciones */
-.q-chip {
-  font-size: 0.62rem;
-  padding: 2px 5px;
-  min-height: 20px;
-}
-
-.q-card-actions {
-  padding: 4px 6px !important;
-  border-top: 1px solid #f0f0f0;
-  background: #fafafa;
-}
-
-.q-card-actions .q-btn,
-.q-card-actions .q-btn-dropdown {
-  min-width: 0;
 }
 
 /* Estilos para el precio por dosis */
@@ -3084,24 +2994,6 @@ defineExpose({
 }
 
 /* Dashboard Premium Styles */
-.dashboard-kpi-row {
-  flex-wrap: wrap;
-}
-.dashboard-kpi-row > .col {
-  min-width: 200px;
-}
-@media (min-width: 1200px) {
-  .dashboard-kpi-row > .col {
-    flex: 0 1 21%;
-    max-width: 21%;
-  }
-}
-.kpi-card {
-  border-radius: 16px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
 .glass-panel {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
@@ -3149,18 +3041,6 @@ defineExpose({
 
 .bg-gradient-print {
   background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-}
-.reporte-panel {
-  overflow: hidden;
-}
-.report-options-list .q-item {
-  padding: 8px 12px;
-}
-.report-options-list .q-item-label {
-  line-height: 1.2;
-}
-.report-options-list .q-item-label:nth-child(2) {
-  font-size: 0.8rem;
 }
 .shadow-gradient {
   box-shadow: 0 10px 30px -10px rgba(30, 60, 114, 0.5);

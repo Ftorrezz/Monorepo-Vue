@@ -95,19 +95,45 @@
               <q-tooltip v-if="sidebarCollapsed" anchor="center right" self="center left">{{ servicio.nombre }}</q-tooltip>
             </q-item>
 
+            <q-item 
+              clickable 
+              v-ripple 
+              :disable="!atencionActualData?.id"
+              class="nav-btn-add br-md q-mt-md" 
+              @click="showAddServiceDialog = true" 
+              key="add-service-btn"
+            >
+              <q-item-section avatar>
+                <q-icon name="add_circle" :color="!atencionActualData?.id ? 'grey-5' : 'primary'" />
+              </q-item-section>
+              <q-item-section v-if="!sidebarCollapsed" :class="!atencionActualData?.id ? 'text-grey-5 text-weight-bold' : 'text-primary text-weight-bold'">Agregar Servicio</q-item-section>
+            </q-item>
+
+            <!-- Boton Guardar (Movido para visibilidad) -->
+            <q-item clickable v-ripple class="nav-btn-save br-md q-mt-xs" @click="guardarAtencion" v-if="atenciones.length > 0" key="save-atencion-btn">
+              <q-item-section avatar>
+                <q-icon name="save" :color="guardandoAtencion ? 'grey-4' : 'positive'" />
+              </q-item-section>
+              <q-item-section v-if="!sidebarCollapsed" class="text-positive text-weight-bold">
+                {{ guardandoAtencion ? 'Guardando...' : 'Guardar Atención' }}
+              </q-item-section>
+              <q-item-section side v-if="guardandoAtencion">
+                <q-spinner color="positive" size="14px" />
+              </q-item-section>
+            </q-item>
           </q-list>
 
         </div>
 
-        <div class="sidebar-actions q-pa-sm" style="border-top: 1px solid #e2e8f0; min-height: 8px;">
+        <div class="sidebar-actions q-pa-md" v-if="!sidebarCollapsed">
+          <q-btn outline color="primary" icon="history" label="Ver Historial" class="full-width br-lg" @click="verDetallesAtencion" />
         </div>
       </aside>
 
       <!-- MAIN WORKSPACE -->
       <main class="main-workspace flex column">
         <!-- Header Premium Modernizado (Atención 2.0 - Refined) -->
-        <header class="workspace-header workspace-header--premium q-px-lg q-py-sm text-white border-bottom shadow-2">
-          <!-- Fila 1: Info de paciente + profesional + acciones de navegación -->
+        <header class="workspace-header workspace-header--premium q-px-lg q-py-md text-white border-bottom shadow-2">
           <div class="row items-center no-wrap full-width">
 
             <!-- Columna 1: Folio y Estado -->
@@ -173,12 +199,24 @@
                   <q-icon name="event" size="16px" class="q-mr-xs" />
                   <span class="text-caption">{{ formatDate(atencionActualData?.fecha) }} {{ atencionActualData?.hora }}</span>
                 </div>
+                <!-- Fila de motivo y observaciones de la atención activa -->
+                <div class="attention-info flex items-center q-mt-xs opacity-95 text-white" v-if="atenciones && atenciones.length > 0">
+                  <q-icon name="assignment" size="16px" class="q-mr-xs text-warning" />
+                  <span class="text-caption text-weight-bold">
+                    Motivo: <span class="text-weight-normal text-warning">{{ atencionActualData?.motivo || 'No especificado' }}</span>
+                  </span>
+                  <q-separator vertical color="white" dark class="q-mx-md opacity-40" inset />
+                  <q-icon name="chat_bubble_outline" size="16px" class="q-mr-xs" />
+                  <span class="text-caption text-weight-bold truncate" style="max-width: 500px; display: inline-block; vertical-align: bottom;">
+                    Observaciones: <span class="text-weight-normal opacity-90">{{ atencionActualData?.observacion || 'Ninguna' }}</span>
+                  </span>
+                </div>
               </div>
             </div>
 
-            <!-- Columna 3: Profesional y Buscador -->
+            <!-- Columna 3: Profesional y Acciones -->
             <div class="col-auto row items-center no-wrap">
-              <div class="professional-pill q-px-md q-py-sm br-xl flex items-center q-mr-md">
+              <div class="professional-pill q-px-md q-py-sm br-xl flex items-center q-mr-lg">
                  <q-avatar size="32px" class="bg-white text-primary text-weight-bold shadow-1">
                    {{ atencionActualData?.veterinario?.[0] || 'P' }}
                  </q-avatar>
@@ -188,7 +226,7 @@
                  </div>
               </div>
 
-              <div class="flex items-center">
+              <div class="action-buttons flex items-center">
                 <q-btn-group unelevated class="br-lg shadow-1">
                   <q-btn
                     color="white"
@@ -202,79 +240,11 @@
                   />
                   <q-btn color="blue-9" icon="search" @click="showSearchDialog = true" />
                 </q-btn-group>
+                <q-btn flat round icon="more_vert" color="white" class="q-ml-sm" />
               </div>
             </div>
 
           </div>
-
-          <!-- Fila 2: Botones de acción + Motivo/Observación en la misma línea -->
-          <div class="row items-center no-wrap q-mt-sm header-action-row" v-if="atenciones.length > 0">
-
-            <!-- Motivo y observación (izquierda) -->
-            <div class="flex items-center q-mr-lg" v-if="atencionActualData?.motivo">
-              <q-icon name="assignment" size="15px" class="q-mr-xs text-warning" />
-              <span class="text-body2 text-weight-bold">
-                Motivo: <span class="text-warning">{{ atencionActualData?.motivo }}</span>
-              </span>
-              <q-separator vertical color="white" dark class="q-mx-sm opacity-40" inset />
-              <q-icon name="chat_bubble_outline" size="15px" class="q-mr-xs" />
-              <span class="text-body2">
-                Obs: <span class="opacity-90">{{ atencionActualData?.observacion || 'Ninguna' }}</span>
-              </span>
-            </div>
-
-            <q-space />
-
-            <!-- Botones de acción (derecha) -->
-            <div class="flex items-center q-gutter-x-sm">
-              <q-btn
-                unelevated
-                :disable="!atencionActualData?.id"
-                color="white"
-                text-color="primary"
-                icon="add_circle"
-                label="Agregar Servicio"
-                class="br-lg text-weight-bold q-px-md header-action-btn"
-                size="sm"
-                @click="showAddServiceDialog = true"
-              />
-              <q-btn
-                unelevated
-                color="white"
-                text-color="positive"
-                icon="save"
-                :label="guardandoAtencion ? 'Guardando...' : 'Guardar'"
-                class="br-lg text-weight-bold q-px-md header-action-btn"
-                size="sm"
-                :loading="guardandoAtencion"
-                @click="guardarAtencion"
-              />
-              <q-btn
-                v-if="atencionActualData?.estado !== 'Finalizada'"
-                unelevated
-                color="negative"
-                text-color="white"
-                icon="check_circle"
-                label="Finalizar"
-                class="br-lg text-weight-bold q-px-md header-action-btn"
-                size="sm"
-                @click="finalizarAtencion"
-              />
-              <q-btn
-                v-if="atencionActualData?.estado === 'Finalizada'"
-                unelevated
-                color="white"
-                text-color="blue-9"
-                icon="undo"
-                label="Reabrir"
-                class="br-lg text-weight-bold q-px-md header-action-btn"
-                size="sm"
-                @click="reabrirAtencion"
-              />
-            </div>
-
-          </div>
-
         </header>
 
         <!-- Viewport de Contenido -->
@@ -323,12 +293,9 @@
                     :servicio-id="servicioSeleccionado.id"
                     :datos-iniciales="servicioSeleccionado.datos"
                     :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
-                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
                   />
 
                   <ServicioVacunacion
@@ -336,13 +303,12 @@
                     :atencion-id="String(atencionActualData.id)"
                     :servicio-id="servicioSeleccionado.id"
                     :datos-iniciales="servicioSeleccionado.datos"
-                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
                     :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <ServicioRecetaMedica
@@ -373,13 +339,12 @@
                     :atencion-id="String(atencionActualData.id)"
                     :servicio-id="servicioSeleccionado.id"
                     :datos-iniciales="servicioSeleccionado.datos"
-                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
                     :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <ServicioUltrasonido
@@ -387,13 +352,12 @@
                     :atencion-id="String(atencionActualData.id)"
                     :servicio-id="servicioSeleccionado.id"
                     :datos-iniciales="servicioSeleccionado.datos"
-                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
                     :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <ServicioExploracionFisica
@@ -401,13 +365,12 @@
                     :atencion-id="String(atencionActualData.id)"
                     :servicio-id="servicioSeleccionado.id"
                     :datos-iniciales="servicioSeleccionado.datos"
-                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
                     :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <ServicioHospitalizacion
@@ -415,13 +378,12 @@
                     :atencion-id="String(atencionActualData.id)"
                     :servicio-id="servicioSeleccionado.id"
                     :datos-iniciales="servicioSeleccionado.datos"
-                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
                     :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <ServicioMedicamento
@@ -429,13 +391,12 @@
                     :atencion-id="String(atencionActualData.id)"
                     :servicio-id="servicioSeleccionado.id"
                     :datos-iniciales="servicioSeleccionado.datos"
-                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
                     :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <ServicioFisioterapia
@@ -443,13 +404,12 @@
                     :atencion-id="String(atencionActualData.id)"
                     :servicio-id="servicioSeleccionado.id"
                     :datos-iniciales="servicioSeleccionado.datos"
-                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
                     :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <ServicioUrgencia
@@ -457,13 +417,12 @@
                     :atencion-id="String(atencionActualData.id)"
                     :servicio-id="servicioSeleccionado.id"
                     :datos-iniciales="servicioSeleccionado.datos"
-                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
                     :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <ServicioEstetica
@@ -471,13 +430,12 @@
                     :atencion-id="String(atencionActualData.id)"
                     :servicio-id="servicioSeleccionado.id"
                     :datos-iniciales="servicioSeleccionado.datos"
-                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
                     :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <OrdenLaboratorio
@@ -502,7 +460,7 @@
                       @servicio-actualizado="actualizarServicio"
                       @servicio-completado="completarServicio"
                       @servicio-eliminado="eliminarServicio"
-                      @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
+                      @imprimir-servicio="imprimirDocumentoServicio(servicioSeleccionado)"
                       @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
                     />
                   </template>
@@ -610,18 +568,18 @@
                     <!-- Fila 1: Propietario -->
                     <div class="col-12 col-md-3">
                       <div class="text-caption text-weight-bold text-grey-7 q-mb-xs">Primer Apellido</div>
-                      <q-input v-model="busquedaFormData.propietario.primerapellido" @update:model-value="val => busquedaFormData.propietario.primerapellido = (val || '').toUpperCase()" placeholder="Ej: Perez" outlined dense bg-color="white" class="br-md" @keyup.enter="buscarPacientes">
+                      <q-input v-model="busquedaFormData.propietario.primerapellido" placeholder="Ej: Perez" outlined dense bg-color="white" class="br-md" @keyup.enter="buscarPacientes">
                         <template v-slot:prepend><q-icon name="badge" color="primary" /></template>
                       </q-input>
                     </div>
                     
                     <div class="col-12 col-md-3">
                       <div class="text-caption text-weight-bold text-grey-7 q-mb-xs">Segundo Apellido</div>
-                      <q-input v-model="busquedaFormData.propietario.segundoapellido" @update:model-value="val => busquedaFormData.propietario.segundoapellido = (val || '').toUpperCase()" placeholder="Ej: Garcia" outlined dense bg-color="white" class="br-md" @keyup.enter="buscarPacientes"></q-input>
+                      <q-input v-model="busquedaFormData.propietario.segundoapellido" placeholder="Ej: Garcia" outlined dense bg-color="white" class="br-md" @keyup.enter="buscarPacientes"></q-input>
                     </div>
                     <div class="col-12 col-md-3">
                       <div class="text-caption text-weight-bold text-grey-7 q-mb-xs">Nombres del Propietario</div>
-                      <q-input v-model="busquedaFormData.propietario.nombre" @update:model-value="val => busquedaFormData.propietario.nombre = (val || '').toUpperCase()" placeholder="Ej: Juan" outlined dense bg-color="white" class="br-md" @keyup.enter="buscarPacientes">
+                      <q-input v-model="busquedaFormData.propietario.nombre" placeholder="Ej: Juan" outlined dense bg-color="white" class="br-md" @keyup.enter="buscarPacientes">
                         <template v-slot:prepend><q-icon name="person" color="primary" /></template>
                       </q-input>
                     </div>
@@ -643,7 +601,7 @@
                     </div>
                     <div class="col-12 col-md-3">
                       <div class="text-caption text-weight-bold text-grey-7 q-mb-xs">Nombre de la Mascota</div>
-                      <q-input v-model="busquedaFormData.mascota.nombre" @update:model-value="val => busquedaFormData.mascota.nombre = (val || '').toUpperCase()" placeholder="Ej: Rocky" outlined dense bg-color="white" class="br-md" @keyup.enter="buscarPacientes">
+                      <q-input v-model="busquedaFormData.mascota.nombre" placeholder="Ej: Rocky" outlined dense bg-color="white" class="br-md" @keyup.enter="buscarPacientes">
                         <template v-slot:prepend><q-icon name="pets" color="primary" /></template>
                       </q-input>
                     </div>
@@ -1084,6 +1042,23 @@ export default {
       }
     }
 
+    const verDetallesAtencion = () => {
+      const atencion = atenciones.value[atencionActual.value]
+      $q.dialog({
+        title: `Detalles de ${atencion.numero}`,
+        message: `
+          <div>
+            <strong>Fecha:</strong> ${atencion.fecha} ${atencion.hora}<br>
+            <strong>Profesional:</strong> ${atencion.veterinario}<br>
+            <strong>Estado:</strong> ${atencion.estado}<br>
+            <strong>Servicios:</strong> ${atencion.servicios.length}
+          </div>
+        `,
+        html: true,
+        ok: 'Cerrar'
+      })
+    }
+
     // Función para cargar esquema de servicio bajo demanda
     const cargarEsquema = async (identificador, idServicioDef) => {
       if (esquemasActivos.value[identificador]) return
@@ -1499,7 +1474,7 @@ export default {
         }
 
         await atencionService.actualizarAtencion(atencion.id, {
-          observaciones: atencion.observaciones || ''
+          observacion: atencion.observaciones || ''
         })
 
         $q.notify({
@@ -1530,15 +1505,16 @@ export default {
             const fechaFin = new Date()
             const datosUpdate = {
                 estado: 'Finalizada',
-                fechacierre: fechaFin.toISOString()
+                fecha_finalizacion: fechaFin.toISOString().split('T')[0],
+                hora_finalizacion: fechaFin.toTimeString().split(' ')[0].substring(0, 5)
             }
 
             const respuesta = await atencionService.actualizarAtencion(atencion.id, datosUpdate)
 
             if (respuesta) {
                 atencion.estado = 'Finalizada'
-                atencion.fechaFinalizacion = fechaFin.toISOString().split('T')[0]
-                atencion.horaFinalizacion = fechaFin.toTimeString().split(' ')[0].substring(0, 5)
+                atencion.fechaFinalizacion = datosUpdate.fecha_finalizacion
+                atencion.horaFinalizacion = datosUpdate.hora_finalizacion
 
                 $q.notify({
                   type: 'positive',
@@ -1550,45 +1526,6 @@ export default {
         } catch (error) {
             console.error('Error al finalizar atención:', error)
             $q.notify({ type: 'negative', message: 'Error al finalizar la atención' })
-        } finally {
-            $q.loading.hide()
-        }
-      })
-    }
-
-    const reabrirAtencion = () => {
-      $q.dialog({
-        title: 'Reabrir Atención',
-        message: '¿Está seguro de que desea reabrir esta atención?',
-        cancel: true,
-        persistent: true
-      }).onOk(async () => {
-        try {
-            $q.loading.show()
-            const atencion = atenciones.value[atencionActual.value]
-
-            const datosUpdate = {
-                estado: 'En curso',
-                fechacierre: null
-            }
-
-            const respuesta = await atencionService.actualizarAtencion(atencion.id, datosUpdate)
-
-            if (respuesta) {
-                atencion.estado = 'En curso'
-                atencion.fechaFinalizacion = null
-                atencion.horaFinalizacion = null
-
-                $q.notify({
-                  type: 'positive',
-                  message: 'Atención reabierta correctamente',
-                  position: 'top-right',
-                  icon: 'undo'
-                })
-            }
-        } catch (error) {
-            console.error('Error al reabrir atención:', error)
-            $q.notify({ type: 'negative', message: 'Error al reabrir la atención' })
         } finally {
             $q.loading.hide()
         }
@@ -1760,8 +1697,8 @@ export default {
             servicios: []
           }
         })
-        // Invertimos el orden para que la atención más reciente (nueva) aparezca primero
-        atenciones.value = atencionesBase.reverse()
+
+        atenciones.value = atencionesBase
         atencionActual.value = 0
 
         // Cargar servicios de la primera atención (la más reciente) de inmediato
@@ -1971,6 +1908,7 @@ export default {
       guardandoAtencion,
       formatDate,
       navigateCards,
+      verDetallesAtencion,
       nuevaAtencion,
       crearNuevaAtencion,
       agregarServicioEnDialogo,
@@ -1980,7 +1918,6 @@ export default {
       eliminarServicio,
       guardarAtencion,
       finalizarAtencion,
-      reabrirAtencion,
       showAddServiceDialog,
       showNuevaAtencionDialog,
       formNuevaAtencion,
@@ -2041,12 +1978,10 @@ export default {
 /* SIDEBAR LUX */
 .atencion-sidebar {
   width: 270px;
-  height: 100vh;
   background: white;
   border-right: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1000;
   position: relative;
@@ -2072,19 +2007,6 @@ export default {
 .sidebar-main {
   flex: 1;
   overflow-y: auto;
-  min-height: 0;
-  padding-bottom: 210px;
-}
-
-.sidebar-actions {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #fff;
-  z-index: 10;
-  border-top: 1px solid #e2e8f0;
-  box-shadow: 0 -4px 10px rgba(0,0,0,0.04);
 }
 
 .sidebar-main::-webkit-scrollbar {
@@ -2279,25 +2201,6 @@ export default {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(8px);
-}
-
-/* Segunda fila del header: botones de acción */
-.header-action-row {
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  padding-top: 6px;
-}
-
-.header-action-btn {
-  min-height: 28px !important;
-  font-size: 12px !important;
-  border-radius: 8px !important;
-  opacity: 0.95;
-  transition: opacity 0.2s ease, transform 0.15s ease;
-}
-
-.header-action-btn:hover {
-  opacity: 1;
-  transform: translateY(-1px);
 }
 
 /* Estilo para el botón de información en el header (más visible) */

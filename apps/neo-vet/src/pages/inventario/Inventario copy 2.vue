@@ -107,9 +107,9 @@
     <q-tab-panels v-model="tabSeleccionada" animated class="bg-transparent">
       <!-- PANEL DE DASHBOARD -->
       <q-tab-panel name="dashboard" class="q-pa-none">
-        <div class="row q-col-gutter-sm q-mb-xl dashboard-kpi-row">
+        <div class="row q-col-gutter-md q-mb-xl">
           <!-- KPI 1 -->
-          <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <div class="col-12 col-md-3">
             <q-card class="kpi-card glass-panel kpi-primary" v-ripple>
               <q-card-section>
                 <div class="row items-center justify-between">
@@ -123,7 +123,7 @@
             </q-card>
           </div>
           <!-- KPI 2 -->
-          <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <div class="col-12 col-md-3">
             <q-card class="kpi-card glass-panel kpi-secondary" v-ripple @click="tabSeleccionada = 'productos'" style="cursor:pointer">
               <q-card-section>
                 <div class="row items-center justify-between">
@@ -137,7 +137,7 @@
             </q-card>
           </div>
           <!-- KPI 3 -->
-          <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <div class="col-12 col-md-3">
             <q-card class="kpi-card glass-panel kpi-warning" v-ripple @click="tabSeleccionada = 'productos'; filtroEstado = estadosStock.find(e => e.value === 'stock_bajo')" style="cursor:pointer">
               <q-card-section>
                 <div class="row items-center justify-between">
@@ -151,21 +151,7 @@
             </q-card>
           </div>
           <!-- KPI 4 -->
-          <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-            <q-card class="kpi-card glass-panel kpi-danger" v-ripple @click="tabSeleccionada = 'productos'; filtroEstado = estadosStock.find(e => e.value === 'sin_stock')" style="cursor:pointer">
-              <q-card-section>
-                <div class="row items-center justify-between">
-                  <div class="kpi-icon-wrapper"><q-icon name="remove_shopping_cart" size="lg" /></div>
-                  <div class="text-right">
-                    <div class="text-caption text-uppercase q-mb-xs opacity-70">Sin Stock</div>
-                    <div class="text-h4 text-weight-bolder">{{ estadisticasGenerales.sinStock }}</div>
-                  </div>
-                </div>
-              </q-card-section>
-            </q-card>
-          </div>
-          <!-- KPI 5 -->
-          <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+          <div class="col-12 col-md-3">
             <q-card class="kpi-card glass-panel kpi-danger" v-ripple @click="tabSeleccionada = 'productos'; filtroEstado = estadosStock.find(e => e.value === 'proximo_vencer')" style="cursor:pointer">
               <q-card-section>
                 <div class="row items-center justify-between">
@@ -180,9 +166,9 @@
           </div>
         </div>
 
-        <!-- Seccion Inferior Dashboard: Alertas y panel de reportes -->
-        <div class="row items-start q-col-gutter-md">
-           <div class="col-12 col-lg-9">
+        <!-- Seccion Inferior Dashboard: Alertas y Mover rápidos -->
+        <div class="row q-col-gutter-md">
+           <div class="col-12 col-md-7">
              <q-card flat bordered class="rounded-16">
                 <q-card-section class="bg-grey-1 row items-center">
                    <q-icon name="notifications_active" color="deep-orange" size="sm" class="q-mr-sm"/>
@@ -209,47 +195,13 @@
                 </q-list>
              </q-card>
            </div>
-           <div class="col-12 col-lg-3">
-             <q-card flat bordered class="rounded-16 shadow-gradient reporte-panel">
-                <q-card-section class="row items-center justify-between q-px-md q-py-sm bg-gradient-print text-white">
-                   <div>
-                     <div class="text-h6 q-mb-xs text-weight-bold">Reportes</div>
-                     <div class="text-body2 opacity-80">PDF de inventario y alertas</div>
-                   </div>
-                   <q-icon name="print" size="lg" class="text-white" />
-                </q-card-section>
-                <q-separator />
-                <q-list dense class="report-options-list">
-                  <q-item clickable v-ripple @click="imprimirReporte('inventario_completo')">
-                    <q-item-section avatar>
-                      <q-icon name="inventory_2" color="primary" />
-                    </q-item-section>
-                    <q-item-section>
-                      <q-item-label>Inventario</q-item-label>
-                      <q-item-label caption>Existencias actuales</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                  <q-item clickable v-ripple @click="imprimirReporte('stock_bajo')">
-                    <q-item-section avatar>
-                      <q-icon name="warning" color="warning" />
-                    </q-item-section>
-                    <q-item-section>
-                      <q-item-label>Stock Bajo</q-item-label>
-                      <q-item-label caption>Existencias críticas</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                  <q-item clickable v-ripple @click="imprimirReporte('proximos_vencer')">
-                    <q-item-section avatar>
-                      <q-icon name="event_busy" color="deep-orange" />
-                    </q-item-section>
-                    <q-item-section>
-                      <q-item-label>Por Vencer</q-item-label>
-                      <q-item-label caption>Alertas de caducidad</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                </q-list>
-                <q-card-section class="q-pa-sm text-right">
-                  <q-btn dense flat color="white" text-color="white" label="Más reportes" @click="mostrarModalImpresion = true" />
+           <div class="col-12 col-md-5">
+             <q-card flat bordered class="rounded-16 shadow-gradient cursor-pointer" v-ripple @click="mostrarModalImpresion = true">
+                <q-card-section class="q-pa-lg text-center text-white bg-gradient-print">
+                   <q-icon name="print" size="xl" class="q-mb-md opacity-90"/>
+                   <div class="text-h5 q-mb-sm text-weight-bold">Módulo de Reportería</div>
+                   <div class="text-body2 opacity-80 q-mb-xl">Genera documentos PDF de existencias de farmacia, kárdex y alertas de caducidad.</div>
+                   <q-btn color="white" text-color="primary" class="full-width q-py-sm shadow-1" unelevated label="Abrir Generador de PDF" icon="picture_as_pdf" />
                 </q-card-section>
              </q-card>
            </div>
@@ -3084,24 +3036,6 @@ defineExpose({
 }
 
 /* Dashboard Premium Styles */
-.dashboard-kpi-row {
-  flex-wrap: wrap;
-}
-.dashboard-kpi-row > .col {
-  min-width: 200px;
-}
-@media (min-width: 1200px) {
-  .dashboard-kpi-row > .col {
-    flex: 0 1 21%;
-    max-width: 21%;
-  }
-}
-.kpi-card {
-  border-radius: 16px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
 .glass-panel {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
@@ -3149,18 +3083,6 @@ defineExpose({
 
 .bg-gradient-print {
   background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-}
-.reporte-panel {
-  overflow: hidden;
-}
-.report-options-list .q-item {
-  padding: 8px 12px;
-}
-.report-options-list .q-item-label {
-  line-height: 1.2;
-}
-.report-options-list .q-item-label:nth-child(2) {
-  font-size: 0.8rem;
 }
 .shadow-gradient {
   box-shadow: 0 10px 30px -10px rgba(30, 60, 114, 0.5);

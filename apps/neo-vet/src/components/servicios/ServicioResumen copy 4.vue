@@ -113,6 +113,12 @@
                         @click.stop="$emit('firmar-servicio', servicio, 'plantilla', servicio.plantillas_servicio[0].id_plantilla)"
                       ><q-tooltip>Firmar: {{ servicio.plantillas_servicio[0].nombre_plantilla }}</q-tooltip></q-btn>
 
+                      <!-- Firmar: fallback con reporte fijo (sin plantillas) -->
+                      <q-btn
+                        v-else-if="['consulta', 'vacunacion', 'receta', 'desparasitacion'].includes(servicio.componente_clave)"
+                        unelevated round dense icon="history_edu" size="11px" color="orange-1" text-color="orange-8" class="action-btn-v3"
+                        @click.stop="$emit('firmar-servicio', servicio, 'especial')"
+                      ><q-tooltip>Firmar Documento</q-tooltip></q-btn>
 
                       <q-btn-dropdown
                         v-if="servicio.plantillas_servicio && servicio.plantillas_servicio.length > 1"

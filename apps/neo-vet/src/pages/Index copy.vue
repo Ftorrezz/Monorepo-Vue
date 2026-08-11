@@ -205,7 +205,7 @@
           <q-card class="able-card full-height column">
             <q-card-section class="row items-center justify-between border-bottom q-py-sm">
               <div class="text-subtitle1 text-weight-bold text-grey-9">Tareas Pendientes</div>
-              <q-btn flat round dense icon="add" color="primary" size="sm" @click="promptNewTask" />
+              <q-btn flat round dense icon="add" color="primary" size="sm" />
             </q-card-section>
 
              <q-card-section class="q-pa-none col scroll">
@@ -247,11 +247,7 @@ import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { Chart, registerables } from 'chart.js'
 import { useDashboard } from '../composables/useDashboard'
 
-import { useQuasar } from 'quasar'
-
 Chart.register(...registerables)
-
-const $q = useQuasar()
 
 const {
   mainStats,
@@ -259,26 +255,8 @@ const {
   lowStockItems,
   expiringItems,
   tasks,
-  toggleTask,
-  addTask
+  toggleTask
 } = useDashboard()
-
-const promptNewTask = () => {
-  $q.dialog({
-    title: 'Nueva Tarea',
-    message: 'Ingrese el texto de la tarea:',
-    prompt: {
-      model: '',
-      type: 'text' // optional
-    },
-    cancel: true,
-    persistent: true
-  }).onOk(data => {
-    if (data && data.trim().length > 0) {
-      addTask(data.trim())
-    }
-  })
-}
 
 const waveChart1 = ref(null)
 const waveChart2 = ref(null)

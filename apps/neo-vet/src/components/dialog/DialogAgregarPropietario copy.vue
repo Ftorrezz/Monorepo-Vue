@@ -133,7 +133,6 @@
                                 (val) =>
                                   !!val || 'El primer apellido es requerido',
                               ]"
-                              @update:model-value="val => propietario.primerapellido = (val || '').toUpperCase()"
                               dense
                               class="uppercase"
                             />
@@ -142,7 +141,6 @@
                             <q-input
                               v-model="propietario.segundoapellido"
                               label="Segundo Apellido"
-                              @update:model-value="val => propietario.segundoapellido = (val || '').toUpperCase()"
                               dense
                               class="uppercase"
                             />
@@ -154,7 +152,6 @@
                               :rules="[
                                 (val) => !!val || 'El nombre es requerido',
                               ]"
-                              @update:model-value="val => propietario.nombre = (val || '').toUpperCase()"
                               dense
                               class="uppercase"
                             />
@@ -605,11 +602,6 @@ const guardarPropietario = async () => {
     let resultadoOperacion;
     // Crear una copia mutable para la transformación
     const datosPropietarioPayload = { ...propietario.value };
-
-    // Covertir nombres a mayúsculas
-    if (datosPropietarioPayload.nombre) datosPropietarioPayload.nombre = (datosPropietarioPayload.nombre || '').toUpperCase().trim();
-    if (datosPropietarioPayload.primerapellido) datosPropietarioPayload.primerapellido = (datosPropietarioPayload.primerapellido || '').toUpperCase().trim();
-    if (datosPropietarioPayload.segundoapellido) datosPropietarioPayload.segundoapellido = (datosPropietarioPayload.segundoapellido || '').toUpperCase().trim();
 
     // Helper para extraer el '.value' si el campo es un objeto proveniente de los componentes de lista
     const extractIdValue = (fieldValue: any) => {

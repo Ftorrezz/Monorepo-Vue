@@ -86,39 +86,34 @@
                     <!-- Acciones Integradas -->
                     <div class="row items-center no-wrap q-gutter-x-xs" v-if="servicio.completado">
                       <q-btn
-                        v-if="['consulta', 'vacunacion', 'receta', 'desparasitacion'].includes(servicio.componente_clave)"
-                        unelevated round dense icon="print" size="11px" color="grey-2" text-color="grey-7" class="action-btn-v3"
+                        v-if="servicio.componente_clave === 'vacunacion'"
+                        unelevated round dense icon="card_membership" size="11px" color="blue-1" text-color="blue-7" class="action-btn-v3"
                         @click.stop="$emit('imprimir-servicio', servicio, 'especial')"
-                      ><q-tooltip>Imprimir</q-tooltip></q-btn>
-
-                      <!-- Firmar: dropdown si hay múltiples plantillas -->
-                      <q-btn-dropdown
-                        v-if="['consulta', 'vacunacion', 'receta', 'desparasitacion'].includes(servicio.componente_clave) && servicio.plantillas_servicio && servicio.plantillas_servicio.length > 1"
-                        unelevated round dense icon="history_edu" size="11px" color="orange-1" text-color="orange-8" class="action-btn-v3"
-                        dropdown-icon="none"
-                      ><q-tooltip>Firmar Documento</q-tooltip>
-                        <q-list dense style="min-width: 190px">
-                          <q-item-label header style="font-size: 10px; padding: 6px 12px 2px;" class="text-grey-6 text-uppercase">Seleccionar plantilla a firmar</q-item-label>
-                          <q-item v-for="p in servicio.plantillas_servicio" :key="p.id_plantilla" clickable v-close-popup @click="$emit('firmar-servicio', servicio, 'plantilla', p.id_plantilla)">
-                            <q-item-section side><q-icon name="history_edu" size="xs" color="orange-7" /></q-item-section>
-                            <q-item-section class="text-weight-bold" style="font-size: 11px;">{{ p.nombre_plantilla }}</q-item-section>
-                          </q-item>
-                        </q-list>
-                      </q-btn-dropdown>
-
-                      <!-- Firmar: directo si hay exactamente 1 plantilla -->
+                      ><q-tooltip>Ver Certificado</q-tooltip></q-btn>
+                      
                       <q-btn
-                        v-else-if="['consulta', 'vacunacion', 'receta', 'desparasitacion'].includes(servicio.componente_clave) && servicio.plantillas_servicio?.length === 1"
-                        unelevated round dense icon="history_edu" size="11px" color="orange-1" text-color="orange-8" class="action-btn-v3"
-                        @click.stop="$emit('firmar-servicio', servicio, 'plantilla', servicio.plantillas_servicio[0].id_plantilla)"
-                      ><q-tooltip>Firmar: {{ servicio.plantillas_servicio[0].nombre_plantilla }}</q-tooltip></q-btn>
+                        v-if="servicio.componente_clave === 'consulta'"
+                        unelevated round dense icon="description" size="11px" color="indigo-1" text-color="indigo-7" class="action-btn-v3"
+                        @click.stop="$emit('imprimir-servicio', servicio, 'especial')"
+                      ><q-tooltip>Ver Atencion</q-tooltip></q-btn>
 
+                      <q-btn
+                        v-if="['consulta', 'vacunacion', 'receta', 'desparasitacion'].includes(servicio.componente_clave)"
+                        unelevated round dense icon="history_edu" size="11px" color="orange-1" text-color="orange-8" class="action-btn-v3"
+                        @click.stop="$emit('firmar-servicio', servicio, 'especial')"
+                      ><q-tooltip>Firmar Documento</q-tooltip></q-btn>
+                      
+                      <q-btn
+                        v-if="servicio.componente_clave === 'receta'"
+                        unelevated round dense icon="receipt_long" size="11px" color="pink-1" text-color="pink-7" class="action-btn-v3"
+                        @click.stop="$emit('imprimir-servicio', servicio, 'especial')"
+                      ><q-tooltip>Ver Receta</q-tooltip></q-btn>
 
                       <q-btn-dropdown
                         v-if="servicio.plantillas_servicio && servicio.plantillas_servicio.length > 1"
-                        unelevated round dense icon="article" size="11px" color="teal-1" text-color="teal-7" class="action-btn-v3"
+                        unelevated round dense icon="print" size="11px" color="grey-2" text-color="grey-7" class="action-btn-v3"
                         dropdown-icon="none"
-                      ><q-tooltip>Plantillas</q-tooltip>
+                      >
                         <q-list dense style="min-width: 180px">
                           <q-item v-for="p in servicio.plantillas_servicio" :key="p.id_plantilla" clickable v-close-popup @click="$emit('imprimir-servicio', servicio, 'plantilla', p.id_plantilla)">
                             <q-item-section side><q-icon name="description" size="xs" color="primary" /></q-item-section>
@@ -128,9 +123,9 @@
                       </q-btn-dropdown>
                       <q-btn
                         v-else-if="servicio.plantillas_servicio?.length === 1 || servicio.id_plantilla"
-                        unelevated round dense icon="article" size="11px" color="teal-1" text-color="teal-7" class="action-btn-v3"
+                        unelevated round dense icon="print" size="11px" color="grey-2" text-color="grey-7" class="action-btn-v3"
                         @click.stop="$emit('imprimir-servicio', servicio, 'plantilla')"
-                      ><q-tooltip>Plantilla</q-tooltip></q-btn>
+                      ><q-tooltip>Imprimir</q-tooltip></q-btn>
                     </div>
 
                     <q-btn unelevated round dense icon="arrow_forward" size="11px" color="primary" class="action-btn-v3 q-ml-xs shadow-sm" @click="$emit('seleccionar-pestaña', servicio.id)">

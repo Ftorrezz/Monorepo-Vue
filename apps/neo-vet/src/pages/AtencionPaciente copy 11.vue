@@ -323,12 +323,9 @@
                     :servicio-id="servicioSeleccionado.id"
                     :datos-iniciales="servicioSeleccionado.datos"
                     :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
-                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
                   />
 
                   <ServicioVacunacion

@@ -82,7 +82,12 @@ class NdPeticionControl {
         });
       }
       case "put": {
-        _urlEndPoint = _urlEndPoint + '/' + modelo.id;
+        // Solo agregar el id a la URL si viene en el modelo, para evitar /undefined
+        if (modelo && modelo.id !== undefined && modelo.id !== null) {
+          if (!_urlEndPoint.endsWith('/' + modelo.id)) {
+            _urlEndPoint = _urlEndPoint + '/' + modelo.id;
+          }
+        }
 
         // Si el modelo tiene ID, lo quitamos del payload del body 
         // para evitar errores de validación en backends estrictos (NestJS ValidationPipe)

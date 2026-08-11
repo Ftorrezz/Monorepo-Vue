@@ -323,12 +323,9 @@
                     :servicio-id="servicioSeleccionado.id"
                     :datos-iniciales="servicioSeleccionado.datos"
                     :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
-                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
                   />
 
                   <ServicioVacunacion
@@ -341,8 +338,8 @@
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <ServicioRecetaMedica
@@ -378,8 +375,8 @@
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <ServicioUltrasonido
@@ -392,8 +389,8 @@
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <ServicioExploracionFisica
@@ -406,8 +403,8 @@
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <ServicioHospitalizacion
@@ -420,8 +417,8 @@
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <ServicioMedicamento
@@ -434,8 +431,8 @@
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <ServicioFisioterapia
@@ -448,8 +445,8 @@
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <ServicioUrgencia
@@ -462,8 +459,8 @@
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <ServicioEstetica
@@ -476,8 +473,8 @@
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <OrdenLaboratorio
@@ -502,7 +499,7 @@
                       @servicio-actualizado="actualizarServicio"
                       @servicio-completado="completarServicio"
                       @servicio-eliminado="eliminarServicio"
-                      @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
+                      @imprimir-servicio="imprimirDocumentoServicio(servicioSeleccionado)"
                       @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
                     />
                   </template>

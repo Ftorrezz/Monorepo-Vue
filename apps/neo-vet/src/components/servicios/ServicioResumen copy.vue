@@ -1,42 +1,88 @@
 <template>
   <div class="servicio-resumen">
-    <div v-if="hayAtencionSeleccionada" class="selected-attention-card premium-glass q-mb-lg">
-      <div class="row items-start no-wrap q-gutter-sm">
-        <div class="col overflow-hidden">
-          <div class="text-caption text-uppercase text-grey-6">Atención seleccionada</div>
-          <div class="text-subtitle1 text-weight-bold text-primary ellipsis">
-            {{ etiquetaAtencionSeleccionada }}
+    <div class="row q-col-gutter-lg">
+      <!-- Columna Izquierda: Métricas y Estadísticas -->
+      <div class="col-12 col-md-4">
+        <!-- Bloque de Tarjetas de Métricas en Columna -->
+        <div class="column q-gutter-md q-mb-lg">
+          <div class="metric-card metric-card--total">
+            <div class="metric-card__icon">
+              <q-icon name="assignment" size="20px" />
+            </div>
+            <div class="metric-card__content">
+              <div class="metric-card__label">Total Servicios</div>
+              <div class="metric-card__value">{{ serviciosAplicados.length }}</div>
+            </div>
           </div>
-          <div class="text-body2 text-grey-7 ellipsis">
-            {{ detalleAtencionSeleccionada }}
+          
+          <div class="metric-card metric-card--done">
+            <div class="metric-card__icon">
+              <q-icon name="check_circle" size="20px" />
+            </div>
+            <div class="metric-card__content">
+              <div class="metric-card__label">Completados</div>
+              <div class="metric-card__value">{{ serviciosCompletados.length }}</div>
+            </div>
+          </div>
+          
+          <div class="metric-card metric-card--pending">
+            <div class="metric-card__icon">
+              <q-icon name="pending" size="20px" />
+            </div>
+            <div class="metric-card__content">
+              <div class="metric-card__label">Pendientes</div>
+              <div class="metric-card__value">{{ serviciosPendientes.length }}</div>
+            </div>
           </div>
         </div>
-        <div class="col-auto">
-          <div class="compact-dashboard">
-            <div class="compact-metric compact-metric--total">
-              <div class="compact-metric__label">Total</div>
-              <div class="compact-metric__value">{{ serviciosAplicados.length }}</div>
+
+        <!-- Panel de progreso con diseño moderno -->
+        <div class="stats-panel premium-glass">
+          <div class="stats-header">
+            <div class="text-subtitle1 text-weight-bold text-primary">Estado de Avance</div>
+            <div class="text-caption text-grey-6">Progreso general de la atención</div>
+          </div>
+          
+          <div class="flex flex-center q-py-lg">
+            <q-circular-progress
+              show-value
+              font-size="16px"
+              :value="porcentajeProgreso"
+              size="120px"
+              :thickness="0.15"
+              color="primary"
+              track-color="blue-1"
+              class="progress-chart"
+            >
+              <div class="column items-center">
+                <span class="text-h6 text-weight-bolder">{{ porcentajeProgreso }}%</span>
+                <span class="text-caption text-grey-7" style="font-size: 10px; margin-top: -4px;">LOGRADO</span>
+              </div>
+            </q-circular-progress>
+          </div>
+
+          <div class="modern-legend">
+            <div class="legend-item-v2">
+              <div class="legend-info">
+                <div class="legend-label">Finalizados</div>
+                <div class="legend-count text-positive">{{ serviciosCompletados.length }}</div>
+              </div>
+              <q-linear-progress :value="porcentajeProgreso / 100" color="positive" class="legend-bar" />
             </div>
-            <div class="compact-metric compact-metric--done">
-              <div class="compact-metric__label">Listos</div>
-              <div class="compact-metric__value">{{ serviciosCompletados.length }}</div>
-            </div>
-            <div class="compact-metric compact-metric--pending">
-              <div class="compact-metric__label">Pend.</div>
-              <div class="compact-metric__value">{{ serviciosPendientes.length }}</div>
-            </div>
-            <div class="compact-metric compact-metric--progress">
-              <div class="compact-metric__label">%</div>
-              <div class="compact-metric__value">{{ porcentajeProgreso }}</div>
+            
+            <div class="legend-item-v2">
+              <div class="legend-info">
+                <div class="legend-label">Pendientes</div>
+                <div class="legend-count text-orange">{{ serviciosPendientes.length }}</div>
+              </div>
+              <q-linear-progress :value="1 - (porcentajeProgreso / 100)" color="orange" class="legend-bar" />
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="row q-col-gutter-lg">
       <!-- Lista de Servicios con diseño premium -->
-      <div class="col-12">
+      <div class="col-12 col-md-8">
         <div class="section-title row items-center q-mb-md">
           <q-icon name="list_alt" size="20px" color="primary" class="q-mr-sm" />
           <span class="text-subtitle1 text-weight-bold text-grey-9">Servicios en esta Atención</span>
@@ -86,39 +132,34 @@
                     <!-- Acciones Integradas -->
                     <div class="row items-center no-wrap q-gutter-x-xs" v-if="servicio.completado">
                       <q-btn
-                        v-if="['consulta', 'vacunacion', 'receta', 'desparasitacion'].includes(servicio.componente_clave)"
-                        unelevated round dense icon="print" size="11px" color="grey-2" text-color="grey-7" class="action-btn-v3"
+                        v-if="servicio.componente_clave === 'vacunacion'"
+                        unelevated round dense icon="card_membership" size="11px" color="blue-1" text-color="blue-7" class="action-btn-v3"
                         @click.stop="$emit('imprimir-servicio', servicio, 'especial')"
-                      ><q-tooltip>Imprimir</q-tooltip></q-btn>
-
-                      <!-- Firmar: dropdown si hay múltiples plantillas -->
-                      <q-btn-dropdown
-                        v-if="['consulta', 'vacunacion', 'receta', 'desparasitacion'].includes(servicio.componente_clave) && servicio.plantillas_servicio && servicio.plantillas_servicio.length > 1"
-                        unelevated round dense icon="history_edu" size="11px" color="orange-1" text-color="orange-8" class="action-btn-v3"
-                        dropdown-icon="none"
-                      ><q-tooltip>Firmar Documento</q-tooltip>
-                        <q-list dense style="min-width: 190px">
-                          <q-item-label header style="font-size: 10px; padding: 6px 12px 2px;" class="text-grey-6 text-uppercase">Seleccionar plantilla a firmar</q-item-label>
-                          <q-item v-for="p in servicio.plantillas_servicio" :key="p.id_plantilla" clickable v-close-popup @click="$emit('firmar-servicio', servicio, 'plantilla', p.id_plantilla)">
-                            <q-item-section side><q-icon name="history_edu" size="xs" color="orange-7" /></q-item-section>
-                            <q-item-section class="text-weight-bold" style="font-size: 11px;">{{ p.nombre_plantilla }}</q-item-section>
-                          </q-item>
-                        </q-list>
-                      </q-btn-dropdown>
-
-                      <!-- Firmar: directo si hay exactamente 1 plantilla -->
+                      ><q-tooltip>Ver Certificado</q-tooltip></q-btn>
+                      
                       <q-btn
-                        v-else-if="['consulta', 'vacunacion', 'receta', 'desparasitacion'].includes(servicio.componente_clave) && servicio.plantillas_servicio?.length === 1"
-                        unelevated round dense icon="history_edu" size="11px" color="orange-1" text-color="orange-8" class="action-btn-v3"
-                        @click.stop="$emit('firmar-servicio', servicio, 'plantilla', servicio.plantillas_servicio[0].id_plantilla)"
-                      ><q-tooltip>Firmar: {{ servicio.plantillas_servicio[0].nombre_plantilla }}</q-tooltip></q-btn>
+                        v-if="servicio.componente_clave === 'consulta'"
+                        unelevated round dense icon="description" size="11px" color="indigo-1" text-color="indigo-7" class="action-btn-v3"
+                        @click.stop="$emit('imprimir-servicio', servicio, 'especial')"
+                      ><q-tooltip>Ver Atencion</q-tooltip></q-btn>
 
+                      <q-btn
+                        v-if="['consulta', 'vacunacion', 'receta', 'desparasitacion'].includes(servicio.componente_clave)"
+                        unelevated round dense icon="history_edu" size="11px" color="orange-1" text-color="orange-8" class="action-btn-v3"
+                        @click.stop="$emit('firmar-servicio', servicio, 'especial')"
+                      ><q-tooltip>Firmar Documento</q-tooltip></q-btn>
+                      
+                      <q-btn
+                        v-if="servicio.componente_clave === 'receta'"
+                        unelevated round dense icon="receipt_long" size="11px" color="pink-1" text-color="pink-7" class="action-btn-v3"
+                        @click.stop="$emit('imprimir-servicio', servicio, 'especial')"
+                      ><q-tooltip>Ver Receta</q-tooltip></q-btn>
 
                       <q-btn-dropdown
                         v-if="servicio.plantillas_servicio && servicio.plantillas_servicio.length > 1"
-                        unelevated round dense icon="article" size="11px" color="teal-1" text-color="teal-7" class="action-btn-v3"
+                        unelevated round dense icon="print" size="11px" color="grey-2" text-color="grey-7" class="action-btn-v3"
                         dropdown-icon="none"
-                      ><q-tooltip>Plantillas</q-tooltip>
+                      >
                         <q-list dense style="min-width: 180px">
                           <q-item v-for="p in servicio.plantillas_servicio" :key="p.id_plantilla" clickable v-close-popup @click="$emit('imprimir-servicio', servicio, 'plantilla', p.id_plantilla)">
                             <q-item-section side><q-icon name="description" size="xs" color="primary" /></q-item-section>
@@ -128,9 +169,9 @@
                       </q-btn-dropdown>
                       <q-btn
                         v-else-if="servicio.plantillas_servicio?.length === 1 || servicio.id_plantilla"
-                        unelevated round dense icon="article" size="11px" color="teal-1" text-color="teal-7" class="action-btn-v3"
+                        unelevated round dense icon="print" size="11px" color="grey-2" text-color="grey-7" class="action-btn-v3"
                         @click.stop="$emit('imprimir-servicio', servicio, 'plantilla')"
-                      ><q-tooltip>Plantilla</q-tooltip></q-btn>
+                      ><q-tooltip>Imprimir</q-tooltip></q-btn>
                     </div>
 
                     <q-btn unelevated round dense icon="arrow_forward" size="11px" color="primary" class="action-btn-v3 q-ml-xs shadow-sm" @click="$emit('seleccionar-pestaña', servicio.id)">
@@ -188,31 +229,6 @@ defineEmits(['seleccionar-pestaña', 'imprimir-servicio', 'imprimir-resumen', 'f
 const serviciosCompletados = computed(() => props.serviciosAplicados.filter(s => s.completado))
 const serviciosPendientes = computed(() => props.serviciosAplicados.filter(s => !s.completado))
 
-const hayAtencionSeleccionada = computed(() => {
-  const atencion = props.atencion || {}
-  return Boolean(atencion.id || atencion.numero || atencion.motivo || atencion.estado || atencion.veterinario)
-})
-
-const etiquetaAtencionSeleccionada = computed(() => {
-  const atencion = props.atencion || {}
-  if (atencion.numero) return `Atención ${atencion.numero}`
-  if (atencion.id) return `Atención #${atencion.id}`
-  return 'Atención seleccionada'
-})
-
-const detalleAtencionSeleccionada = computed(() => {
-  const atencion = props.atencion || {}
-  const partes = []
-
-  if (atencion.motivo) partes.push(atencion.motivo)
-  if (atencion.veterinario) partes.push(atencion.veterinario)
-
-  const fecha = atencion.fecha || atencion.created_at
-  if (fecha) partes.push(fecha)
-
-  return partes.length > 0 ? partes.join(' • ') : 'Sin detalles adicionales'
-})
-
 const porcentajeProgreso = computed(() => {
   if (props.serviciosAplicados.length === 0) return 0
   return Math.round((serviciosCompletados.value.length / props.serviciosAplicados.length) * 100)
@@ -265,56 +281,52 @@ const getsDatosRelevantes = (servicio) => {
   padding: 4px;
 }
 
-/* Dashboard compacto del encabezado */
-.compact-dashboard {
+/* Tarjetas de Métricas */
+.metric-card {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  justify-content: flex-end;
+  align-items: center;
+  padding: 20px;
+  border-radius: 16px;
+  background: white;
+  border: 1px solid #f1f5f9;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
-.compact-metric {
+.metric-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1);
+}
+
+.metric-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 6px 10px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  min-width: 56px;
-  min-height: 46px;
+  margin-right: 16px;
 }
 
-.compact-metric--total { background: #eff6ff; }
-.compact-metric--done { background: #ecfdf5; }
-.compact-metric--pending { background: #fff7ed; }
-.compact-metric--progress { background: #f5f3ff; }
+.metric-card--total .metric-card__icon { background: #eff6ff; color: #2563eb; }
+.metric-card--done .metric-card__icon { background: #ecfdf5; color: #10b981; }
+.metric-card--pending .metric-card__icon { background: #fff7ed; color: #f59e0b; }
 
-.compact-metric__label {
-  font-size: 0.6rem;
-  font-weight: 700;
+.metric-card__label {
+  font-size: 0.75rem;
+  font-weight: 600;
   color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
-  line-height: 1;
+  letter-spacing: 0.025em;
 }
 
-.compact-metric__value {
-  font-size: 0.95rem;
+.metric-card__value {
+  font-size: 1.5rem;
   font-weight: 800;
-  color: #0f172a;
-  line-height: 1.1;
+  color: #1e293b;
 }
 
 /* Panel de Estadísticas Premium */
-.selected-attention-card {
-  padding: 16px 20px;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.06), rgba(255, 255, 255, 0.95));
-}
-
 .stats-panel {
   padding: 24px;
   border-radius: 20px;

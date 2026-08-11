@@ -5,7 +5,7 @@
         <q-icon name="medical_services" color="primary" size="md" class="q-mr-md"/>
         <div class="col">
           <div class="text-h6 text-primary">Consulta General</div>
-          <div class="text-caption text-grey-7">Registro clínico completo y receta médica</div>
+          <div class="text-caption text-grey-7">Registro clínico completo</div>
         </div>
         <q-btn 
           v-if="modoLectura && !modoEdicionManual"
@@ -34,55 +34,86 @@
           icon="more_vert"
         >
           <q-list>
-            <q-item clickable @click="imprimirReceta('especial')">
+            <!-- Imprimir: Reporte Fijo (Especial) -->
+            <q-item clickable v-close-popup @click="imprimirReceta('especial')">
+              <q-item-section avatar>
+                <q-icon name="print" color="grey-7"/>
+              </q-item-section>
+              <q-item-section>Imprimir Reporte (Fijo)</q-item-section>
+            </q-item>
+            <q-separator />
+
+            <!-- Imprimir: dropdown si hay múltiples plantillas -->
+            <q-item v-if="plantillasServicio && plantillasServicio.length > 1" clickable>
               <q-item-section avatar>
                 <q-icon name="print" color="primary"/>
               </q-item-section>
-              <q-item-section>Imprimir Receta / Certificado</q-item-section>
-            </q-item>
-
-            <q-item clickable @click="firmarDocumento('especial')">
-              <q-item-section avatar>
-                <q-icon name="history_edu" color="orange-8"/>
-              </q-item-section>
-              <q-item-section>Visualizar y Firmar</q-item-section>
-            </q-item>
-
-            <q-item v-if="plantillasServicio && plantillasServicio.length > 0" clickable>
-              <q-item-section avatar>
-                <q-icon name="description" color="secondary"/>
-              </q-item-section>
-              <q-item-section>
-                Otras Plantillas
-                <q-tooltip>Selecciona una plantilla adicional</q-tooltip>
-              </q-item-section>
+              <q-item-section>Imprimir</q-item-section>
               <q-item-section side>
                 <q-icon name="chevron_right" />
               </q-item-section>
-              
               <q-menu anchor="top end" self="top start">
                 <q-list style="min-width: 200px">
-                  <q-item 
-                    v-for="p in plantillasServicio" 
-                    :key="p.id_plantilla" 
-                    clickable 
+                  <q-item
+                    v-for="p in plantillasServicio"
+                    :key="p.id_plantilla"
+                    clickable
                     v-close-popup
                     @click="imprimirReceta('plantilla', p.id_plantilla)"
                   >
                     <q-item-section avatar>
-                      <q-icon name="description" color="secondary" size="xs" />
+                      <q-icon name="print" color="primary" size="xs" />
                     </q-item-section>
                     <q-item-section>{{ p.nombre_plantilla || 'Plantilla ' + p.id_plantilla }}</q-item-section>
-                    <q-item-section side>
-                      <div class="row items-center q-gutter-xs">
-                        <q-btn flat round dense icon="print" size="xs" color="grey-7" @click.stop="imprimirReceta('plantilla', p.id_plantilla)" />
-                        <q-btn flat round dense icon="history_edu" size="xs" color="orange-8" @click.stop="firmarDocumento('plantilla', p.id_plantilla)" />
-                      </div>
-                    </q-item-section>
                   </q-item>
                 </q-list>
               </q-menu>
             </q-item>
+
+            <!-- Imprimir: directo si hay exactamente 1 plantilla -->
+            <q-item v-else-if="plantillasServicio && plantillasServicio.length === 1" clickable v-close-popup @click="imprimirReceta('plantilla', plantillasServicio[0].id_plantilla)">
+              <q-item-section avatar>
+                <q-icon name="print" color="primary"/>
+              </q-item-section>
+              <q-item-section>Imprimir: {{ plantillasServicio[0].nombre_plantilla }}</q-item-section>
+            </q-item>
+
+            <!-- Firmar: dropdown si hay múltiples plantillas -->
+            <q-item v-if="plantillasServicio && plantillasServicio.length > 1" clickable>
+              <q-item-section avatar>
+                <q-icon name="history_edu" color="orange-8"/>
+              </q-item-section>
+              <q-item-section>Firmar Documento</q-item-section>
+              <q-item-section side>
+                <q-icon name="chevron_right" />
+              </q-item-section>
+              <q-menu anchor="top end" self="top start">
+                <q-list style="min-width: 200px">
+                  <q-item-label header style="font-size: 10px;" class="text-grey-6 text-uppercase">Seleccionar plantilla a firmar</q-item-label>
+                  <q-item
+                    v-for="p in plantillasServicio"
+                    :key="p.id_plantilla"
+                    clickable
+                    v-close-popup
+                    @click="firmarDocumento('plantilla', p.id_plantilla)"
+                  >
+                    <q-item-section avatar>
+                      <q-icon name="history_edu" color="orange-7" size="xs" />
+                    </q-item-section>
+                    <q-item-section>{{ p.nombre_plantilla || 'Plantilla ' + p.id_plantilla }}</q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+            </q-item>
+
+            <!-- Firmar: directo si hay exactamente 1 plantilla -->
+            <q-item v-else-if="plantillasServicio && plantillasServicio.length === 1" clickable v-close-popup @click="firmarDocumento('plantilla', plantillasServicio[0].id_plantilla)">
+              <q-item-section avatar>
+                <q-icon name="history_edu" color="orange-8"/>
+              </q-item-section>
+              <q-item-section>Firmar: {{ plantillasServicio[0].nombre_plantilla }}</q-item-section>
+            </q-item>
+
             <q-separator />
             <q-item clickable @click="completarConsulta" :disable="!formularioValido">
               <q-item-section avatar>

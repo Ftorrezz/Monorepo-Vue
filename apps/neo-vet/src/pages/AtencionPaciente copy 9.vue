@@ -99,7 +99,59 @@
 
         </div>
 
-        <div class="sidebar-actions q-pa-sm" style="border-top: 1px solid #e2e8f0; min-height: 8px;">
+        <div class="sidebar-actions q-pa-sm" style="border-top: 1px solid #e2e8f0;">
+          <q-list class="q-px-xs">
+            <q-item 
+              clickable 
+              v-ripple 
+              :disable="!atencionActualData?.id"
+              class="nav-btn-add br-md q-mb-xs" 
+              @click="showAddServiceDialog = true" 
+              key="add-service-btn"
+            >
+              <q-item-section avatar>
+                <q-icon name="add_circle" :color="!atencionActualData?.id ? 'grey-5' : 'primary'" />
+              </q-item-section>
+              <q-item-section v-if="!sidebarCollapsed" :class="!atencionActualData?.id ? 'text-grey-5 text-weight-bold' : 'text-primary text-weight-bold'">Agregar Servicio</q-item-section>
+              <q-tooltip v-if="sidebarCollapsed" anchor="center right" self="center left">Agregar Servicio</q-tooltip>
+            </q-item>
+
+            <!-- Boton Guardar (Movido para visibilidad) -->
+            <q-item clickable v-ripple class="nav-btn-save br-md q-mb-xs" @click="guardarAtencion" v-if="atenciones.length > 0" key="save-atencion-btn">
+              <q-item-section avatar>
+                <q-icon name="save" :color="guardandoAtencion ? 'grey-4' : 'positive'" />
+              </q-item-section>
+              <q-item-section v-if="!sidebarCollapsed" class="text-positive text-weight-bold">
+                {{ guardandoAtencion ? 'Guardando...' : 'Guardar Atención' }}
+              </q-item-section>
+              <q-item-section side v-if="guardandoAtencion">
+                <q-spinner color="positive" size="14px" />
+              </q-item-section>
+              <q-tooltip v-if="sidebarCollapsed" anchor="center right" self="center left">Guardar Atención</q-tooltip>
+            </q-item>
+
+            <!-- Botón Finalizar Atención -->
+            <q-item clickable v-ripple class="nav-btn-finalize br-md q-mb-xs bg-red-1" @click="finalizarAtencion" v-if="atenciones.length > 0 && atencionActualData?.estado !== 'Finalizada'" key="finalize-atencion-btn">
+              <q-item-section avatar>
+                <q-icon name="check_circle" color="negative" />
+              </q-item-section>
+              <q-item-section v-if="!sidebarCollapsed" class="text-negative text-weight-bold">
+                Finalizar Atención
+              </q-item-section>
+              <q-tooltip v-if="sidebarCollapsed" anchor="center right" self="center left">Finalizar Atención</q-tooltip>
+            </q-item>
+
+            <!-- Botón Reabrir Atención -->
+            <q-item clickable v-ripple class="nav-btn-reabrir br-md q-mb-xs bg-blue-1" @click="reabrirAtencion" v-if="atenciones.length > 0 && atencionActualData?.estado === 'Finalizada'" key="reabrir-atencion-btn">
+              <q-item-section avatar>
+                <q-icon name="undo" color="primary" />
+              </q-item-section>
+              <q-item-section v-if="!sidebarCollapsed" class="text-primary text-weight-bold">
+                Reabrir Atención
+              </q-item-section>
+              <q-tooltip v-if="sidebarCollapsed" anchor="center right" self="center left">Reabrir Atención</q-tooltip>
+            </q-item>
+          </q-list>
         </div>
       </aside>
 
@@ -207,72 +259,61 @@
 
           </div>
 
-          <!-- Fila 2: Botones de acción + Motivo/Observación en la misma línea -->
-          <div class="row items-center no-wrap q-mt-sm header-action-row" v-if="atenciones.length > 0">
-
-            <!-- Motivo y observación (izquierda) -->
-            <div class="flex items-center q-mr-lg" v-if="atencionActualData?.motivo">
-              <q-icon name="assignment" size="15px" class="q-mr-xs text-warning" />
-              <span class="text-body2 text-weight-bold">
-                Motivo: <span class="text-warning">{{ atencionActualData?.motivo }}</span>
-              </span>
-              <q-separator vertical color="white" dark class="q-mx-sm opacity-40" inset />
-              <q-icon name="chat_bubble_outline" size="15px" class="q-mr-xs" />
-              <span class="text-body2">
-                Obs: <span class="opacity-90">{{ atencionActualData?.observacion || 'Ninguna' }}</span>
+          <!-- Fila 2: Botones de acción de la atención actual -->
+          <div class="row items-center q-mt-sm q-gutter-x-sm header-action-row" v-if="atenciones.length > 0">
+            <q-btn
+              unelevated
+              :disable="!atencionActualData?.id"
+              color="white"
+              text-color="primary"
+              icon="add_circle"
+              label="Agregar Servicio"
+              class="br-lg text-weight-bold q-px-md header-action-btn"
+              size="sm"
+              @click="showAddServiceDialog = true"
+            />
+            <q-btn
+              unelevated
+              color="white"
+              text-color="positive"
+              icon="save"
+              :label="guardandoAtencion ? 'Guardando...' : 'Guardar'"
+              class="br-lg text-weight-bold q-px-md header-action-btn"
+              size="sm"
+              :loading="guardandoAtencion"
+              @click="guardarAtencion"
+            />
+            <q-btn
+              v-if="atencionActualData?.estado !== 'Finalizada'"
+              unelevated
+              color="negative"
+              text-color="white"
+              icon="check_circle"
+              label="Finalizar"
+              class="br-lg text-weight-bold q-px-md header-action-btn"
+              size="sm"
+              @click="finalizarAtencion"
+            />
+            <q-btn
+              v-if="atencionActualData?.estado === 'Finalizada'"
+              unelevated
+              color="white"
+              text-color="blue-9"
+              icon="undo"
+              label="Reabrir"
+              class="br-lg text-weight-bold q-px-md header-action-btn"
+              size="sm"
+              @click="reabrirAtencion"
+            />
+            <div class="q-ml-auto">
+              <span class="text-caption opacity-70" v-if="atencionActualData?.motivo">
+                <q-icon name="assignment" size="13px" class="q-mr-xs text-warning" />
+                Motivo: <span class="text-warning text-weight-bold">{{ atencionActualData?.motivo }}</span>
+                <q-separator vertical color="white" dark class="q-mx-sm opacity-40" inset />
+                <q-icon name="chat_bubble_outline" size="13px" class="q-mr-xs" />
+                Obs: <span class="opacity-80">{{ atencionActualData?.observacion || 'Ninguna' }}</span>
               </span>
             </div>
-
-            <q-space />
-
-            <!-- Botones de acción (derecha) -->
-            <div class="flex items-center q-gutter-x-sm">
-              <q-btn
-                unelevated
-                :disable="!atencionActualData?.id"
-                color="white"
-                text-color="primary"
-                icon="add_circle"
-                label="Agregar Servicio"
-                class="br-lg text-weight-bold q-px-md header-action-btn"
-                size="sm"
-                @click="showAddServiceDialog = true"
-              />
-              <q-btn
-                unelevated
-                color="white"
-                text-color="positive"
-                icon="save"
-                :label="guardandoAtencion ? 'Guardando...' : 'Guardar'"
-                class="br-lg text-weight-bold q-px-md header-action-btn"
-                size="sm"
-                :loading="guardandoAtencion"
-                @click="guardarAtencion"
-              />
-              <q-btn
-                v-if="atencionActualData?.estado !== 'Finalizada'"
-                unelevated
-                color="negative"
-                text-color="white"
-                icon="check_circle"
-                label="Finalizar"
-                class="br-lg text-weight-bold q-px-md header-action-btn"
-                size="sm"
-                @click="finalizarAtencion"
-              />
-              <q-btn
-                v-if="atencionActualData?.estado === 'Finalizada'"
-                unelevated
-                color="white"
-                text-color="blue-9"
-                icon="undo"
-                label="Reabrir"
-                class="br-lg text-weight-bold q-px-md header-action-btn"
-                size="sm"
-                @click="reabrirAtencion"
-              />
-            </div>
-
           </div>
 
         </header>
@@ -323,12 +364,9 @@
                     :servicio-id="servicioSeleccionado.id"
                     :datos-iniciales="servicioSeleccionado.datos"
                     :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
-                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
                   />
 
                   <ServicioVacunacion
@@ -336,13 +374,12 @@
                     :atencion-id="String(atencionActualData.id)"
                     :servicio-id="servicioSeleccionado.id"
                     :datos-iniciales="servicioSeleccionado.datos"
-                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
                     :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <ServicioRecetaMedica
@@ -373,13 +410,12 @@
                     :atencion-id="String(atencionActualData.id)"
                     :servicio-id="servicioSeleccionado.id"
                     :datos-iniciales="servicioSeleccionado.datos"
-                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
                     :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <ServicioUltrasonido
@@ -387,13 +423,12 @@
                     :atencion-id="String(atencionActualData.id)"
                     :servicio-id="servicioSeleccionado.id"
                     :datos-iniciales="servicioSeleccionado.datos"
-                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
                     :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <ServicioExploracionFisica
@@ -401,13 +436,12 @@
                     :atencion-id="String(atencionActualData.id)"
                     :servicio-id="servicioSeleccionado.id"
                     :datos-iniciales="servicioSeleccionado.datos"
-                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
                     :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <ServicioHospitalizacion
@@ -415,13 +449,12 @@
                     :atencion-id="String(atencionActualData.id)"
                     :servicio-id="servicioSeleccionado.id"
                     :datos-iniciales="servicioSeleccionado.datos"
-                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
                     :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <ServicioMedicamento
@@ -429,13 +462,12 @@
                     :atencion-id="String(atencionActualData.id)"
                     :servicio-id="servicioSeleccionado.id"
                     :datos-iniciales="servicioSeleccionado.datos"
-                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
                     :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <ServicioFisioterapia
@@ -443,13 +475,12 @@
                     :atencion-id="String(atencionActualData.id)"
                     :servicio-id="servicioSeleccionado.id"
                     :datos-iniciales="servicioSeleccionado.datos"
-                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
                     :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <ServicioUrgencia
@@ -457,13 +488,12 @@
                     :atencion-id="String(atencionActualData.id)"
                     :servicio-id="servicioSeleccionado.id"
                     :datos-iniciales="servicioSeleccionado.datos"
-                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
                     :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <ServicioEstetica
@@ -471,13 +501,12 @@
                     :atencion-id="String(atencionActualData.id)"
                     :servicio-id="servicioSeleccionado.id"
                     :datos-iniciales="servicioSeleccionado.datos"
-                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
                     :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
                     @servicio-actualizado="actualizarServicio"
                     @servicio-completado="completarServicio"
                     @servicio-eliminado="eliminarServicio"
-                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
-                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
                   />
 
                   <OrdenLaboratorio
@@ -502,7 +531,7 @@
                       @servicio-actualizado="actualizarServicio"
                       @servicio-completado="completarServicio"
                       @servicio-eliminado="eliminarServicio"
-                      @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
+                      @imprimir-servicio="imprimirDocumentoServicio(servicioSeleccionado)"
                       @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
                     />
                   </template>
