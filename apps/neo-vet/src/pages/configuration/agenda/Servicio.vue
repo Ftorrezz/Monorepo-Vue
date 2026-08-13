@@ -72,7 +72,7 @@
                         </div>
                          <div class="text-caption text-grey-7 flex items-center">
                           <q-icon name="attach_money" size="14px" class="q-mr-xs" />
-                          {{ service.precio.toFixed(2) }}
+                          {{ Number(service.precio).toFixed(2) }}
                         </div>
                       </div>
                     </div>
