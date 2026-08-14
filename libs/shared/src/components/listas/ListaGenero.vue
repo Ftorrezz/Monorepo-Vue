@@ -1,7 +1,8 @@
 <template>
   <ListaSelect
     v-model="modeloInterno"
-    endpoint="generoconfiguracion"
+    endpoint="configuracionparametros"
+    :filtro="{ id_modulo: 5, id_tabla: 7 }"
     label="Género"
     v-bind="$attrs"
     @update:model-value="$emit('update:modelValue', $event)"
