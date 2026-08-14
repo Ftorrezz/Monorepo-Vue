@@ -163,7 +163,7 @@
                           <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
                             <ListaGenero
                               v-model="propietario.id_genero"
-                              dense
+                               dense
                             />
                           </div>
 
@@ -472,7 +472,7 @@ const defaultPropietario = {
 // Función para normalizar los datos (manejar objetos anidados si los hay)
 const normalizarDatos = (data: any) => {
   if (!data) return { ...defaultPropietario };
-  
+
   const normalized = { ...defaultPropietario, ...data };
 
   // Si los campos de ID traen el objeto completo de la relación, extraemos el ID para el v-model
@@ -507,7 +507,7 @@ const cargarPropietarioCompleto = async (id: number) => {
   try {
     const rawData = await peticionService.obtenerGet('propietario/' + id);
     const fullData = Array.isArray(rawData) ? rawData[0] : rawData;
-    
+
     if (fullData) {
       propietario.value = normalizarDatos(fullData);
       if (fullData.foto) {
