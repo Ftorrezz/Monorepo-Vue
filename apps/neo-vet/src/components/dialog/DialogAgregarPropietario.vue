@@ -625,6 +625,7 @@ const guardarPropietario = async () => {
     datosPropietarioPayload.id_estado = obtenerIDValue(datosPropietarioPayload.id_estado);
     datosPropietarioPayload.id_municipio = obtenerIDValue(datosPropietarioPayload.id_municipio);
     datosPropietarioPayload.id_colonia = obtenerIDValue(datosPropietarioPayload.id_colonia);
+    
     // Considera también id_estadocivil y id_escolaridad si usas componentes similares para ellos
 
     if (datosPropietarioPayload.id) {

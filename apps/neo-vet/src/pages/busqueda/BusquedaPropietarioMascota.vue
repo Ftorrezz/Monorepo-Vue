@@ -228,13 +228,13 @@ const buscar = async () => {
 
     let _unDtoParametros = new DtoParametros();
     _unDtoParametros.filtro = {
-      id_sitio: 1,
-      nombre: formData.value.propietario.nombre,
-      segundoapellido: formData.value.propietario.segundoapellido,
-      primerapellido: formData.value.propietario.primerapellido,
-      email: formData.value.propietario.email,
-      telefono1: formData.value.propietario.telefono1,
-      nombre_mascota: formData.value.mascota.nombre,
+      id_sitio: 1,  
+      nombre: formData.value.propietario.nombre?.toUpperCase(),
+      segundoapellido: formData.value.propietario.segundoapellido?.toUpperCase(),
+      primerapellido: formData.value.propietario.primerapellido?.toUpperCase(),
+      email: formData.value.propietario.email?.toUpperCase(),
+      telefono1: formData.value.propietario.telefono1?.toUpperCase(),
+      nombre_mascota: formData.value.mascota.nombre?.toUpperCase(),
       historia_clinica: formData.value.mascota.historia_clinica
     };
 

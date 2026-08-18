@@ -262,7 +262,7 @@ export default defineComponent({
       if (props.serviciosCustom) return props.serviciosCustom
 
       if (props.serviciosCatalogo && props.serviciosCatalogo.length > 0) {
-        return props.serviciosCatalogo.map(s => {
+        return props.serviciosCatalogo.filter(s => s.activo === 'S').map(s => {
           const tipo = s.componente_clave || s.identificador || String(s.id)
           let pred = serviciosDisponiblesPredeterminados.find(p =>
             p.tipo === tipo || (typeof tipo === 'string' && p.tipo.toLowerCase() === tipo.toLowerCase())

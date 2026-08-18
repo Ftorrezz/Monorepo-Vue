@@ -1,0 +1,2479 @@
+<template>
+  <div class="fullscreen-atencion">
+    <div class="app-shell" :class="{ 'is-collapsed': sidebarCollapsed }">
+      <!-- SIDEBAR LATERAL SEGUIMIENTO -->
+      <aside class="atencion-sidebar">
+        <div class="sidebar-header q-pa-md flex items-center justify-between">
+
+          <div class="header-left flex items-center">
+            <q-btn
+              flat round dense
+              :icon="sidebarCollapsed ? 'last_page' : 'first_page'"
+              color="white"
+              @click="sidebarCollapsed = !sidebarCollapsed"
+            />
+            <div class="sidebar-title q-ml-sm text-weight-bold" v-if="!sidebarCollapsed">Atención</div>
+          </div>
+
+        </div>
+
+        <div class="sidebar-main scroll">
+
+
+
+          <!-- Timeline de Historial Contextual (Mejorado) -->
+          <div class="history-context-section q-mt-md q-pb-md" v-if="!sidebarCollapsed && atenciones.length > 0" key="history-section">
+            <div class="flex items-center q-px-md q-mb-sm">
+              <q-icon name="history" color="grey-6" size="18px" class="q-mr-sm" />
+              <div class="text-uppercase text-weight-bold text-caption text-grey-7 letter-spacing-1">Historial de Atención</div>
+            </div>
+
+            <q-list class="q-gutter-y-xs">
+              <q-item
+                v-for="(atenc, idx) in atenciones.slice(0, 5)"
+                :key="'hist-' + atenc.id"
+                clickable v-ripple
+                @click="atencionActual = idx"
+                :active="atencionActual === idx"
+                class="br-lg q-mx-md history-card-item"
+                :class="{ 'history-card-active': atencionActual === idx }"
+              >
+                <q-item-section>
+                  <div class="row items-center justify-between no-wrap q-mb-xs">
+                    <q-item-label class="text-weight-bolder text-body2 text-primary">{{ atenc.numero }}</q-item-label>
+                    <q-item-label caption class="text-weight-bold">{{ atenc.fecha }}</q-item-label>
+                  </div>
+                  <q-item-label caption lines="1" class="text-grey-7 flex items-center">
+                    <q-icon name="person" size="12px" class="q-mr-xs" />
+                    {{ atenc.veterinario }}
+                  </q-item-label>
+                </q-item-section>
+
+                <q-item-section side v-if="atenc.estado === 'Finalizada'">
+                  <q-icon name="check_circle" color="grey-4" size="16px" />
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </div>
+
+          <!-- Navegación de Servicios Activos -->
+          <q-list class="q-px-sm" padding>
+            <q-item-label header v-if="!sidebarCollapsed" class="text-uppercase text-weight-bold text-caption text-grey-5 letter-spacing-1">Servicios de Atención</q-item-label>
+
+            <q-item
+              clickable v-ripple
+              :active="servicioActivoTab === 'resumen'"
+              @click="servicioActivoTab = 'resumen'"
+              active-class="nav-active"
+              class="nav-btn br-md q-mb-xs"
+            >
+              <q-item-section avatar>
+                <q-icon name="grid_view" />
+              </q-item-section>
+              <q-item-section v-if="!sidebarCollapsed">Resumen Clínico</q-item-section>
+              <q-tooltip v-if="sidebarCollapsed" anchor="center right" self="center left">Resumen</q-tooltip>
+            </q-item>
+
+            <q-item
+              v-for="servicio in serviciosAplicados"
+              :key="'sidebar-nav-' + servicio.id"
+              clickable v-ripple
+              :active="servicioActivoTab === servicio.id"
+              @click="servicioActivoTab = servicio.id"
+              active-class="nav-active"
+              class="nav-btn br-md q-mb-xs"
+            >
+              <q-item-section avatar>
+                <q-icon :name="servicio.icono" />
+              </q-item-section>
+              <q-item-section v-if="!sidebarCollapsed">
+                <q-item-label class="text-weight-medium">{{ servicio.nombre }}</q-item-label>
+              </q-item-section>
+              <q-item-section side v-if="servicio.completado && !sidebarCollapsed">
+                <q-icon name="verified" color="positive" size="16px" />
+              </q-item-section>
+              <q-tooltip v-if="sidebarCollapsed" anchor="center right" self="center left">{{ servicio.nombre }}</q-tooltip>
+            </q-item>
+
+          </q-list>
+
+        </div>
+
+        <div class="sidebar-actions q-pa-sm" style="border-top: 1px solid #e2e8f0; min-height: 8px;">
+        </div>
+      </aside>
+
+      <!-- MAIN WORKSPACE -->
+      <main class="main-workspace flex column">
+        <!-- Header Premium Modernizado (Atención 2.0 - Refined) -->
+        <header class="workspace-header workspace-header--premium q-px-lg q-py-sm text-white border-bottom shadow-2">
+          <!-- Fila 1: Info de paciente + profesional + acciones de navegación -->
+          <div class="row items-center no-wrap full-width">
+
+            <!-- Columna 1: Folio y Estado -->
+            <div class="col-auto q-pr-lg border-right-glass">
+              <div class="flex items-center q-mb-xs">
+                <div class="folio-badge q-px-md q-py-xs br-pill text-weight-bolder">
+                   <q-icon name="pin" class="q-mr-xs" /> {{ atencionActualData?.numero || 'A-00' }}
+                </div>
+                
+              </div>
+              <div class="row items-center">
+                 <div class="status-indicator" :class="{ 'is-finalized': atencionActualData?.estado === 'Finalizada' }"></div>
+                 <span class="text-caption text-weight-bold letter-spacing-1 uppercase opacity-80">{{ atencionActualData?.estado || 'En curso' }}</span>
+              </div>
+            </div>
+
+            <!-- Columna 2: Mascota y Propietario (Datos Concatenados) -->
+            <div class="col q-px-lg">
+              <div class="info-stack" v-if="paciente && paciente.id">
+                <div class="row items-center no-wrap">
+                  <span class="text-h5 text-weight-bolder truncate q-mr-md patient-name-glow">{{ getMascotaDisplay?.nombre }}</span>
+                  <div class="flex items-center gap-xs">
+                    <q-badge outline color="white" class="br-md text-caption text-weight-medium opacity-90">
+                      {{ getMascotaDisplay?.especieLabel }} / {{ getMascotaDisplay?.razaLabel }}
+                    </q-badge>
+                    <q-badge v-if="getMascotaDisplay?.sexoLabel" outline color="white" class="br-md text-caption uppercase opacity-90">
+                      <q-icon :name="getMascotaDisplay?.id_sexo === 14 ? 'female' : 'male'" size="14px" class="q-mr-xs" />
+                      {{ getMascotaDisplay.sexoLabel }}
+                    </q-badge>
+                    <q-badge v-if="getMascotaDisplay?.edadDisplay && getMascotaDisplay?.edadDisplay !== 'N/A'" outline color="white" class="br-md text-caption opacity-90">
+                      <q-icon name="cake" size="14px" class="q-mr-xs" />
+                      {{ getMascotaDisplay.edadDisplay }}
+                    </q-badge>
+                    <q-badge v-if="getMascotaDisplay?.colorLabel" outline color="white" class="br-md text-caption opacity-90">
+                      <q-icon name="palette" size="14px" class="q-mr-xs" />
+                      {{ getMascotaDisplay.colorLabel }}
+                    </q-badge>
+                    
+                    <q-btn flat round icon="info" size="sm" color="white" class="q-ml-sm info-btn opacity-90">
+                      <q-tooltip class="bg-white text-primary shadow-2 border-primary" style="font-size: 11px">
+                        <div class="q-pa-xs">
+                          <div class="text-weight-bold q-mb-xs">Detalles adicionales:</div>
+                          <div v-if="getMascotaDisplay?.chip"><b>Chip:</b> {{ getMascotaDisplay.chip }}</div>
+                          <div v-if="getMascotaDisplay?.fechachip"><b>Fecha Chip:</b> {{ formatDate(getMascotaDisplay.fechachip) }}</div>
+                          <div><b>Esterilizado:</b> {{ getMascotaDisplay?.esterilizado === 'S' ? 'Sí' : 'No' }}</div>
+                          <div><b>Pedigrí:</b> {{ getMascotaDisplay?.pedigri === 'S' ? 'Sí' : 'No' }}</div>
+                          <div v-if="getMascotaDisplay?.observaciones" class="q-mt-xs">
+                             <b>Obs:</b> {{ getMascotaDisplay.observaciones }}
+                          </div>
+                        </div>
+                      </q-tooltip>
+                    </q-btn>
+                  </div>
+                </div>
+                <div class="owner-info flex items-center q-mt-xs opacity-90">
+                  <q-icon name="person" size="16px" class="q-mr-xs" />
+                  <span class="text-caption text-weight-bold uppercase">
+                    {{ paciente?.propietario?.nombre }} {{ paciente?.propietario?.primerapellido }} {{ paciente?.propietario?.segundoapellido }}
+                   <span v-if="paciente?.propietario?.email" class="q-ml-md"> <q-icon name="email" size="12px" /> {{ paciente.propietario.email }}</span>
+                   <span v-if="paciente?.propietario?.telefono1" class="q-ml-md"> <q-icon name="phone" size="12px" /> {{ paciente.propietario.telefono1 }}</span>
+                  </span>
+                  <q-separator vertical color="white" dark class="q-mx-md opacity-40" inset />
+                  <q-icon name="event" size="16px" class="q-mr-xs" />
+                  <span class="text-caption">{{ formatDate(atencionActualData?.fecha) }} {{ atencionActualData?.hora }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Columna 3: Profesional y Buscador -->
+            <div class="col-auto row items-center no-wrap">
+              <div class="professional-pill q-px-md q-py-sm br-xl flex items-center q-mr-md">
+                 <q-avatar size="32px" class="bg-white text-primary text-weight-bold shadow-1">
+                   {{ atencionActualData?.veterinario?.[0] || 'P' }}
+                 </q-avatar>
+                 <div class="q-ml-sm hide-mobile">
+                    <div class="text-caption text-weight-bold leading-none">Profesional</div>
+                    <div class="text-subtitle2 text-weight-bolder text-white truncate max-width-250">{{ atencionActualData?.veterinario }}</div>
+                 </div>
+              </div>
+
+              <div class="flex items-center">
+                <q-btn-group unelevated class="br-lg shadow-1">
+                  <q-btn
+                    color="white"
+                    text-color="blue-10"
+                    icon="add"
+                    label="Nueva Atención"
+                    @click="nuevaAtencion"
+                    class="text-weight-bold"
+                    :disable="(atenciones.length > 0 && !atenciones[atencionActual]?.id) || guardandoAtencion"
+                    :title="(atenciones.length > 0 && !atenciones[atencionActual]?.id) ? 'Guarda la atención actual antes de crear una nueva' : (guardandoAtencion ? 'Guardando atención...' : 'Crear nueva atención')"
+                  />
+                  <q-btn color="blue-9" icon="search" @click="showSearchDialog = true" />
+                </q-btn-group>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Fila 2: Botones de acción + Motivo/Observación en la misma línea -->
+          <div class="row items-center no-wrap q-mt-sm header-action-row" v-if="atenciones.length > 0">
+
+            <!-- Motivo y observación (izquierda) -->
+            <div class="flex items-center q-mr-lg" v-if="atencionActualData?.motivo">
+              <q-icon name="assignment" size="15px" class="q-mr-xs text-warning" />
+              <span class="text-body2 text-weight-bold">
+                Motivo: <span class="text-warning">{{ atencionActualData?.motivo }}</span>
+              </span>
+              <q-separator vertical color="white" dark class="q-mx-sm opacity-40" inset />
+              <q-icon name="chat_bubble_outline" size="15px" class="q-mr-xs" />
+              <span class="text-body2">
+                Obs: <span class="opacity-90">{{ atencionActualData?.observacion || 'Ninguna' }}</span>
+              </span>
+            </div>
+
+            <q-space />
+
+            <!-- Botones de acción (derecha) -->
+            <div class="flex items-center q-gutter-x-sm">
+              <q-btn
+                unelevated
+                :disable="!atencionActualData?.id"
+                color="white"
+                text-color="primary"
+                icon="add_circle"
+                label="Agregar Servicio"
+                class="br-lg text-weight-bold q-px-md header-action-btn"
+                size="sm"
+                @click="showAddServiceDialog = true"
+              />
+              <q-btn
+                unelevated
+                color="white"
+                text-color="positive"
+                icon="save"
+                :label="guardandoAtencion ? 'Guardando...' : 'Guardar'"
+                class="br-lg text-weight-bold q-px-md header-action-btn"
+                size="sm"
+                :loading="guardandoAtencion"
+                @click="guardarAtencion"
+              />
+              <q-btn
+                v-if="atencionActualData?.estado !== 'Finalizada'"
+                unelevated
+                color="negative"
+                text-color="white"
+                icon="check_circle"
+                label="Finalizar"
+                class="br-lg text-weight-bold q-px-md header-action-btn"
+                size="sm"
+                @click="finalizarAtencion"
+              />
+              <q-btn
+                v-if="atencionActualData?.estado === 'Finalizada'"
+                unelevated
+                color="white"
+                text-color="blue-9"
+                icon="undo"
+                label="Reabrir"
+                class="br-lg text-weight-bold q-px-md header-action-btn"
+                size="sm"
+                @click="reabrirAtencion"
+              />
+            </div>
+
+          </div>
+
+        </header>
+
+        <!-- Viewport de Contenido -->
+        <div class="workspace-viewport col scroll bg-grey-1" :key="'viewport-' + atencionActualData.id">
+          <!-- Empty States -->
+          <div v-if="atenciones.length === 0" class="full-height flex flex-center" key="empty-state">
+             <div class="text-center animate-fade-in" v-if="!paciente">
+                <q-icon name="manage_search" size="80px" color="grey-3" />
+                <div class="text-h6 text-grey-5 q-mt-md">Selecciona un paciente para continuar</div>
+                <q-btn unelevated color="primary" label="Buscar Paciente / Propietario" class="q-mt-lg br-xl q-px-xl" size="lg" icon="search" @click="showSearchDialog = true" />
+             </div>
+             <div class="text-center animate-fade-in" v-else>
+                <q-icon name="post_add" size="80px" color="blue-1" />
+                <div class="text-h6 text-grey-7 q-mt-md">No hay atenciones para {{ paciente.nombre }}</div>
+                <q-btn unelevated color="primary" label="Iniciar Nueva Atención" class="q-mt-lg br-xl q-px-xl" size="lg" icon="add" @click="nuevaAtencion" />
+             </div>
+          </div>
+
+          <!-- Contenido Activo -->
+          <div v-else class="active-content-render q-pa-lg">
+             <!-- RENDERIZADOR ESTABILIZADO (Atención 2.0) -->
+             <div class="service-view-port br-xl bg-white shadow-2 q-pa-none overflow-hidden"
+                  style="min-height: 500px"
+                  :key="'service-container-' + (servicioSeleccionado?.id || 'resumen')">
+
+                <!-- 1. RESUMEN CLÍNICO -->
+                <div v-if="servicioActivoTab === 'resumen'" key="resumen-content" class="animate-fade-in">
+                  <ServicioResumen
+                    :atencion="atencionActualData"
+                    :paciente="paciente"
+                    :servicios-aplicados="serviciosAplicados"
+                    @seleccionar-pestaña="id => servicioActivoTab = id"
+                    @nueva-atencion="nuevaAtencion"
+                    @imprimir-resumen="imprimirResumenAtencion"
+                    @imprimir-servicio="imprimirDocumentoServicio"
+                    @firmar-servicio="firmarServicio"
+                  />
+                </div>
+
+                <!-- 2. SERVICIO SELECCIONADO (Sin v-for para mayor estabilidad) -->
+                <div v-else-if="servicioSeleccionado" :key="'content-' + servicioSeleccionado.id" class="animate-fade-in full-width">
+
+                  <ServicioConsultaGeneral
+                    v-if="servicioSeleccionado.componente_clave === 'consulta'"
+                    :atencion-id="String(atencionActualData.id)"
+                    :servicio-id="servicioSeleccionado.id"
+                    :datos-iniciales="servicioSeleccionado.datos"
+                    :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
+                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
+                    @servicio-actualizado="actualizarServicio"
+                    @servicio-completado="completarServicio"
+                    @servicio-eliminado="eliminarServicio"
+                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                  />
+
+                  <ServicioVacunacion
+                    v-else-if="servicioSeleccionado.componente_clave === 'vacunacion'"
+                    :atencion-id="String(atencionActualData.id)"
+                    :servicio-id="servicioSeleccionado.id"
+                    :datos-iniciales="servicioSeleccionado.datos"
+                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
+                    :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
+                    @servicio-actualizado="actualizarServicio"
+                    @servicio-completado="completarServicio"
+                    @servicio-eliminado="eliminarServicio"
+                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                  />
+
+                  <ServicioRecetaMedica
+                    v-else-if="servicioSeleccionado.componente_clave === 'receta' || servicioSeleccionado.componente_clave === 'receta_medica'"
+                    :atencion-id="String(atencionActualData.id)"
+                    :servicio-id="servicioSeleccionado.id"
+                    :datos-iniciales="servicioSeleccionado.datos"
+                    :paciente="paciente"
+                    :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
+                    @servicio-actualizado="actualizarServicio"
+                    @servicio-completado="completarServicio"
+                    @servicio-eliminado="eliminarServicio"
+                  />
+
+                  <ServicioDesparasitacion
+                    v-else-if="servicioSeleccionado.componente_clave === 'desparasitacion'"
+                    :atencion-id="String(atencionActualData.id)"
+                    :servicio-id="servicioSeleccionado.id"
+                    :datos-iniciales="servicioSeleccionado.datos"
+                    :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
+                    @servicio-actualizado="actualizarServicio"
+                    @servicio-completado="completarServicio"
+                    @servicio-eliminado="eliminarServicio"
+                  />
+
+                  <ServicioRayosX
+                    v-else-if="servicioSeleccionado.componente_clave === 'rayosx'"
+                    :atencion-id="String(atencionActualData.id)"
+                    :servicio-id="servicioSeleccionado.id"
+                    :datos-iniciales="servicioSeleccionado.datos"
+                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
+                    :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
+                    @servicio-actualizado="actualizarServicio"
+                    @servicio-completado="completarServicio"
+                    @servicio-eliminado="eliminarServicio"
+                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                  />
+
+                  <ServicioUltrasonido
+                    v-else-if="servicioSeleccionado.componente_clave === 'ultrasonido'"
+                    :atencion-id="String(atencionActualData.id)"
+                    :servicio-id="servicioSeleccionado.id"
+                    :datos-iniciales="servicioSeleccionado.datos"
+                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
+                    :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
+                    @servicio-actualizado="actualizarServicio"
+                    @servicio-completado="completarServicio"
+                    @servicio-eliminado="eliminarServicio"
+                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                  />
+
+                  <ServicioExploracionFisica
+                    v-else-if="servicioSeleccionado.componente_clave === 'exploracion'"
+                    :atencion-id="String(atencionActualData.id)"
+                    :servicio-id="servicioSeleccionado.id"
+                    :datos-iniciales="servicioSeleccionado.datos"
+                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
+                    :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
+                    @servicio-actualizado="actualizarServicio"
+                    @servicio-completado="completarServicio"
+                    @servicio-eliminado="eliminarServicio"
+                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                  />
+
+                  <ServicioHospitalizacion
+                    v-else-if="servicioSeleccionado.componente_clave === 'hospitalizacion'"
+                    :atencion-id="String(atencionActualData.id)"
+                    :servicio-id="servicioSeleccionado.id"
+                    :datos-iniciales="servicioSeleccionado.datos"
+                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
+                    :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
+                    @servicio-actualizado="actualizarServicio"
+                    @servicio-completado="completarServicio"
+                    @servicio-eliminado="eliminarServicio"
+                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                  />
+
+                  <ServicioMedicamento
+                    v-else-if="servicioSeleccionado.componente_clave === 'medicamentos'"
+                    :atencion-id="String(atencionActualData.id)"
+                    :servicio-id="servicioSeleccionado.id"
+                    :datos-iniciales="servicioSeleccionado.datos"
+                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
+                    :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
+                    @servicio-actualizado="actualizarServicio"
+                    @servicio-completado="completarServicio"
+                    @servicio-eliminado="eliminarServicio"
+                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                  />
+
+                  <ServicioFisioterapia
+                    v-else-if="servicioSeleccionado.componente_clave === 'rehabilitacion'"
+                    :atencion-id="String(atencionActualData.id)"
+                    :servicio-id="servicioSeleccionado.id"
+                    :datos-iniciales="servicioSeleccionado.datos"
+                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
+                    :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
+                    @servicio-actualizado="actualizarServicio"
+                    @servicio-completado="completarServicio"
+                    @servicio-eliminado="eliminarServicio"
+                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                  />
+
+                  <ServicioUrgencia
+                    v-else-if="servicioSeleccionado.componente_clave === 'emergencia'"
+                    :atencion-id="String(atencionActualData.id)"
+                    :servicio-id="servicioSeleccionado.id"
+                    :datos-iniciales="servicioSeleccionado.datos"
+                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
+                    :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
+                    @servicio-actualizado="actualizarServicio"
+                    @servicio-completado="completarServicio"
+                    @servicio-eliminado="eliminarServicio"
+                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                  />
+
+                  <ServicioEstetica
+                    v-else-if="servicioSeleccionado.componente_clave === 'estetica'"
+                    :atencion-id="String(atencionActualData.id)"
+                    :servicio-id="servicioSeleccionado.id"
+                    :datos-iniciales="servicioSeleccionado.datos"
+                    :plantillas-servicio="servicioSeleccionado.plantillas_servicio || []"
+                    :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
+                    @servicio-actualizado="actualizarServicio"
+                    @servicio-completado="completarServicio"
+                    @servicio-eliminado="eliminarServicio"
+                    @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                  />
+
+                  <OrdenLaboratorio
+                    v-else-if="servicioSeleccionado.componente_clave === 'laboratorio'"
+                    :atencion-id="String(atencionActualData.id)"
+                    :servicio-id="servicioSeleccionado.id"
+                    :datos-iniciales="servicioSeleccionado.datos"
+                    :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
+                    @servicio-actualizado="actualizarServicio"
+                    @servicio-completado="completarServicio"
+                    @servicio-eliminado="eliminarServicio"
+                  />
+
+                  <template v-else-if="servicioSeleccionado.tipo_renderizado === 'dinamico'">
+                    <ServicioDinamico
+                      :schema="servicioSeleccionado"
+                      :atencion-id="String(atencionActualData.id)"
+                      :servicio-id="servicioSeleccionado.id"
+                      :datos-iniciales="servicioSeleccionado.datos"
+                      :catalogos="catalogosSistemas"
+                      :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
+                      @servicio-actualizado="actualizarServicio"
+                      @servicio-completado="completarServicio"
+                      @servicio-eliminado="eliminarServicio"
+                      @imprimir-servicio="(_id, _datos, tipo, idPlantilla) => imprimirDocumentoServicio(servicioSeleccionado, tipo, idPlantilla)"
+                      @firmar-servicio="(_id, _datos, tipo, idPlantilla) => firmarServicio(servicioSeleccionado, tipo, idPlantilla)"
+                    />
+                  </template>
+
+                  <ServicioArchivos
+                    v-else-if="servicioSeleccionado.componente_clave === 'archivos'"
+                    :servicio-id="servicioSeleccionado.id"
+                    :atencion-id="String(atencionActualData.id)"
+                    :datos-iniciales="servicioSeleccionado.datos"
+                    :modo-lectura="servicioSeleccionado.completado || atencionActualData.estado === 'Finalizada'"
+                    @servicio-actualizado="actualizarServicio"
+                    @servicio-completado="completarServicio"
+                    @servicio-eliminado="eliminarServicio"
+                  />
+
+                  <div v-else class="q-pa-xl text-center">
+                     <q-icon :name="servicioSeleccionado.icono" size="50px" color="grey-3" />
+                     <div class="text-h6 text-grey-5">{{ servicioSeleccionado.nombre }}</div>
+                     <div class="text-caption">Módulo especializado en proceso de optimización</div>
+                     <q-btn flat color="negative" label="Remover Servicio" class="q-mt-lg" @click="eliminarServicio(servicioSeleccionado.id)" />
+                  </div>
+                </div>
+             </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- OVERLAYS & DIALOGS -->
+    <q-inner-loading :showing="cargandoConfiguracion" class="bg-white" style="z-index: 9999">
+      <q-spinner-dots color="primary" size="60px" />
+      <div class="text-primary text-weight-bold q-mt-md">Preparando espacio de trabajo...</div>
+    </q-inner-loading>
+
+    <q-dialog v-model="showNuevaAtencionDialog" persistent>
+      <q-card style="width: 450px" class="br-xl overflow-hidden">
+        <q-card-section class="bg-primary text-white q-pa-lg">
+          <div class="text-h6 text-weight-bolder">Nueva Atención</div>
+        </q-card-section>
+        <q-card-section class="q-pa-lg q-gutter-md">
+          <q-select v-model="formNuevaAtencion.veterinario_id" :options="profesionalesOpciones" label="Profesional *" outlined dense emit-value map-options class="br-md" />
+          <q-select v-model="formNuevaAtencion.motivo_id" :options="motivosOpciones" label="Motivo *" outlined dense emit-value map-options class="br-md" />
+          <q-input v-model="formNuevaAtencion.observaciones" label="Observaciones" type="textarea" outlined dense class="br-md" />
+        </q-card-section>
+        <q-card-actions align="right" class="q-pa-lg">
+          <q-btn flat label="Cancelar" color="grey-7" v-close-popup />
+          <q-btn unelevated label="Comenzar" color="primary" @click="crearNuevaAtencion" class="br-lg q-px-lg" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <!--<q-dialog v-model="showAddServiceDialog" position="right" maximized transition-show="slide-left" transition-hide="slide-right">
+      <q-card style="width: 500px; max-width: 90vw; background-color: #f8fafd;" class="column full-height">
+        <q-card-section class="flex items-center q-pa-lg">
+          <div class="text-h6 text-weight-bold">Servicios Disponibles</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+        <q-card-section class="col scroll q-pa-md">
+          <ServiciosDisponibles
+            :servicios-aplicados="serviciosAplicados"
+            :servicios-dinamicos="serviciosDinamicosParaLista"
+            :servicios-catalogo="catalogoServiciosBD"
+            :atencion-finalizada="atencionActualData?.estado === 'Finalizada'"
+            @agregar-servicio="agregarServicioEnDialogo"
+            @close="showAddServiceDialog = false"
+          />
+        </q-card-section>
+      </q-card>
+    </q-dialog>-->
+
+    <q-dialog v-model="showAddServiceDialog" transition-show="scale" transition-hide="scale">
+  <q-card style="width: 860px; max-width: 95vw; max-height: 88vh; background-color: #f8fafc;" class="column overflow-hidden br-xl">
+    <q-card-section class="flex items-center q-pa-md bg-white border-bottom">
+      <q-icon name="medical_services" color="blue-8" size="22px" class="q-mr-sm" />
+      <div class="text-subtitle1 text-weight-bold text-dark">Servicios Disponibles</div>
+      <q-space />
+      <q-btn icon="close" flat round dense color="grey-6" v-close-popup />
+    </q-card-section>
+    <q-card-section class="col q-pa-none overflow-hidden">
+      <ServiciosDisponibles
+        :servicios-aplicados="serviciosAplicados"
+        :servicios-dinamicos="serviciosDinamicosParaLista"
+        :servicios-catalogo="catalogoServiciosBD"
+        :atencion-finalizada="atencionActualData?.estado === 'Finalizada'"
+        @agregar-servicio="agregarServicioEnDialogo"
+        @close="showAddServiceDialog = false"
+      />
+    </q-card-section>
+  </q-card>
+</q-dialog>
+
+    <q-dialog v-model="showSearchDialog" transition-show="scale" transition-hide="scale">
+       <q-card style="width: 1400px; max-width: 98vw; height: 90vh;" class="bg-grey-1 br-xl overflow-hidden column">
+         <q-toolbar class="bg-primary text-white q-pa-lg">
+           <q-icon name="manage_search" size="32px" class="q-mr-md" />
+           <q-toolbar-title class="text-weight-bolder text-h5">Buscador de Pacientes</q-toolbar-title>
+           <q-btn flat round icon="close" v-close-popup />
+         </q-toolbar>
+         <q-card-section class="q-pa-lg col scroll">
+            <div class="full-width q-px-md">
+                <!-- Filtros de búsqueda premium expandidos -->
+                <div class="search-filters-container q-pa-md br-xl bg-white shadow-1 q-mb-lg">
+                  <div class="row q-col-gutter-md items-end">
+                    <!-- Fila 1: Propietario -->
+                    <div class="col-12 col-md-3">
+                      <div class="text-caption text-weight-bold text-grey-7 q-mb-xs">Primer Apellido</div>
+                      <q-input v-model="busquedaFormData.propietario.primerapellido" @update:model-value="val => busquedaFormData.propietario.primerapellido = (val || '').toUpperCase()" placeholder="Ej: Perez" outlined dense bg-color="white" class="br-md" @keyup.enter="buscarPacientes">
+                        <template v-slot:prepend><q-icon name="badge" color="primary" /></template>
+                      </q-input>
+                    </div>
+                    
+                    <div class="col-12 col-md-3">
+                      <div class="text-caption text-weight-bold text-grey-7 q-mb-xs">Segundo Apellido</div>
+                      <q-input v-model="busquedaFormData.propietario.segundoapellido" @update:model-value="val => busquedaFormData.propietario.segundoapellido = (val || '').toUpperCase()" placeholder="Ej: Garcia" outlined dense bg-color="white" class="br-md" @keyup.enter="buscarPacientes"></q-input>
+                    </div>
+                    <div class="col-12 col-md-3">
+                      <div class="text-caption text-weight-bold text-grey-7 q-mb-xs">Nombres del Propietario</div>
+                      <q-input v-model="busquedaFormData.propietario.nombre" @update:model-value="val => busquedaFormData.propietario.nombre = (val || '').toUpperCase()" placeholder="Ej: Juan" outlined dense bg-color="white" class="br-md" @keyup.enter="buscarPacientes">
+                        <template v-slot:prepend><q-icon name="person" color="primary" /></template>
+                      </q-input>
+                    </div>
+                    
+                    
+                    <div class="col-12 col-md-3">
+                      <div class="text-caption text-weight-bold text-grey-7 q-mb-xs">Teléfono / Celular</div>
+                      <q-input v-model="busquedaFormData.propietario.telefono1" placeholder="Ej: 99887766" outlined dense bg-color="white" class="br-md" @keyup.enter="buscarPacientes">
+                        <template v-slot:prepend><q-icon name="phone" color="primary" /></template>
+                      </q-input>
+                    </div>
+
+                    <!-- Fila 2: Email & Mascota -->
+                    <div class="col-12 col-md-4">
+                      <div class="text-caption text-weight-bold text-grey-7 q-mb-xs">Correo Electrónico</div>
+                      <q-input v-model="busquedaFormData.propietario.email" placeholder="ejemplo@correo.com" outlined dense bg-color="white" class="br-md" @keyup.enter="buscarPacientes">
+                        <template v-slot:prepend><q-icon name="email" color="primary" /></template>
+                      </q-input>
+                    </div>
+                    <div class="col-12 col-md-3">
+                      <div class="text-caption text-weight-bold text-grey-7 q-mb-xs">Nombre de la Mascota</div>
+                      <q-input v-model="busquedaFormData.mascota.nombre" @update:model-value="val => busquedaFormData.mascota.nombre = (val || '').toUpperCase()" placeholder="Ej: Rocky" outlined dense bg-color="white" class="br-md" @keyup.enter="buscarPacientes">
+                        <template v-slot:prepend><q-icon name="pets" color="primary" /></template>
+                      </q-input>
+                    </div>
+                    <div class="col-12 col-md-3">
+                      <div class="text-caption text-weight-bold text-grey-7 q-mb-xs">N° Historia Clínica</div>
+                      <q-input v-model="busquedaFormData.mascota.historia_clinica" placeholder="Ej: 12345" outlined dense bg-color="white" class="br-md" @keyup.enter="buscarPacientes">
+                        <template v-slot:prepend><q-icon name="assignment" color="primary" /></template>
+                      </q-input>
+                    </div>
+
+                    <div class="col-12 col-md-2">
+                      <q-btn color="primary" label="Buscar" class="full-width br-lg q-py-sm" icon="search" @click="buscarPacientes" unelevated />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Resultados -->
+                <div class="results-area animate-fade-in">
+                  <CardBusquedaPropietarioMascota :rows="listaPropietariosBusqueda" @refresh-data="buscarPacientes" @mascota-seleccionada="onMascotaSeleccionada" />
+                </div>
+            </div>
+         </q-card-section>
+       </q-card>
+    </q-dialog>
+
+    <DialogFirmarDocumento v-model="showFirmaDialog" :html-content="datosFirma.htmlContent" :document-name="datosFirma.documentName" @signed-and-saved="procesarGuardadoFirma" />
+  </div>
+</template>
+
+<script>
+import { ref, computed, onBeforeUnmount, watch, reactive, onMounted, defineAsyncComponent, nextTick } from 'vue'
+import { useQuasar } from 'quasar'
+import { useMascotaSeleccionadaStore } from 'src/stores/mascotaSeleccionadaStore';
+import { usePlantillas } from 'src/composables/usePlantillas'
+import { useReportes } from 'src/composables/useReportes'
+import { servicioDinamicoService } from 'src/services/servicioDinamico.service'
+import { profesionalService } from 'src/services/profesional.service'
+import { citaMotivoService } from 'src/services/citaMotivo.service'
+import atencionService from 'src/services/atencion.service'
+import { atencionServicioService } from 'src/services/atencionServicio.service'
+import NdPeticionControl from 'src/controles/rest.control'
+import { DtoParametros } from 'src/controles/dto.parametros'
+import { useDialogStore } from 'src/stores/DialogoUbicacion'
+import { useSignatureFlow } from 'src/composables/useSignatureFlow'
+import useCatalogos from 'src/composables/useCatalogos'
+import { Modulo, Tabla } from 'src/common/enums/configuracion.enum'
+
+// Importación dinámica de componentes de servicios con lazy loading
+const ServicioVacunacion = defineAsyncComponent(() => import('../components/servicios/ServicioVacunacion.vue'))
+const ServicioDesparasitacion = defineAsyncComponent(() => import('../components/servicios/ServicioDesparasitacion.vue'))
+const ServicioConsultaGeneral = defineAsyncComponent(() => import('../components/servicios/ServicioConsultaGeneral.vue'))
+const ServiciosDisponibles = defineAsyncComponent(() => import('../components/servicios/ServiciosDisponibles.vue'))
+const OrdenLaboratorio = defineAsyncComponent(() => import('../components/laboratorio/OrdenLaboratorio.vue'))
+const ServicioRayosX = defineAsyncComponent(() => import('../components/servicios/ServicioRayosX.vue'))
+const ServicioUltrasonido = defineAsyncComponent(() => import('src/components/servicios/ServicioUltrasonido.vue'))
+const ServicioExploracionFisica = defineAsyncComponent(() => import('src/components/servicios/ServicioExploracionFisica.vue'))
+const ServicioHospitalizacion = defineAsyncComponent(() => import('src/components/servicios/ServicioHospitalizacion.vue'))
+const ServicioMedicamento = defineAsyncComponent(() => import('src/components/servicios/ServicioMedicamento.vue'))
+const ServicioFisioterapia = defineAsyncComponent(() => import('src/components/servicios/ServicioFisioterapia.vue'))
+const ServicioUrgencia = defineAsyncComponent(() => import('src/components/servicios/ServicioUrgencia.vue'))
+const ServicioEstetica = defineAsyncComponent(() => import('../components/servicios/ServicioEstetica.vue'))
+const ServicioRecetaMedica = defineAsyncComponent(() => import('../components/servicios/ServicioRecetaMedica.vue'))
+const ServicioResumen = defineAsyncComponent(() => import('../components/servicios/ServicioResumen.vue'))
+const ServicioDinamico = defineAsyncComponent(() => import('../components/servicios/ServicioDinamico.vue'))
+const ServicioArchivos = defineAsyncComponent(() => import('../components/servicios/ServicioArchivos.vue'))
+
+import CardBusquedaPropietarioMascota from 'src/components/card/CardBusquedaPropietarioMascota.vue'
+import DialogFirmarDocumento from 'src/components/servicios/DialogFirmarDocumento.vue'
+
+export default {
+  name: 'AtencionPaciente',
+  components: {
+    ServicioVacunacion,
+    ServicioDesparasitacion,
+    ServicioConsultaGeneral,
+    ServiciosDisponibles,
+    OrdenLaboratorio,
+    ServicioRayosX,
+    ServicioUltrasonido,
+    ServicioExploracionFisica,
+    ServicioHospitalizacion,
+    ServicioMedicamento,
+    ServicioFisioterapia,
+    ServicioUrgencia,
+    ServicioEstetica,
+    ServicioRecetaMedica,
+    ServicioResumen,
+    ServicioDinamico,
+    ServicioArchivos,
+    CardBusquedaPropietarioMascota,
+    DialogFirmarDocumento
+  },
+  setup() {
+    const $q = useQuasar()
+    const mascotaSeleccionadaStore = useMascotaSeleccionadaStore()
+    const store = useDialogStore()
+
+    // Flujo de Firma Electrónica (Modularizado)
+    const {
+      showFirmaDialog,
+      datosFirma,
+      visualizarYFirmar,
+      procesarGuardadoFirma
+    } = useSignatureFlow({
+      onSaved: (adjunto, servicio) => {
+        if (!servicio.datos.archivos_adjuntos) {
+          servicio.datos.archivos_adjuntos = []
+        }
+        servicio.datos.archivos_adjuntos.push(adjunto)
+      }
+    })
+
+    const firmarServicio = (servicio, tipo = 'especial', idPlantilla = null) => {
+      console.log('📝 Firmar Servicio:', servicio.nombre, tipo, idPlantilla)
+      if (!atencionActualData.value?.id) {
+        console.warn('❌ No hay datos de atención para firmar')
+      }
+      // Si el segundo argumento es 'plantilla' y hay un tercer argumento, ese es el ID
+      const realIdPlantilla = tipo === 'plantilla' ? idPlantilla : null
+      visualizarYFirmar(servicio, atencionActualData.value, paciente.value, realIdPlantilla)
+    }
+
+    // Estados reactivos
+    const guardandoAtencion = ref(false)
+    const servicioActivoTab = ref('resumen')
+    const sidebarCollapsed = ref(false)
+    const showAddServiceDialog = ref(false)
+    const showNuevaAtencionDialog = ref(false)
+
+    // Formulario para nueva atención
+    const formNuevaAtencion = reactive({
+      veterinario_id: null,
+      motivo_id: null,
+      observaciones: ''
+    })
+    const cargandoCatalogos = ref(false)
+    const cargandoConfiguracion = ref(true)
+
+    // Catálogos globales que se inyectan en servicios dinámicos
+    const catalogosSistemas = reactive({
+      VETERINARIOS: [
+        { label: 'Dr. Carlos Mendoza', value: 'dr_carlos' },
+        { label: 'Dra. Ana López', value: 'dra_ana' },
+        { label: 'Dr. Sergio Ramos', value: 'dr_sergio' }
+      ],
+      PRODUCTOS_ESTETICA: [
+        { label: 'Shampoo Avena Gold', value: 'sh_avena' },
+        { label: 'Shampoo Hipoalergénico', value: 'sh_hipo' },
+        { label: 'Acondicionador Sedoso', value: 'ac_sedoso' }
+      ]
+    })
+
+    // Esquemas para servicios dinámicos (se cargan bajo demanda)
+    const esquemasActivos = ref({})
+    const cargandoEsquema = ref(false)
+    const catalogoServiciosBD = ref([])
+
+    // Estados para catálogos
+    const profesionalesDisponibles = ref([])
+    const motivosDisponibles = ref([])
+
+    // Datos del paciente (ahora vienen del store)
+    const { obtenerCatalogo } = useCatalogos()
+    const catalogosMascota = reactive({
+      sexo: [],
+      especie: [],
+      raza: [],
+      color: []
+    })
+
+    const cargarCatalogosMascota = async () => {
+      try {
+        const [sexo, especie, raza, color] = await Promise.all([
+          obtenerCatalogo(Modulo.MASCOTA, Tabla.SEXO),
+          obtenerCatalogo(Modulo.MASCOTA, Tabla.ESPECIE),
+          obtenerCatalogo(Modulo.MASCOTA, Tabla.RAZA),
+          obtenerCatalogo(Modulo.MASCOTA, Tabla.COLOR)
+        ])
+        catalogosMascota.sexo = sexo
+        catalogosMascota.especie = especie
+        catalogosMascota.raza = raza
+        catalogosMascota.color = color
+      } catch (error) {
+        console.error('Error al cargar catálogos de mascota en header:', error)
+      }
+    }
+
+    const getLabel = (id, tipo) => {
+      if (!id) return null
+      const catalogo = catalogosMascota[tipo]
+      if (!catalogo) return null
+      const item = catalogo.find(i => i.value === id)
+      return item ? item.label : null
+    }
+
+    const paciente = computed(() => {
+      const m = mascotaSeleccionadaStore.mascota || {
+        id: '', nombre: '', especie: '', raza: '', edad: '', peso: '', propietario: '', telefono: ''
+      }
+
+      const propietario = m.propietario || {}
+      const propietarioNombre = [
+        propietario.nombre,
+        propietario.primerapellido,
+        propietario.segundoapellido
+      ].filter(Boolean).join(' ').trim()
+
+      const especieLabel = getLabel(m.id_especie, 'especie') || m.especie || ''
+      const razaLabel = getLabel(m.id_raza, 'raza') || m.raza || ''
+      const sexoLabel = getLabel(m.id_sexo, 'sexo') || m.sexo || ''
+      const colorLabel = getLabel(m.id_color, 'color') || m.color || ''
+
+      return {
+        ...m,
+        especie: especieLabel,
+        raza: razaLabel,
+        peso_kg: m.peso_kg ?? m.peso ?? null,
+        nombre_propietario: m.nombre_propietario || propietarioNombre,
+        especieLabel,
+        razaLabel,
+        sexoLabel,
+        colorLabel,
+        edadDisplay: m.edad ? (m.edad === 1 ? '1 año' : `${m.edad} años`) : (m.fechanacimiento ? 'Calculando...' : 'N/A')
+      }
+    })
+
+    const getMascotaDisplay = computed(() => paciente.value || null)
+
+    // Variables de Buscador (Faltantes restauradas)
+    const showSearchDialog = ref(false)
+    const listaPropietariosBusqueda = ref([])
+    const busquedaFormData = reactive({
+      propietario: {
+        nombre: '',
+        primerapellido: '',
+        segundoapellido: '',
+        email: '',
+        telefono1: ''
+      },
+      mascota: {
+        nombre: '',
+        historia_clinica: ''
+      }
+    })
+
+    const buscarPacientes = async () => {
+      try {
+        $q.loading.show()
+        // Importación dinámica para evitar problemas circulares si los hubiera, o usar services existentes
+        // Usando fetch directo o servicio genérico por simplicidad y consistencia con lo previo
+        const _peticion = new NdPeticionControl()
+        const _unDtoParametros = new DtoParametros()
+
+        _unDtoParametros.filtro = {
+            id_sitio: 1, // Valor por defecto
+            nombre: busquedaFormData.propietario.nombre,
+            primerapellido: busquedaFormData.propietario.primerapellido,
+            segundoapellido: busquedaFormData.propietario.segundoapellido,
+            email: busquedaFormData.propietario.email,
+            telefono1: busquedaFormData.propietario.telefono1,
+            nombre_mascota: busquedaFormData.mascota.nombre,
+            historia_clinica: busquedaFormData.mascota.historia_clinica
+        }
+
+        const respuesta = await _peticion.invocarMetodo('filtropropietariomascota/filtro', 'post', _unDtoParametros)
+        listaPropietariosBusqueda.value = respuesta || []
+
+        if (listaPropietariosBusqueda.value.length === 0) {
+            $q.notify({ type: 'info', message: 'No se encontraron resultados' })
+        }
+      } catch (error) {
+        console.error(error)
+        $q.notify({ type: 'negative', message: 'Error al buscar pacientes' })
+      } finally {
+        $q.loading.hide()
+      }
+    }
+
+    const limpiarFiltrosBusqueda = () => {
+      busquedaFormData.propietario.nombre = ''
+      busquedaFormData.propietario.primerapellido = ''
+      busquedaFormData.propietario.segundoapellido = ''
+      busquedaFormData.propietario.email = ''
+      busquedaFormData.propietario.telefono1 = ''
+      busquedaFormData.mascota.nombre = ''
+      busquedaFormData.mascota.historia_clinica = ''
+      listaPropietariosBusqueda.value = []
+    }
+
+    const onMascotaSeleccionada = async (evento) => {
+        showSearchDialog.value = false
+        // Usar paciente_id (mismo campo que id_paciente en la tabla atencion)
+        if (paciente.value && paciente.value.paciente_id) {
+            await cargarAtencionesDesdeBackend(paciente.value.paciente_id)
+        }
+    }
+
+    // Funciones de carga de catálogos (mismo patrón que DialogoAsignarCita.vue)
+    const cargarProfesionalesParaAtencion = async () => {
+      try {
+        const profs = await profesionalService.getProfesionales()
+        profesionalesDisponibles.value = profs
+        // Actualizar catálogo global para servicios dinámicos
+        catalogosSistemas.VETERINARIOS = profs.map(p => ({
+          label: `${p.nombre || ''} ${p.primerapellido || ''} ${p.segundoapellido || ''}`.trim() || 'Sin nombre',
+          value: p.id
+        }))
+      } catch (error) {
+        console.error('Error al cargar profesionales:', error)
+        $q.notify({ type: 'warning', message: 'No se pudieron cargar los profesionales', caption: error.message })
+        profesionalesDisponibles.value = []
+      }
+    }
+
+    const cargarMotivosParaAtencion = async () => {
+      try {
+        const motivos = await citaMotivoService.getMotivos()
+        motivosDisponibles.value = Array.isArray(motivos) ? motivos.filter(m => m.activo !== false && m.activo !== 'N') : []
+      } catch (error) {
+        console.error('Error al cargar motivos:', error)
+        $q.notify({ type: 'warning', message: 'No se pudieron cargar los motivos', caption: error.message })
+        motivosDisponibles.value = []
+      }
+    }
+
+    // Computed para opciones de selects
+    const profesionalesOpciones = computed(() => {
+      return profesionalesDisponibles.value.map(p => ({
+        label: (
+          p.nombre_completo ||
+          `${p.poblador_nombre || p.nombre || ''} ${p.poblador_primerapellido || p.primerapellido || ''} ${p.poblador_segundoapellido || p.segundoapellido || ''}`.trim() ||
+          'Sin nombre'
+        ),
+        value: p.id,
+        cedula: p.cedula || null,
+        especialidad: p.especialidad || null,
+        activo: p.activo
+      }))
+    })
+
+    const motivosOpciones = computed(() => {
+      return motivosDisponibles.value.map(m => ({
+        label: m.descripcion || m.nombre || 'Sin descripción',
+        value: m.id
+      }))
+    })
+
+    // Lista de atenciones del paciente
+    const atenciones = ref([])
+
+    // Atención actual seleccionada
+    const atencionActual = ref(0)
+
+    // Convertir esquemas activos a formato de lista de servicios
+    const serviciosDinamicosParaLista = computed(() => {
+      return Object.values(esquemasActivos.value).map(esquema => ({
+        id: esquema.id,
+        nombre: esquema.servicio,
+        descripcion: esquema.descripcion || 'Servicio configurable',
+        icono: esquema.icono || 'auto_awesome',
+        identificador: esquema.identificador
+      }))
+    })
+
+    // Servicios aplicados en esta atención
+    const serviciosAplicados = computed(() => {
+      return atenciones.value[atencionActual.value]?.servicios || []
+    })
+
+    // Atención actual con fallback seguro (evita crashes cuando atenciones está vacío)
+    const atencionActualData = computed(() => {
+      return atenciones.value[atencionActual.value] || {
+        id: null, numero: '', fecha: '', hora: '',
+        fechaFinalizacion: '', horaFinalizacion: '',
+        veterinario: '', estado: 'En curso', servicios: [],
+        motivo: '', observacion: ''
+      }
+    })
+
+    // Servicio seleccionado actualmente para mostrar en el Workspace
+    const servicioSeleccionado = computed(() => {
+      if (!servicioActivoTab.value || servicioActivoTab.value === 'resumen') return null
+      return serviciosAplicados.value.find(s => s.id === servicioActivoTab.value)
+    })
+
+     // Watcher para actualizar la pestaña activa y cargar esquema si es necesario
+    watch(serviciosAplicados, (nuevosServicios) => {
+      if (nuevosServicios.length > 0 && !servicioActivoTab.value) {
+        servicioActivoTab.value = 'resumen'
+      } else if (nuevosServicios.length === 0) {
+        servicioActivoTab.value = null
+      }
+    }, { immediate: true, deep: true })
+
+    watch(servicioActivoTab, async (nuevoTab) => {
+      if (nuevoTab && nuevoTab !== 'resumen') {
+        const servicio = serviciosAplicados.value.find(s => s.id === nuevoTab)
+        if (servicio && servicio.tipo_renderizado === 'dinamico' && servicio.identificador) {
+          await cargarEsquema(servicio.identificador, servicio.id_servicio_def)
+        }
+      }
+    })
+
+    // Helper para obtener el nombre del profesional por ID desde el catálogo cargado
+    const obtenerNombreProfesional = (id) => {
+      if (!id) return null
+      const prof = profesionalesDisponibles.value.find(p => String(p.id) === String(id))
+      if (!prof) return null
+
+      return prof.nombre_completo ||
+             `${prof.poblador_nombre || prof.nombre || ''} ${prof.poblador_primerapellido || prof.primerapellido || ''} ${prof.poblador_segundoapellido || prof.segundoapellido || ''}`.trim() ||
+             'Sin nombre'
+    }
+
+    const obtenerNombreMotivo = (id) => {
+      if (!id) return null
+      const mot = motivosDisponibles.value.find(m => String(m.id) === String(id))
+      if (!mot) return null
+      return mot.descripcion || mot.nombre || 'Sin descripción'
+    }
+
+    // Métodos
+    const formatDate = (dateString) => {
+      if (!dateString) return '---'
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) return '---'
+      return date.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: 'short'
+      })
+    }
+
+    const navigateCards = (direction) => {
+      if (direction === 'prev' && atencionActual.value > 0) {
+        atencionActual.value--
+      } else if (direction === 'next' && atencionActual.value < atenciones.value.length - 1) {
+        atencionActual.value++
+      }
+    }
+
+    // Función para cargar esquema de servicio bajo demanda
+    const cargarEsquema = async (identificador, idServicioDef) => {
+      if (esquemasActivos.value[identificador]) return
+
+      cargandoEsquema.value = true
+      try {
+        const esquema = await servicioDinamicoService.getEsquemaServicio(idServicioDef)
+        if (esquema) {
+          esquemasActivos.value[identificador] = esquema
+          console.log(`✅ Esquema cargado para: ${identificador}`)
+        }
+      } catch (error) {
+        console.error(`Error al cargar esquema ${identificador}:`, error)
+        $q.notify({ type: 'negative', message: 'Error al cargar el diseño del servicio' })
+      } finally {
+        cargandoEsquema.value = false
+      }
+    }
+
+    const nuevaAtencion = async () => {
+      // Validar que haya una mascota seleccionada
+      if (!paciente.value || !paciente.value.id) {
+        $q.notify({
+          type: 'warning',
+          message: 'Debes seleccionar un paciente primero',
+          caption: 'Usa el botón "Buscar Paciente" para seleccionar una mascota',
+          icon: 'pets',
+          position: 'top'
+        })
+        return
+      }
+
+      // Resetear formulario
+      formNuevaAtencion.veterinario_id = null
+      formNuevaAtencion.motivo_id = null
+      formNuevaAtencion.observaciones = ''
+
+      // Abrir diálogo de inmediato y cargar catálogos en paralelo
+      showNuevaAtencionDialog.value = true
+      cargandoCatalogos.value = true
+      try {
+        // Cargar catálogos desde el backend (igual que DialogoAsignarCita.vue)
+        await Promise.all([
+          cargarMotivosParaAtencion(),
+          cargarProfesionalesParaAtencion()
+        ])
+      } finally {
+        cargandoCatalogos.value = false
+      }
+    }
+
+    // Función asíncrona para crear atención
+    const crearNuevaAtencion = async () => {
+      try {
+        $q.loading.show()
+
+        const datosNuevaAtencion = {
+          id_paciente: paciente.value.paciente_id,
+          id_profesional: formNuevaAtencion.veterinario_id,
+          id_motivo: formNuevaAtencion.motivo_id,
+          observaciones: formNuevaAtencion.observaciones,
+          estado: 'En curso',
+          activo: 'S',
+          id_sucursal: store.sucursalSeleccionada.id,
+          fechaalta: new Date().toISOString(),
+        }
+
+        const respuesta = await atencionService.crearAtencion(datosNuevaAtencion)
+
+        if (respuesta) {
+            // Cerrar el diálogo primero para que el usuario no espere bloqueado
+            showNuevaAtencionDialog.value = false
+            $q.notify({ type: 'positive', message: 'Atención creada exitosamente' })
+            // Recargar atenciones - usar paciente_id (mismo que id_paciente en la tabla atencion)
+            const idPaciente = paciente.value.paciente_id
+            if (idPaciente) {
+              await cargarAtencionesDesdeBackend(idPaciente)
+              await nextTick()
+              servicioActivoTab.value = 'resumen'
+              showAddServiceDialog.value = true
+            }
+        }
+      } catch (error) {
+        console.error('Error al crear atención:', error)
+        $q.notify({ type: 'negative', message: 'Error al crear la atención' })
+      } finally {
+        $q.loading.hide()
+      }
+    }
+
+
+
+    const agregarServicioEnDialogo = async (servicio) => {
+      if (atenciones.value.length === 0) {
+        $q.notify({ type: 'warning', message: 'Debe crear una atención primero' })
+        return
+      }
+
+      const idNuevo = servicio.id_servicio || servicio.id
+      const tipoNuevo = (servicio.componente_clave || servicio.tipo || servicio.identificador)?.toLowerCase()
+
+      const yaExiste = serviciosAplicados.value.some(s =>
+        (s.id_servicio_def && s.id_servicio_def === idNuevo) ||
+        (s.tipo && s.tipo === tipoNuevo)
+      )
+
+      if (yaExiste) {
+        $q.notify({
+          type: 'warning',
+          message: `El servicio ${servicio.nombre} ya ha sido agregado a esta atención`,
+          position: 'top'
+        })
+        return
+      }
+
+      if (atenciones.value[atencionActual.value].estado === 'Finalizada') {
+        $q.notify({
+          type: 'negative',
+          message: 'No se pueden agregar servicios a una atención finalizada'
+        })
+        return
+      }
+
+      try {
+        $q.loading.show()
+
+        // Crear registro en BD usando el ID real del catálogo SERVICIO
+        const registrado = await atencionServicioService.crear({
+          id_atencion:     atenciones.value[atencionActual.value].id,
+          id_servicio: servicio.id_servicio || servicio.id,  // ID real de la tabla SERVICIO
+          estado:          'pendiente'
+        })
+
+        // Usar el ID real de BD (no temporal) para poder hacer PUT/DELETE después
+        const nuevoServicio = {
+          id:               String(registrado?.id || `${servicio.tipo}_${Date.now()}`),  // ID de BD como string
+          idBD:             registrado?.id,          // guardamos el int de BD para operaciones REST
+          id_servicio_def:  servicio.id_servicio || servicio.id, // ID real de catálogo para validación
+          tipo:             (servicio.componente_clave || servicio.tipo || servicio.identificador)?.toLowerCase(),
+          nombre:           servicio.nombre,
+          icono:            servicio.icono,
+          color:            servicio.color,
+          tipo_renderizado: servicio.tipo_renderizado,
+          componente_clave: servicio.componente_clave?.toLowerCase(),
+          identificador:    servicio.identificador,
+          id_plantilla:     servicio.id_plantilla,
+          completado:       false,
+          timestamp:        new Date().toLocaleString(),
+          datos:            {}
+        }
+
+        if (!atenciones.value[atencionActual.value].servicios) {
+          atenciones.value[atencionActual.value].servicios = []
+        }
+
+        atenciones.value[atencionActual.value].servicios.push(nuevoServicio)
+        servicioActivoTab.value = nuevoServicio.id
+
+        $q.notify({
+          type: 'positive',
+          message: `Servicio ${servicio.nombre} agregado`,
+          icon: 'check_circle'
+        })
+        showAddServiceDialog.value = false
+      } catch (error) {
+        console.error('Error al agregar servicio:', error)
+        $q.notify({ type: 'negative', message: 'Error al agregar el servicio' })
+      } finally {
+        $q.loading.hide()
+      }
+    }
+
+    const actualizarServicio = (servicioId, nuevosDatos) => {
+      const servicio = serviciosAplicados.value.find(s => s.id === servicioId)
+      if (servicio) {
+        servicio.datos = { ...servicio.datos, ...nuevosDatos }
+      }
+    }
+
+    const completarServicio = async (servicioId, datosFinales = {}) => {
+      const servicio = serviciosAplicados.value.find(s => s.id === servicioId)
+      if (!servicio) return
+
+      try {
+        // 1. Actualizar estado y observaciones en la tabla principal (ATENCION_SERVICIOS)
+        if (servicio.idBD) {
+          await atencionServicioService.completar(servicio.idBD, {
+            observaciones: datosFinales.observaciones || ''
+          })
+
+          // 2. Guardar en tabla especializada si el servicio lo requiere
+          // Nota: servicio.tipo suele ser el componente_clave o el tipo hardcoded
+          const clave = servicio.componente_clave || servicio.tipo
+
+          if (clave === 'vacunacion') {
+            const vacunas = datosFinales.vacunas || []
+
+            for (const v of vacunas) {
+              const payloadVacuna = {
+                id_atencion_servicio: servicio.idBD,
+                id_producto:          v.producto?.id || v.producto?.value,
+                id_tipo_vacuna:       v.tipoVacuna?.id_original || (v.tipoVacuna?.value ? Number(v.tipoVacuna.value) : null),
+                id_laboratorio:       v.laboratorio?.id_original || (v.laboratorio?.value ? Number(v.laboratorio.value) : null),
+                lote:                 v.numeroLote || v.lote?.numeroLote,
+                fecha_vencimiento:    v.fechaVencimiento,
+                dosis:                Number(v.dosisAplicada),
+                id_via_administracion: v.viaAdministracion?.id_original || (v.viaAdministracion?.value ? Number(v.viaAdministracion.value) : null),
+                sitio_aplicacion:     v.sitioAplicacion,
+                proxima_vacuna:       v.proximaVacuna,
+                reacciones_adversas:  v.observaciones || 'N'
+              }
+
+              if (v.idBD) {
+                await atencionServicioService.actualizarVacunacion(v.idBD, payloadVacuna)
+              } else {
+                await atencionServicioService.guardarVacunacion(payloadVacuna)
+              }
+
+              // 3. Programar notificación de refuerzo si existe fecha
+              /* Comentado temporalmente por el usuario
+              if (v.proximaVacuna) {
+                await atencionServicioService.crearNotificacion({
+                  id_atencion_servicio: servicio.idBD,
+                  id_propietario: atencionActualData.value.id_propietario || paciente.value.id_propietario,
+                  id_mascota: atencionActualData.value.id_mascota || paciente.value.id,
+                  tipo_notificacion: 'vacuna',
+                  mensaje: `Refuerzo de ${v.tipoVacuna?.label || v.tipoVacuna}`,
+                  fecha_programada: v.proximaVacuna
+                })
+              }
+              */
+            }
+          } else if (clave === 'desparacitacion' || clave === 'desparasitacion') {
+            // Mapeo selectivo de campos para desparasitación (FRONT -> BACK)
+            await atencionServicioService.guardarDesparasitacion({
+              id_atencion_servicio: servicio.idBD,
+              tipo_desparasitante: datosFinales.tipoTratamiento,
+              producto_nombre: datosFinales.producto,
+              laboratorio: datosFinales.laboratorio || '',
+              lote: datosFinales.lote || '',
+              dosis: String(datosFinales.dosisAplicada || ''),
+              via_administracion: datosFinales.viaAdministracion || '',
+              parasitos_objetivo: Array.isArray(datosFinales.tipoParasitos)
+                                 ? datosFinales.tipoParasitos.join(', ')
+                                 : (datosFinales.tipoParasitos || ''),
+              proxima_desparasitacion: datosFinales.proximaDesparacitacion,
+              observaciones: datosFinales.observaciones || ''
+            })
+
+            // 3. Programar notificación de refuerzo si existe fecha
+            /* Comentado temporalmente por el usuario
+            if (datosFinales.proximaDesparacitacion) {
+              await atencionServicioService.crearNotificacion({
+                id_atencion_servicio: servicio.idBD,
+                id_propietario: atencionActualData.value.id_propietario || paciente.value.id_propietario,
+                id_mascota: atencionActualData.value.id_mascota || paciente.value.id,
+                tipo_notificacion: 'desparasitacion',
+                mensaje: `Recordatorio: Próxima desparasitación para ${paciente.value.nombre}`,
+                fecha_programada: datosFinales.proximaDesparacitacion
+              })
+            }
+            */
+          } else if (clave === 'consulta') {
+            // Mapeo de campos para consulta general (FRONT -> BACK)
+            await atencionServicioService.guardarConsulta({
+              id_atencion_servicio: servicio.idBD,
+              id_motivo: datosFinales.id_motivo ? Number(datosFinales.id_motivo) : null,
+              motivo_consulta: datosFinales.motivo_detallado || '',
+              motivo_detallado: datosFinales.motivo_detallado || '',
+              anamnesis: datosFinales.anamnesis || '',
+              hallazgos_examen: datosFinales.hallazgos_examen || '',
+              id_diagnostico: datosFinales.id_diagnostico ? Number(datosFinales.id_diagnostico) : null,
+              diagnostico: '',
+              diagnostico_complemento: datosFinales.diagnostico_complemento || '',
+              indicaciones_medicas: datosFinales.indicaciones_medicas || '',
+              pronostico: datosFinales.pronostico || '',
+              proxima_cita: datosFinales.proxima_cita || null,
+              observaciones: datosFinales.observaciones || ''
+            })
+          } else if (clave === 'rayosx') {
+            await atencionServicioService.guardarRayosX({
+              id_atencion_servicio: servicio.idBD,
+              region_anatomica: datosFinales.region_anatomica,
+              proyecciones: datosFinales.proyecciones,
+              hallazgos: datosFinales.hallazgos,
+              interpretacion: datosFinales.interpretacion,
+              tecnica_kv: Number(datosFinales.tecnica_kv),
+              tecnica_ma: Number(datosFinales.tecnica_ma)
+            })
+          } else if (clave === 'ultrasonido') {
+            await atencionServicioService.guardarUltrasonido({
+              id_atencion_servicio: servicio.idBD,
+              tipo_estudio: datosFinales.tipo_estudio,
+              descripcion_detallada: datosFinales.descripcion_detallada,
+              conclusiones: datosFinales.conclusiones,
+              recomendaciones: datosFinales.recomendaciones
+            })
+          } else if (clave === 'hospitalizacion') {
+            await atencionServicioService.guardarHospitalizacion({
+              id_atencion_servicio: servicio.idBD,
+              fecha_ingreso: datosFinales.fecha_ingreso,
+              fecha_egreso: datosFinales.fecha_egreso,
+              motivo_hospitalizacion: datosFinales.motivo_hospitalizacion,
+              jaula_asignada: datosFinales.jaula_asignada,
+              estado_paciente: datosFinales.estado_paciente
+            })
+          } else if (clave === 'medicamento' || clave === 'medicamentos') {
+            await atencionServicioService.guardarMedicamentos({
+              id_atencion_servicio: servicio.idBD,
+              prescripciones_json: JSON.stringify(datosFinales.prescripciones || [])
+            })
+          } else if (clave === 'fisioterapia') {
+            await atencionServicioService.guardarFisioterapia({
+              id_atencion_servicio: servicio.idBD,
+              tipo_rehabilitacion: datosFinales.tipo_rehabilitacion,
+              total_sesiones_plan: Number(datosFinales.total_sesiones_plan),
+              sesion_actual: Number(datosFinales.sesion_actual),
+              evaluacion_inicial: datosFinales.evaluacion_inicial
+            })
+          } else if (clave === 'urgencia' || clave === 'urgencias') {
+            await atencionServicioService.guardarUrgencia({
+              id_atencion_servicio: servicio.idBD,
+              triage_color: datosFinales.triage_color,
+              motivo_urgencia: datosFinales.motivo_urgencia,
+              estabilizacion_procedimientos: datosFinales.estabilizacion_procedimientos,
+              diagnostico_presuntivo: datosFinales.diagnostico_presuntivo,
+              pronostico: datosFinales.pronostico,
+              resultado_final: datosFinales.resultado_final
+            })
+          } else if (clave === 'estetica') {
+            await atencionServicioService.guardarEstetica({
+              id_atencion_servicio: servicio.idBD,
+              servicios_realizados: Array.isArray(datosFinales.tipoServicio) ? datosFinales.tipoServicio.join(', ') : datosFinales.tipoServicio,
+              tipo_corte: datosFinales.tipoCorte,
+              estado_pelaje_inicial: typeof datosFinales.estadoPelaje === 'object' ? JSON.stringify(datosFinales.estadoPelaje) : datosFinales.estadoPelaje,
+              productos_utilizados: typeof datosFinales.productosUtilizados === 'object' ? JSON.stringify(datosFinales.productosUtilizados) : datosFinales.productosUtilizados,
+              comportamiento_paciente: typeof datosFinales.comportamiento === 'object' ? JSON.stringify(datosFinales.comportamiento) : datosFinales.comportamiento,
+              satisfaccion_cliente: datosFinales.satisfaccionCliente,
+              proxima_cita_sugerida: datosFinales.proximaCita
+            })
+          }
+        }
+
+        // Actualizar estado local
+        servicio.completado = true
+        servicio.datos = { ...servicio.datos, ...datosFinales }
+
+        $q.notify({
+          type: 'positive',
+          message: `${servicio.nombre} completado exitosamente`,
+          position: 'top-right',
+          timeout: 2000,
+          icon: 'check_circle'
+        })
+      } catch (error) {
+        console.error('Error al completar servicio en BD:', error)
+        // Aun así marcamos como completado localmente para no bloquear al usuario
+        servicio.completado = true
+        servicio.datos = { ...servicio.datos, ...datosFinales }
+        $q.notify({
+          type: 'warning',
+          message: `${servicio.nombre} completado (error al sincronizar con BD)`,
+          position: 'top-right'
+        })
+      }
+    }
+
+    const eliminarServicio = (servicioId) => {
+      const servicio = serviciosAplicados.value.find(s => s.id === servicioId)
+
+      $q.dialog({
+        title: 'Confirmar eliminación',
+        message: `¿Estás seguro de que deseas eliminar el servicio "${servicio?.nombre}"?`,
+        cancel: true,
+        persistent: true
+      }).onOk(async () => {
+        // Cancelar (soft-delete) en BD si tiene ID real
+        if (servicio?.idBD) {
+          try {
+            await atencionServicioService.actualizar(servicio.idBD, { estado: 'cancelado' })
+          } catch (error) {
+            console.error('Error al cancelar servicio en BD:', error)
+          }
+        }
+
+        const servicios = atenciones.value[atencionActual.value].servicios
+        const index = servicios.findIndex(s => s.id === servicioId)
+        if (index > -1) {
+          servicios.splice(index, 1)
+
+          if (servicioActivoTab.value === servicioId) {
+            servicioActivoTab.value = servicios.length > 0 ? 'resumen' : null
+          }
+
+          $q.notify({
+            type: 'info',
+            message: 'Servicio eliminado',
+            position: 'top-right',
+            timeout: 2000
+          })
+        }
+      })
+    }
+
+    const guardarAtencion = async () => {
+      guardandoAtencion.value = true
+
+      try {
+        const atencion = atenciones.value[atencionActual.value]
+        if (!atencion?.id) {
+          $q.notify({ type: 'warning', message: 'No hay atención activa para guardar' })
+          return
+        }
+
+        await atencionService.actualizarAtencion(atencion.id, {
+          observaciones: atencion.observaciones || ''
+        })
+
+        $q.notify({
+          type: 'positive',
+          message: 'Atención guardada correctamente',
+          position: 'top-right',
+          icon: 'save'
+        })
+      } catch (error) {
+        console.error('Error al guardar atención:', error)
+        $q.notify({ type: 'negative', message: 'Error al guardar la atención' })
+      } finally {
+        guardandoAtencion.value = false
+      }
+    }
+
+    const finalizarAtencion = () => {
+      $q.dialog({
+        title: 'Finalizar Atención',
+        message: '¿Está seguro de que desea finalizar esta atención? Una vez finalizada no se podrá modificar.',
+        cancel: true,
+        persistent: true
+      }).onOk(async () => {
+        try {
+            $q.loading.show()
+            const atencion = atenciones.value[atencionActual.value]
+
+            const fechaFin = new Date()
+            const datosUpdate = {
+                estado: 'Finalizada',
+                fechacierre: fechaFin.toISOString()
+            }
+
+            const respuesta = await atencionService.actualizarAtencion(atencion.id, datosUpdate)
+
+            if (respuesta) {
+                atencion.estado = 'Finalizada'
+                atencion.fechaFinalizacion = fechaFin.toISOString().split('T')[0]
+                atencion.horaFinalizacion = fechaFin.toTimeString().split(' ')[0].substring(0, 5)
+
+                $q.notify({
+                  type: 'positive',
+                  message: 'Atención finalizada correctamente',
+                  position: 'top-right',
+                  icon: 'check_circle'
+                })
+            }
+        } catch (error) {
+            console.error('Error al finalizar atención:', error)
+            $q.notify({ type: 'negative', message: 'Error al finalizar la atención' })
+        } finally {
+            $q.loading.hide()
+        }
+      })
+    }
+
+    const reabrirAtencion = () => {
+      $q.dialog({
+        title: 'Reabrir Atención',
+        message: '¿Está seguro de que desea reabrir esta atención?',
+        cancel: true,
+        persistent: true
+      }).onOk(async () => {
+        try {
+            $q.loading.show()
+            const atencion = atenciones.value[atencionActual.value]
+
+            const datosUpdate = {
+                estado: 'En curso',
+                fechacierre: null
+            }
+
+            const respuesta = await atencionService.actualizarAtencion(atencion.id, datosUpdate)
+
+            if (respuesta) {
+                atencion.estado = 'En curso'
+                atencion.fechaFinalizacion = null
+                atencion.horaFinalizacion = null
+
+                $q.notify({
+                  type: 'positive',
+                  message: 'Atención reabierta correctamente',
+                  position: 'top-right',
+                  icon: 'undo'
+                })
+            }
+        } catch (error) {
+            console.error('Error al reabrir atención:', error)
+            $q.notify({ type: 'negative', message: 'Error al reabrir la atención' })
+        } finally {
+            $q.loading.hide()
+        }
+      })
+    }
+
+    const { cargarPlantillaPorId, cargarPlantillaPorCodigo, procesarHtml, generarPDF } = usePlantillas()
+    const { imprimirPlantilla, imprimirVacunacion, imprimirConsulta } = useReportes()
+
+    const imprimirDocumentoServicio = async (servicio, tipo = 'especial', idPlantillaManual = null) => {
+      console.log('🖨️ Imprimiendo servicio:', servicio.nombre, 'Tipo:', tipo)
+      // Especial: Si es un servicio de Vacunación, usamos el backend con diseño programático
+      const esVacunacion = servicio.tipo?.toLowerCase() === 'vacunacion' || servicio.componente_clave === 'vacunacion'
+
+      if (esVacunacion && tipo === 'especial') {
+        const datosGeneracion = {
+          paciente: {
+            nombre: paciente.value.nombre,
+            especie: paciente.value.especie,
+            raza: paciente.value.raza,
+            peso: paciente.value.peso ? `${paciente.value.peso} kg` : ''
+          },
+          propietario: {
+            nombre: `${paciente.value.propietario?.nombre || ''} ${paciente.value.propietario?.primerapellido || ''}`.trim(),
+            telefono: paciente.value.propietario?.telefono1 || paciente.value.propietario?.telefono2
+          },
+          atencion_numero: atenciones.value[atencionActual.value].numero,
+          atencion_fecha: atenciones.value[atencionActual.value].fecha,
+          veterinario: atenciones.value[atencionActual.value].veterinario,
+          vacunas: servicio.datos?.vacunas?.map(v => ({
+            tipo: typeof v.tipoVacuna === 'object' ? v.tipoVacuna?.label : v.tipoVacuna,
+            laboratorio: typeof v.laboratorio === 'object' ? v.laboratorio?.label : v.laboratorio,
+            lote: v.numeroLote || v.lote?.numeroLote,
+            dosis: v.dosisAplicada,
+            via: typeof v.viaAdministracion === 'object' ? v.viaAdministracion?.label : v.viaAdministracion,
+            sitio: v.sitioAplicacion,
+            proxima: v.proximaVacuna,
+            observaciones: v.observaciones
+          })) || []
+        }
+        await imprimirVacunacion(datosGeneracion)
+        return
+      }
+
+      // Especial: Si es un servicio de Consulta, usamos el backend con diseño programático
+      const esConsulta = servicio.tipo?.toLowerCase() === 'consulta' || servicio.componente_clave === 'consulta'
+
+      if (esConsulta && tipo === 'especial') {
+        const datosGeneracion = {
+          paciente: {
+            nombre: paciente.value.nombre,
+            especie: paciente.value.especie,
+            raza: paciente.value.raza,
+            peso: paciente.value.peso ? `${paciente.value.peso} kg` : ''
+          },
+          propietario: {
+            nombre: `${paciente.value.propietario?.nombre || ''} ${paciente.value.propietario?.primerapellido || ''}`.trim(),
+            telefono: paciente.value.propietario?.telefono1 || paciente.value.propietario?.telefono2
+          },
+          atencion_numero: atenciones.value[atencionActual.value].numero,
+          atencion_fecha: atenciones.value[atencionActual.value].fecha,
+          veterinario: atenciones.value[atencionActual.value].veterinario,
+          motivo_consulta: servicio.datos?.motivo_detallado || servicio.datos?.motivo_consulta,
+          anamnesis: servicio.datos?.anamnesis,
+          hallazgos_examen: servicio.datos?.hallazgos_examen,
+          diagnostico: servicio.datos?.diagnostico,
+          diagnostico_complemento: servicio.datos?.diagnostico_complemento,
+          indicaciones_medicas: servicio.datos?.indicaciones_medicas || servicio.datos?.receta_indicaciones,
+          pronostico: servicio.datos?.pronostico,
+          proxima_cita: servicio.datos?.proxima_cita,
+          observaciones: servicio.datos?.observaciones
+        }
+        await imprimirConsulta(datosGeneracion)
+        return
+      }
+
+      // Otras plantillas de la base de datos (Ej: Desparasitacion, etc)
+      let idPlantilla = idPlantillaManual || servicio.id_plantilla || (esquemasActivos.value && esquemasActivos.value[servicio.tipo]?.id_plantilla)
+
+      // Si no tenemos ID pero hay plantillas_servicio, tomar la primera por defecto
+      if (!idPlantilla && servicio.plantillas_servicio?.length > 0) {
+        idPlantilla = servicio.plantillas_servicio[0].id_plantilla
+      }
+
+      if (!idPlantilla) {
+        $q.notify({ type: 'warning', message: 'Este servicio no tiene una plantilla asociada' })
+        return
+      }
+
+      const datosVariables = {
+        ...servicio.datos,
+        paciente_nombre: paciente.value.nombre,
+        propietario_nombre: paciente.value.propietario?.nombre,
+        fecha_atencion: atenciones.value[atencionActual.value].fecha,
+        atencion_numero: atenciones.value[atencionActual.value].numero
+      }
+
+      await imprimirPlantilla(idPlantilla, datosVariables)
+    }
+
+    const imprimirResumenAtencion = async () => {
+      console.log('🖨️ Generando resumen de atención...')
+      $q.loading.show({ message: 'Generando resumen de atención...' })
+      try {
+        // Cargar plantilla por código predeterminado para resumen
+        const plantilla = await cargarPlantillaPorCodigo('RESUMEN_ATENCION')
+        if (!plantilla) {
+          $q.notify({ type: 'warning', message: 'No se encontró la plantilla "RESUMEN_ATENCION"' })
+          return
+        }
+
+        const datosVariables = {
+          atencion_numero: atenciones.value[atencionActual.value].numero,
+          atencion_fecha: atenciones.value[atencionActual.value].fecha,
+          paciente_nombre: paciente.value.nombre,
+          paciente_especie: paciente.value.especie,
+          paciente_raza: paciente.value.raza,
+          propietario_nombre: `${paciente.value.propietario?.nombre} ${paciente.value.propietario?.primerapellido}`,
+          servicios: serviciosAplicados.value.map(s => s.nombre).join(', '),
+          // En un sistema real, el resumen incluiría una tabla procesada de servicios
+        }
+
+        const html = procesarHtml(plantilla.contenido_html, datosVariables)
+        await generarPDF(html, { filename: `Resumen_${atenciones.value[atencionActual.value].numero}.pdf` })
+      } catch (error) {
+        console.error(error)
+        $q.notify({ type: 'negative', message: 'Error al generar resumen' })
+      } finally {
+        $q.loading.hide()
+      }
+    }
+
+    // Carga las atenciones del paciente desde el backend y las mapea al formato local
+    const cargarAtencionesDesdeBackend = async (idMascota) => {
+      try {
+        const datos = await atencionService.getAtencionesPorMascota(idMascota)
+        const lista = Array.isArray(datos)
+          ? datos
+          : (datos?.elemento || datos?.data || [])
+
+        if (!Array.isArray(lista) || lista.length === 0) {
+          atenciones.value = []
+          atencionActual.value = 0
+          return
+        }
+
+        // Mapear atenciones básicas primero
+        const atencionesBase = lista.map(a => {
+          // Intentar resolver el nombre del profesional si no viene el objeto Join
+          const nombreProfesional = a.profesional?.nombre_completo ||
+            `${a.profesional?.poblador_nombre || ''} ${a.profesional?.poblador_primerapellido || ''}`.trim() ||
+            obtenerNombreProfesional(a.id_profesional) ||
+            a.veterinario ||
+            'Sin asignar'
+
+          return {
+            id: a.id,
+            id_profesional: a.id_profesional,
+            id_motivo: a.id_motivo,
+            motivo: a.motivo?.descripcion || a.motivo?.nombre || obtenerNombreMotivo(a.id_motivo) || 'Sin asignar',
+            observacion: a.observaciones || 'Sin observaciones',
+            numero: a.numero || a.identificador || `A-${a.id}`,
+            fecha: a.fecha || a.fechaalta?.split('T')[0] || '',
+            hora: a.hora || a.fechaalta?.split('T')[1]?.substring(0, 5) || '',
+            fechaFinalizacion: a.fecha_finalizacion || a.fechafinalizacion || '',
+            horaFinalizacion: a.hora_finalizacion || a.horafinalizacion || '',
+            veterinario: nombreProfesional,
+            estado: a.estado || 'En curso',
+            servicios: []
+          }
+        })
+        // Invertimos el orden para que la atención más reciente (nueva) aparezca primero
+        atenciones.value = atencionesBase.reverse()
+        atencionActual.value = 0
+
+        // Cargar servicios de la primera atención (la más reciente) de inmediato
+        if (atencionesBase.length > 0) {
+          await cargarServiciosDeAtencion(0)
+        }
+      } catch (error) {
+        console.error('Error al cargar atenciones desde backend:', error)
+        $q.notify({ type: 'warning', message: 'No se pudieron cargar las atenciones del paciente' })
+      }
+    }
+
+    // Carga los servicios de una atención específica desde BD y los agrega al array local
+    const cargarServiciosDeAtencion = async (indiceAtencion) => {
+      const atencion = atenciones.value[indiceAtencion]
+      if (!atencion?.id) return
+
+      try {
+        const serviciosBD = await atencionServicioService.getPorAtencion(atencion.id)
+        atenciones.value[indiceAtencion].servicios = await Promise.all(
+          serviciosBD
+            .filter(s => s.estado !== 'cancelado')
+            .map(async s => {
+              const defClave = s.servicio?.componente_clave || s.servicio?.identificador || String(s.id_servicio)
+              const serviceDef = catalogoServiciosBD.value.find(c => c.id === s.id_servicio)
+
+              let nombreMostrar = s.servicio?.nombre || serviceDef?.nombre || `Servicio ${s.id_servicio}`
+              if (nombreMostrar.toUpperCase().startsWith('SERVICIO ') && serviceDef?.componente_clave) {
+                  nombreMostrar = serviceDef.componente_clave.charAt(0).toUpperCase() + serviceDef.componente_clave.slice(1)
+              }
+
+              const tipo = defClave?.toLowerCase()
+              let datos = {}
+
+              // Si es vacunación, cargar el detalle especializado
+              if (tipo === 'vacunacion' || (serviceDef?.componente_clave?.toLowerCase() === 'vacunacion')) {
+                try {
+                  const vacunasBD = await atencionServicioService.getVacunacionByAtencionServicio(s.id)
+                  // Mapear de vuelta al formato del componente
+                  datos = {
+                    vacunas: vacunasBD.map(v => ({
+                      idBD: v.id,
+                      producto: v.id_producto ? { id: v.id_producto, value: v.id_producto } : null,
+                      tipoVacuna: v.id_tipo_vacuna ? { value: v.id_tipo_vacuna, label: v.tipo_vacuna } : v.tipo_vacuna,
+                      laboratorio: v.id_laboratorio ? { value: v.id_laboratorio, label: v.laboratorio } : v.laboratorio,
+                      numeroLote: v.lote,
+                      fechaVencimiento: v.fecha_vencimiento,
+                      dosisAplicada: v.dosis,
+                      viaAdministracion: v.id_via_administracion ? { value: v.id_via_administracion, label: v.via_administracion } : v.via_administracion,
+                      sitioAplicacion: v.sitio_aplicacion,
+                      proximaVacuna: v.proxima_vacuna,
+                      observaciones: v.reacciones_adversas === 'N' ? '' : v.reacciones_adversas
+                      // No resetear si ya venía de antes (aunque en este punto datos está vacío)
+                    }))
+                  }
+                } catch (err) {
+                  console.error('Error al cargar detalle de vacunación:', err)
+                }
+              } else if (tipo === 'consulta' || (serviceDef?.componente_clave?.toLowerCase() === 'consulta')) {
+                try {
+                  const consultasBD = await atencionServicioService.getConsultaByAtencionServicio(s.id)
+                  if (consultasBD && consultasBD.length > 0) {
+                    const c = consultasBD[0]
+                    datos = {
+                      id_motivo: c.id_motivo,
+                      motivo_detallado: c.motivo_detallado || c.motivo_consulta,
+                      anamnesis: c.anamnesis,
+                      hallazgos_examen: c.hallazgos_examen,
+                      id_diagnostico: c.id_diagnostico,
+                      diagnostico_complemento: c.diagnostico_complemento,
+                      indicaciones_medicas: c.indicaciones_medicas || c.plan_tratamiento,
+                      pronostico: c.pronostico,
+                      proxima_cita: c.proxima_cita
+                    }
+                  }
+                } catch (err) {
+                  console.error('Error al cargar detalle de consulta:', err)
+                }
+              } else if (tipo === 'desparasitacion' || tipo === 'desparasitacion' || (serviceDef?.componente_clave?.toLowerCase() === 'desparasitacion')) {
+                try {
+                  const desparasitacionesBD = await atencionServicioService.getDesparasitacionByAtencionServicio(s.id)
+                  if (desparasitacionesBD && desparasitacionesBD.length > 0) {
+                    const d = desparasitacionesBD[0]
+                    datos = {
+                      tipoTratamiento: d.tipo_desparasitante,
+                      producto: d.producto_nombre,
+                      laboratorio: d.laboratorio,
+                      lote: d.lote,
+                      dosisAplicada: d.dosis,
+                      viaAdministracion: d.via_administracion,
+                      tipoParasitos: d.parasitos_objetivo ? d.parasitos_objetivo.split(',').map(p => p.trim()) : [],
+                      proximaDesparacitacion: d.proxima_desparasitacion,
+                      observaciones: d.observaciones
+                    }
+                  }
+                } catch (err) {
+                  console.error('Error al cargar detalle de desparasitación:', err)
+                }
+              } else if (tipo === 'receta' || (serviceDef?.componente_clave?.toLowerCase() === 'receta')) {
+                try {
+                  const recetasBD = await atencionServicioService.getRecetaByAtencionServicio(s.id)
+                  if (recetasBD && recetasBD.length > 0) {
+                    const r = recetasBD[0]
+                    datos = {
+                      receta_indicaciones: r.receta_indicaciones,
+                      observaciones: r.observaciones
+                    }
+                  }
+                } catch (err) {
+                  console.error('Error al cargar detalle de receta:', err)
+                }
+              }
+
+              return {
+                id:               String(s.id),
+                idBD:             s.id,
+                id_servicio_def:  s.id_servicio,
+                tipo:             tipo,
+                nombre:           nombreMostrar,
+                icono:            s.servicio?.icono || serviceDef?.icono || 'medical_services',
+                color:            s.servicio?.color || serviceDef?.color || 'primary',
+                tipo_renderizado: s.servicio?.tipo_renderizado || serviceDef?.tipo_renderizado,
+                componente_clave: (s.servicio?.componente_clave || serviceDef?.componente_clave)?.toLowerCase(),
+                identificador:    s.servicio?.identificador || serviceDef?.identificador,
+                id_plantilla:     s.servicio?.id_plantilla || serviceDef?.id_plantilla,
+                plantillas_servicio: ((s.servicio?.plantillas_servicio && s.servicio.plantillas_servicio.length > 0) ? s.servicio.plantillas_servicio : (serviceDef?.plantillas_servicio || [])).filter(p => !p.activo || p.activo === 'S'),
+                 id_servicio_def:  s.id_servicio,
+                completado:       s.estado === 'completado',
+                datos:            datos,
+                timestamp:        s.fecha_creacion ? new Date(s.fecha_creacion).toLocaleString() : ''
+              }
+            })
+        )
+      } catch (error) {
+        console.error(`Error al cargar servicios de atención ${atencion.id}:`, error)
+      }
+    }
+
+    // Cargar catálogos y esquemas dinámicos al montar
+    onMounted(async () => {
+      cargandoConfiguracion.value = true
+      try {
+        // Cargar catálogos básicos y esquemas en paralelo para mayor velocidad
+        const [serviciosDinamicos, _, __] = await Promise.all([
+          servicioDinamicoService.getServicios(),
+          cargarCatalogosMascota(),
+          Promise.all([
+            cargarMotivosParaAtencion(),
+            cargarProfesionalesParaAtencion()
+          ])
+        ])
+
+        // No cargamos los esquemas aquí (Optimización Lazy Loading)
+        // Solo guardamos la lista básica de servicios disponibles
+
+        // Guardar catálogo completo para ServiciosDisponibles
+        catalogoServiciosBD.value = serviciosDinamicos
+
+        // Si ya hay mascota seleccionada, cargar sus atenciones
+        const idPaciente = paciente.value.paciente_id || paciente.value.id
+        if (idPaciente) {
+            await cargarAtencionesDesdeBackend(idPaciente)
+        }
+      } catch (error) {
+        console.error('Error al cargar la configuración inicial:', error)
+        $q.notify({
+          type: 'warning',
+          message: 'Error al iniciar el módulo',
+          caption: 'Algunos componentes podrían no funcionar correctamente'
+        })
+      } finally {
+        cargandoConfiguracion.value = false
+      }
+    })
+
+    // Watcher para cargar atenciones cuando cambia el paciente seleccionado (Buscador externo)
+    watch(() => paciente.value?.paciente_id || paciente.value?.id, async (newId) => {
+      if (newId) {
+        console.log('🔄 Detectado cambio de paciente:', newId)
+        await cargarAtencionesDesdeBackend(newId)
+      } else {
+        atenciones.value = []
+      }
+    })
+
+    // Watcher para cargar servicios al navegar entre atenciones del historial
+    watch(atencionActual, async (nuevoIndice) => {
+      const atencion = atenciones.value[nuevoIndice]
+      if (atencion && atencion.servicios.length === 0 && atencion.id) {
+        await cargarServiciosDeAtencion(nuevoIndice)
+      }
+    })
+
+    onBeforeUnmount(() => {
+      mascotaSeleccionadaStore.limpiarMascota()
+    })
+
+    return {
+      paciente,
+      getMascotaDisplay,
+      atenciones,
+      atencionActual,
+      serviciosAplicados,
+      atencionActualData,
+      serviciosDinamicosParaLista,
+      servicioActivoTab,
+      guardandoAtencion,
+      formatDate,
+      navigateCards,
+      nuevaAtencion,
+      crearNuevaAtencion,
+      agregarServicioEnDialogo,
+      cargarServiciosDeAtencion,
+      actualizarServicio,
+      completarServicio,
+      eliminarServicio,
+      guardarAtencion,
+      finalizarAtencion,
+      reabrirAtencion,
+      showAddServiceDialog,
+      showNuevaAtencionDialog,
+      formNuevaAtencion,
+      cargandoCatalogos,
+      profesionalesOpciones,
+      motivosOpciones,
+      esquemasActivos,
+      catalogosSistemas,
+      catalogoServiciosBD,
+      imprimirDocumentoServicio,
+      imprimirResumenAtencion,
+      firmarServicio,
+      showFirmaDialog,
+      datosFirma,
+      procesarGuardadoFirma,
+      // Buscador
+      showSearchDialog,
+      listaPropietariosBusqueda,
+      busquedaFormData,
+      buscarPacientes,
+      limpiarFiltrosBusqueda,
+      onMascotaSeleccionada,
+      cargandoConfiguracion,
+      obtenerNombreMotivo,
+      // Firma
+      showFirmaDialog,
+      datosFirma,
+      firmarServicio,
+      procesarGuardadoFirma,
+      sidebarCollapsed,
+      servicioSeleccionado
+    }
+  }
+}
+</script>
+
+<style scoped>
+/* ==========================================================================
+   ATENCIÓN 2.0 - DESIGN SYSTEM (PREMIUM VETERINARY UI)
+   ========================================================================== */
+
+/* Layout & Root */
+.fullscreen-atencion {
+  height: 100vh;
+  width: 100%;
+  background: #f1f5f9;
+  overflow: hidden;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.app-shell {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* SIDEBAR LUX */
+.atencion-sidebar {
+  width: 270px;
+  height: 100vh;
+  background: white;
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+  position: relative;
+  box-shadow: 4px 0 10px rgba(0,0,0,0.02);
+}
+
+.app-shell.is-collapsed .atencion-sidebar {
+  width: 80px;
+}
+
+.module-title {
+  font-size: 0.85rem;
+  letter-spacing: 0.6px;
+  color: rgba(255,255,255,0.85);
+  align-self: center;
+}
+
+.sidebar-header {
+  height: 70px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.sidebar-main {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding-bottom: 210px;
+}
+
+.sidebar-actions {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  z-index: 10;
+  border-top: 1px solid #e2e8f0;
+  box-shadow: 0 -4px 10px rgba(0,0,0,0.04);
+}
+
+.sidebar-main::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-main::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+/* Sidebar header styling: azul y texto blanco */
+.sidebar-header {
+  background: linear-gradient(90deg,#0d47a1 0%,#1976d2 50%,#42a5f5 100%);
+  color: #fff;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Mantener el botón a la izquierda y centrar el título */
+.sidebar-header .header-left {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+}
+
+.sidebar-header .q-btn__content,
+.sidebar-header .q-btn .q-icon {
+  color: #fff !important;
+}
+
+.sidebar-title {
+  display: inline-block;
+  text-align: center;
+  font-size: 1.12rem;
+  font-weight: 700;
+  padding: 0;
+  border-radius: 0;
+  color: #fff;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Alternativa: texto con relleno en degradado (si prefieres solo texto sin fondo, descomentar) */
+.sidebar-title.gradient-text {
+  background: linear-gradient(90deg,#64b5f6,#1e88e5,#0d47a1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  padding: 0;
+}
+
+/* Hacer el encabezado del bloque de servicios azul y legible */
+:deep(.atencion-sidebar .q-item-label.header) {
+  background: linear-gradient(90deg,#1976d2,#42a5f5);
+  color: #fff;
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin: 6px 8px;
+}
+
+
+
+/* Nav Buttons */
+.nav-btn {
+  margin: 4px 10px;
+  color: #64748b;
+  transition: all 0.2s ease;
+  min-height: 44px;
+}
+
+.nav-btn:hover {
+  background: #f1f5f9;
+  color: #1976d2;
+}
+
+.nav-active {
+  background: rgba(25, 118, 210, 0.1) !important;
+  color: #1976d2 !important;
+  font-weight: 700 !important;
+}
+
+.nav-btn-add {
+  background: rgba(211, 47, 47, 0.05);
+  color: #d32f2f !important;
+  border: 1px dashed rgba(211, 47, 47, 0.3);
+  margin: 15px 12px;
+  transition: all 0.3s ease;
+  min-height: 48px;
+}
+
+.nav-btn-add:hover {
+  background: rgba(211, 47, 47, 0.1);
+  border-color: #d32f2f;
+  border-style: solid;
+  transform: translateY(-2px);
+}
+
+.nav-btn-add .q-item__section--avatar {
+  color: #d32f2f !important;
+}
+
+.nav-btn-add .q-item__label {
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* History Items (Premium Cards) */
+.history-card-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 10px 14px !important;
+  margin-bottom: 2px;
+}
+
+.history-card-item:hover {
+  background: #ffffff;
+  border-color: #1976d2;
+  transform: translateX(4px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.history-card-active {
+  background: white !important;
+  border-left: 4px solid #1976d2 !important;
+  border-color: #1976d2 !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.history-card-active .text-primary {
+  color: #1976d2 !important;
+}
+
+/* Workspace Luxe */
+.main-workspace {
+  flex: 1;
+  min-width: 0;
+  background: #f1f5f9;
+  position: relative;
+}
+
+/* Header Premium Modernized - Sincronizado con Profesional.vue */
+.workspace-header--premium {
+  height: auto !important;
+  min-height: 85px;
+  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+  border-bottom: none !important;
+  position: relative;
+  box-shadow: 0 4px 15px rgba(25, 118, 210, 0.2);
+}
+
+.gap-xs { gap: 8px; }
+
+.border-right-glass {
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.folio-badge {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(4px);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 13px;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #34d399;
+  margin-right: 8px;
+  box-shadow: 0 0 8px rgba(52, 211, 153, 0.8);
+}
+
+.status-indicator.is-finalized {
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: none;
+}
+
+.patient-name-glow {
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  letter-spacing: -0.5px;
+}
+
+.professional-pill {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+}
+
+/* Segunda fila del header: botones de acción */
+.header-action-row {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding-top: 6px;
+}
+
+.header-action-btn {
+  min-height: 28px !important;
+  font-size: 12px !important;
+  border-radius: 8px !important;
+  opacity: 0.95;
+  transition: opacity 0.2s ease, transform 0.15s ease;
+}
+
+.header-action-btn:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+/* Estilo para el botón de información en el header (más visible) */
+.info-btn {
+  min-width: 36px !important;
+  min-height: 36px !important;
+  padding: 6px !important;
+}
+.info-btn .q-icon {
+  font-size: 18px !important;
+}
+
+@media (max-width: 900px) {
+  .info-btn {
+    min-width: 40px !important;
+    min-height: 40px !important;
+  }
+}
+
+.btn-search-glow {
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.35);
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-search-glow:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.6);
+}
+
+.leading-none { line-height: 1; }
+.max-width-250 { max-width: 250px; }
+
+.opacity-80 { opacity: 0.8; }
+.opacity-90 { opacity: 1; font-weight: 500; }
+.opacity-40 { opacity: 0.4; }
+
+.workspace-viewport {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Responsive header adjustments */
+.workspace-header--premium .row.items-center {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.workspace-header--premium .col-auto,
+.workspace-header--premium .col {
+  min-width: 0;
+}
+
+/* Reduce spacing on small screens */
+@media (max-width: 900px) {
+  .workspace-header--premium {
+    padding: 12px !important;
+    min-height: 72px;
+  }
+
+  .workspace-header--premium .folio-badge {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  .patient-name-glow {
+    font-size: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
+  }
+
+  .workspace-header--premium .info-stack {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .workspace-header--premium .owner-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .workspace-header--premium .attention-info {
+    width: 100%;
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 600px) {
+  .workspace-header--premium {
+    padding: 8px !important;
+    min-height: 64px;
+  }
+
+  .sidebar-header .header-left {
+    left: 6px;
+  }
+
+  .folio-badge {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+
+  .patient-name-glow {
+    font-size: 0.98rem;
+    max-width: 140px;
+  }
+
+  .workspace-header--premium .professional-pill {
+    display: none; /* hide extra info on very small screens */
+  }
+
+  .workspace-header--premium .action-buttons {
+    margin-top: 6px;
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+/* Content Rendering */
+.service-view-port {
+  border: 1px solid #eef2f5;
+  transition: all 0.3s ease;
+}
+
+/* Utilities */
+.br-md { border-radius: 10px; }
+.br-lg { border-radius: 14px; }
+.br-xl { border-radius: 20px; }
+.br-pill { border-radius: 9999px; }
+
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.letter-spacing-1 { letter-spacing: 1px; }
+
+/* Animations */
+.animate-fade-in {
+  animation: fadeIn 0.35s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .6; }
+}
+
+/* Scroll Customizer */
+.scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .hide-mobile { display: none; }
+}
+
+.border-bottom { border-bottom: 1px solid #eef2f5; }
+.max-width-1000 { max-width: 1000px; }
+</style>
