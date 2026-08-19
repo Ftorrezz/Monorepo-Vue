@@ -384,12 +384,23 @@ const getsDatosRelevantes = (servicio) => {
 /* Diseño de Línea de Tiempo (Timeline) */
 .timeline-container {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .timeline-item {
   display: flex;
   gap: 24px;
+  width: 100%;
+  flex: 1 1 100%;
+  align-items: flex-start;
+}
+
+@media (min-width: 720px) {
+  .timeline-item {
+    flex: 1 1 calc(50% - 8px);
+  }
 }
 
 /* Trail (Icono y Línea) */
