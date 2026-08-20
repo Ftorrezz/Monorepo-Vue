@@ -1,19 +1,13 @@
-import NdPeticionControl from '../controles/rest.control';
+import Api from '../controles/api';
 import { useQuasar } from 'quasar';
 
 export function useReportes() {
     const $q = useQuasar();
 
-    const _peticion = new NdPeticionControl();
-
-    const _solicitarReporteBlob = async (endpoint, payload) => {
-        const response = await _peticion.invocarMetodo(endpoint, 'post', payload, undefined, [], { responseType: 'blob' });
-        return response?.data ?? response;
-    };
-
     const _manejarBlobVentana = (blob) => {
         const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
         window.open(url, '_blank');
+        // Revoke URL after a short delay since it's already opened
         setTimeout(() => window.URL.revokeObjectURL(url), 1000);
     };
 
@@ -21,8 +15,12 @@ export function useReportes() {
         try {
             $q.loading.show({ message: 'Generando documento PDF en servidor...' });
 
-            const data = await _solicitarReporteBlob('reporte/plantilla', { id_plantilla, variables });
-            _manejarBlobVentana(data);
+            const response = await Api.post('/reporte/plantilla',
+                { id_plantilla, variables },
+                { responseType: 'blob' }
+            );
+
+            _manejarBlobVentana(response.data);
             return true;
         } catch (error) {
             console.error('Error generando documento:', error);
@@ -37,8 +35,12 @@ export function useReportes() {
         try {
             $q.loading.show({ message: 'Generando certificado de vacunación...' });
 
-            const data = await _solicitarReporteBlob('reporte/vacunacion', datosVacunacion);
-            _manejarBlobVentana(data);
+            const response = await Api.post('/reporte/vacunacion',
+                datosVacunacion,
+                { responseType: 'blob' }
+            );
+
+            _manejarBlobVentana(response.data);
             return true;
         } catch (error) {
             console.error('Error generando certificado:', error);
@@ -53,8 +55,12 @@ export function useReportes() {
         try {
             $q.loading.show({ message: 'Generando reporte de consulta...' });
 
-            const data = await _solicitarReporteBlob('reporte/consulta', datosConsulta);
-            _manejarBlobVentana(data);
+            const response = await Api.post('/reporte/consulta',
+                datosConsulta,
+                { responseType: 'blob' }
+            );
+
+            _manejarBlobVentana(response.data);
             return true;
         } catch (error) {
             console.error('Error generando reporte de consulta:', error);

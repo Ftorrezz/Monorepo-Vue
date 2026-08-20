@@ -55,7 +55,7 @@
             <div class="timeline-trail">
               <div class="trail-line" :class="{ 'trail-line--done': servicio.completado }"></div>
               <div class="trail-node" :class="servicio.completado ? 'node--done' : 'node--pending'">
-                <q-icon :name="servicio.icono" size="20px" :color="servicio.completado ? 'positive' : 'orange'" />
+                <q-icon :name="servicio.icono || 'assignment'" size="20px" :color="servicio.completado ? 'positive' : 'orange'" />
                 <div class="node-glow" v-if="servicio.completado"></div>
               </div>
             </div>
@@ -113,7 +113,6 @@
                         @click.stop="$emit('firmar-servicio', servicio, 'plantilla', servicio.plantillas_servicio[0].id_plantilla)"
                       ><q-tooltip>Firmar: {{ servicio.plantillas_servicio[0].nombre_plantilla }}</q-tooltip></q-btn>
 
-
                       <q-btn-dropdown
                         v-if="servicio.plantillas_servicio && servicio.plantillas_servicio.length > 1"
                         unelevated round dense icon="article" size="11px" color="teal-1" text-color="teal-7" class="action-btn-v3"
@@ -140,10 +139,10 @@
                 </div>
 
                 <!-- Información Clínica Expandida -->
-                <div class="clinical-info-segment q-mt-md" v-if="servicio.completado">
-                  <div class="row q-col-gutter-sm">
+                <div class="clinical-info-segment q-mt-md" v-if="Object.keys(getsDatosRelevantes(servicio)).length > 0">
+                  <div class="row q-col-gutter-xs items-center">
                     <template v-for="(valor, label) in getsDatosRelevantes(servicio)" :key="label">
-                      <div class="col-auto" v-if="valor">
+                      <div class="col-auto q-mb-xs">
                         <div class="info-badge">
                           <span class="info-badge__label">{{ label }}:</span>
                           <span class="info-badge__value">{{ valor }}</span>
@@ -153,8 +152,6 @@
                   </div>
                 </div>
 
-
-
               </div>
             </div>
           </div>
@@ -163,7 +160,6 @@
     </div>
   </div>
 </template>
-
 
 <script setup>
 import { computed } from 'vue'
@@ -219,44 +215,82 @@ const porcentajeProgreso = computed(() => {
 })
 
 const getsDatosRelevantes = (servicio) => {
+  if (!servicio) return {}
   const datos = servicio.datos || {}
-  
-  // Mapeo para servicios conocidos
-  const mapeos = {
-    vacunacion: {
-      'Vacuna': datos.tipoVacuna?.label || datos.vacuna,
-      'Lote': datos.numeroLote || datos.lote,
-      'Próxima': datos.proximaVacuna
-    },
-    exploracion: {
-      'Temp': datos.temperatura ? `${datos.temperatura}°C` : null,
-      'Peso': datos.peso ? `${datos.peso} kg` : null,
-      'FC': datos.frecuencia_cardiaca ? `${datos.frecuencia_cardiaca} lpm` : null
-    },
-    desparacitacion: {
-      'Producto': datos.producto,
-      'Vía': datos.viaAdministracion || datos.via
+
+  // Extrae de forma limpia cadenas o el 'label'/'nombre' de objetos de selección Quasar
+  const extraerTexto = (val) => {
+    if (val === null || val === undefined || val === '') return null
+    if (typeof val === 'object') {
+      return val.label || val.nombre || val.value || null
+    }
+    return String(val)
+  }
+
+  // Identificar el tipo de servicio combinando ambas propiedades
+  const tipo = String(servicio.componente_clave || servicio.tipo || '').toLowerCase().trim()
+
+  let mapeado = {}
+
+  if (tipo === 'vacunacion') {
+    mapeado = {
+      'Vacuna': extraerTexto(datos.tipoVacuna) || extraerTexto(datos.vacuna) || extraerTexto(datos.nombre_vacuna) || extraerTexto(datos.nombre),
+      'Lote': extraerTexto(datos.numeroLote) || extraerTexto(datos.lote) || extraerTexto(datos.num_lote),
+      'Laboratorio': extraerTexto(datos.laboratorio) || extraerTexto(datos.marca),
+      'Próxima': extraerTexto(datos.proximaVacuna) || extraerTexto(datos.proxima_cita) || extraerTexto(datos.fecha_proxima)
+    }
+  } else if (tipo === 'exploracion' || tipo === 'consulta') {
+    const temp = extraerTexto(datos.temperatura)
+    const peso = extraerTexto(datos.peso)
+    const fc = extraerTexto(datos.frecuencia_cardiaca || datos.frecuenciaCardiaca)
+    const fr = extraerTexto(datos.frecuencia_respiratoria || datos.frecuenciaRespiratoria)
+
+    mapeado = {
+      'Temp': temp ? `${temp}°C` : null,
+      'Peso': peso ? `${peso} kg` : null,
+      'FC': fc ? `${fc} lpm` : null,
+      'FR': fr ? `${fr} rpm` : null
+    }
+  } else if (tipo === 'desparasitacion' || tipo === 'desparacitacion') {
+    mapeado = {
+      'Producto': extraerTexto(datos.producto) || extraerTexto(datos.desparasitante) || extraerTexto(datos.nombre),
+      'Dosis': extraerTexto(datos.dosis),
+      'Vía': extraerTexto(datos.viaAdministracion) || extraerTexto(datos.via),
+      'Próxima': extraerTexto(datos.proximaDesparasitacion) || extraerTexto(datos.proxima_cita)
     }
   }
 
-  if (mapeos[servicio.tipo]) {
-    return mapeos[servicio.tipo]
+  // Filtrar los valores nulos o vacíos del objeto configurado
+  const datosDefinidos = {}
+  Object.keys(mapeado).forEach(k => {
+    if (mapeado[k] !== null && mapeado[k] !== undefined && mapeado[k] !== '') {
+      datosDefinidos[k] = mapeado[k]
+    }
+  })
+
+  // Si encontró datos mediante las reglas específicas, retórnalos
+  if (Object.keys(datosDefinidos).length > 0) {
+    return datosDefinidos
   }
 
-  // Lógica genérica para servicios dinámicos
-  const keys = Object.keys(datos).filter(k => 
-    datos[k] !== null && 
-    datos[k] !== '' && 
-    typeof datos[k] !== 'object'
-  )
-  
-  const res = {}
-  keys.slice(0, 3).forEach(k => {
-    const label = k.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-    res[label] = datos[k]
+  // Lógica de respaldo genérica si no coincidió con ninguna regla previa
+  const datosGenericos = {}
+  Object.keys(datos).forEach(k => {
+    const texto = extraerTexto(datos[k])
+    if (texto !== null && texto !== undefined && texto !== '') {
+      const label = k.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+      datosGenericos[label] = texto
+    }
   })
-  
-  return res
+
+  // Limitar a los primeros 4 elementos para no saturar la tarjeta
+  const llavesAcotadas = Object.keys(datosGenericos).slice(0, 4)
+  const resultadoAcotado = {}
+  llavesAcotadas.forEach(k => {
+    resultadoAcotado[k] = datosGenericos[k]
+  })
+
+  return resultadoAcotado
 }
 </script>
 
@@ -315,14 +349,6 @@ const getsDatosRelevantes = (servicio) => {
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.06), rgba(255, 255, 255, 0.95));
 }
 
-.stats-panel {
-  padding: 24px;
-  border-radius: 20px;
-  background: white;
-  border: 1px solid #f1f5f9;
-  height: 100%;
-}
-
 .premium-glass {
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
@@ -339,68 +365,15 @@ const getsDatosRelevantes = (servicio) => {
   opacity: 0.8;
 }
 
-.stats-header {
-  margin-bottom: 20px;
-}
-
-.progress-chart {
-  filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.15));
-}
-
-.modern-legend {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-top: 10px;
-}
-
-.legend-item-v2 {
-  width: 100%;
-}
-
-.legend-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-.legend-label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #475569;
-}
-
-.legend-count {
-  font-size: 0.9rem;
-  font-weight: 700;
-}
-
-.legend-bar {
-  height: 6px;
-  border-radius: 3px;
-}
-
 /* Diseño de Línea de Tiempo (Timeline) */
 .timeline-container {
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 16px;
+  flex-direction: column;
 }
 
 .timeline-item {
   display: flex;
-  gap: 24px;
-  width: 100%;
-  flex: 1 1 100%;
-  align-items: flex-start;
-}
-
-@media (min-width: 720px) {
-  .timeline-item {
-    flex: 1 1 calc(50% - 8px);
-  }
+  gap: 16px;
 }
 
 /* Trail (Icono y Línea) */
@@ -461,97 +434,101 @@ const getsDatosRelevantes = (servicio) => {
   opacity: 0.6;
 }
 
-.node--pending .q-icon {
-  color: #ef4444 !important;
-}
-
 /* Tarjeta de Contenido */
 .timeline-content-wrapper {
   flex: 1;
-  padding-bottom: 12px;
+  padding-bottom: 16px;
+  min-width: 0;
 }
 
 .timeline-card {
-  padding: 12px 16px;
+  padding: 14px 18px;
   background: white;
   border-radius: 12px;
-  border: 1px solid #f1f5f9;
+  border: 1px solid #e2e8f0;
   transition: all 0.3s ease;
   position: relative;
 }
 
 .timeline-card:hover {
-  transform: translateX(6px);
-  border-color: #3b82f644;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+  transform: translateX(4px);
+  border-color: #3b82f688;
+  box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.06);
 }
 
 .timeline-card--done {
   border-left: 4px solid #10b981;
-  background: linear-gradient(to right, #f0fdf455, #ffffff);
+  background: linear-gradient(to right, rgba(240, 253, 244, 0.4), #ffffff);
 }
 
 .timeline-card--pending {
   border-left: 4px solid #ef4444;
-  background: linear-gradient(to right, #fef2f255, #ffffff);
+  background: linear-gradient(to right, rgba(254, 242, 242, 0.4), #ffffff);
+}
+
+.service-name-text {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.service-meta-text {
+  font-size: 0.75rem;
+  color: #64748b;
 }
 
 /* Información Clínica en el Timeline */
+.clinical-info-segment {
+  border-top: 1px dashed #e2e8f0;
+  padding-top: 8px;
+}
+
 .info-badge {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  padding: 2px 8px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  padding: 3px 8px;
   border-radius: 6px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 5px;
   transition: all 0.2s;
 }
 
 .info-badge:hover {
-  background: white;
+  background: #ffffff;
   border-color: #3b82f6;
-  transform: scale(1.05);
+  transform: translateY(-1px);
 }
 
 .info-badge__label {
-  font-size: 0.65rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  color: #64748b;
+  color: #475569;
   text-transform: uppercase;
 }
 
 .info-badge__value {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 800;
-  color: #1e293b;
+  color: #0f172a;
 }
 
 /* Acciones en la Tarjeta */
-.border-t-dashed {
-  border-top: 1px dashed #f1f5f9;
-}
-
 .action-btn-v3 {
-  transition: all 0.3s ease;
-  width: 34px;
-  height: 34px;
+  transition: all 0.2s ease;
+  width: 32px;
+  height: 32px;
 }
 
 .action-btn-v3:hover {
-  transform: translateY(-3px) scale(1.1);
+  transform: scale(1.1);
 }
 
 .br-xs { border-radius: 4px; }
 .shadow-sm { box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 .flex-grow-1 { flex-grow: 1; }
 
-.action-btn-v3:hover {
-  transform: scale(1.1);
-}
-
 .action-btn-v3 :deep(.q-btn-dropdown__arrow) {
   display: none !important;
 }
 </style>
-

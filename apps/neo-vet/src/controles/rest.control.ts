@@ -27,7 +27,7 @@ class NdPeticionControl {
 
   constructor() { }
 
-  public async invocarMetodo(nombreMetodo: string, verbo: string, modelo?: any, parametros?: DtoParametros, atributos?: string[]) {
+  public async invocarMetodo(nombreMetodo: string, verbo: string, modelo?: any, parametros?: DtoParametros, atributos?: string[], config?: any) {
 
     let _urlEndPoint = '/' + nombreMetodo;
     // this.infoRequestService.agregarMensaje(_urlEndPoint); // Ajusta esto según tus necesidades
@@ -75,7 +75,7 @@ class NdPeticionControl {
           _urlEndPoint = _urlEndPoint + '/' + parametrosUrl;
         }
 
-        return await Api.get(_urlEndPoint, { headers, withCredentials: false }).then((response: AxiosResponse) => {
+        return await Api.get(_urlEndPoint, { headers, withCredentials: false, ...config }).then((response: AxiosResponse) => {
           return this.procesarRespuesta(response, _urlEndPoint);
         }).catch((error: any) => {
           return this.procesarRespuestaError(error, _urlEndPoint);
@@ -98,7 +98,7 @@ class NdPeticionControl {
         }
         const payloadJson = JSON.stringify(payloadParaCuerpo);
 
-        return Api.put(_urlEndPoint, payloadJson, { headers, withCredentials: false }).then((response: AxiosResponse) => {
+        return Api.put(_urlEndPoint, payloadJson, { headers, withCredentials: false, ...config }).then((response: AxiosResponse) => {
           return this.procesarRespuesta(response, _urlEndPoint);
         }).catch((error: any) => {
           return this.procesarRespuestaError(error, _urlEndPoint);
@@ -107,7 +107,7 @@ class NdPeticionControl {
       case "post": {
         if (parametros) _urlEndPoint = _urlEndPoint + '/filtro';
 
-        return await Api.post(_urlEndPoint, payload, { headers, withCredentials: false }).then((response: AxiosResponse) => {
+        return await Api.post(_urlEndPoint, payload, { headers, withCredentials: false, ...config }).then((response: AxiosResponse) => {
           return this.procesarRespuesta(response, _urlEndPoint);
         }).catch((error: any) => {
           return this.procesarRespuestaError(error, _urlEndPoint);
@@ -116,7 +116,7 @@ class NdPeticionControl {
       case "delete": {
         _urlEndPoint = _urlEndPoint + '/' + modelo.id;
 
-        return Api.delete(_urlEndPoint, { headers, withCredentials: false }).then((response: AxiosResponse) => {
+        return Api.delete(_urlEndPoint, { headers, withCredentials: false, ...config }).then((response: AxiosResponse) => {
           return this.procesarRespuesta(response, _urlEndPoint);
         }).catch((error: any) => {
           return this.procesarRespuestaError(error, _urlEndPoint);
