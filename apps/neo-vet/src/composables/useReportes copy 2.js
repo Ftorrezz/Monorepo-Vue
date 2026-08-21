@@ -3,6 +3,7 @@ import { useQuasar } from 'quasar';
 
 export function useReportes() {
     const $q = useQuasar();
+
     const _peticion = new NdPeticionControl();
 
     const _solicitarReporteBlob = async (endpoint, payload) => {
@@ -10,22 +11,10 @@ export function useReportes() {
         return response?.data ?? response;
     };
 
-    const _manejarBlobVentana = (blobData) => {
-        // 1. Evita anidar un Blob dentro de otro Blob si Axios ya devolvió un Blob
-        const pdfBlob = blobData instanceof Blob
-            ? blobData
-            : new Blob([blobData], { type: 'application/pdf' });
-
-        const url = window.URL.createObjectURL(pdfBlob);
-
-        // 2. Abrir visor en nueva pestaña
+    const _manejarBlobVentana = (blob) => {
+        const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
         window.open(url, '_blank');
-
-        // 3. Dar margen de 60 segundos antes de destruir la URL Blob en memoria
-        // para que el usuario pueda presionar el botón "Descargar" del visor sin error
-        setTimeout(() => {
-            window.URL.revokeObjectURL(url);
-        }, 60000);
+        setTimeout(() => window.URL.revokeObjectURL(url), 1000);
     };
 
     const imprimirPlantilla = async (id_plantilla, variables = {}) => {
