@@ -45,6 +45,7 @@ export function useAgenda() {
     // Servicios disponibles
     const services = ref([])
     const serviceSearch = ref('')
+    const serviceSchedules = ref({})
 
     // Helper para generar claves de fecha consistentes (YYYY-MM-DD)
     const formatDateKey = (date) => {
@@ -89,6 +90,246 @@ export function useAgenda() {
             }
         } catch (error) {
             $q.notify({ type: 'negative', message: 'Error al cargar los servicios', caption: error.message })
+        }
+    }
+
+    const loadServiceSchedules = async () => {
+        try {
+            const peticion = new NdPeticionControl()
+            const response = await peticion.invocarMetodo('servicioagendahorario', 'get')
+            const data = Array.isArray(response) ? response : (response?.data || [])
+
+            if (Array.isArray(data)) {
+                const grouped = {}
+                data.forEach(item => {
+                    const servicioId = Number(item.id_servicio ?? item.idServicio ?? item.servicio_id ?? item.ServicioId)
+                    if (!servicioId) return
+                    grouped[servicioId] = [...(grouped[servicioId] || []), item]
+                })
+                serviceSchedules.value = grouped
+            }
+        } catch (error) {
+            console.error('Error al cargar horarios del servicio', error)
+        }
+    }
+
+    const getServiceSchedulesByDay = (idServicio, fecha) => {
+        const horarios = serviceSchedules.value[Number(idServicio)] || []
+        if (!Array.isArray(horarios) || horarios.length === 0) return []
+
+        const diaSemana = new Date(fecha).getDay()
+
+        return horarios.filter(horario => {
+            const activo = horario?.activo ?? horario?.activo_horario ?? horario?.es_activo ?? 'S'
+            const activoFlag = String(activo).toUpperCase() === 'S' || activo === true || activo === 1 || activo === 'Y'
+            const dia = Number(horario.dia_semana ?? horario?.diaSemana ?? horario?.dia ?? 0)
+            return activoFlag && dia === diaSemana
+        })
+    }
+
+    const hasServiceScheduleForDate = (idServicio, fecha) => {
+        if (!idServicio || !fecha) return false
+        return getServiceSchedulesByDay(idServicio, fecha).length > 0
+    }
+
+    const toMinutes = (timeValue) => {
+        if (!timeValue && timeValue !== 0) return 0
+        if (typeof timeValue === 'number') return timeValue
+
+        const text = String(timeValue).trim()
+        if (!text || text === 'null' || text === 'undefined') return 0
+
+        const [hours, minutes] = text.split(':').map(Number)
+        return (Number.isFinite(hours) ? hours : 0) * 60 + (Number.isFinite(minutes) ? minutes : 0)
+    }
+
+    const formatMinutesToTime = (totalMinutes) => {
+        const h = Math.floor(totalMinutes / 60)
+        const m = totalMinutes % 60
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+    }
+
+    const getNestedValue = (obj, path) => {
+        if (!obj || !path) return undefined
+        const segments = Array.isArray(path) ? path : String(path).split('.')
+        let current = obj
+        for (const segment of segments) {
+            if (current == null) return undefined
+            current = current[segment]
+        }
+        return current
+    }
+
+    const normalizeName = (...values) => {
+        const name = values
+            .flatMap(value => Array.isArray(value) ? value : [value])
+            .map(item => String(item ?? '').trim())
+            .filter(Boolean)
+            .join(' ')
+        return name || 'Sin nombre'
+    }
+
+    const buildAppointmentFromHorario = (horario) => {
+        if (!horario) return null
+
+        const ownerName = normalizeName(
+            horario.nombre_propietario,
+            horario.propietario_poblador_nombre,
+            horario.propietario_poblador_primerapellido,
+            horario.propietario_poblador_segundoapellido,
+            getNestedValue(horario, 'propietario.nombre'),
+            getNestedValue(horario, 'propietario.apellido'),
+            getNestedValue(horario, 'cita.propietario.nombre'),
+            getNestedValue(horario, 'cita.nombre_propietario')
+        )
+
+        const petName = normalizeName(
+            horario.nombre_mascota,
+            getNestedValue(horario, 'mascota.nombre'),
+            getNestedValue(horario, 'cita.nombre_mascota'),
+            getNestedValue(horario, 'cita.mascota.nombre')
+        )
+
+        const ownerPhone = normalizeName(
+            horario.propietario_poblador_telefono,
+            horario.telefono_propietario,
+            getNestedValue(horario, 'propietario.telefono'),
+            getNestedValue(horario, 'cita.propietario.telefono'),
+            ''
+        )
+
+        const petType = normalizeName(
+            horario.mascota_especie,
+            getNestedValue(horario, 'mascota.especie'),
+            getNestedValue(horario, 'cita.mascota.especie'),
+            getNestedValue(horario, 'cita.especie'),
+            'Mascota'
+        )
+
+        const professionalName = normalizeName(
+            horario.profesional_nombre,
+            getNestedValue(horario, 'cita.profesional.nombre'),
+            getNestedValue(horario, 'cita.profesional_nombre'),
+            'No asignado'
+        )
+
+        return {
+            id: horario.cita?.id || horario.id_cita || horario.id,
+            ownerName,
+            ownerPhone: ownerPhone === 'Sin nombre' ? '' : ownerPhone,
+            petName,
+            petType: petType === 'Sin nombre' ? 'Mascota' : petType,
+            professionalName: professionalName === 'Sin nombre' ? 'No asignado' : professionalName
+        }
+    }
+
+    const buildAppointmentFromCita = (cita) => {
+        if (!cita) return null
+
+        const ownerName = normalizeName(
+            getNestedValue(cita, 'propietario.nombre'),
+            getNestedValue(cita, 'propietario.apellido'),
+            getNestedValue(cita, 'propietario.primerapellido'),
+            getNestedValue(cita, 'propietario.segundoapellido'),
+            getNestedValue(cita, 'cliente.nombre'),
+            getNestedValue(cita, 'cliente.apellido'),
+            cita.nombre_propietario,
+            cita.propietario_nombre,
+            cita.ownerName,
+            getNestedValue(cita, 'mascota.propietario.nombre')
+        )
+
+        const petName = normalizeName(
+            getNestedValue(cita, 'mascota.nombre'),
+            getNestedValue(cita, 'pet.nombre'),
+            cita.nombre_mascota,
+            cita.petName,
+            getNestedValue(cita, 'mascota.nombre_mascota')
+        )
+
+        const petType = normalizeName(
+            getNestedValue(cita, 'mascota.especie'),
+            getNestedValue(cita, 'pet.especie'),
+            cita.especie,
+            cita.petType,
+            'Mascota'
+        )
+
+        const professionalName = normalizeName(
+            getNestedValue(cita, 'profesional.nombre'),
+            cita.profesional_nombre,
+            cita.professionalName,
+            'No asignado'
+        )
+
+        return {
+            id: cita.id || cita.id_cita,
+            ownerName,
+            ownerPhone: normalizeName(getNestedValue(cita, 'propietario.telefono'), getNestedValue(cita, 'cliente.telefono'), cita.telefono_propietario, cita.ownerPhone, ''),
+            petName,
+            petType: petType === 'Sin nombre' ? 'Mascota' : petType,
+            professionalName: professionalName === 'Sin nombre' ? 'No asignado' : professionalName
+        }
+    }
+
+    const getServiceSlotsFromConfig = (servicio, fecha, citas = []) => {
+        const horarios = getServiceSchedulesByDay(servicio.id, fecha)
+        if (!Array.isArray(horarios) || horarios.length === 0) return []
+
+        const citasPorHora = new Map()
+        citas.forEach(cita => {
+            const servicioId = Number(cita.id_servicio ?? cita.idServicio ?? cita.servicio_id ?? cita.ServicioId)
+            const fechaCita = formatDateKey(cita.fecha_cita ?? cita.fecha ?? cita.FechaCita)
+            const horaCita = cita.hora_cita ?? cita.hora ?? cita.HoraCita
+            if (servicioId === Number(servicio.id) && fechaCita === formatDateKey(fecha)) {
+                const horaNormalizada = String(horaCita).substring(0, 5)
+                const citaMapped = buildAppointmentFromCita(cita)
+                citasPorHora.set(horaNormalizada, citaMapped || { petName: 'Ocupado', ownerName: 'Cita ya registrada' })
+            }
+        })
+
+        const slots = []
+        horarios.forEach(horario => {
+            const inicio = toMinutes(horario.hora_inicio ?? horario?.horaInicio)
+            const fin = toMinutes(horario.hora_fin ?? horario?.horaFin)
+            const interval = Number(horario.intervalo_minutos ?? servicio.duration ?? 30)
+
+            if (!inicio || !fin || interval <= 0) return
+
+            for (let minute = inicio; minute < fin; minute += interval) {
+                const hora = formatMinutesToTime(minute)
+                const appointment = citasPorHora.get(hora)
+                const booked = Boolean(appointment)
+                slots.push({
+                    time: hora,
+                    status: booked ? 'booked' : 'available',
+                    id_slot: `${servicio.id}-${formatDateKey(fecha)}-${hora}`,
+                    appointment: booked ? appointment : null
+                })
+            }
+        })
+
+        const unique = []
+        const seen = new Set()
+        slots.forEach(slot => {
+            if (!seen.has(slot.time)) {
+                unique.push(slot)
+                seen.add(slot.time)
+            }
+        })
+
+        return unique.sort((a, b) => a.time.localeCompare(b.time))
+    }
+
+    const buildAvailabilityFromServiceConfig = async (fecha) => {
+        if (!selectedService.value) return []
+
+        try {
+            const citas = await loadCitasPorFecha(fecha)
+            return getServiceSlotsFromConfig(selectedService.value, fecha, citas)
+        } catch (error) {
+            console.error('Error generando disponibilidad desde configuración del servicio', error)
+            return []
         }
     }
 
@@ -150,13 +391,24 @@ export function useAgenda() {
         try {
             const firstDay = new Date(currentYear.value, currentMonth.value, 1)
             const lastDay = new Date(currentYear.value, currentMonth.value + 1, 0)
-            const disponibilidad = await loadDisponibilidad(selectedService.value.id, firstDay, lastDay)
+            const nextCache = { ...disponibilidadCache.value }
 
-            if (disponibilidad && disponibilidad.length > 0) {
-                procesarDisponibilidad(disponibilidad)
-            } else {
-                limpiarCacheMes()
-                $q.notify({ type: 'info', message: 'No hay agenda generada para este período' })
+            for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
+                const dateKey = formatDateKey(d)
+                const cacheKey = `${selectedService.value.id}-${dateKey}`
+                delete nextCache[cacheKey]
+            }
+
+            disponibilidadCache.value = nextCache
+
+            const response = await loadDisponibilidad(selectedService.value.id, firstDay, lastDay)
+            if (Array.isArray(response) && response.length > 0) {
+                procesarDisponibilidad(response)
+            }
+
+            const hayDisponibilidad = Object.values(disponibilidadCache.value).some(list => Array.isArray(list) && list.length > 0)
+            if (!hayDisponibilidad) {
+                $q.notify({ type: 'info', message: 'No hay horarios configurados para este período' })
             }
         } catch (error) {
             $q.notify({ type: 'negative', message: 'Error al cargar la disponibilidad', caption: error.message })
@@ -170,20 +422,35 @@ export function useAgenda() {
         isLoadingDisponibilidad.value = true
         try {
             const fecha = selectedDate.value
-            const disponibilidad = await loadDisponibilidadDia(selectedService.value.id, fecha)
+            const dateKey = formatDateKey(fecha)
+            const cacheKey = `${selectedService.value.id}-${dateKey}`
 
-            if (disponibilidad && disponibilidad.length > 0) {
-                procesarDisponibilidadDia(disponibilidad, fecha)
-                const citas = await loadCitasPorFecha(fecha)
-                procesarCitas(citas, fecha)
-            } else {
-                const dateKey = formatDateKey(fecha)
-                const cacheKey = `${selectedService.value.id}-${dateKey}`
+            const response = await loadDisponibilidadDia(selectedService.value.id, fecha)
+            if (Array.isArray(response) && response.length > 0) {
+                procesarDisponibilidadDia(response, fecha)
+                return
+            }
+
+            if (!hasServiceScheduleForDate(selectedService.value.id, fecha)) {
                 disponibilidadCache.value = {
                     ...disponibilidadCache.value,
                     [cacheKey]: []
                 }
-                $q.notify({ type: 'info', message: 'No hay agenda generada para este día' })
+                $q.notify({ type: 'info', message: 'Este servicio no atiende ese día según su configuración' })
+                return
+            }
+
+            const slots = await buildAvailabilityFromServiceConfig(fecha)
+            disponibilidadCache.value = {
+                ...disponibilidadCache.value,
+                [cacheKey]: slots
+            }
+
+            const citas = await loadCitasPorFecha(fecha)
+            procesarCitas(citas, fecha)
+
+            if (!slots.length) {
+                $q.notify({ type: 'info', message: 'No hay horarios disponibles para este día según la configuración del servicio' })
             }
         } catch (error) {
             $q.notify({ type: 'negative', message: 'Error al cargar la disponibilidad', caption: error.message })
@@ -231,23 +498,13 @@ export function useAgenda() {
             const cacheKey = `${selectedService.value.id}-${dateKey}`
             const slots = item.horarios?.map(horario => {
                 const status = getStatus(horario)
+                const appointment = (status === 'booked' || status === 'confirmed') ? buildAppointmentFromHorario(horario) : null
 
                 return {
                     time: formatTime(horario.hora || horario.hora_inicio),
                     status: status,
                     id_slot: horario.id || horario.id_slot,
-                    appointment: (status === 'booked' || status === 'confirmed') ? {
-                        id: horario.cita?.id || horario.id_cita,
-                        ownerName: [
-                            horario.propietario_poblador_nombre,
-                            horario.propietario_poblador_primerapellido,
-                            horario.propietario_poblador_segundoapellido
-                        ].filter(Boolean).join(' ') || horario.nombre_propietario || 'Sin nombre',
-                        ownerPhone: horario.propietario_poblador_telefono || horario.telefono_propietario || '',
-                        petName: horario.nombre_mascota || 'Sin nombre',
-                        petType: horario.cita?.mascota?.especie || horario.mascota_especie || 'Mascota',
-                        professionalName: horario.profesional_nombre || 'No asignado'
-                    } : null
+                    appointment
                 }
             }) || []
             disponibilidadCache.value = {
@@ -262,23 +519,12 @@ export function useAgenda() {
         const cacheKey = `${selectedService.value.id}-${dateKey}`
         const slots = disponibilidad?.map(horario => {
             const status = getStatus(horario)
-            console.log('horario', horario)
+            const appointment = (status === 'booked' || status === 'confirmed') ? buildAppointmentFromHorario(horario) : null
             return {
                 time: formatTime(horario.hora || horario.hora_inicio),
                 status: status,
                 id_slot: horario.id || horario.id_slot,
-                appointment: (status === 'booked' || status === 'confirmed') ? {
-                    id: horario.cita?.id || horario.id_cita,
-                    ownerName: [
-                        horario.propietario_poblador_nombre,
-                        horario.propietario_poblador_primerapellido,
-                        horario.propietario_poblador_segundoapellido
-                    ].filter(Boolean).join(' ') || horario.nombre_propietario || 'Sin nombre',
-                    ownerPhone: horario.propietario_poblador_telefono || horario.telefono_propietario || '',
-                    petName: horario.nombre_mascota || 'Sin nombre',
-                    petType: horario.cita?.mascota?.especie || horario.mascota_especie || 'Mascota',
-                    professionalName: horario.profesional_nombre || 'No asignado'
-                } : null
+                appointment
             }
         }) || []
         disponibilidadCache.value = {
@@ -418,16 +664,59 @@ export function useAgenda() {
 
     const toggleSidebar = () => { sidebarCollapsed.value = !sidebarCollapsed.value }
 
-    const selectService = (service) => {
+    /*const selectService = async (service) => {
         selectedService.value = service
         selectedSlot.value = null
-        loadDisponibilidadMes()
+        await loadServiceSchedules()
+        await loadDisponibilidadMes()
+    }*/
+    const selectService = async (service) => {
+        selectedService.value = service
+        selectedSlot.value = null
+        await loadServiceSchedules()
+
+        if (viewMode.value === 'day') {
+            await loadDisponibilidadDiaActual()
+        } else {
+            await loadDisponibilidadMes()
+        }
     }
 
-    const getServiceStats = (serviceId) => ({
-        todayAppointments: Math.floor(Math.random() * 10) + 1,
-        weekAppointments: Math.floor(Math.random() * 50) + 5
-    })
+    const getServiceStats = (serviceId) => {
+        const today = new Date()
+        const todayKey = formatDateKey(today)
+        const startOfWeek = new Date(today)
+        startOfWeek.setDate(today.getDate() - today.getDay())
+
+        let todayAppointments = 0
+        let weekAppointments = 0
+
+        Object.entries(disponibilidadCache.value).forEach(([cacheKey, slots]) => {
+            if (!cacheKey.startsWith(`${serviceId}-`)) return
+            if (!Array.isArray(slots)) return
+
+            const fecha = cacheKey.replace(`${serviceId}-`, '')
+            const booked = slots.filter(slot => ['booked', 'confirmed'].includes(slot.status)).length
+
+            if (fecha === todayKey) {
+                todayAppointments += booked
+            }
+
+            const fechaDate = new Date(`${fecha}T00:00:00`)
+            const fechaMs = fechaDate.getTime()
+            const startMs = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate()).getTime()
+            const endMs = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + 6).getTime()
+
+            if (fechaMs >= startMs && fechaMs <= endMs) {
+                weekAppointments += booked
+            }
+        })
+
+        return {
+            todayAppointments,
+            weekAppointments
+        }
+    }
 
     const getTimeIcon = (status) => {
         switch (status) {
@@ -540,46 +829,58 @@ export function useAgenda() {
         loadDisponibilidadMes()
     }
 
-    const previousDay = () => {
+    const previousDay = async () => {
         const d = new Date(selectedDate.value)
         d.setDate(d.getDate() - 1)
         selectedDate.value = d
-        loadDisponibilidadDiaActual()
+        await loadDisponibilidadDiaActual()
     }
 
-    const nextDay = () => {
+    const nextDay = async () => {
         const d = new Date(selectedDate.value)
         d.setDate(d.getDate() + 1)
         selectedDate.value = d
-        loadDisponibilidadDiaActual()
+        await loadDisponibilidadDiaActual()
     }
 
-    const goToToday = () => {
+    const goToToday = async () => {
         const today = new Date()
         if (viewMode.value === 'month') {
             currentYear.value = today.getFullYear()
             currentMonth.value = today.getMonth()
-            loadDisponibilidadMes()
+            await loadDisponibilidadMes()
         } else {
             selectedDate.value = new Date(today)
-            loadDisponibilidadDiaActual()
+            await loadDisponibilidadDiaActual()
         }
     }
 
-    const selectDayForDayView = (day) => {
-        if (!day.isCurrentMonth || day.isPast || (!selectedService.value || selectedService.value.id !== 8) && day.isWeekend) return
+    /*const selectDayForDayView = async (day) => {
+        if (!day || !day.fullDate || !selectedService.value) return
+        if (!day.isCurrentMonth || day.isPast) return
+        if (!hasServiceScheduleForDate(selectedService.value.id, day.fullDate)) return
+
         viewMode.value = 'day'
         selectedDate.value = new Date(day.fullDate)
-        loadDisponibilidadDiaActual()
+        await loadDisponibilidadDiaActual()
+    }*/
+
+    const selectDayForDayView = async (day) => {
+        if (!day || !day.fullDate || !selectedService.value) return
+        if (!day.isCurrentMonth || day.isPast) return
+        if (!hasServiceScheduleForDate(selectedService.value.id, day.fullDate)) return
+
+        selectedDate.value = new Date(day.fullDate)
+        viewMode.value = 'day'   // el watcher se encarga de cargar la disponibilidad
     }
 
-    const updateSelectedDate = (newDate) => {
+    const updateSelectedDate = async (newDate) => {
         const dateToParse = typeof newDate === 'string' && newDate.match(/^\d{4}-\d{2}-\d{2}$/)
             ? newDate + 'T00:00:00'
             : newDate;
         selectedDate.value = new Date(dateToParse)
         showDatePicker.value = false
-        loadDisponibilidadDiaActual()
+        await loadDisponibilidadDiaActual()
     }
 
     const selectTimeSlot = (day, slot) => {
@@ -620,22 +921,23 @@ export function useAgenda() {
     const dateOptions = (date) => {
         const targetDate = new Date(date)
         const today = new Date()
-        const isWeekend = targetDate.getDay() === 0 || targetDate.getDay() === 6
         const isPast = targetDate < today && !isSameDay(targetDate, today)
 
-        // Si hay un servicio seleccionado y caché, verificar si hay agenda
-        if (selectedService.value) {
-            const dateKey = formatDateKey(targetDate)
-            const cacheKey = `${selectedService.value.id}-${dateKey}`
-            const slots = disponibilidadCache.value[cacheKey]
+        if (!selectedService.value) return !isPast
 
-            // Si tenemos datos en caché para este día, solo permitir si tiene slots disponibles
-            if (slots !== undefined && slots !== null) {
-                return slots.some(s => s.status === 'available') && !isPast
-            }
+        if (isPast || !hasServiceScheduleForDate(selectedService.value.id, targetDate)) {
+            return false
         }
 
-        return !isPast && (selectedService.value?.id === 8 || !isWeekend)
+        const dateKey = formatDateKey(targetDate)
+        const cacheKey = `${selectedService.value.id}-${dateKey}`
+        const slots = disponibilidadCache.value[cacheKey]
+
+        if (slots !== undefined && slots !== null) {
+            return slots.some(s => s.status === 'available')
+        }
+
+        return true
     }
 
     const agendaEvents = computed(() => {
@@ -655,12 +957,17 @@ export function useAgenda() {
         return events
     })
 
-    watch(viewMode, (newMode) => {
-        newMode === 'day' ? loadDisponibilidadDiaActual() : loadDisponibilidadMes()
+    watch(viewMode, async (newMode) => {
+        if (newMode === 'day') {
+            await loadDisponibilidadDiaActual()
+        } else {
+            await loadDisponibilidadMes()
+        }
     })
 
     onMounted(() => {
         loadServices()
+        loadServiceSchedules()
     })
 
     return {
@@ -669,7 +976,7 @@ export function useAgenda() {
         isLoadingDisponibilidad, weekdays, dayColumns, services, serviceSearch,
         currentMonthName, selectedDateString, filteredServices, totalAppointmentsToday,
         totalServicesActive, daySlots, calendarDays, currentStats, dateOptions, agendaEvents,
-        loadServices,
+        loadServices, loadServiceSchedules,
         toggleSidebar, selectService, getServiceStats, getTimeIcon, getTimeIconColor,
         getStatusLabel, viewAppointment, cancelAppointment, previousMonth, nextMonth,
         previousDay, nextDay, goToToday, selectDayForDayView, updateSelectedDate,

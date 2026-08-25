@@ -427,6 +427,9 @@ const getNombreCompleto = (row) => {
   overflow: hidden;
 }
 
+/*.uppercase :deep(.q-field__native) {
+  text-transform: uppercase;
+}*/
 .resultados-table :deep(tbody tr) {
   transition: background-color 0.2s ease;
 }

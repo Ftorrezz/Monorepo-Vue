@@ -7,17 +7,11 @@
           Generar Agenda
         </div>
         <div class="text-subtitle2 q-mt-sm">
-          Flujo legacy: la agenda normal se maneja directamente desde la vista principal seleccionando servicio, día y hora disponible.
+          Genera los espacios de agenda disponibles basados en la configuración de servicios y horarios.
         </div>
       </q-card-section>
 
       <q-card-section class="q-pa-lg">
-        <q-banner rounded class="bg-orange-1 text-orange-10 q-mb-lg" inline-actions>
-          <template #avatar>
-            <q-icon name="info" color="orange" />
-          </template>
-          Este proceso solo se mantiene como herramienta auxiliar. El flujo habitual es elegir el servicio, el día y luego la hora libre.
-        </q-banner>
         <q-form @submit="generarAgenda" class="q-gutter-md">
           <div class="row q-col-gutter-md">
             <!-- Rango de Fechas -->

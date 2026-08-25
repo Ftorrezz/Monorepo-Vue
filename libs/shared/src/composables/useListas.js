@@ -1,5 +1,18 @@
 import NdPeticionControl from "src/controles/rest.control";
+import configuracionParametrosService from "src/services/configuracionParametros.service";
 import { ref, onMounted } from "vue";
+
+const CATALOGOS_LEGACY = {
+  especie: { idModulo: 3, idTabla: 5 },
+  raza: { idModulo: 3, idTabla: 10 },
+  razamascota: { idModulo: 3, idTabla: 10 },
+  sexo: { idModulo: 3, idTabla: 12 },
+  color: { idModulo: 3, idTabla: 1 },
+  dieta: { idModulo: 3, idTabla: 3 },
+  habitat: { idModulo: 3, idTabla: 8 },
+  caracter: { idModulo: 3, idTabla: 2 },
+  genero: { idModulo: 5, idTabla: 7 }
+};
 
 export default function useListas() {
   /**
@@ -24,26 +37,47 @@ export default function useListas() {
     const cargando = ref(false);
     const error = ref(null);
 
+    const mapearLista = (items) => {
+      const data = Array.isArray(items) ? items : (items?.data || []);
+      return data
+        .filter(item => item.activo === 'S' || item.activo === true || item.activo === undefined)
+        .map(item => ({
+          value: item[valueField],
+          label: item[labelField],
+          original: item
+        }));
+    };
+
     // Función para cargar los datos
     const cargarDatos = async () => {
       cargando.value = true;
       error.value = null;
-      
+
       try {
+        const catalogoLegacy = endpoint && CATALOGOS_LEGACY[endpoint?.toLowerCase?.()];
+
+        if (catalogoLegacy) {
+          const respuesta = await configuracionParametrosService.getParametros(
+            catalogoLegacy.idModulo,
+            catalogoLegacy.idTabla
+          );
+
+          lista.value = mapearLista(respuesta);
+          return;
+        }
+
         const _peticion = new NdPeticionControl();
         let parametros = null;
-        
+
         if (filtro) {
           parametros = { filtro };
         }
-        
+
         const _respuesta = await _peticion.invocarMetodo(endpoint, "get", null, parametros);
-               
-        // Transformar la respuesta al formato esperado por q-select
-        lista.value = _respuesta.map(item => ({
+
+        lista.value = (_respuesta || []).map(item => ({
           value: item[valueField],
           label: item[labelField],
-          // Mantener el objeto original para acceso a otros campos
           original: item
         }));
       } catch (err) {
@@ -54,7 +88,6 @@ export default function useListas() {
       }
     };
 
-    // Cargar datos al iniciar si se especifica
     if (cargarAlIniciar) {
       onMounted(cargarDatos);
     }

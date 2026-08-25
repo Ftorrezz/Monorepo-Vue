@@ -106,7 +106,7 @@
                 <q-input
                   v-model="formData.mascota.nombre"
                   label="Nombre"
-                  class="custom-input"
+                  class="custom-input uppercase"
                   @update:model-value="busquedaAutomatica ? realizarBusqueda() : null"
                   @keyup.enter="buscar"
                 />
