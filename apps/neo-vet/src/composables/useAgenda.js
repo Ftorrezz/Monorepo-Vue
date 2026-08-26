@@ -871,7 +871,12 @@ export function useAgenda() {
         if (!hasServiceScheduleForDate(selectedService.value.id, day.fullDate)) return
 
         selectedDate.value = new Date(day.fullDate)
-        viewMode.value = 'day'   // el watcher se encarga de cargar la disponibilidad
+        _skipViewModeWatch = true   // evitar doble carga desde el watcher
+        viewMode.value = 'day'
+        // Llamamos explícitamente en lugar de depender del watcher,
+        // ya que el watcher puede dispararse antes de que selectedDate
+        // esté actualizado en el siguiente ciclo reactivo (condición de carrera).
+        await loadDisponibilidadDiaActual()
     }
 
     const updateSelectedDate = async (newDate) => {
@@ -957,7 +962,15 @@ export function useAgenda() {
         return events
     })
 
+    // Flag para prevenir doble carga cuando selectDayForDayView cambia viewMode
+    // y también llama explícitamente a loadDisponibilidadDiaActual
+    let _skipViewModeWatch = false
+
     watch(viewMode, async (newMode) => {
+        if (_skipViewModeWatch) {
+            _skipViewModeWatch = false
+            return
+        }
         if (newMode === 'day') {
             await loadDisponibilidadDiaActual()
         } else {

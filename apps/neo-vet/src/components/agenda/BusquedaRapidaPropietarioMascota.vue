@@ -10,6 +10,7 @@
           label="Primer Apellido"
           class="uppercase"
           clearable
+          @input="formData.primerapellido = formData.primerapellido.toUpperCase()"
           @update:model-value="busquedaAutomatica ? realizarBusqueda() : null"
           @keyup.enter="buscar"
         />
@@ -23,6 +24,7 @@
           label="Segundo Apellido"
           class="uppercase"
           clearable
+          @input="formData.segundoapellido = formData.segundoapellido.toUpperCase()"
           @update:model-value="busquedaAutomatica ? realizarBusqueda() : null"
           @keyup.enter="buscar"
         />
@@ -36,6 +38,7 @@
           label="Nombres"
           class="uppercase"
           clearable
+          @input="formData.nombre = formData.nombre.toUpperCase()"
           @update:model-value="busquedaAutomatica ? realizarBusqueda() : null"
           @keyup.enter="buscar"
         />
@@ -365,9 +368,9 @@ const buscar = async () => {
     const dtoParametros = new DtoParametros()
     dtoParametros.filtro = {
       id_sitio: 1, // TODO: get from global context
-      nombre: formData.value.nombre,
-      primerapellido: formData.value.primerapellido,
-      segundoapellido: formData.value.segundoapellido,
+      nombre: formData.value.nombre.toUpperCase(),
+      primerapellido: formData.value.primerapellido.toUpperCase(),
+      segundoapellido: formData.value.segundoapellido.toUpperCase(),
       email: formData.value.email,
       telefono1: formData.value.telefono1
     }
@@ -427,9 +430,9 @@ const getNombreCompleto = (row) => {
   overflow: hidden;
 }
 
-/*.uppercase :deep(.q-field__native) {
+.uppercase :deep(.q-field__native) {
   text-transform: uppercase;
-}*/
+}
 .resultados-table :deep(tbody tr) {
   transition: background-color 0.2s ease;
 }

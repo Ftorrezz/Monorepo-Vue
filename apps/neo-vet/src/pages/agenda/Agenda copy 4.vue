@@ -333,7 +333,7 @@
               />
             </div>
 
-            <!-- Grid de citas modernas -->
+            <!-- Grid de citas -->
             <div class="appointments-grid">
               <div 
                 v-for="slot in daySlots" 
@@ -346,7 +346,7 @@
                 }"
                 @click="selectTimeSlot({ fullDate: selectedDate, slots: daySlots }, slot)"
               >
-                <div class="card-status-bar"></div>
+                                                <div class="card-status-bar"></div>
                 
                 <div class="card-header">
                   <div class="time-badge">
@@ -362,8 +362,8 @@
                   <template v-if="slot.appointment">
                     <div class="appointment-info">
                       <div class="info-row">
-                        <q-avatar size="32px" class="info-avatar person">
-                          <q-icon name="person" size="20px" />
+                        <q-avatar size="36px" class="info-avatar person">
+                          <q-icon name="person" />
                         </q-avatar>
                         <div class="info-text">
                           <div class="label">Propietario</div>
@@ -371,21 +371,19 @@
                         </div>
                       </div>
                       <div class="info-row">
-                        <q-avatar size="32px" class="info-avatar pet">
-                          <q-icon name="pets" size="20px" />
+                        <q-avatar size="36px" class="info-avatar pet">
+                          <q-icon name="pets" />
                         </q-avatar>
                         <div class="info-text">
                           <div class="label">Mascota</div>
-                          <div class="value">{{ slot.appointment.petName }} <span class="pet-type text-grey-6">({{ slot.appointment.petType || 'Mascota' }})</span></div>
+                          <div class="value">{{ slot.appointment.petName }} <span class="pet-type">({{ slot.appointment.petType || 'Mascota' }})</span></div>
                         </div>
                       </div>
                     </div>
                   </template>
                   <template v-else>
                     <div class="available-info">
-                      <div class="add-icon-wrapper">
-                        <q-icon name="add" size="24px" color="positive" class="add-icon" />
-                      </div>
+                      <q-icon name="add_circle_outline" size="40px" color="positive" class="add-icon" />
                       <div class="available-text">Disponible</div>
                       <div class="available-subtext">Toca para agendar</div>
                     </div>
@@ -398,7 +396,7 @@
                     <span>{{ selectedService.name }}</span>
                   </div>
                   <div class="action-btns">
-                    <q-btn flat round dense icon="print" color="grey-7" @click.stop="imprimirCertificadoCita(slot)">
+                    <q-btn flat round dense icon="print" color="secondary" @click.stop="imprimirCertificadoCita(slot)">
                       <q-tooltip>Imprimir Certificado</q-tooltip>
                     </q-btn>
                     <q-btn flat round dense icon="visibility" color="primary" @click.stop="viewAppointment(slot)" />
@@ -1494,23 +1492,22 @@ const {
 
 .modern-appointment-card {
   background: white;
-  border-radius: 16px;
+  border-radius: 12px;
   padding: 16px;
   position: relative;
   overflow: hidden;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(226, 232, 240, 0.6);
+  transition: all 0.2s ease;
+  border: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
   gap: 12px;
   cursor: pointer;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .modern-appointment-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-  border-color: rgba(226, 232, 240, 1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .card-status-bar {
@@ -1518,26 +1515,12 @@ const {
   top: 0;
   left: 0;
   bottom: 0;
-  width: 5px;
-  border-radius: 16px 0 0 16px;
+  width: 4px;
   z-index: 2;
 }
 
-.modern-appointment-card.available {
-  background: #f8fafc;
-  border: 1.5px dashed #cbd5e1;
-  box-shadow: none;
-}
-
-.modern-appointment-card.available:hover {
-  background: #f1f5f9;
-  border-color: #94a3b8;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-}
-
 .modern-appointment-card.available .card-status-bar {
-  display: none;
+  background: #10b981;
 }
 
 .modern-appointment-card.booked .card-status-bar {
@@ -1553,32 +1536,33 @@ const {
   background: #3b82f6;
 }
 
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .time-badge {
   display: flex;
   align-items: center;
   gap: 6px;
   font-weight: 700;
   color: #1e293b;
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .status-indicator {
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding: 3px 8px;
-  border-radius: 6px;
+  padding: 2px 8px;
+  border-radius: 4px;
 }
 
-.status-indicator.available { background: #ecfdf5; color: #059669; }
-.status-indicator.booked, .status-indicator.confirmed { background: #fef2f2; color: #dc2626; }
+.status-indicator.available {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.status-indicator.booked, .status-indicator.confirmed {
+  background: #fef2f2;
+  color: #dc2626;
+}
 
 .appointment-info {
   display: flex;
@@ -1592,9 +1576,23 @@ const {
   gap: 10px;
 }
 
-.info-avatar { background: #f1f5f9; color: #64748b; }
-.info-text .label { font-size: 10px; color: #94a3b8; text-transform: uppercase; font-weight: 600; line-height: 1;}
-.info-text .value { font-size: 13px; font-weight: 700; color: #334155; line-height: 1.2;}
+.info-avatar {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.info-text .label {
+  font-size: 10px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.info-text .value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+}
 
 .available-info {
   display: flex;
@@ -1602,40 +1600,39 @@ const {
   align-items: center;
   justify-content: center;
   padding: 12px 0;
-  gap: 6px;
+  gap: 4px;
   color: #10b981;
 }
 
-.add-icon-wrapper {
-  background: #ecfdf5;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 2px;
-  transition: all 0.2s ease;
+.available-text {
+  font-weight: 600;
+  font-size: 15px;
 }
 
-.modern-appointment-card.available:hover .add-icon-wrapper {
-  background: #d1fae5;
-  transform: scale(1.05);
+.available-subtext {
+  font-size: 11px;
+  color: #94a3b8;
 }
-
-.available-text { font-weight: 700; font-size: 14px; color: #059669; }
-.available-subtext { font-size: 11px; color: #64748b; font-weight: 500; }
 
 .card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 10px;
+  padding-top: 12px;
   border-top: 1px solid #f1f5f9;
 }
 
-.service-tag { font-size: 11px; color: #64748b; font-weight: 500; }
-.action-btns { display: flex; gap: 2px; }
+.service-tag {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+
+.action-btns {
+  display: flex;
+  gap: 4px;
+}
 
 /* Estilos para la tabla moderna */
 .day-table-view {
