@@ -29,30 +29,33 @@
                 :src="sucursal.logo_url || sucursal.imagen"
                 :alt="$t('branchDialog.imageAlt')"
                 class="branch-image"
-                fit="contain"
                 loading="lazy"
-              />
+              >
+                <div class="image-overlay">
+                  <q-icon name="pets" size="24px" color="white" />
+                </div>
+              </q-img>
             </div>
-
+            
             <div class="branch-info">
               <h3 class="branch-name">{{ sucursal.descripcion }}</h3>
               <div class="branch-details">
                 <div class="detail-item">
-                  <q-icon name="place" size="14px" color="#64748b" />
+                  <q-icon name="place" size="16px" color="#64748b" />
                   <span class="detail-text">{{ sucursal.direccion }}</span>
                 </div>
                 <div class="detail-item">
-                  <q-icon name="person" size="14px" color="#64748b" />
+                  <q-icon name="person" size="16px" color="#64748b" />
                   <span class="detail-text">{{ sucursal.responsable }}</span>
                 </div>
               </div>
             </div>
-
+            
             <!-- Botón de selección -->
             <div class="select-button">
-              <q-icon name="arrow_forward" size="18px" color="#6366f1" />
+              <q-icon name="arrow_forward" size="20px" color="#6366f1" />
             </div>
-
+            
             <!-- Efecto hover -->
             <div class="hover-overlay"></div>
           </div>
@@ -88,11 +91,11 @@ const selectBranch = (sucursal: Sucursal) => {
 
 <style lang="scss" scoped>
 .branch-dialog {
-  width: 900px;
+  width: 700px;
   max-width: 95vw;
   border-radius: 24px;
   overflow: hidden;
-  box-shadow:
+  box-shadow: 
     0 25px 50px -12px rgba(0, 0, 0, 0.25),
     0 0 0 1px rgba(255, 255, 255, 0.05);
   background: white;
@@ -155,64 +158,36 @@ const selectBranch = (sucursal: Sucursal) => {
 }
 
 .branches-container {
-  padding: 24px 32px;
-  max-height: 60vh;
-  overflow-y: auto;
-
-  // scrollbar más discreto (WebKit)
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 8px;
-
-    &:hover {
-      background: #94a3b8;
-    }
-  }
-
-  // Firefox
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+  padding: 32px;
 }
 
 .branches-grid {
   display: grid;
-  gap: 14px;
-  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
 
 .branch-card {
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: 16px;
   background: white;
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
   cursor: pointer;
-  padding: 12px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 2px solid transparent;
-  box-shadow:
+  box-shadow: 
     0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
 
   &:hover {
-    transform: translateY(-4px);
+    transform: translateY(-8px) scale(1.02);
     border-color: #6366f1;
-    box-shadow:
-      0 20px 40px -12px rgba(99, 102, 241, 0.25),
+    box-shadow: 
+      0 25px 50px -12px rgba(99, 102, 241, 0.25),
       0 0 0 1px rgba(99, 102, 241, 0.1);
 
     .branch-image {
-      transform: scale(1.05);
+      transform: scale(1.1);
     }
 
     .hover-overlay {
@@ -223,73 +198,82 @@ const selectBranch = (sucursal: Sucursal) => {
       transform: translateX(0);
       opacity: 1;
     }
+
+    .image-overlay {
+      opacity: 1;
+    }
   }
 }
 
 .branch-image-container {
   position: relative;
-  flex-shrink: 0;
-  width: 64px;
-  height: 64px;
-  border-radius: 14px;
+  height: 160px;
   overflow: hidden;
-  background: #f1f5f9;
-  padding: 6px;
 }
 
 .branch-image {
   width: 100%;
   height: 100%;
+  object-fit: cover;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.image-overlay {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  background: rgba(99, 102, 241, 0.9);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
 .branch-info {
+  padding: 24px;
   flex: 1;
-  min-width: 0; // evita overflow de texto largo
-  padding: 0;
 }
 
 .branch-name {
-  margin: 0 0 6px 0;
-  font-size: 15px;
+  margin: 0 0 16px 0;
+  font-size: 20px;
   font-weight: 600;
   color: #1e293b;
   line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 .branch-details {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 12px;
 }
 
 .detail-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
+  gap: 12px;
+  font-size: 14px;
 }
 
 .detail-text {
   color: #64748b;
   font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .select-button {
-  position: static;
-  flex-shrink: 0;
-  transform: translateX(20px);
-  width: 32px;
-  height: 32px;
+  position: absolute;
+  top: 50%;
+  right: 24px;
+  transform: translateY(-50%) translateX(20px);
+  width: 44px;
+  height: 44px;
   background: rgba(99, 102, 241, 0.1);
-  border-radius: 10px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -352,19 +336,26 @@ const selectBranch = (sucursal: Sucursal) => {
   }
 
   .branches-container {
-    padding: 16px;
-    max-height: 65vh;
+    padding: 20px;
   }
 
   .branches-grid {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 16px;
   }
 
   .branch-card {
     &:hover {
-      transform: translateY(-2px);
+      transform: translateY(-4px) scale(1.01);
     }
+  }
+
+  .branch-info {
+    padding: 20px;
+  }
+
+  .branch-name {
+    font-size: 18px;
   }
 }
 
@@ -382,7 +373,7 @@ const selectBranch = (sucursal: Sucursal) => {
 
 .branch-card {
   animation: slideInUp 0.6s ease-out;
-
+  
   &:nth-child(2) { animation-delay: 0.1s; }
   &:nth-child(3) { animation-delay: 0.2s; }
   &:nth-child(4) { animation-delay: 0.3s; }

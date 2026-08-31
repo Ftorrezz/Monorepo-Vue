@@ -14,7 +14,8 @@ export const useAuthStore = defineStore('useAuthStore', {
     refreshToken: null,
     sucursales: [] as Sucursal[],
     administrador: false,
-    superadministrador: false
+    superadministrador: false,
+    id_configuracion: null,
   }),
 
   getters: {
@@ -28,7 +29,9 @@ export const useAuthStore = defineStore('useAuthStore', {
 
     useIsAdmin: (state) => state.administrador,
 
-    useIsSuperAdmin: (state) => state.superadministrador
+    useIsSuperAdmin: (state) => state.superadministrador,
+
+    useIdConfiguracion: (state) => state.id_configuracion,
 
   },
   actions: {
@@ -49,7 +52,7 @@ export const useAuthStore = defineStore('useAuthStore', {
         };
         const respuesta = await _peticion.invocarMetodo('autorizacion/login', 'post', Usuario);
 
-        const { token, usuario, sucursales, roles } = respuesta[0]
+        const { token, usuario, sucursales, roles, id_configuracion } = respuesta[0]
 
         if (token) {
 
@@ -57,6 +60,7 @@ export const useAuthStore = defineStore('useAuthStore', {
           this.token = token;
           this.administrador = roles.includes("SUPERVISOR");
           this.superadministrador = roles.includes("ADMINISTRADOR");
+          this.id_configuracion = id_configuracion;
 
           console.log('sucursales', respuesta)
 
@@ -143,6 +147,7 @@ export const useAuthStore = defineStore('useAuthStore', {
       this.sucursales = [];
       this.administrador = false;
       this.superadministrador = false;
+      this.id_configuracion = null;
 
     }
 

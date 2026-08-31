@@ -2,6 +2,7 @@ import { ref, onMounted, watch } from "vue";
 import configuracionModulosService from "../services/configuracionModulos.service";
 import configuracionParametrosService from "../services/configuracionParametros.service";
 import NdAlertasControl from "src/controles/alertas.control";
+import { useAuthStore } from '../stores/Auth';
 
 export default function useConfiguracionParametros() {
     const modulos = ref([]);
@@ -11,6 +12,7 @@ export default function useConfiguracionParametros() {
     const tablaSeleccionada = ref(null);
     const cargando = ref(false);
     const alertas = new NdAlertasControl();
+    const authStore = useAuthStore();
 
     const fetchModulos = async () => {
         try {
@@ -42,7 +44,8 @@ export default function useConfiguracionParametros() {
             cargando.value = true;
             parametros.value = await configuracionParametrosService.getParametros(
                 moduloSeleccionado.value.id,
-                tablaSeleccionada.value.id
+                tablaSeleccionada.value.id,
+                authStore.useIdConfiguracion, authStore.useIdConfiguracion
             );
         } catch (error) {
             console.error("Error al cargar parámetros:", error);
@@ -76,7 +79,7 @@ export default function useConfiguracionParametros() {
                 ...item,
                 id_modulo: moduloSeleccionado.value.id,
                 id_tabla: tablaSeleccionada.value.id,
-                id_configuracion: 1,
+                id_configuracion: authStore.useIdConfiguracion,
             };
 
             let res;

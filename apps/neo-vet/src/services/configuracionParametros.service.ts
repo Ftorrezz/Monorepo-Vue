@@ -16,10 +16,10 @@ class ConfiguracionParametrosService {
     constructor() {
     }
 
-    async getParametros(idModulo: number, idTabla: number) {
+    async getParametros(idModulo: number, idTabla: number, idConfiguracion: number) {
         const peticion = new NdPeticionControl();
         return await peticion.invocarMetodo('configuracionparametros', 'get', null, {
-            filtro: { id_modulo: idModulo, id_tabla: idTabla, id_configuracion: 1 }
+            filtro: { id_modulo: idModulo, id_tabla: idTabla, id_configuracion: idConfiguracion }
             //todo:id_configuracion obtener de la tabla configuracion_parametros, es el id del parametro que se quiere obtener, por ejemplo: 1 para obtener el parametro de "mostrar_imagenes_estudios"
         });
     }

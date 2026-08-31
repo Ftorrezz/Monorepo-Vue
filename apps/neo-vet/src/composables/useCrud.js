@@ -345,6 +345,15 @@ export default function useCrud(modelName, tituloVentanaeliminacion) {
         delete dataToSend.id_sitio;
       }
 
+      if (modelName === "sitio" ||
+        modelName === "configuracion" ||
+        modelName === "tipositioubicacion" ||
+        modelName === "sitioubicacion" ||
+        modelName === "usuario"
+      ) {
+        delete dataToSend.id_configuracion;
+      }
+
       if (modelName === "sucursal" ||
         modelName === "configuracion" ||
         modelName === "perfilconfiguracion" ||
