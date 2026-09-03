@@ -63,7 +63,24 @@ export default {
 
   async usuarios() {
     exigirSesion()
-    const response = await Api.get('/usuario', { headers: contexto() })
-    return datos(response)
+    try {
+      const response = await Api.get('/usuario', { headers: contexto() })
+      return datos(response)
+    } catch (error) {
+      // Si no tenemos permisos para listar usuarios, intentamos obtener solo el usuario actual
+      if (error?.response?.status === 403) {
+        console.warn('Acceso a /usuario denegado (403). Intentando fallback a /usuario/{id}')
+        try {
+          const authStore = useAuthStore()
+          const resp2 = await Api.get(`/usuario/${authStore.id_usuario}`, { headers: contexto() })
+          const fallback = datos(resp2)
+          return Array.isArray(fallback) ? fallback : [fallback]
+        } catch (e) {
+          console.error('Fallback a usuario/{id} también falló', e)
+          throw error
+        }
+      }
+      throw error
+    }
   }
 }

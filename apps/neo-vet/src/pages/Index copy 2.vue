@@ -16,7 +16,6 @@
 
         <!-- Shortcuts / Quick Access -->
         <div class="col-12 col-md-7 row justify-end q-gutter-x-sm module-shortcuts">
-          <!-- Notifications moved to user menu -->
           <q-btn push color="white" text-color="primary" label="Nueva Cita" icon="add_circle" class="shortcut-btn" no-caps />
           <q-btn push color="white" text-color="primary" label="Paciente" icon="person_add" class="shortcut-btn" no-caps />
           <q-btn push color="white" text-color="primary" label="Venta" icon="point_of_sale" class="shortcut-btn" no-caps />
@@ -218,9 +217,6 @@ import { useDashboard } from '../composables/useDashboard'
 import BitacoraTareas from 'src/components/bitacora/BitacoraTareas.vue'
 
 import { useQuasar } from 'quasar'
-import { io } from 'socket.io-client'
-import { useNotificationsStore } from 'src/stores/Notifications'
-import { useAuthStore } from 'src/stores/Auth'
 
 Chart.register(...registerables)
 
@@ -236,10 +232,6 @@ const {
   addTask,
   chartData
 } = useDashboard()
-
-const notificationsStore = useNotificationsStore()
-const auth = useAuthStore()
-let notifSocket = null
 
 const promptNewTask = () => {
   $q.dialog({
@@ -384,31 +376,6 @@ const initCharts = () => {
 onMounted(async () => {
   await nextTick()
   initCharts()
-  // Socket for persistent notifications
-  if (auth.token && auth.id_usuario) {
-    try {
-      notifSocket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:81', { transports: ['websocket'], auth: { token: auth.token } })
-      notifSocket.on('connect', () => notifSocket.emit('user_join', auth.id_usuario))
-      notifSocket.on('tarea_asignada', tarea => {
-        // Push persistent notification
-        notificationsStore.pushNotification({
-          id: tarea.id,
-          title: `Tarea asignada: ${tarea.titulo}`,
-          message: tarea.descripcion || '',
-          payload: tarea
-        })
-        // Small transient toast as well that opens the notifications menu when clicked
-        $q.notify({
-          type: 'info', icon: 'assignment', message: `Te asignaron: ${tarea.titulo}`, timeout: 3000, position: 'top',
-          onClick: () => notificationsStore.focusNotification(tarea.id)
-        })
-        // request UI to focus notification
-        notificationsStore.focusNotification(tarea.id)
-      })
-    } catch (e) {
-      console.warn('No se pudo conectar socket de notificaciones', e)
-    }
-  }
 })
 
 watch(chartData, () => {
@@ -432,7 +399,6 @@ onUnmounted(() => {
   if (chartInstance2) chartInstance2.destroy()
   if (stockChartInstance) stockChartInstance.destroy()
   if (expireChartInstance) expireChartInstance.destroy()
-  if (notifSocket) notifSocket.disconnect()
 })
 </script>
 
@@ -537,9 +503,6 @@ onUnmounted(() => {
 .q-dark .dashboard-container :deep(.able-card.small-stat-card) { border-color: rgba(255,255,255,0.08) !important; }
 .q-dark .dashboard-container :deep(.able-card.full-height) { border-color: rgba(0,200,83,0.28) !important; }
 .q-dark .dashboard-container :deep(.able-card.bitacora-card) { border-color: rgba(170,85,255,0.36) !important; }
-
-/* Notification highlight */
-.notif-highlight { background-color: rgba(68,138,255,0.08); border-left: 3px solid rgba(68,138,255,0.22); }
 
 .border-bottom { border-bottom: 1px solid #f1f3f4; }
 .hover-bg:hover { background-color: #fafafa; cursor: pointer; }
