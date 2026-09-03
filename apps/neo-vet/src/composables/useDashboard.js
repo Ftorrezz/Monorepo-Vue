@@ -1,100 +1,29 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { io } from 'socket.io-client'
 import { useAuthStore } from 'src/stores/Auth'
+import { useDialogStore } from 'src/stores/DialogoUbicacion'
 
 export function useDashboard() {
     // Estado reactivo centralizado
     const stats = ref({
-        mascotas_atendidas: 847,
-        citas_asignadas: 34,
-        vacunas_aplicadas: 156,
-        desparasitaciones: 89,
-        hospitalizaciones: 12,
-        cirugias_realizadas: 23,
-        consultas_emergencia: 18,
-        ingresos_mes: 45750,
-        clientes_nuevos: 67,
-        medicamentos_dispensados: 234,
-        servicios_totales: 342
+        mascotas_atendidas: 0, citas_asignadas: 0, vacunas_aplicadas: 0,
+        desparasitaciones: 0, hospitalizaciones: 0, cirugias_realizadas: 0,
+        consultas_emergencia: 0, ingresos_mes: 0, clientes_nuevos: 0,
+        medicamentos_dispensados: 0, servicios_totales: 0, citas_hoy: 0,
+        citas_pendientes: 0, asistencia: 0
     })
 
     // Tareas / To-Do List
-    const tasks = ref([
-        { id: 1, text: 'Confirmar citas de mañana', completed: false, priority: 'high', category: 'Recepción' },
-        { id: 2, text: 'Pedir vacunas de rabia', completed: false, priority: 'medium', category: 'Inventario' },
-        { id: 3, text: 'Reporte mensual de ventas', completed: true, priority: 'low', category: 'Administración' },
-        { id: 4, text: 'Actualizar historias clínicas', completed: false, priority: 'medium', category: 'Veterinaria' },
-        { id: 5, text: 'Revisar equipos de laboratorio', completed: false, priority: 'high', category: 'Mantenimiento' },
-        { id: 6, text: 'Llamada seguimiento a Sr. Pérez', completed: false, priority: 'low', category: 'Recepción' },
-        { id: 7, text: 'Limpieza de quirófano', completed: true, priority: 'medium', category: 'Limpieza' },
-        { id: 8, text: 'Pago a proveedores', completed: false, priority: 'high', category: 'Administración' },
-        { id: 9, text: 'Capacitación nuevo personal', completed: false, priority: 'low', category: 'RRHH' }
-    ])
+    const tasks = ref([])
 
     // Inventory Data
-    const lowStockItems = ref([
-        { id: 1, name: 'Vacuna Rabia', stock: 2, min: 10, category: 'Vacunas' },
-        { id: 2, name: 'Amoxicilina 500mg', stock: 5, min: 20, category: 'Farmacia' },
-        { id: 3, name: 'Jeringas 3ml', stock: 15, min: 50, category: 'Insumos' },
-        { id: 4, name: 'Pipeta Antipulgas', stock: 3, min: 12, category: 'Farmacia' }
-    ])
+    const lowStockItems = ref([])
 
-    const expiringItems = ref([
-        { id: 1, name: 'Antibiótico Oral', expiration: '2025-05-15', daysLeft: 12, batch: 'B-123' },
-        { id: 2, name: 'Solución Salina', expiration: '2025-05-20', daysLeft: 17, batch: 'S-456' },
-        { id: 3, name: 'Alimento Premium', expiration: '2025-06-01', daysLeft: 28, batch: 'F-789' }
-    ])
+    const expiringItems = ref([])
 
-    const upcomingAppointments = ref([
-        { id: 1, time: '09:00', pet: 'Max', owner: 'Juan Pérez', type: 'Consulta' },
-        { id: 2, time: '10:30', pet: 'Luna', owner: 'María García', type: 'Vacuna' },
-        { id: 3, time: '11:00', pet: 'Rocky', owner: 'Carlos López', type: 'Cirugía' },
-        { id: 4, time: '14:00', pet: 'Bella', owner: 'Ana Martínez', type: 'Consulta' },
-        { id: 5, time: '15:30', pet: 'Coco', owner: 'Luis Rodríguez', type: 'Estética' }
-    ])
+    const upcomingAppointments = ref([])
 
-    const alerts = ref([
-        {
-            id: 1,
-            type: 'urgent',
-            icon: 'emergency',
-            title: 'Urgencia Médica',
-            message: 'Paciente Rex requiere atención inmediata',
-            time: 'Hace 5 min'
-        },
-        {
-            id: 2,
-            type: 'info',
-            icon: 'schedule',
-            title: 'Recordatorio',
-            message: 'Vacunación de Luna mañana',
-            time: 'Hace 15 min'
-        },
-        {
-            id: 3,
-            type: 'success',
-            icon: 'check_circle',
-            title: 'Cirugía Exitosa',
-            message: 'Cirugía de Max completada',
-            time: 'Hace 1 hora'
-        },
-        {
-            id: 4,
-            type: 'warning',
-            icon: 'inventory_2',
-            title: 'Stock Bajo',
-            message: 'Quedan pocas dosis de antirrábica',
-            time: 'Hace 2 horas'
-        },
-        {
-            id: 5,
-            type: 'info',
-            icon: 'person_add',
-            title: 'Nuevo Cliente',
-            message: 'Ana Martínez se registró',
-            time: 'Hace 3 horas'
-        }
-    ])
+    const alerts = ref([])
 
     // Getters computados para organizar los datos
     // Versión compacta para la barra superior
@@ -188,36 +117,12 @@ export function useDashboard() {
         }
     }
 
-    // Data para Gráficos
-    const appointmentsChartData = {
-        labels: ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'],
-        datasets: [{
-            label: 'Citas',
-            data: [3, 5, 8, 6, 4, 2, 7, 9, 6, 4, 3],
-            borderColor: '#4e73df',
-            backgroundColor: 'rgba(78, 115, 223, 0.05)',
-            tension: 0.3,
-            fill: true,
-            pointRadius: 3,
-            pointBackgroundColor: '#4e73df',
-            pointBorderColor: '#4e73df',
-            pointHoverRadius: 3,
-            pointHoverBackgroundColor: '#4e73df',
-            pointHoverBorderColor: '#4e73df',
-            pointHitRadius: 10,
-            pointBorderWidth: 2
-        }]
-    }
-
-    const servicesChartData = {
-        labels: ['Consultas', 'Vacunación', 'Cirugías', 'Otros'],
-        datasets: [{
-            data: [55, 30, 15, 10],
-            backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e'],
-            hoverBackgroundColor: ['#2e59d9', '#17a673', '#2c9faf', '#dda20a'],
-            hoverBorderColor: "rgba(234, 236, 244, 1)",
-        }],
-    }
+    const chartData = ref({
+        appointments: { labels: [], data: [] },
+        services: { labels: [], data: [] },
+        stock: { labels: [], data: [] },
+        expiration: { labels: [], data: [] }
+    })
 
     // Lógica de Socket
     let socket = null
@@ -226,10 +131,11 @@ export function useDashboard() {
         console.log('Iniciando escucha de sockets para dashboard...')
 
         const authStore = useAuthStore()
+        const dialogStore = useDialogStore()
         const token = authStore.token
 
         // Conectar al socket server (Puerto 81 según configuración backend)
-        socket = io('http://localhost:81', {
+        socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:81', {
             transports: ['websocket'],
             autoConnect: true,
             auth: {
@@ -241,8 +147,12 @@ export function useDashboard() {
             console.log('Socket conectado:', socket.id)
             // Unirse a la sala 'dashboard'
             socket.emit('event_join', 'dashboard')
+            if (authStore.id_usuario) socket.emit('user_join', authStore.id_usuario)
             // Solicitar datos reales para inicializar el dashboard
-            socket.emit('request_dashboard_data')
+            socket.emit('request_dashboard_data', {
+                id_sitio: dialogStore.id_sitio || authStore.sucursales?.[0]?.id_sitio,
+                id_sucursal: dialogStore.id_sucursal || authStore.sucursales?.[0]?.id
+            })
         })
 
         socket.on('disconnect', () => {
@@ -253,11 +163,18 @@ export function useDashboard() {
             console.error('Error de conexión socket:', err)
         })
 
+        socket.on('dashboard_error', (payload) => {
+            console.error('Error al cargar dashboard:', payload)
+        })
+
         // Escuchar datos iniciales
         socket.on('dashboard_initial_data', (payload) => {
             console.log('Datos iniciales recibidos:', payload)
             if (payload.stats) stats.value = { ...stats.value, ...payload.stats }
             if (payload.tasks) tasks.value = payload.tasks
+            if (payload.lowStockItems) lowStockItems.value = payload.lowStockItems
+            if (payload.expiringItems) expiringItems.value = payload.expiringItems
+            if (payload.charts) chartData.value = payload.charts
             if (payload.upcomingAppointments) upcomingAppointments.value = payload.upcomingAppointments
             if (payload.alerts) alerts.value = payload.alerts
         })
@@ -315,8 +232,7 @@ export function useDashboard() {
         secondaryStats,
         upcomingAppointments,
         alerts,
-        appointmentsChartData,
-        servicesChartData,
+        chartData,
         updateStat,
         addAlert,
         toggleTask,

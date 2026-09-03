@@ -2,9 +2,9 @@
   <q-page class="able-dashboard">
     <!-- Header / Brand Area -->
     <div class="dashboard-header-bg"></div>
-    
+
     <div class="dashboard-container">
-      
+
       <!-- Top Header Content + Shortcuts -->
       <div class="row items-center justify-between q-mb-md text-white header-content relative-position">
         <div class="col-12 col-md-5">
@@ -13,7 +13,7 @@
             <q-icon name="home" /> / Vista General
           </div>
         </div>
-        
+
         <!-- Shortcuts / Quick Access -->
         <div class="col-12 col-md-7 row justify-end q-gutter-x-sm module-shortcuts">
           <q-btn push color="white" text-color="primary" label="Nueva Cita" icon="add_circle" class="shortcut-btn" no-caps />
@@ -25,11 +25,11 @@
 
       <!-- Main Content Grid -->
       <div class="row q-col-gutter-md">
-        
+
         <!-- LEFT COLUMN: Large Analytics Cards (Wave) -->
         <div class="col-12 col-md-8">
           <div class="row q-col-gutter-md">
-            
+
             <!-- Card 1: Control de Citas -->
             <div class="col-12 col-md-6">
               <q-card class="able-card wave-card">
@@ -37,7 +37,7 @@
                   <div class="text-h4 text-weight-bold text-grey-9">{{ mainStats[0].value }}</div>
                   <div class="text-subtitle2 text-primary">Citas del Mes</div>
                 </q-card-section>
-                
+
                 <!-- Mini Chart Container -->
                 <div class="wave-chart-container">
                   <canvas ref="waveChart1"></canvas>
@@ -45,15 +45,15 @@
 
                 <q-card-section class="bg-primary text-white row text-center q-py-xs footer-stats">
                   <div class="col">
-                    <div class="text-subtitle1 text-weight-bold">12</div>
+                    <div class="text-subtitle1 text-weight-bold">{{ stats.citas_hoy }}</div>
                     <div class="text-caption-xs">Hoy</div>
                   </div>
                   <div class="col border-left-white">
-                    <div class="text-subtitle1 text-weight-bold">5</div>
+                    <div class="text-subtitle1 text-weight-bold">{{ stats.citas_pendientes }}</div>
                     <div class="text-caption-xs">Pendientes</div>
                   </div>
                   <div class="col border-left-white">
-                    <div class="text-subtitle1 text-weight-bold">98%</div>
+                    <div class="text-subtitle1 text-weight-bold">{{ stats.asistencia }}%</div>
                     <div class="text-caption-xs">Asistencia</div>
                   </div>
                 </q-card-section>
@@ -67,7 +67,7 @@
                   <div class="text-h4 text-weight-bold text-grey-9">{{ mainStats[2].value }}</div>
                   <div class="text-subtitle2 text-positive">Servicios Aplicados</div>
                 </q-card-section>
-                
+
                 <!-- Mini Chart Container -->
                 <div class="wave-chart-container">
                   <canvas ref="waveChart2"></canvas>
@@ -75,15 +75,15 @@
 
                 <q-card-section class="bg-positive text-white row text-center q-py-xs footer-stats">
                   <div class="col">
-                    <div class="text-subtitle1 text-weight-bold">156</div>
+                    <div class="text-subtitle1 text-weight-bold">{{ stats.vacunas_aplicadas }}</div>
                     <div class="text-caption-xs">Vacunas</div>
                   </div>
                   <div class="col border-left-white">
-                    <div class="text-subtitle1 text-weight-bold">45</div>
+                    <div class="text-subtitle1 text-weight-bold">{{ stats.consultas_emergencia }}</div>
                     <div class="text-caption-xs">Consultas</div>
                   </div>
                   <div class="col border-left-white">
-                    <div class="text-subtitle1 text-weight-bold">23</div>
+                    <div class="text-subtitle1 text-weight-bold">{{ stats.cirugias_realizadas }}</div>
                     <div class="text-caption-xs">Cirugías</div>
                   </div>
                 </q-card-section>
@@ -164,11 +164,11 @@
 
       <!-- Bottom Row: Inventory & Tasks -->
       <div class="row q-col-gutter-md q-mt-xs">
-        
+
         <!-- Inventory Statistics (Charts) -->
-        <div class="col-12 col-md-8">
+        <div class="col-12 col-md-6">
            <div class="row q-col-gutter-md full-height">
-             
+
              <!-- Card 1: Stock Status -->
              <div class="col-12 col-md-6">
                <q-card class="able-card full-height">
@@ -201,40 +201,8 @@
         </div>
 
         <!-- Tasks List (Restored) -->
-        <div class="col-12 col-md-4">
-          <q-card class="able-card full-height column">
-            <q-card-section class="row items-center justify-between border-bottom q-py-sm">
-              <div class="text-subtitle1 text-weight-bold text-grey-9">Tareas Pendientes</div>
-              <q-btn flat round dense icon="add" color="primary" size="sm" @click="promptNewTask" />
-            </q-card-section>
-
-             <q-card-section class="q-pa-none col scroll">
-              <q-list separator>
-                 <q-item 
-                  v-for="task in tasks" 
-                  :key="task.id" 
-                  clickable
-                  v-ripple
-                  class="hover-bg"
-                  @click="toggleTask(task.id)"
-                >
-                  <q-item-section side top>
-                    <q-checkbox :model-value="task.completed" @update:model-value="toggleTask(task.id)" size="xs" color="grey-6" />
-                  </q-item-section>
-                  
-                  <q-item-section>
-                    <q-item-label class="text-body2 text-grey-9" :class="{ 'text-strike text-grey': task.completed }">
-                        {{ task.text }}
-                    </q-item-label>
-                    <q-item-label caption>
-                      <q-badge :color="getPriorityColor(task.priority)" rounded class="q-mr-xs" style="width: 8px; height: 8px; padding: 0;" />
-                      {{ task.category }}
-                    </q-item-label>
-                  </q-item-section>
-                </q-item>
-              </q-list>
-            </q-card-section>
-          </q-card>
+        <div class="col-12 col-md-6">
+          <BitacoraTareas />
         </div>
 
       </div>
@@ -243,9 +211,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { Chart, registerables } from 'chart.js'
 import { useDashboard } from '../composables/useDashboard'
+import BitacoraTareas from 'src/components/bitacora/BitacoraTareas.vue'
 
 import { useQuasar } from 'quasar'
 
@@ -260,7 +229,8 @@ const {
   expiringItems,
   tasks,
   toggleTask,
-  addTask
+  addTask,
+  chartData
 } = useDashboard()
 
 const promptNewTask = () => {
@@ -320,9 +290,9 @@ const initCharts = () => {
     chartInstance1 = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: [1,2,3,4,5,6,7],
+        labels: chartData.value.appointments.labels,
         datasets: [{
-          data: [12, 19, 15, 25, 22, 30, 28],
+          data: chartData.value.appointments.data,
           borderColor: '#448aff',
           backgroundColor: gradient,
           fill: true
@@ -342,9 +312,9 @@ const initCharts = () => {
     chartInstance2 = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: [1,2,3,4,5,6,7],
+        labels: chartData.value.appointments.labels,
         datasets: [{
-          data: [20, 25, 30, 28, 35, 40, 45],
+          data: chartData.value.services.data,
           borderColor: '#00e676',
           backgroundColor: gradient,
           fill: true
@@ -359,9 +329,9 @@ const initCharts = () => {
     stockChartInstance = new Chart(stockChart.value, {
       type: 'doughnut',
       data: {
-        labels: ['Normal', 'Bajo', 'Crítico'],
+        labels: chartData.value.stock.labels,
         datasets: [{
-          data: [65, 25, 10],
+          data: chartData.value.stock.data,
           backgroundColor: ['#00e676', '#ffb300', '#ff5252'],
           borderWidth: 0
         }]
@@ -369,8 +339,8 @@ const initCharts = () => {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { 
-          legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } 
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }
         },
         cutout: '70%'
       }
@@ -382,10 +352,10 @@ const initCharts = () => {
     expireChartInstance = new Chart(expireChart.value, {
       type: 'bar',
       data: {
-        labels: ['< 30 Días', '30-60 Días', '> 60 Días'],
+        labels: chartData.value.expiration.labels,
         datasets: [{
           label: 'Lotes',
-          data: [5, 12, 28],
+          data: chartData.value.expiration.data,
           backgroundColor: ['#ff5252', '#ffb300', '#448aff'],
           borderRadius: 4
         }]
@@ -407,6 +377,22 @@ onMounted(async () => {
   await nextTick()
   initCharts()
 })
+
+watch(chartData, () => {
+  if (!chartInstance1 || !chartInstance2 || !stockChartInstance || !expireChartInstance) return
+  chartInstance1.data.labels = chartData.value.appointments.labels
+  chartInstance1.data.datasets[0].data = chartData.value.appointments.data
+  chartInstance2.data.labels = chartData.value.services.labels
+  chartInstance2.data.datasets[0].data = chartData.value.services.data
+  stockChartInstance.data.labels = chartData.value.stock.labels
+  stockChartInstance.data.datasets[0].data = chartData.value.stock.data
+  expireChartInstance.data.labels = chartData.value.expiration.labels
+  expireChartInstance.data.datasets[0].data = chartData.value.expiration.data
+  chartInstance1.update()
+  chartInstance2.update()
+  stockChartInstance.update()
+  expireChartInstance.update()
+}, { deep: true })
 
 onUnmounted(() => {
   if (chartInstance1) chartInstance1.destroy()
