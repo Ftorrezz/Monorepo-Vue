@@ -164,7 +164,7 @@
       </div> <!-- End Top Row -->
 
       <!-- Bottom Row: Inventory & Tasks -->
-      <div class="row q-col-gutter-md q-mt-xs">
+      <div class="row q-col-gutter-md q-mt-xs items-start">
 
         <!-- Inventory Statistics (Charts) -->
         <div class="col-12 col-md-6">

@@ -323,70 +323,78 @@
               />
             </div>
 
-            <!-- Lista vertical de citas -->
-            <div class="slots-list">
+            <!-- Grid de citas modernas -->
+            <div class="appointments-grid">
               <div 
                 v-for="slot in daySlots" 
                 :key="slot.time"
-                class="slot-item"
+                class="modern-appointment-card"
                 :class="{
-                  'slot-available': slot.status === 'available',
-                  'slot-booked': slot.status === 'booked' || slot.status === 'confirmed',
-                  'slot-selected': slot.status === 'selected'
+                  'available': slot.status === 'available',
+                  'booked': slot.status === 'booked' || slot.status === 'confirmed',
+                  'selected': slot.status === 'selected'
                 }"
                 @click="selectTimeSlot({ fullDate: selectedDate, slots: daySlots }, slot)"
               >
-
-                <!-- ====== SLOT DISPONIBLE: fila minimal ====== -->
-                <template v-if="!slot.appointment">
-                  <div class="avail-row">
-                    <span class="avail-dot"></span>
-                    <span class="avail-row-time">{{ slot.time }}</span>
-                    <span class="avail-row-label">Disponible</span>
-                    <div class="avail-row-line"></div>
-                    <q-icon name="add" size="15px" class="avail-add-icon" />
+                <div class="card-status-bar"></div>
+                
+                <div class="card-header">
+                  <div class="time-badge">
+                    <q-icon :name="getTimeIcon(slot.status)" size="16px" />
+                    <span>{{ slot.time }}</span>
                   </div>
-                </template>
+                  <div class="status-indicator" :class="slot.status">
+                    {{ getStatusLabel(slot.status) }}
+                  </div>
+                </div>
 
-                <!-- ====== SLOT OCUPADO: card premium ====== -->
-                <template v-else>
-                  <div class="booked-card">
-                    <!-- Columna izquierda: hora + icono -->
-                    <div class="booked-time-col">
-                      <div class="booked-time">{{ slot.time }}</div>
-                      <q-avatar size="38px" class="booked-owner-avatar">
-                        {{ slot.appointment.ownerName?.charAt(0)?.toUpperCase() || '?' }}
-                      </q-avatar>
-                    </div>
-
-                    <!-- Columna central: info principal -->
-                    <div class="booked-info-col">
-                      <div class="booked-owner">{{ slot.appointment.ownerName }}</div>
-                      <div class="booked-pet-row">
-                        <q-icon name="pets" size="12px" />
-                        <span>{{ slot.appointment.petName }}</span>
-                        <span class="booked-pet-type" v-if="slot.appointment.petType">&middot; {{ slot.appointment.petType }}</span>
+                <div class="card-body">
+                  <template v-if="slot.appointment">
+                    <div class="appointment-info">
+                      <div class="info-row">
+                        <q-avatar size="32px" class="info-avatar person">
+                          <q-icon name="person" size="20px" />
+                        </q-avatar>
+                        <div class="info-text">
+                          <div class="label">Propietario</div>
+                          <div class="value">{{ slot.appointment.ownerName }}</div>
+                        </div>
                       </div>
-                      <div class="booked-service-row">
-                        <q-icon :name="selectedService.icon" size="11px" />
-                        <span>{{ selectedService.name }}</span>
+                      <div class="info-row">
+                        <q-avatar size="32px" class="info-avatar pet">
+                          <q-icon name="pets" size="20px" />
+                        </q-avatar>
+                        <div class="info-text">
+                          <div class="label">Mascota</div>
+                          <div class="value">{{ slot.appointment.petName }} <span class="pet-type text-grey-6">({{ slot.appointment.petType || 'Mascota' }})</span></div>
+                        </div>
                       </div>
                     </div>
-
-                    <!-- Columna derecha: acciones -->
-                    <div class="booked-actions-col">
-                      <q-btn flat round dense icon="visibility" color="white" size="sm" @click.stop="viewAppointment(slot)">
-                        <q-tooltip>Ver detalle</q-tooltip>
-                      </q-btn>
-                      <q-btn flat round dense icon="print" color="white" size="sm" @click.stop="imprimirCertificadoCita(slot)">
-                        <q-tooltip>Imprimir</q-tooltip>
-                      </q-btn>
-                      <q-btn flat round dense icon="delete_outline" color="red-3" size="sm" @click.stop="cancelAppointment(slot)">
-                        <q-tooltip>Cancelar</q-tooltip>
-                      </q-btn>
+                  </template>
+                  <template v-else>
+                    <div class="available-info">
+                      <div class="add-icon-wrapper">
+                        <q-icon name="add" size="24px" color="positive" class="add-icon" />
+                      </div>
+                      <div class="available-text">Disponible</div>
+                      <div class="available-subtext">Toca para agendar</div>
                     </div>
+                  </template>
+                </div>
+
+                <div class="card-footer" v-if="slot.appointment">
+                  <div class="service-tag">
+                    <q-icon :name="selectedService.icon" size="14px" />
+                    <span>{{ selectedService.name }}</span>
                   </div>
-                </template>
+                  <div class="action-btns">
+                    <q-btn flat round dense icon="print" color="grey-7" @click.stop="imprimirCertificadoCita(slot)">
+                      <q-tooltip>Imprimir Certificado</q-tooltip>
+                    </q-btn>
+                    <q-btn flat round dense icon="visibility" color="primary" @click.stop="viewAppointment(slot)" />
+                    <q-btn flat round dense icon="delete_outline" color="negative" @click.stop="cancelAppointment(slot)" />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1196,186 +1204,12 @@ const {
 }
 .more-slots:hover { color: #1565c0; text-decoration: underline; }
 
-/* =============================================
-   NUEVA LISTA DE SLOTS - DISEÑO CAL.COM/LINEAR
-   ============================================= */
-
-.slots-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 16px 24px;
-}
-
-.slot-item {
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.18s ease;
-}
-
-/* ---------- DISPONIBLE: fila limpia sin bordes punteados ---------- */
-.slot-available {
-  background: transparent;
-  border-radius: 8px;
-}
-
-.slot-available:hover .avail-row {
-  background: #f0fdf4;
-}
-
-.slot-available:hover .avail-dot {
-  background: #22c55e;
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
-}
-
-.slot-available:hover .avail-add-icon {
-  color: #16a34a;
-  transform: scale(1.2);
-}
-
-.avail-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 7px 12px;
-  border-radius: 8px;
-  background: transparent;
-  transition: background 0.15s ease;
-}
-
-.avail-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #d1d5db;
-  flex-shrink: 0;
-  transition: background 0.15s ease, box-shadow 0.15s ease;
-}
-
-.avail-row-time {
-  font-size: 12px;
-  font-weight: 600;
-  color: #94a3b8;
-  min-width: 38px;
-  font-variant-numeric: tabular-nums;
-}
-
-.avail-row-label {
-  font-size: 11px;
-  color: #d1d5db;
-  font-weight: 500;
-}
-
-.avail-row-line {
-  flex: 1;
-  height: 1px;
-  background: #f1f5f9;
-}
-
-.avail-add-icon {
-  color: #e2e8f0;
-  transition: color 0.15s ease, transform 0.15s ease;
-}
-
-/* ---------- OCUPADO: card premium oscura ---------- */
-.slot-booked {
-  background: #1e293b;
-  border-radius: 14px;
-  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.18);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.slot-booked:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.28);
-}
-
-.booked-card {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 14px 18px;
-}
-
-.booked-time-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  min-width: 48px;
-}
-
-.booked-time {
-  font-size: 12px;
-  font-weight: 700;
-  color: #94a3b8;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.5px;
-}
-
-.booked-owner-avatar {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  color: white;
-  font-weight: 800;
-  font-size: 16px;
-  border-radius: 10px !important;
-  flex-shrink: 0;
-}
-
-.booked-info-col {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.booked-owner {
-  font-size: 14px;
-  font-weight: 700;
-  color: #f1f5f9;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.booked-pet-row {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  color: #64748b;
-  font-weight: 500;
-}
-
-.booked-pet-type {
-  color: #475569;
-}
-
-.booked-service-row {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 10px;
-  color: #475569;
-  margin-top: 2px;
-}
-
-.booked-actions-col {
-  display: flex;
-  gap: 2px;
-  opacity: 0;
-  transition: opacity 0.18s ease;
-}
-
-.slot-booked:hover .booked-actions-col {
-  opacity: 1;
-}
-
-/* ---------- SELECCIONADO ---------- */
-.slot-selected {
-  background: #1e3a5f;
-  border: 2px solid #3b82f6;
+/* Vista diaria - Modo Tarjetas */
+.appointments-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px;
+  padding: 16px;
 }
 
 .appointment-card {
@@ -1657,231 +1491,66 @@ const {
 }
 
 
-/* ==========================================
-   TARJETAS DE CITA - REDISEÑO COMPLETO
-   ========================================== */
-
 .modern-appointment-card {
-  border-radius: 14px;
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
   position: relative;
   overflow: hidden;
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   cursor: pointer;
-  display: flex;
-  flex-direction: column;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 
-/* --- OCUPADA: Tarjeta rica con acento superior --- */
-.modern-appointment-card.booked {
-  background: white;
-  border: 1px solid #fecaca;
-  box-shadow: 0 2px 10px rgba(239, 68, 68, 0.08);
-  gap: 10px;
-  padding: 0 14px 12px;
-}
-
-.modern-appointment-card.booked:hover {
+.modern-appointment-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  border-color: rgba(226, 232, 240, 1);
 }
 
-/* Banda de acento superior degradada */
-.card-accent-top {
-  background: linear-gradient(90deg, #ef4444, #f97316);
-  height: 4px;
-  margin: 0 -14px 2px;
-  border-radius: 14px 14px 0 0;
+.card-status-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 5px;
+  border-radius: 16px 0 0 16px;
+  z-index: 2;
 }
 
-/* Fila hora + chip de estado */
-.card-time-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 10px;
-}
-
-.card-time-chip {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  background: #fef2f2;
-  color: #dc2626;
-  font-size: 13px;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 20px;
-  border: 1px solid #fecaca;
-}
-
-/* Fila de avatares propietario + mascota */
-.card-avatars-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 4px 0;
-}
-
-.avatar-divider {
-  width: 1px;
-  height: 40px;
-  background: #f1f5f9;
-  flex-shrink: 0;
-}
-
-.avatar-block {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  min-width: 0;
-}
-
-.initials-avatar {
-  font-weight: 800;
-  font-size: 16px;
-  flex-shrink: 0;
-  border-radius: 10px !important;
-}
-
-.owner-avatar { background: #e0e7ff; color: #4338ca; }
-.pet-avatar   { background: #dcfce7; color: #15803d; }
-
-.avatar-info {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.avatar-label {
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: #94a3b8;
-  font-weight: 600;
-  line-height: 1;
-  margin-bottom: 2px;
-}
-
-.avatar-name {
-  font-size: 12px;
-  font-weight: 700;
-  color: #1e293b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.pet-type-chip {
-  display: inline-block;
-  background: #f0fdf4;
-  color: #15803d;
-  border-radius: 6px;
-  font-size: 9px;
-  font-weight: 600;
-  padding: 1px 5px;
-  margin-left: 3px;
-  vertical-align: middle;
-}
-
-/* --- DISPONIBLE: Tarjeta compacta y discreta --- */
 .modern-appointment-card.available {
-  background: #fafafa;
-  border: 1.5px dashed #d1d5db;
+  background: #f8fafc;
+  border: 1.5px dashed #cbd5e1;
   box-shadow: none;
-  padding: 0;
 }
 
 .modern-appointment-card.available:hover {
-  background: #f0fdf4;
-  border-color: #86efac;
-  transform: none;
-  box-shadow: 0 2px 8px rgba(74, 222, 128, 0.12);
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
-.modern-appointment-card.available:hover .avail-plus-icon {
-  color: #16a34a;
-  transform: scale(1.15);
+.modern-appointment-card.available .card-status-bar {
+  display: none;
 }
 
-/* Layout compacto para disponible */
-.available-compact {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  height: 100%;
-  gap: 8px;
+.modern-appointment-card.booked .card-status-bar {
+  background: #ef4444;
 }
 
-.avail-time {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #94a3b8;
-}
-
-.avail-plus-icon {
-  color: #a3e4b5;
-  transition: transform 0.2s ease, color 0.2s ease;
-}
-
-.avail-label {
-  font-size: 11px;
-  color: #cbd5e1;
-  font-weight: 500;
-}
-
-/* --- SELECTED --- */
 .modern-appointment-card.selected {
   background: #f8faff;
-  border: 1.5px solid #3b82f6;
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15);
+  border-color: #3b82f6;
 }
 
-/* Footer card booked */
-.card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 8px;
-  border-top: 1px solid #fef2f2;
-  margin-top: auto;
+.modern-appointment-card.selected .card-status-bar {
+  background: #3b82f6;
 }
-
-.service-tag {
-  font-size: 10px;
-  color: #94a3b8;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.action-btns { display: flex; gap: 0px; }
-
-.status-indicator {
-  font-size: 9px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 3px 8px;
-  border-radius: 6px;
-}
-
-.status-indicator.available { background: #ecfdf5; color: #059669; }
-.status-indicator.booked, .status-indicator.confirmed { background: #fef2f2; color: #dc2626; }
-
-/* QUITAMOS los estilos viejos que ya no aplican */
-.card-status-bar { display: none; }
-.card-header { display: none; }
-.card-body { display: none; }
-.info-avatar { border-radius: 8px !important; }
-.info-avatar.person { background: #e0e7ff; color: #4338ca; }
-.info-avatar.pet { background: #dcfce7; color: #15803d; }
-.info-avatar.professional { background: #fef3c7; color: #92400e; }
 
 .card-header {
   display: flex;
@@ -1922,10 +1591,7 @@ const {
   gap: 10px;
 }
 
-.info-avatar { border-radius: 8px !important; }
-.info-avatar.person { background: #e0e7ff; color: #4338ca; }
-.info-avatar.pet { background: #dcfce7; color: #15803d; }
-.info-avatar.professional { background: #fef3c7; color: #92400e; }
+.info-avatar { background: #f1f5f9; color: #64748b; }
 .info-text .label { font-size: 10px; color: #94a3b8; text-transform: uppercase; font-weight: 600; line-height: 1;}
 .info-text .value { font-size: 13px; font-weight: 700; color: #334155; line-height: 1.2;}
 

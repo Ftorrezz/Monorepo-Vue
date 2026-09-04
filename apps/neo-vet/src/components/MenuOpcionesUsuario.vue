@@ -2,7 +2,7 @@
   <div class="row items-center no-wrap">
 
     <!-- Notifications button + menu -->
-      <q-btn push color="white" text-color="primary" icon="notifications" class="shortcut-btn" @click.stop.prevent="mostrarNotificaciones = !mostrarNotificaciones" style="margin-right:8px; z-index:9999">
+      <q-btn push round flat icon="notifications" class="shortcut-btn" @click.stop.prevent="mostrarNotificaciones = !mostrarNotificaciones" style="margin-right:8px; z-index:9999">
         <q-badge v-if="notificationsStore.unreadCount" color="negative" floating :label="notificationsStore.unreadCount" />
       </q-btn>
       <q-menu v-model="mostrarNotificaciones" anchor="bottom right" self="top right" :cover="false">
