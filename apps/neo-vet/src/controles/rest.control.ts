@@ -38,12 +38,14 @@ class NdPeticionControl {
     const sucursalSeleccionada = dialogStore.sucursalSeleccionada || authStore.sucursales?.[0] || null;
     const idsitio = dialogStore.id_sitio || sucursalSeleccionada?.id_sitio || authStore.sucursales?.[0]?.id_sitio || 1;
     const idsucursal = dialogStore.id_sucursal || sucursalSeleccionada?.id || authStore.sucursales?.[0]?.id || 1;
-
+    const idconfiguracion = authStore.id_configuracion || 1;
+    
     let headers = {
       'Content-Type': 'application/json',
       'idsitio': idsitio,
       'idsucursal': idsucursal,
-      'offset': '0'
+      'offset': '0',
+      'idconfiguracion': idconfiguracion
     };
 
     if (!atributos) atributos = [];

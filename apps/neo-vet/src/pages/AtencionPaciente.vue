@@ -960,11 +960,13 @@ export default {
 
     const cargarMotivosParaAtencion = async () => {
       try {
-        const motivos = await citaMotivoService.getMotivos()
-        motivosDisponibles.value = Array.isArray(motivos) ? motivos.filter(m => m.activo !== false && m.activo !== 'N') : []
+        const servicios = await servicioDinamicoService.getServicios()
+        motivosDisponibles.value = Array.isArray(servicios)
+          ? servicios.filter(s => s.activo !== false && s.activo !== 'N')
+          : []
       } catch (error) {
-        console.error('Error al cargar motivos:', error)
-        $q.notify({ type: 'warning', message: 'No se pudieron cargar los motivos', caption: error.message })
+        console.error('Error al cargar servicios para el motivo de atención:', error)
+        $q.notify({ type: 'warning', message: 'No se pudieron cargar los servicios', caption: error.message })
         motivosDisponibles.value = []
       }
     }
@@ -986,7 +988,7 @@ export default {
 
     const motivosOpciones = computed(() => {
       return motivosDisponibles.value.map(m => ({
-        label: m.descripcion || m.nombre || 'Sin descripción',
+        label: m.nombre || m.descripcion || 'Sin descripción',
         value: m.id
       }))
     })
@@ -1130,6 +1132,14 @@ export default {
           cargarMotivosParaAtencion(),
           cargarProfesionalesParaAtencion()
         ])
+
+        if (!formNuevaAtencion.motivo_id && motivosDisponibles.value.length > 0) {
+          formNuevaAtencion.motivo_id = motivosDisponibles.value[0].id
+        }
+
+        if (!formNuevaAtencion.veterinario_id && profesionalesDisponibles.value.length > 0) {
+          formNuevaAtencion.veterinario_id = profesionalesDisponibles.value[0].id
+        }
       } finally {
         cargandoCatalogos.value = false
       }
@@ -1137,6 +1147,15 @@ export default {
 
     // Función asíncrona para crear atención
     const crearNuevaAtencion = async () => {
+      if (!formNuevaAtencion.motivo_id) {
+        $q.notify({
+          type: 'warning',
+          message: 'Debes seleccionar un servicio/motivo para iniciar la atención',
+          position: 'top'
+        })
+        return
+      }
+
       try {
         $q.loading.show()
 
@@ -1152,6 +1171,22 @@ export default {
         }
 
         const respuesta = await atencionService.crearAtencion(datosNuevaAtencion)
+        const atencionCreada = respuesta?.data || respuesta
+        const idAtencion = atencionCreada?.id ?? atencionCreada?.[0]?.id ?? atencionCreada?.elemento?.[0]?.id ?? null
+
+        if (idAtencion) {
+          try {
+            const servicioDefault = motivosDisponibles.value.find(s => Number(s.id) === Number(formNuevaAtencion.motivo_id))
+            await atencionServicioService.crear({
+              id_atencion: Number(idAtencion),
+              id_servicio: Number(formNuevaAtencion.motivo_id),
+              estado: 'pendiente',
+              observaciones: servicioDefault?.descripcion || formNuevaAtencion.observaciones || 'Servicio inicial de la atención'
+            })
+          } catch (errorServicio) {
+            console.warn('No se pudo asociar el servicio inicial a la atención:', errorServicio)
+          }
+        }
 
         if (respuesta) {
             // Cerrar el diálogo primero para que el usuario no espere bloqueado

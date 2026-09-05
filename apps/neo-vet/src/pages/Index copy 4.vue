@@ -384,6 +384,31 @@ const initCharts = () => {
 onMounted(async () => {
   await nextTick()
   initCharts()
+  // Socket for persistent notifications
+  if (auth.token && auth.id_usuario) {
+    try {
+      notifSocket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:81', { transports: ['websocket'], auth: { token: auth.token } })
+      notifSocket.on('connect', () => notifSocket.emit('user_join', auth.id_usuario))
+      notifSocket.on('tarea_asignada', tarea => {
+        // Push persistent notification
+        notificationsStore.pushNotification({
+          id: tarea.id,
+          title: `Tarea asignada: ${tarea.titulo}`,
+          message: tarea.descripcion || '',
+          payload: tarea
+        })
+        // Small transient toast as well that opens the notifications menu when clicked
+        $q.notify({
+          type: 'info', icon: 'assignment', message: `Te asignaron: ${tarea.titulo}`, timeout: 3000, position: 'top',
+          onClick: () => notificationsStore.focusNotification(tarea.id)
+        })
+        // request UI to focus notification
+        notificationsStore.focusNotification(tarea.id)
+      })
+    } catch (e) {
+      console.warn('No se pudo conectar socket de notificaciones', e)
+    }
+  }
 })
 
 watch(chartData, () => {
@@ -407,6 +432,7 @@ onUnmounted(() => {
   if (chartInstance2) chartInstance2.destroy()
   if (stockChartInstance) stockChartInstance.destroy()
   if (expireChartInstance) expireChartInstance.destroy()
+  if (notifSocket) notifSocket.disconnect()
 })
 </script>
 

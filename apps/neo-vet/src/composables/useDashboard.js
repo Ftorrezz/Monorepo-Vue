@@ -4,6 +4,13 @@ import { useAuthStore } from 'src/stores/Auth'
 import { useDialogStore } from 'src/stores/DialogoUbicacion'
 
 export function useDashboard() {
+    const socketDebugEnabled = import.meta.env.VITE_SOCKET_DEBUG === 'true'
+    const debugSocketLog = (...args) => {
+        if (socketDebugEnabled) {
+            console.log('[dashboard-socket]', ...args)
+        }
+    }
+
     // Estado reactivo centralizado
     const stats = ref({
         mascotas_atendidas: 0, citas_asignadas: 0, vacunas_aplicadas: 0,
@@ -93,6 +100,37 @@ export function useDashboard() {
         if (alerts.value.length > 5) alerts.value.pop()
     }
 
+    const applyDashboardPayload = (payload) => {
+        if (!payload || typeof payload !== 'object') return
+
+        if (payload.stats && typeof payload.stats === 'object') {
+            stats.value = { ...stats.value, ...payload.stats }
+        }
+
+        if (payload.tasks) {
+            tasks.value = Array.isArray(payload.tasks) ? payload.tasks : tasks.value
+        }
+
+        if (payload.lowStockItems) lowStockItems.value = payload.lowStockItems
+        if (payload.expiringItems) expiringItems.value = payload.expiringItems
+        if (payload.charts) chartData.value = payload.charts
+        if (payload.upcomingAppointments) upcomingAppointments.value = payload.upcomingAppointments
+        if (payload.alerts) alerts.value = payload.alerts
+
+        if (payload.data && typeof payload.data === 'object') {
+            applyDashboardPayload(payload.data)
+        }
+
+        Object.keys(payload).forEach(key => {
+            if (['stats', 'tasks', 'lowStockItems', 'expiringItems', 'charts', 'upcomingAppointments', 'alerts', 'data'].includes(key)) {
+                return
+            }
+            if (stats.value[key] !== undefined) {
+                updateStat(key, payload[key])
+            }
+        })
+    }
+
     const toggleTask = (id) => {
         const task = tasks.value.find(t => t.id === id)
         if (task) {
@@ -134,6 +172,17 @@ export function useDashboard() {
         const dialogStore = useDialogStore()
         const token = authStore.token
 
+        const requestDashboardData = () => {
+            if (!socket) return
+            const context = {
+                id_sitio: dialogStore.id_sitio || authStore.sucursales?.[0]?.id_sitio,
+                id_sucursal: dialogStore.id_sucursal || authStore.sucursales?.[0]?.id,
+                id_usuario: authStore.id_usuario
+            }
+            debugSocketLog('Solicitando dashboard data', { socketId: socket.id, ...context })
+            socket.emit('request_dashboard_data', context)
+        }
+
         // Conectar al socket server (Puerto 81 según configuración backend)
         socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:81', {
             transports: ['websocket'],
@@ -144,15 +193,19 @@ export function useDashboard() {
         })
 
         socket.on('connect', () => {
+            const context = {
+                socketId: socket.id,
+                id_usuario: authStore.id_usuario,
+                id_sitio: dialogStore.id_sitio || authStore.sucursales?.[0]?.id_sitio,
+                id_sucursal: dialogStore.id_sucursal || authStore.sucursales?.[0]?.id
+            }
             console.log('Socket conectado:', socket.id)
+            debugSocketLog('Conectado con contexto del dashboard', context)
             // Unirse a la sala 'dashboard'
             socket.emit('event_join', 'dashboard')
             if (authStore.id_usuario) socket.emit('user_join', authStore.id_usuario)
             // Solicitar datos reales para inicializar el dashboard
-            socket.emit('request_dashboard_data', {
-                id_sitio: dialogStore.id_sitio || authStore.sucursales?.[0]?.id_sitio,
-                id_sucursal: dialogStore.id_sucursal || authStore.sucursales?.[0]?.id
-            })
+            requestDashboardData()
         })
 
         socket.on('disconnect', () => {
@@ -170,29 +223,83 @@ export function useDashboard() {
         // Escuchar datos iniciales
         socket.on('dashboard_initial_data', (payload) => {
             console.log('Datos iniciales recibidos:', payload)
-            if (payload.stats) stats.value = { ...stats.value, ...payload.stats }
-            if (payload.tasks) tasks.value = payload.tasks
-            if (payload.lowStockItems) lowStockItems.value = payload.lowStockItems
-            if (payload.expiringItems) expiringItems.value = payload.expiringItems
-            if (payload.charts) chartData.value = payload.charts
-            if (payload.upcomingAppointments) upcomingAppointments.value = payload.upcomingAppointments
-            if (payload.alerts) alerts.value = payload.alerts
+            debugSocketLog('dashboard_initial_data', {
+                stats: payload?.stats,
+                charts: payload?.charts,
+                lowStockItems: payload?.lowStockItems?.length,
+                expiringItems: payload?.expiringItems?.length,
+                id_sitio: payload?.id_sitio,
+                id_sucursal: payload?.id_sucursal
+            })
+            applyDashboardPayload(payload)
         })
 
         // Escuchar actualizaciones del dashboard (en vivo)
         socket.on('dashboard_update', (payload) => {
             console.log('Actualización recibida:', payload)
-
-            // Si payload es un objeto con actualizaciones masivas
-            if (typeof payload === 'object') {
-                Object.keys(payload).forEach(key => {
-                    updateStat(key, payload[key])
-                })
+            debugSocketLog('dashboard_update', {
+                type: payload?.type,
+                room: payload?.room,
+                stats: payload?.stats,
+                hasData: !!payload?.data,
+                dataKeys: payload?.data ? Object.keys(payload.data).slice(0, 10) : []
+            })
+            if (payload?.type || payload?.data || payload?.stats || payload?.charts) {
+                applyDashboardPayload(payload)
             }
 
-            // Si el backend envía un mensaje específico para alertas
-            if (payload.type === 'alert') {
+            if (payload?.type === 'alert') {
                 addAlert(payload.data)
+            }
+
+            if (payload?.type === 'creada' || payload?.type === 'actualizada' || payload?.type === 'cancelada' || payload?.type === 'appointment_created' || payload?.type === 'appointment_updated') {
+                setTimeout(() => requestDashboardData(), 200)
+            }
+        })
+
+        const agendaEventNames = [
+            'agenda_updated',
+            'agenda_actualizada',
+            'cita_creada',
+            'cita_agendada',
+            'appointment_created',
+            'citas_updated',
+            'dashboard_appointments_updated',
+            'appointment_updated'
+        ]
+
+        agendaEventNames.forEach((eventName) => {
+            socket.on(eventName, (payload) => {
+                console.log(`Actualización de agenda recibida (${eventName}):`, payload)
+                debugSocketLog(`evento-${eventName}`, {
+                    type: payload?.type,
+                    room: payload?.room,
+                    stats: payload?.stats,
+                    data: payload?.data ? { id: payload.data.id, fecha: payload.data.fecha, estado: payload.data.estado } : null
+                })
+                applyDashboardPayload(payload)
+                setTimeout(() => requestDashboardData(), 200)
+            })
+        })
+
+        socket.onAny((eventName, payload) => {
+            if (!eventName || typeof eventName !== 'string') return
+            const normalized = eventName.toLowerCase()
+            const ignoredEventNames = new Set([
+                'dashboard_initial_data',
+                'dashboard_error',
+                'request_dashboard_data',
+                'dashboard_update',
+                'task_added',
+                'task_toggled'
+            ])
+
+            if (ignoredEventNames.has(normalized)) return
+
+            if (agendaEventNames.includes(normalized) || normalized.includes('agenda') || normalized.includes('cita')) {
+                debugSocketLog('socket.onAny', { eventName, type: payload?.type, room: payload?.room, hasStats: !!payload?.stats })
+                applyDashboardPayload(payload)
+                setTimeout(() => requestDashboardData(), 200)
             }
         })
 

@@ -195,20 +195,46 @@
             </q-card>
 
 
-            <!-- Selector de Motivo (Obligatorio) -->
-            <ListaMotivoCita
+            <!-- Selector de Servicio / Motivo (Obligatorio) -->
+            <q-select
               v-model="motivoSeleccionado"
+              :options="serviciosDisponibles"
+              option-value="id"
+              option-label="nombre"
               outlined
-              label="Motivo de la cita *"
+              label="Servicio / motivo de la cita *"
               class="mt-4"
-              :rules="[val => !!val || 'El motivo es obligatorio']"
               emit-value
               map-options
+              :rules="[val => !!val || 'El servicio es obligatorio']"
+              clearable
             >
               <template v-slot:prepend>
                 <q-icon name="assignment" color="primary" />
               </template>
-            </ListaMotivoCita>
+              <template v-slot:option="scope">
+                <q-item v-bind="scope.itemProps">
+                  <q-item-section avatar>
+                    <q-avatar color="primary" text-color="white" size="32px">
+                      <q-icon :name="scope.opt.icono || 'medical_services'" />
+                    </q-avatar>
+                  </q-item-section>
+                  <q-item-section>
+                    <q-item-label>{{ scope.opt.nombre || scope.opt.descripcion || 'Servicio' }}</q-item-label>
+                    <q-item-label caption v-if="scope.opt.descripcion">
+                      {{ scope.opt.descripcion }}
+                    </q-item-label>
+                  </q-item-section>
+                </q-item>
+              </template>
+              <template v-slot:no-option>
+                <q-item>
+                  <q-item-section class="text-grey">
+                    No hay servicios disponibles
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
 
             <!-- Selector de Profesional (Opcional) -->
             <q-select
@@ -333,7 +359,7 @@ import BusquedaRapidaPropietarioMascota from './BusquedaRapidaPropietarioMascota
 import DialogPropietarioRapido from '../dialog/DialogPropietarioRapido.vue'
 import DialogMascotaRapido from '../dialog/DialogMascotaRapido.vue'
 import { useDialogStore } from 'src/stores/DialogoUbicacion'
-import ListaMotivoCita from "../../../../../libs/shared/src/components/listas/ListaMotivoCita.vue";
+import { servicioDinamicoService } from 'src/services/servicioDinamico.service'
 import notificacionService from 'src/services/notificacion.service'
 const props = defineProps({
   visible: Boolean,
@@ -354,7 +380,7 @@ const propietariosBuscados = ref([])
 const propietarioSeleccionado = ref(null)
 const mascotasPropietario = ref([])
 const mascotaSeleccionada = ref(null)
-const motivosDisponibles = ref([])
+const serviciosDisponibles = ref([])
 const motivoSeleccionado = ref(null)
 const profesionalesDisponibles = ref([])
 const profesionalAsignado = ref(null)
@@ -474,16 +500,16 @@ const cargarMascotasPropietario = async (idPropietario) => {
   }
 }
 
-const cargarMotivos = async () => {
+const cargarServicios = async () => {
   try {
-    const peticion = new NdPeticionControl()
-    const response = await peticion.invocarMetodo('citamotivo', 'get')
-    const motivos = Array.isArray(response) ? response : (response?.data || [])
-    motivosDisponibles.value = motivos.filter(m => m.activo !== false)
+    const servicios = await servicioDinamicoService.getServicios()
+    serviciosDisponibles.value = Array.isArray(servicios)
+      ? servicios.filter(servicio => servicio.activo !== false && servicio.activo !== 'N')
+      : []
   } catch (error) {
-    console.error('Error al cargar motivos:', error)
-    $q.notify({ type: 'warning', message: 'No se pudieron cargar los motivos', caption: error.message })
-    motivosDisponibles.value = []
+    console.error('Error al cargar servicios:', error)
+    $q.notify({ type: 'warning', message: 'No se pudieron cargar los servicios', caption: error.message })
+    serviciosDisponibles.value = []
   }
 }
 
@@ -518,8 +544,8 @@ const seleccionarMascota = (mascota) => {
   mascotaSeleccionada.value = mascota
   pasoActual.value = 'confirmar_cita'
 
-  // Cargar motivos y profesionales solo cuando llega al paso de confirmación
-  cargarMotivos()
+  // Cargar servicios y profesionales solo cuando llega al paso de confirmación
+  cargarServicios()
   cargarProfesionales()
 }
 
@@ -619,11 +645,11 @@ const confirmarCita = async () => {
     const datos = {
       id_propietario: propietarioSeleccionado.value.id,
       id_mascota: mascotaSeleccionada.value.id,
-      id_servicio: props.servicio.id,
+      id_servicio: motivoSeleccionado.value || props.servicio.id,
       id_slot: props.slotInfo.id_slot,
       fecha: props.slotInfo.fullDate.toISOString().split('T')[0],
       hora: props.slotInfo.time,
-      id_motivo: motivoSeleccionado.value,
+      id_motivo: motivoSeleccionado.value || props.servicio.id,
       id_profesional: profesionalAsignado.value || null,
       observaciones: observaciones.value,
       id_sucursal: store.sucursalSeleccionada.id,
